@@ -59,6 +59,38 @@ class Workloads:
             next_action = next_action.name
         return self._workloads.list(customer_tid, next_action)
 
+    def list_workloads(
+        self, customer_tid: int, next_action: Union[NextAction, str] = None, page=None
+    ) -> List[
+        Union[
+            Container,
+            Gateway4to6,
+            GatewayDelegate,
+            GatewayProxy,
+            GatewayReverseProxy,
+            GatewaySubdomain,
+            K8s,
+            NetworkResource,
+            Volume,
+            ZdbNamespace,
+            PublicIP,
+        ]
+    ]:
+        """list workloads by gevent and optionally filter them by owner or next_action state
+
+        Args:
+          customer_tid(int): filter by user ID
+          next_action(Union[NextAction, str], optional): filter by next_action state, defaults to None
+          page ([type], optional): page number to filter with. Defaults to None.
+
+        Returns:
+          List[ Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, PublicIP, ] ]: description]
+
+        """
+        if isinstance(next_action, NextAction):
+            next_action = next_action.name
+        return self._workloads.list_workloads(customer_tid, next_action, page=page)
+
     def iter(
         self, customer_tid: int, next_action: Union[NextAction, str] = None
     ) -> Iterator[
