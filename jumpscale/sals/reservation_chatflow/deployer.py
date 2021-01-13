@@ -378,7 +378,7 @@ class ChatflowDeployer:
             """- Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory).
 - Storage Unit (SU) is the size of data storage capacity.
 
-You can get more detail information about clout units on the wiki: <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">Cloud units details</a>.
+You can get more detail information about cloud units on the wiki: <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">Cloud units details</a>.
 
 
 The way this form works is you define how much cloud units you want to reserve and define for how long you would like the selected amount of cloud units.
