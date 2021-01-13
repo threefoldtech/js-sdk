@@ -93,6 +93,7 @@ def main():
 
             if has_snapshots:
                 snapshots = j.data.serializers.json.loads(BACKUP_ACTOR.snapshots())
+                print("current snapshots:", snapshots)
                 if snapshots.get("data"):
                     j.logger.info("Restoring backup ...")
                     BACKUP_ACTOR.restore()
