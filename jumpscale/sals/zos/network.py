@@ -8,6 +8,7 @@ from jumpscale.clients.explorer.models import NetworkResource, NextAction, Wireg
 from jumpscale.core.exceptions import Input
 from jumpscale.loader import j
 from jumpscale.tools.wireguard import generate_zos_keys
+import netaddr
 
 
 class Network:
@@ -20,6 +21,41 @@ class Network:
         self.name = name
         self.iprange = iprange
         self.network_resources = []
+        self.used_ips = []
+
+    def get_free_range(self):
+        used_ip_ranges = set()
+        for workload in self.network_resources:
+            used_ip_ranges.add(workload.iprange)
+            for peer in workload.peers:
+                used_ip_ranges.add(peer.iprange)
+        else:
+            network_range = netaddr.IPNetwork(self.iprange)
+            for idx, subnet in enumerate(network_range.subnet(24)):
+                if str(subnet) not in used_ip_ranges:
+                    break
+            else:
+                return None
+        return subnet
+
+    def get_node_range(self, node_id):
+        for workload in self.network_resources:
+            if workload.info.node_id == node_id:
+                return workload.iprange
+        raise j.exceptions.Input(f"node: {node_id} is not part of network")
+
+    def get_free_ip(self, node_id):
+        free_ips = []
+        ip_range = self.get_node_range(node_id)
+        hosts = netaddr.IPNetwork(ip_range).iter_hosts()
+        next(hosts)  # skip ip used by node
+        for host in hosts:
+            ip = str(host)
+            if ip not in self.used_ips:
+                free_ips.append(ip)
+        ip = random.choice(free_ips)
+        self.used_ips.append(ip)
+        return ip
 
 
 class NetworkGenerator:
@@ -242,10 +278,18 @@ class NetworkGenerator:
         if customer_tid is None:
             customer_tid = self._identity.tid
         nrs = {}
+        used_ips = []
         # first gather all the latest version of each network resource for this network
         for w in self._workloads.iter(customer_tid=customer_tid, next_action=NextAction.DEPLOY.name):
             if w.info.workload_type == WorkloadType.Network_resource and w.name == network_name:
                 nrs[w.info.node_id] = w
+            elif w.info.workload_type == WorkloadType.Kubernetes:
+                if w.network_id == network_name:
+                    used_ips.append(w.ipaddress)
+            elif w.info.workload_type == WorkloadType.Container:
+                for conn in w.network_connection:
+                    if conn.network_id == network_name:
+                        used_ips.append(conn.ipaddress)
 
         network = None
         for nr in nrs.values():
@@ -261,6 +305,9 @@ class NetworkGenerator:
 
             nr.info.reference = ""  # just to handle possible migrated network
             network.network_resources.append(nr)
+
+        if network:
+            network.used_ips = used_ips
 
         return network
 
