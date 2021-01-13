@@ -1,10 +1,12 @@
-from .vdc_base import VDCBase
-
+import pytest
 from jumpscale.loader import j
 from parameterized import parameterized_class
 
+from .vdc_base import VDCBase
+
 
 @parameterized_class(("flavor"), [("silver",), ("gold",), ("platinum",), ("diamond",)])
+@pytest.mark.integration
 class TestVDC(VDCBase):
     flavor = "silver"
 
