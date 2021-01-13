@@ -11,6 +11,7 @@
 ### Frontend
 
 - [test_packages](frontend/tests/test_packages.md)
+- [test_pools](frontend/tests/test_pools.md)
 - [test_wallets](frontend/tests/test_wallets.md)
 
 ### Sals

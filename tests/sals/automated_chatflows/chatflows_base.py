@@ -6,6 +6,7 @@ from jumpscale.loader import j
 from jumpscale.packages.admin.bottle.models import UserEntry as AdminUserEntry
 from jumpscale.packages.marketplace.bottle.models import UserEntry as MarkerplaceUserEntry
 from tests.base_tests import BaseTests
+from solutions_automation import deployer
 
 
 class ChatflowsBase(BaseTests):
@@ -14,10 +15,11 @@ class ChatflowsBase(BaseTests):
         # Load the needed packages here if it's needed.
         # set TEST_CERT and OVER_PROVISIONING to True.
         cls.test_cert = j.core.config.get("TEST_CERT", False)
-        cls.over_provisioning = j.core.config.get("OVER_PROVISIONING", False)
+        # cls.over_provisioning = j.core.config.get("OVER_PROVISIONING", False)
+        cls.sort_nodes_by_sru = j.core.config.get("SORT_NODES_BY_SRU", False)
         j.core.config.set("TEST_CERT", True)
-        j.core.config.set("OVER_PROVISIONING", True)
-
+        # j.core.config.set("OVER_PROVISIONING", True)
+        j.core.config.set("SORT_NODES_BY_SRU", True)
         # Get environment variables to create identity.
         cls.tname = os.environ.get("TNAME")
         cls.email = os.environ.get("EMAIL")
@@ -49,7 +51,7 @@ class ChatflowsBase(BaseTests):
         cls.server.start()
 
         # Timeout for any exposed solution to be reachable.
-        cls.timeout = 5
+        cls.timeout = 60
 
     @classmethod
     def tearDownClass(cls):
