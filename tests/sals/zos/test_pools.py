@@ -18,18 +18,22 @@ def info(msg):
 
 def get_funded_wallet():
     if WALLET_NAME and WALLET_SECRET:
-        wallet = j.clients.stellar.get(WALLET_NAME, network="TEST", secret=WALLET_SECRET)
+        wallet = j.clients.stellar.get(WALLET_NAME, network="STD", secret=WALLET_SECRET)
         return wallet
     else:
         raise ValueError("Please provide add Values to the environment variables WALLET_NAME and WALLET_SECRET")
 
 
-def create_new_wallet():
+@pytest.fixture
+def new_wallet():
+    info("Create empty wallet")
     wallet_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
-    wallet = j.clients.stellar.new(wallet_name, network="TEST")
-    wallet.activate_through_friendbot()
+    wallet = j.clients.stellar.new(wallet_name, network="STD")
+    wallet.activate_through_threefold_service()
     wallet.add_known_trustline("TFT")
-    return wallet
+    yield wallet
+    info("Returning XLMs to the activation wallet")
+    wallet.return_xlms_to_activation()
 
 
 def get_wallet_balance(wallet):
@@ -46,6 +50,7 @@ def amount_paid_to_farmer(pool):
 
 
 @pytest.mark.integration
+@pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2062")
 def test01_create_pool_with_funded_wallet():
     """Test for creating a pool with funded wallet.
 
@@ -121,7 +126,8 @@ def test02_extend_pool_with_funded_wallet():
 
 
 @pytest.mark.integration
-def test03_create_pool_with_empty_wallet():
+@pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2062")
+def test03_create_pool_with_empty_wallet(new_wallet):
     """Test for creating a pool with empty wallet.
 
     **Test Scenario**
@@ -131,15 +137,12 @@ def test03_create_pool_with_empty_wallet():
     - Pay for the pool, should fail.
     - Check that the pool has been created with empty units.
     """
-    info("Create empty wallet")
-    wallet = create_new_wallet()
-
     info("Create a pool")
     pool = zos.pools.create(cu=1, su=1, ipv4us=0, farm="freefarm", currencies=["TFT"])
 
     info("Pay for the pool, should fail")
     with pytest.raises(Exception) as e:
-        zos.billing.payout_farmers(wallet, pool)
+        zos.billing.payout_farmers(new_wallet, pool)
         assert e.value.status == 400
         assert e.value.title == "Transaction Failed"
 
@@ -152,7 +155,8 @@ def test03_create_pool_with_empty_wallet():
 
 
 @pytest.mark.integration
-def test04_extend_pool_with_empty_wallet():
+@pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2062")
+def test04_extend_pool_with_empty_wallet(new_wallet):
     """Test for extending a pool with empty wallet.
 
     **Test Scenario**
@@ -162,9 +166,6 @@ def test04_extend_pool_with_empty_wallet():
     - Pay for the pool, should fail.
     - Check that the pool has not been extended.
     """
-    info("Create empty wallet")
-    wallet = create_new_wallet()
-
     info("Extend an existing pool")
     pools = zos.pools.list()
     assert pools, "There is no existing pools to be extended"
@@ -176,7 +177,7 @@ def test04_extend_pool_with_empty_wallet():
 
     info("Pay for the pool, should fail")
     with pytest.raises(Exception) as e:
-        zos.billing.payout_farmers(wallet, pool)
+        zos.billing.payout_farmers(new_wallet, pool)
         assert e.value.status == 400
         assert e.value.title == "Transaction Failed"
 

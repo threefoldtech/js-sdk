@@ -67,7 +67,7 @@ class UbuntuDeploy(GedisChatBot):
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
-        cloud_units = j.sals.marketplace.deployer._calculate_cloud_units(**self.resources)
+        cloud_units = j.sals.marketplace.deployer._calculate_cloud_units(**query)
         self.pool_id = deployer.select_pool(self, cu=cloud_units.cu, su=cloud_units.su, **query)
 
     @chatflow_step(title="Network")

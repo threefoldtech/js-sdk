@@ -21,6 +21,7 @@ def main():
     email_host_user = os.environ.get("EMAIL_HOST_USER")
     email_host_password = os.environ.get("EMAIL_HOST_PASSWORD")
     ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
+    WALLET_SECRET = os.environ.get("THREEBOT_WALLET_SECRET")
 
     tname = f"{threebot_name}_{instance_name}"
     email = f"{tname}@threefold.me"
@@ -42,6 +43,11 @@ def main():
             "test", tname=tname, email=email, words=words, explorer_url="https://explorer.testnet.grid.tf/api/v1"
         )
         _save_identity(identity_test)
+    elif "dev" in default_identity:
+        identity_dev = j.core.identity.get(
+            "dev", tname=tname, email=email, words=words, explorer_url="https://explorer.devnet.grid.tf/api/v1"
+        )
+        _save_identity(identity_dev)
     else:
         identity_main = j.core.identity.get(
             "main", tname=tname, email=email, words=words, explorer_url="https://explorer.grid.tf/api/v1"
@@ -84,6 +90,15 @@ def main():
                 BACKUP_ACTOR.backup(tags="init")
         except Exception as e:
             j.logger.error(str(e))
+
+    # get the main wallet
+    j.logger.info("Initalizing main wallet ...")
+    try:
+        wallet = j.clients.stellar.get("main")
+        wallet.secret = WALLET_SECRET
+        wallet.save()
+    except Exception as e:
+        j.logger.error(f"Failed to create wallet, secret wasn't passed correctly: {str(e)}...")
 
     j.logger.info("Starting threebot ...")
 

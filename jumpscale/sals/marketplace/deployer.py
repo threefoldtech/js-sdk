@@ -1,6 +1,7 @@
 import math
 import random
 
+from jumpscale.sals.zos.billing import InsufficientFunds
 from jumpscale.clients.explorer.models import Container, DiskType, NextAction, WorkloadType
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
@@ -74,13 +75,18 @@ class MarketPlaceDeployer(ChatflowDeployer):
         info = self.get_payment_info(pool)
         WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
         wallet = j.clients.stellar.get(name=WALLET_NAME)
-        wallet.transfer(
-            destination_address=info["escrow_address"],
-            amount=info["total_amount_dec"],
-            asset=info["escrow_asset"],
-            memo_text=f"p-{info['resv_id']}",
-        )
-        return info
+        # try payment for 5 mins
+        zos = j.sals.zos.get()
+        now = j.data.time.utcnow().timestamp
+        while j.data.time.utcnow().timestamp <= now + 5 * 60:
+            try:
+                zos.billing.payout_farmers(wallet, pool)
+                return info
+            except InsufficientFunds as e:
+                raise e
+            except Exception as e:
+                j.logger.warning(str(e))
+        raise StopChatFlow(f"Failed to pay for pool {pool} in time, Please try again later")
 
     def list_pools(self, username=None, cu=None, su=None):
         all_pools = self.list_user_pools(username)
@@ -152,10 +158,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
         farms_names_with_gateways = set(
             map(lambda farm_id: deployer._explorer.farms.get(farm_id=farm_id).name, farms_ids_with_gateways)
         )
-        # if farm_name in farms_names_with_gateways:
-        #     farms_names_with_gateways = [farm_name]
-
-        farms_names_with_gateways = ["csfarmer"]  # TODO: for later remove and uncomment the previous 2 lines
+        if farm_name in farms_names_with_gateways:
+            farms_names_with_gateways = [farm_name]
 
         for farm_name_with_gw in farms_names_with_gateways:
             gw_pool_name = f"marketplace_gateway_{farm_name_with_gw}"
@@ -340,9 +344,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
 
     def _calculate_cloud_units(self, **resources):
         cont1 = Container()
-        cont1.capacity.cpu = resources["cru"]
-        cont1.capacity.memory = resources["mru"] * 1024
-        cont1.capacity.disk_size = resources["sru"] * 1024
+        cont1.capacity.cpu = round(resources["cru"])
+        cont1.capacity.memory = round(resources["mru"] * 1024)
+        cont1.capacity.disk_size = round(resources["sru"] * 1024)
         cont1.capacity.disk_type = DiskType.SSD
         return cont1.resource_units().cloud_units()
 
@@ -494,7 +498,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
         pool_info = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
         qr_code = self.show_payment(pool_info, bot)
-        result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
+        result = self.wait_pool_reservation(pool_info.reservation_id, qr_code=qr_code, bot=bot)
         if not result:
             raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}")
 

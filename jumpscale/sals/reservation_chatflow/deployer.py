@@ -448,7 +448,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         except Exception as e:
             raise StopChatFlow(f"failed to reserve pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
-        self.wait_pool_payment(bot, pool_info.reservation_id, 10, qr_code, trigger_cus=cu, trigger_sus=su)
+        self.wait_pool_reservation(pool_info.reservation_id, 30, qr_code=qr_code, bot=bot)
         return pool_info
 
     def extend_pool(self, bot, pool_id):
@@ -460,9 +460,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             raise StopChatFlow(f"failed to extend pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
         pool = j.sals.zos.get().pools.get(pool_id)
-        trigger_cus = pool.cus + (cu * 0.75) if cu else 0
-        trigger_sus = pool.sus + (su * 0.75) if su else 0
-        self.wait_pool_payment(bot, pool_id, 10, qr_code, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
+        self.wait_pool_reservation(pool_info.reservation_id, 10, qr_code, bot)
         return pool_info
 
     def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None):
@@ -1944,6 +1942,30 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
         return False
 
+    def wait_pool_reservation(self, reservation_id, exp=5, qr_code=None, bot=None, identity_name=None):
+        expiration = j.data.time.now().timestamp + exp * 60
+        msg = "<h2> Waiting for payment...</h2>"
+        if qr_code:
+            qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
+            msg += f"Please scan the QR Code below for the payment details if you missed it from the previous screen"
+            qr_code_msg = f"""
+            <div class="text-center">
+                <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
+            </div>
+            """
+            msg = msg + self.msg_payment_info + qr_code_msg
+        zos = j.sals.zos.get(identity_name)
+        while j.data.time.get().timestamp < expiration:
+            if bot:
+                bot.md_show_update(msg, html=True)
+            payment_info = zos.pools.get_payment_info(reservation_id)
+            if payment_info.paid and payment_info.released:
+                return True
+            if payment_info.canceled:
+                raise DeploymentFailed(f"pool reservation {reservation_id} was cancelled because: {payment_info.cause}")
+            gevent.sleep(2)
+        return False
+
     def get_payment_info(self, pool):
         escrow_info = pool.escrow_information
         resv_id = pool.reservation_id
@@ -2020,6 +2042,15 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             failure_count = int(failure_count_dict[key])
             result[node_id] = {"expiration": expiration, "failure_count": failure_count}
         return result
+
+    def clear_blocked_managed_domains(self):
+        blocked_domains_keys = j.core.db.keys(f"{DOMAINS_DISALLOW_PREFIX}:*")
+
+        if blocked_domains_keys:
+            j.core.db.delete(*blocked_domains_keys)
+        j.core.db.delete(DOMAINS_COUNT_KEY)
+
+        return True
 
     def wait_workload_deletion(self, wid, timeout=5, identity_name=None):
         j.logger.info(f"waiting workload {wid} to be deleted")

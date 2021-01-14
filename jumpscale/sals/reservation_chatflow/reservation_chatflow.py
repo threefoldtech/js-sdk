@@ -508,10 +508,7 @@ class ReservationChatflow:
         List all stellar client wallets from bcdb. Based on explorer instance only either wallets with network type TEST or STD are returned
         rtype: list
         """
-        if "devnet" in self._explorer.url or "testnet" in self._explorer.url:
-            network_type = StellarNetwork.TEST
-        else:
-            network_type = StellarNetwork.STD
+        network_type = StellarNetwork.STD
 
         wallets_list = j.clients.stellar.list_all()
         wallets = dict()

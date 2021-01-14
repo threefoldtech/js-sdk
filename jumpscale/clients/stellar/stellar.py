@@ -18,12 +18,23 @@ from .balance import AccountBalances, Balance, EscrowAccount
 from .transaction import Effect, PaymentSummary, TransactionSummary
 from .exceptions import UnAuthorized
 
+XLM_TRANSACTION_FEES = 0.00001
+ACTIVATION_ADDRESS = "GCKLGWHEYT2V63HC2VDJRDWEY3G54YSHHPOA6Q3HAPQUGA5OZDWZL7KW"
 
-_THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {"TEST": "testnet.threefold.io", "STD": "tokenservices.threefold.io"}
-_HORIZON_NETWORKS = {"TEST": "https://horizon-testnet.stellar.org", "STD": "https://horizon.stellar.org"}
+_THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
+    "TEST": "testnet.threefold.io",
+    "STD": "tokenservices.threefold.io",
+    "TFTECHTEST": None,
+}  # TODO: add tftech link
+_HORIZON_NETWORKS = {
+    "TEST": "https://horizon-testnet.stellar.org",
+    "STD": "https://horizon.stellar.org",
+    "TFTECHTEST": "https://horizon.testnet.threefold.io",
+}
 _NETWORK_PASSPHRASES = {
     "TEST": stellar_sdk.Network.TESTNET_NETWORK_PASSPHRASE,
     "STD": stellar_sdk.Network.PUBLIC_NETWORK_PASSPHRASE,
+    "TFTECHTEST": "TFTech Test Network ; December 2020",
 }
 _NETWORK_KNOWN_TRUSTS = {
     "TEST": {
@@ -35,6 +46,11 @@ _NETWORK_KNOWN_TRUSTS = {
         "TFT": "GBOVQKJYHXRR3DX6NOX2RRYFRCUMSADGDESTDNBDS6CDVLGVESRTAC47",
         "FreeTFT": "GCBGS5TFE2BPPUVY55ZPEMWWGR6CLQ7T6P46SOFGHXEBJ34MSP6HVEUT",
         "TFTA": "GBUT4GP5GJ6B3XW5PXENHQA7TXJI5GOPW3NF4W3ZIW6OOO4ISY6WNLN2",
+    },
+    "TFTECHTEST": {
+        "TFT": "GA47YZA3PKFUZMPLQ3B5F2E3CJIB57TGGU7SPCQT2WAEYKN766PWIMB3",
+        "FreeTFT": "GBLDUINEFYTF7XEE7YNWA3JQS4K2VD37YU7I2YAE7R5AHZDKQXSS2J6R",
+        "TFTA": "GB55A4RR4G2MIORJTQA4L6FENZU7K4W7ATGY6YOT2CW47M5SZYGYKSCT",
     },
 }
 _THREEFOLDFOUNDATION_TFTSTELLAR_ENDPOINT = {
@@ -49,6 +65,7 @@ _THREEFOLDFOUNDATION_TFTSTELLAR_ENDPOINT = {
 class Network(Enum):
     STD = "STD"
     TEST = "TEST"
+    TFTECHTEST = "TFTECHTEST"
 
 
 class Stellar(Client):
@@ -110,9 +127,8 @@ class Stellar(Client):
         resp.raise_for_status()
         return resp.json()
 
-    def _activation_account(self, activation_code):
-        data = {"activation_code": activation_code}
-        resp = j.tools.http.post(self._get_url("ACTIVATE_ACCOUNT"), json={"args": data})
+    def _activation_account(self):
+        resp = j.tools.http.post(self._get_url("ACTIVATE_ACCOUNT"), json={"address": self.address})
         resp.raise_for_status()
         return resp.json()
 
@@ -209,12 +225,14 @@ class Stellar(Client):
             if balance.is_native():
                 continue
             # Step 1: Transfer custom assets
-            transaction_builder.append_payment_op(
-                destination=self.address,
-                amount=balance.balance,
-                asset_code=balance.asset_code,
-                asset_issuer=balance.asset_issuer,
-            )
+            if decimal.Decimal(balance.balance) > decimal.Decimal(0):
+                transaction_builder.append_payment_op(
+                    destination=self.address,
+                    amount=balance.balance,
+                    asset_code=balance.asset_code,
+                    asset_issuer=balance.asset_issuer,
+                    source=account.account_id,
+                )
             # Step 2: Delete trustlines
             transaction_builder.append_change_trust_op(
                 asset_issuer=balance.asset_issuer, asset_code=balance.asset_code, limit="0"
@@ -229,23 +247,40 @@ class Stellar(Client):
         server.submit_transaction(transaction)
 
     def activate_through_friendbot(self):
-        """Activates and funds a testnet account using riendbot
+        """Activates and funds a testnet account using friendbot
         """
         if self.network.value != "TEST":
             raise Exception("Account activation through friendbot is only available on testnet")
 
-        resp = j.tools.http.get("https://friendbot.stellar.org/", params={"addr": self.address})
+        resp = j.tools.http.get("https://friendbot.stellar.org/", params={"address": self.address})
         resp.raise_for_status()
         j.logger.info(f"account with address {self.address} activated and funded through friendbot")
 
     def activate_through_threefold_service(self):
         """
-        Activate your weallet through threefold services
+        Activate your wallet through threefold services
         """
-        activationdata = self._create_activation_code()
-        self._activation_account(activationdata["activation_code"])
+        ## Try activating with `activation_wallet` j.clients.stellar.activation_wallet if exists
+        ## this activator should be imported on the system.
+        for _ in range(5):
+            j.logger.info(f"trying to activate : {self.instance_name}")
+            try:
+                resp = self._activation_account()
+                loaded_json = j.data.serializers.json.loads(resp)
+                xdr = loaded_json["activation_transaction"]
+                self.sign(xdr, submit=True)
+                return
 
-    def activate_account(self, destination_address, starting_balance="12.50"):
+            except Exception as e:
+                j.logger.error(f"failed to activate using the activation service {e}")
+                j.logger.info(f"trying to fund the wallet ourselves with the activation wallet")
+                if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
+                    j.logger.info(f"activation wallet {self.instance_name}")
+                    j.clients.stellar.activation_wallet.activate_account(self.address, "3.6")
+                    self.add_known_trustline("TFT")
+                    return
+
+    def activate_account(self, destination_address, starting_balance="3.6"):
         """Activates another account
 
         Args:
@@ -291,10 +326,15 @@ class Stellar(Client):
         Args:
             asset_code (str): code of the asset. For example: 'BTC', 'TFT', ...
         """
+        balances = self.get_balance()
+        for b in balances.balances:
+            if b.asset_code == asset_code:
+                j.logger.info(f"trustline {asset_code} is already added.")
+                return
         issuer = _NETWORK_KNOWN_TRUSTS.get(self.network.value, {}).get(asset_code)
         if not issuer:
             raise j.exceptions.NotFound(f"There is no known issuer for {asset_code} on network {self.network}")
-        self.add_trustline(asset_code, issuer)
+        self._change_trustline(asset_code, issuer)
 
     def delete_trustline(self, asset_code, issuer, secret=None):
         """Deletes a trustline
@@ -345,6 +385,16 @@ class Stellar(Client):
             j.logger.debug(e)
             raise e
 
+    def return_xlms_to_activation(self):
+        xlm_balance = 0
+        for balance in self.get_balances():
+            if balance.asset_code == "XLM":
+                xlm_balance = balance.balance
+        trustlines = len(self.get_balances()) - 1
+        minimum_balance = 1 + 0.5 * trustlines
+        amount = xlm_balance - minimum_balance - XLM_TRANSACTION_FEES
+        self.transfer(ACTIVATION_ADDRESS, amount)
+
     def transfer(
         self,
         destination_address,
@@ -358,6 +408,7 @@ class Stellar(Client):
         timeout=30,
         sequence_number: int = None,
         sign: bool = True,
+        retries: int = 5,
     ):
         """Transfer assets to another address
 
@@ -383,6 +434,41 @@ class Stellar(Client):
         Returns:
             [type]: [description]
         """
+        while retries > 0:
+            try:
+                return self._transfer(
+                    destination_address=destination_address,
+                    amount=amount,
+                    asset=asset,
+                    locked_until=locked_until,
+                    memo_text=memo_text,
+                    memo_hash=memo_hash,
+                    fund_transaction=fund_transaction,
+                    from_address=from_address,
+                    timeout=timeout,
+                    sequence_number=sequence_number,
+                    sign=sign,
+                )
+            except Exception as e:
+                retries -= 1
+                j.logger.warning(str(e))
+
+        raise j.exceptions.Runtime(f"Failed to make transaction for {retries} times, Please try again later")
+
+    def _transfer(
+        self,
+        destination_address,
+        amount,
+        asset="XLM",
+        locked_until=None,
+        memo_text=None,
+        memo_hash=None,
+        fund_transaction=True,
+        from_address=None,
+        timeout=30,
+        sequence_number: int = None,
+        sign: bool = True,
+    ):
         issuer = None
         j.logger.info(f"Sending {amount} {asset} to {destination_address}")
         if asset != "XLM":
@@ -451,6 +537,7 @@ class Stellar(Client):
 
         my_keypair = stellar_sdk.Keypair.from_secret(self.secret)
         transaction.sign(my_keypair)
+
         response = horizon_server.submit_transaction(transaction)
         tx_hash = response["hash"]
         j.logger.info(f"Transaction hash: {tx_hash}")
@@ -864,7 +951,7 @@ class Stellar(Client):
 
         Args:
             selling_asset (str): Selling Asset
-            buying_asset str): Buying Asset 
+            buying_asset str): Buying Asset
             amount (Union[str, decimal.Decimal]): Amount to sell.
             price (Union[str, decimal.Decimal]): Price for selling.
             timeout (int, optional): Timeout for submitting the transaction. Defaults to 30.
@@ -971,3 +1058,49 @@ class Stellar(Client):
         for data_name, data_value in response["data"].items():
             data[data_name] = base64.b64decode(data_value).decode("utf-8")
         return data
+
+    def merge_into_account(self, destination_address: str):
+        """Merges XLMs into destination address
+
+        Args:
+            destination_address (str): address to send XLMs to
+        """
+        server = self._get_horizon_server()
+        source_keypair = stellar_sdk.Keypair.from_secret(self.secret)
+
+        source_account = self.load_account()
+
+        base_fee = server.fetch_base_fee()
+
+        transaction_builder = stellar_sdk.TransactionBuilder(
+            source_account=source_account,
+            network_passphrase=_NETWORK_PASSPHRASES[self.network.value],
+            base_fee=base_fee,
+        )
+
+        balances = self.get_balance()
+        for balance in balances.balances:
+            if balance.is_native():
+                continue
+            # Step 1: Transfer custom assets
+            if decimal.Decimal(balance.balance) > decimal.Decimal(0):
+                transaction_builder.append_payment_op(
+                    destination=destination_address,
+                    amount=balance.balance,
+                    asset_code=balance.asset_code,
+                    asset_issuer=balance.asset_issuer,
+                )
+            # Step 2: Delete trustlines
+            transaction_builder.append_change_trust_op(
+                asset_issuer=balance.asset_issuer, asset_code=balance.asset_code, limit="0"
+            )
+
+        transaction_builder.append_account_merge_op(destination=destination_address)
+        transaction = transaction_builder.build()
+
+        transaction.sign(source_keypair)
+        try:
+            response = server.submit_transaction(transaction)
+            j.logger.info("Transaction hash: {}".format(response["hash"]))
+        except stellar_sdk.exceptions.BadRequestError as e:
+            j.logger.debug(e)
