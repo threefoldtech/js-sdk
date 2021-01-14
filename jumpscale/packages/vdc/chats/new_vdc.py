@@ -19,14 +19,17 @@ class VDCDeploy(GedisChatBot):
             raise StopChatFlow("Payment service is currently down, try again later")
         # xlms check
         for wname in ["activation_wallet"]:
-            try:
-                w = j.clients.stellar.get(wname)
-                if w.get_balance_by_asset("XLM") < 10:
-                    raise StopChatFlow(f"{wname} doesn't have enough XLM to support the deployment.")
-            except:
-                raise StopChatFlow(f"couldn't get the balance for {wname} wallet")
+            if wname in j.clients.stellar.list_all():
+                try:
+                    w = j.clients.stellar.get(wname)
+                    if w.get_balance_by_asset("XLM") < 10:
+                        raise StopChatFlow(f"{wname} doesn't have enough XLM to support the deployment.")
+                except:
+                    raise StopChatFlow(f"couldn't get the balance for {wname} wallet")
+                else:
+                    j.logger.info(f"{wname} is funded")
             else:
-                j.logger.info(f"{wname} is funded")
+                j.logger.info(f"this system doesn't have {wname} configured")
 
         # tft wallets check
         for wname in ["vdc_init", "grace_period"]:
