@@ -202,7 +202,7 @@ def get_zstor_config():
 def get_zdb_secret():
     vdc = _get_vdc()
     vdc_zdb_monitor = vdc.get_zdb_monitor()
-    password = vdc_zdb_monitor.get_password(j.core.identity.ayoub33)
+    password = vdc_zdb_monitor.get_password()
     return j.data.serializers.json.dumps({"data": password})
 
 
