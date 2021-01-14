@@ -99,19 +99,33 @@ module.exports = {
       let fileType = null;
       if (this.downloadType === "zdbs") {
         fileType = "json";
-        data = JSON.stringify(this.vdc.s3.zdbs, null, "\t");
-        const blob = new Blob([data]);
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute(
-          "download",
-          `${this.vdc.vdc_name}ZDBsInfo.${fileType}`
-        );
-        document.body.appendChild(link);
-        link.click();
-        link.parentNode.removeChild(link);
-        this.dialogs.downloadInfo = false;
+        this.loading = true;
+        this.$api.solutions
+          .getZdbSecret()
+          .then((response) => {
+            Secret = response.data.data;
+            let zdbs = this.vdc.s3.zdbs;
+            for(i in this.vdc.s3.zdbs){
+              let zdb = this.vdc.s3.zdbs[i]
+              zdb.password = Secret;
+            }
+            data = JSON.stringify(zdbs, null, "\t");
+            const blob = new Blob([data]);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+              "download",
+              `${this.vdc.vdc_name}ZDBsInfo.${fileType}`
+            );
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            this.dialogs.downloadInfo = false;
+          })
+          .finally(() => {
+            this.loading = false;
+          });
       } else if (this.downloadType === "zstor") {
         fileType = "toml";
         this.loading = true;

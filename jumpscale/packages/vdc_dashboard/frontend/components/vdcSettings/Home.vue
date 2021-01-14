@@ -35,7 +35,7 @@
         </v-card>
       </v-tab-item>
     </v-tabs>
-    <v-dialog v-model="dialog.expiration" width="400">
+    <v-dialog v-if="dialog.expiration" v-model="dialog.expiration" width="400">
       <v-card
         v-if="vdc"
         :color="vdc.expiration_days < 2 ? 'error' : 'warning'"
@@ -82,9 +82,12 @@ module.exports = {
           this.name = this.vdc.vdc_name;
           this.wallet = this.vdc.wallet;
           this.expirationTime =
-            vdc.expiration_days > 1
-              ? `${vdc.expiration_days.toFixed(0)} days and ${((vdc.expiration_days % 1) * 24).toFixed(0)} hours,`
-              : `${(vdc.expiration_days * 24).toFixed(0)} hours,`;
+            this.vdc.expiration_days > 1
+              ? `${this.vdc.expiration_days.toFixed(0)} days and ${(
+                  (this.vdc.expiration_days % 1) *
+                  24
+                ).toFixed(0)} hours,`
+              : `${(this.vdc.expiration_days * 24).toFixed(0)} hours,`;
         })
         .finally(() => {
           this.loading = false;

@@ -197,6 +197,15 @@ def get_zstor_config():
     return j.data.serializers.json.dumps({"data": j.data.serializers.toml.dumps(data)})
 
 
+@app.route("/api/zdb/secret", method="GET")
+@authenticated
+def get_zdb_secret():
+    vdc = _get_vdc()
+    vdc_zdb_monitor = vdc.get_zdb_monitor()
+    password = vdc_zdb_monitor.get_password()
+    return j.data.serializers.json.dumps({"data": password})
+
+
 @app.route("/api/allowed", method="GET")
 @authenticated
 def allowed():

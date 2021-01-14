@@ -73,6 +73,13 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
+    getZdbSecret: () => {
+      return axios({
+        url: `${baseURL}/zdb/secret`,
+        method: "get",
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
   },
   license: {
     accept: () => {
