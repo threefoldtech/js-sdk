@@ -1106,3 +1106,10 @@ class Stellar(Client):
             j.logger.info("Transaction hash: {}".format(response["hash"]))
         except stellar_sdk.exceptions.BadRequestError as e:
             j.logger.debug(e)
+
+    def get_balance_by_asset(self, asset="TFT") -> float:
+        balances = self.get_balance()
+        for balance in balances.balances:
+            if balance.asset_code == asset:
+                return float(balance.balance)
+        return 0
