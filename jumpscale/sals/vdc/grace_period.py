@@ -99,23 +99,28 @@ class GracePeriodModel(Base):
 
     def update_status(self):
         vdc = j.sals.vdc.find(self.vdc_instance_name)
-        balance = vdc._get_wallet_balance(vdc.prepaid_wallet)
+        try:
+            balance = vdc._get_wallet_balance(vdc.prepaid_wallet)
+        except Exception as e:
+            j.logger.error(f"couldn't get balance prepaid wallet of {self.vdc_instance_name}, error was {e} ")
+        else:
+            if balance > 0.1:
+                grace_period_wallet = j.clients.stellar.find(GP_WALLET_NAME)
+                amount = round(self.fund_amount - self.paid_amount, 6)
+                if balance < amount + 0.1:
+                    amount = balance - 0.1
+                j.logger.info(
+                    f"vdc {self.vdc_instance_name} has enough balance and transfering {amount} to grace period wallet"
+                )
+                vdc.pay_amount(
+                    grace_period_wallet.address, amount, vdc.prepaid_wallet, memo_text=self.user_grace_period_id
+                )
+                self.paid_amount += amount
+                self.save()
 
-        if balance > 0.1:
-            grace_period_wallet = j.clients.stellar.find(GP_WALLET_NAME)
-            amount = round(self.fund_amount - self.paid_amount, 6)
-            if balance < amount + 0.1:
-                amount = balance - 0.1
-            j.logger.info(
-                f"vdc {self.vdc_instance_name} has enough balance and transfering {amount} to grace period wallet"
-            )
-            vdc.pay_amount(grace_period_wallet.address, amount, vdc.prepaid_wallet, memo_text=self.user_grace_period_id)
-            self.paid_amount += amount
-            self.save()
-
-        if self.paid_amount >= self.fund_amount:
-            j.logger.info(f"vdc {self.vdc_instance_name} has paid, grace period action has been reverted")
-            self.revert()
+            if self.paid_amount >= self.fund_amount:
+                j.logger.info(f"vdc {self.vdc_instance_name} has paid, grace period action has been reverted")
+                self.revert()
 
 
 GRACE_PERIOD_FACTORY = VDCGracePeriodFactory(GracePeriodModel)
