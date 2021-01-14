@@ -258,7 +258,7 @@ def have_wallets():
 def create_main_wallet(wallet_name):
     wallet_actor = Wallet()
     try:
-        wallet_actor.create_wallet(wallet_name, "STD")
+        wallet_actor.create_wallet(wallet_name)
     except Exception as e:
         j.logger.error(str(e))
 

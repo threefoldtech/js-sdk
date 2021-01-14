@@ -44,3 +44,11 @@ class MonitoringAutomated(GedisChatBotPatch, MonitoringDeploy):
         PROMETHEUS_NODE: "prometheus_node",
         GRAFANA_NODE: "grafana_node",
     }
+
+    def single_choice(self, msg, *args, **kwargs):
+        selected = self.fetch_param(msg, *args, **kwargs)
+        if args:
+            for m in args[0]:
+                if str(selected) in m:
+                    return m
+        return selected

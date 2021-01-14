@@ -71,6 +71,8 @@ class Network(Enum):
 class Stellar(Client):
     network = fields.Enum(Network)
     address = fields.String()
+    sequence = fields.Integer()
+    sequencedate = fields.Integer()
 
     def secret_updated(self, value):
         self.address = stellar_sdk.Keypair.from_secret(value).public_key
@@ -408,6 +410,7 @@ class Stellar(Client):
         timeout=30,
         sequence_number: int = None,
         sign: bool = True,
+        retries: int = 5,
     ):
         """Transfer assets to another address
 
@@ -433,6 +436,41 @@ class Stellar(Client):
         Returns:
             [type]: [description]
         """
+        while retries > 0:
+            try:
+                return self._transfer(
+                    destination_address=destination_address,
+                    amount=amount,
+                    asset=asset,
+                    locked_until=locked_until,
+                    memo_text=memo_text,
+                    memo_hash=memo_hash,
+                    fund_transaction=fund_transaction,
+                    from_address=from_address,
+                    timeout=timeout,
+                    sequence_number=sequence_number,
+                    sign=sign,
+                )
+            except Exception as e:
+                retries -= 1
+                j.logger.warning(str(e))
+
+        raise j.exceptions.Runtime(f"Failed to make transaction for {retries} times, Please try again later")
+
+    def _transfer(
+        self,
+        destination_address,
+        amount,
+        asset="XLM",
+        locked_until=None,
+        memo_text=None,
+        memo_hash=None,
+        fund_transaction=True,
+        from_address=None,
+        timeout=30,
+        sequence_number: int = None,
+        sign: bool = True,
+    ):
         issuer = None
         j.logger.info(f"Sending {amount} {asset} to {destination_address}")
         if asset != "XLM":
@@ -501,6 +539,7 @@ class Stellar(Client):
 
         my_keypair = stellar_sdk.Keypair.from_secret(self.secret)
         transaction.sign(my_keypair)
+
         response = horizon_server.submit_transaction(transaction)
         tx_hash = response["hash"]
         j.logger.info(f"Transaction hash: {tx_hash}")

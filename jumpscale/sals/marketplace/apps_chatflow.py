@@ -99,11 +99,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                         pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), 0, currencies=[self.currency]
                     )
                     deployer.pay_for_pool(pool_info)
-                    trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
-                    trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
-                    result = deployer.wait_demo_payment(
-                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus
-                    )
+                    result = deployer.wait_pool_reservation(pool_info.reservation_id, bot=self)
                     if not result:
                         raise StopChatFlow(
                             f"can not provision resources. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}"
@@ -125,7 +121,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     **self.query,
                 )
                 deployer.pay_for_pool(self.pool_info)
-                result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
+                result = deployer.wait_pool_reservation(self.pool_info.reservation_id, bot=self)
                 if not result:
                     raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
                 self.pool_id = self.pool_info.reservation_id
@@ -144,7 +140,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
                 )
             deployer.pay_for_pool(self.pool_info)
-            result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
+            result = deployer.wait_pool_reservation(self.pool_info.reservation_id, self)
             if not result:
                 raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
             self.wgcfg = deployer.init_new_user_network(

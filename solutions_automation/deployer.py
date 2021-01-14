@@ -86,6 +86,7 @@ def deploy_taiga(solution_name, host_email, smtp_host, host_email_password, secr
 
 def deploy_ubuntu(
     solution_name,
+    pool="choose_random",
     version="ubuntu-18.04",
     cpu=1,
     memory=1024,
@@ -98,11 +99,11 @@ def deploy_ubuntu(
     node="choose_random",
     ipv4="choose_random",
     network="choose_random",
-    pool="choose_random",
     debug=True,
 ):
     return UbuntuAutomated(
         solution_name=solution_name,
+        pool=pool,
         version=version,
         cpu=cpu,
         memory=memory,
@@ -115,7 +116,6 @@ def deploy_ubuntu(
         node=node,
         ipv4=ipv4,
         network=network,
-        pool=pool,
         debug=debug,
     )
 
@@ -148,6 +148,7 @@ def deploy_minio(
     password,
     setup="single",
     zdb_disk_type="SSD",
+    zdb_size=10,
     cpu=1,
     memory=1024,
     data_shards=2,
@@ -170,6 +171,7 @@ def deploy_minio(
         password=password,
         setup=setup,
         zdb_disk_type=zdb_disk_type,
+        zdb_size=zdb_size,
         cpu=cpu,
         memory=memory,
         data_shards=data_shards,
@@ -208,7 +210,7 @@ def deploy_generic_flist(
     env_vars={"name": "TEST"},
     log="NO",
     ipv6="NO",
-    node_automatic="NO",
+    node_automatic="YES",
     node="choose_random",
     ipv4="choose_random",
     network="choose_random",
@@ -284,21 +286,21 @@ def deploy_monitoring(
 
 def create_network(
     solution_name,
+    pool="choose_random",
     ip_version="IPv4",
     ip_select="Choose ip range for me",
     ip_range="",
     access_node="choose_random",
-    pool="choose_random",
     debug=True,
 ):
     return NetworkDeployAutomated(
         solution_name=solution_name,
+        pool=pool,
         type="Create",
         ip_version=ip_version,
         ip_select=ip_select,
         ip_range=ip_range,
         access_node=access_node,
-        pool=pool,
         debug=True,
     )
 
@@ -331,9 +333,7 @@ def deploy_exposed(
     )
 
 
-def create_pool(
-    solution_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True
-):
+def create_pool(solution_name, wallet_name, farm="Freefarm", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True):
     return PoolAutomated(
         type="create",
         solution_name=solution_name,
@@ -347,7 +347,7 @@ def create_pool(
     )
 
 
-def extend_pool(pool_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True):
+def extend_pool(pool_name, wallet_name, farm="Freefarm", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True):
     return PoolAutomated(
         type="extend",
         pool_name=pool_name,
@@ -404,5 +404,7 @@ def change_threebot_size(name, password, flavor="Silver (CPU 1 - Memory 2 GB - D
     return ThreebotChangeSizeAutomated(tname=name, password=password, flavor=flavor)
 
 
-def change_threebot_location(name, password):
-    return ThreebotChangeLocation(tname=name, password=password)
+def change_threebot_location(name, password, expiration_time, node_policy="Automatic"):
+    return ThreebotChangeLocation(
+        tname=name, password=password, node_policy=node_policy, expiration_time=expiration_time
+    )
