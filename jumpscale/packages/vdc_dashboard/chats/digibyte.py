@@ -15,8 +15,8 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
             {
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
-                self.vdc.kubernetes.add_traefik_entrypoint("rpc", "14022"),
-                self.vdc.kubernetes.add_traefik_entrypoint("p2p", "12024"),
+                self.vdc.kubernetes.add_traefik_entrypoint("digibyte-rpc", "14022"),
+                self.vdc.kubernetes.add_traefik_entrypoint("digibyte-p2p", "12024"),
             }
         )
 
