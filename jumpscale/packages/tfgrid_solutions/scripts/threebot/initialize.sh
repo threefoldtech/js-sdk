@@ -6,6 +6,8 @@ if [ $MINIMAL == "true" ]; then
   mv kubectl /sbin/
   curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
+  python3 jumpscale/packages/tfgrid_solutions/scripts/threebot/minimal_entrypoint.py
+else
   echo "INSTANCE_NAME=${INSTANCE_NAME}" >> ~/.bashrc
   echo "THREEBOT_NAME=${THREEBOT_NAME}" >> ~/.bashrc
   echo "BACKUP_PASSWORD=${BACKUP_PASSWORD}" >> ~/.bashrc
