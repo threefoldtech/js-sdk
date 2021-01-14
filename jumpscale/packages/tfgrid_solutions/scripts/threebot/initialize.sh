@@ -10,7 +10,7 @@ if [ $MINIMAL == "true" ]; then
   echo "THREEBOT_NAME=${THREEBOT_NAME}" >> ~/.bashrc
   echo "BACKUP_PASSWORD=${BACKUP_PASSWORD}" >> ~/.bashrc
   echo "BACKUP_TOKEN=${BACKUP_TOKEN}" >> ~/.bashrc
-  echo "DOMAIN=${DOMAIN}" >> ~/.bashrc
+  echo "DOMAIN=${DOMAIN}" >> ~/.[bashrc
   echo "THREEBOT_WALLET_SECRET=${THREEBOT_WALLET_SECRET}" >> ~/.bashrc
 
   echo "EMAIL_HOST=${EMAIL_HOST}" >> ~/.bashrc
