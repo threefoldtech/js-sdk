@@ -1,11 +1,11 @@
 body {
-    -webkit-background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
-    -moz-background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
-    -o-background-image: linear-gradient(to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
+    -webkit-background-image: linear-gradient( to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
+    -moz-background-image: linear-gradient( to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
+    -o-background-image: linear-gradient( to right, #9eafb1, #afc7cc, #a2b9bb, #819699);
     background-image: url("/auth/static/img/background.png");
     background-repeat: no-repeat;
     background-size: cover;
-
+    min-height: 100vh;
 }
 
 .intro {
@@ -18,7 +18,7 @@ body {
     text-transform: capitalize;
     font-size: 5em;
     letter-spacing: -2px;
-    font-family: 'Open Sans', sans-serif;
+    font-family: "Open Sans", sans-serif;
     font-weight: 700;
 }
 
@@ -41,10 +41,10 @@ body {
     border-radius: 15px;
     padding: 10px 30px;
     margin: 4px;
-    -webkit-transition: all .4s ease-in-out;
-    -moz-transition: all .4s ease-in-out;
-    -o-transition: all .4s ease-in-out;
-    transition: all .4s ease-in-out;
+    -webkit-transition: all 0.4s ease-in-out;
+    -moz-transition: all 0.4s ease-in-out;
+    -o-transition: all 0.4s ease-in-out;
+    transition: all 0.4s ease-in-out;
 }
 
 .intro ul a:hover {
@@ -62,16 +62,17 @@ body {
     display: block;
     margin: 0 auto;
 }
-.bot:before{
-    content:url("/auth/static/img/3botlogin.png");
-    }
+
+.bot:before {
+    content: url("/auth/static/img/3botlogin.png");
+}
 
 .card {
     background-color: transparent;
 }
 
 .reload-button:hover {
-    cursor:pointer;
+    cursor: pointer;
 }
 
 .reload-button:disabled {
