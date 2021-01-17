@@ -553,5 +553,16 @@ class MarketPlaceDeployer(ChatflowDeployer):
             nodes = [node for node in nodes if node.node_id not in disallowed_node_ids]
         return nodes
 
+    def clear_user_pools(self):
+        """Clean all current local pools
+        these pools won't be reused after that
+        WARNING: THIS ACTION COULD NOT BE UNDONE
+        """
+        for pool in pool_factory.list_all():
+            pool_factory.delete(pool)
+            j.logger.info(f"Cleaning pool: {pool}")
+        j.logger.info("Cleaning Done")
+        return True
+
 
 deployer = MarketPlaceDeployer()
