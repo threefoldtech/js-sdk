@@ -91,18 +91,6 @@ class Manager:
         return out
 
     @helm_required
-    def list_helm_repos(self):
-        """list helm repos
-
-        Returns:
-            list: {"name":"stable","url":"https://charts.helm.sh/stable"}
-        """
-        rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} repo list -o json")
-        if rc != 0:
-            raise j.exceptions.Runtime(f"Failed to list repos. error was {err}")
-        return j.data.serializers.json.loads(out)
-
-    @helm_required
     def install_chart(self, release, chart_name, namespace="default", extra_config=None, chart_values_file=None):
         """deployes a helm chart
 
@@ -205,12 +193,12 @@ class Manager:
         return out
 
     @helm_required
-    def list_helm_repo(self):
+    def list_helm_repos(self):
         """List helm repos
         Raises:
             j.exceptions.Runtime: in case the command failed to execute
         Returns:
-            list: list of added repos
+            list: list of added repos [{"name":"stable","url":"https://charts.helm.sh/stable"}]
         """
         cmd = f"helm repo list -o json --kubeconfig {self.config_path}"
         rc, out, err = self._execute(cmd)
