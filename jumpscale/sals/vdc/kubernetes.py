@@ -352,6 +352,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         Args:
             master ip: public ip address of kubernetes master
         """
+        j.sals.nettools.wait_connection_test(master_ip, 22)
         ssh_client = j.clients.sshclient.get(self.vdc_name, user="rancher", host=master_ip, sshkey=self.vdc_name)
         rc, out, err = ssh_client.sshclient.run("cat /etc/rancher/k3s/k3s.yaml", warn=True)
         if rc:
