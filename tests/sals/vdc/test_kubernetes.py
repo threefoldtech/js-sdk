@@ -1,3 +1,4 @@
+from jumpscale.sals.kubernetes.manager import is_helm_installed
 from jumpscale.sals import kubernetes
 import pytest
 from jumpscale.loader import j
@@ -105,9 +106,19 @@ class TestVDC(VDCBase):
 
         - Deploy VDC - OR Kubernetes
         - Install Helm Chart
-        - Check that chard is installed.
+        - Check that chart is installed.
         """
-        pass
+        self.info("Install etcd chart from bitnami repo")
+        release_name = "testetcd"
+        release_chart = "bitnami/etcd"
+        self.kube_manager.install_chart(release_name, release_chart)
+        self.info("Check if chart installed")
+        is_installed = False
+        for release in self.kube_manager.list_deployed_releases():
+            if release["name"] == release_name and release["status"] == "deployed":
+                is_installed = True
+                break
+        self.assertTrue(is_installed)
 
     def test_05_list_deployed_charts(self):
         """Test case for listing all deployed charts.
@@ -118,7 +129,13 @@ class TestVDC(VDCBase):
         - List all deployed charts
         - Check that all deployed charts are listed.
         """
-        pass
+        self.info("list all deployed charts")
+        all_deployed_charts = self.kube_manager.list_deployed_releases()
+        is_listed = False
+        self.info("Check that deployed charts listed")
+        if not (all_deployed_charts is None):
+            is_listed = True
+        self.assertTrue(is_listed)
 
     def test_06_delete_deployed_chart(self):
         """Test case for delete deployed chart.
@@ -126,11 +143,24 @@ class TestVDC(VDCBase):
         **Test Scenario**
 
         - Deploy VDC - OR Kubernetes
+        - Deploy ETCD Chart
         - Delete Deployed Chart
         - List all deployed charts
         - Check that deleted chart not in deployed charts.
         """
-        pass
+        self.info("Deploy ETCD chart")
+        release_name = "testdeletechart"
+        release_chart = "bitnami/etcd"
+        self.kube_manager.install_chart(release_name, release_chart)
+        self.info("Delete etcd release that installed before")
+        self.kube_manager.delete_deployed_release(release_name)
+        self.info("Check if deployed chart deleted")
+        is_deleted = True
+        for release in self.kube_manager.list_deployed_releases():
+            if release["name"] == release_name:
+                is_deleted = False
+                break
+        self.assertTrue(is_deleted)
 
     def test_07_is_helm_installed(self):
         """Test case to check if helm installed.
@@ -140,7 +170,9 @@ class TestVDC(VDCBase):
         - Deploy VDC - OR Kubernetes
         - Check if helm installed.
         """
-        pass
+        self.info("Check if helm installed")
+        is_helm_installed = j.sals.kubernetes.manager.is_helm_installed()
+        self.assertTrue(is_helm_installed)
 
     def test_08_execute_native_cmd(self):
         """Test case for executing a native kubernetes commands.
@@ -151,4 +183,12 @@ class TestVDC(VDCBase):
         - Excute Kubernetes Command
         - Check that the command executed correctly.
         """
-        pass
+
+        self.info("Execute kubectl get nodes")
+        cmd_out = self.kube_manager.execute_native_cmd("kubectl get nodes")
+        self.info("Check if command executed correctly")
+        # Check is True if there is one master node and at least 2 Ready nodes
+        is_executed = False
+        if cmd_out.count("master") == 1 and cmd_out.count("Ready") >= 2:
+            is_executed = True
+        self.assertTrue(is_executed)
