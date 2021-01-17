@@ -5,7 +5,8 @@ from solutions_automation.utils.gedispatch import GedisChatBotPatch
 class MinioAutomated(GedisChatBotPatch, MinioDeploy):
     NAME_MESSAGE = "Please enter a name for your workload (Can be used to prepare domain for you and needed to track your solution on the grid)"
     SETUP_MESSAGE = "Please choose the type of setup you need. Single setup is the basic setup while master/slave setup includes TLOG use to be able to reconstruct the metadata"
-    ZDB_DISK_TYPE_MESSAGE = "Please choose a the type of disk for zdb"
+    ZDB_DISK_TYPE_MESSAGE = "Choose the type of disk for zdb"
+    ZDB_SIZE = "Specify the size for zdb (GB)"
     CPU_MESSAGE = "Please specify how many CPUs"
     MEM_MESSAGE = "Please specify how much memory (in MB)"
     DATA_SHARDS_MESSAGE = "Please add the number of locations you need. Take care of the ratio between the locations and locations allowed to fail that you will specify next"
@@ -17,15 +18,13 @@ class MinioAutomated(GedisChatBotPatch, MinioDeploy):
     )
     NETWORK_MESSAGE = "Please select a network"
     LOG_MESSAGE = "Do you want to push the container logs (stdout and stderr) onto an external redis channel"
-    SSH_MESSAGE = (
-        "Please add your public ssh key, this will allow you to access the deployed minio container using ssh."
-    )
+    SSH_MESSAGE = "Please add your public ssh key, this will allow you to access the deployed minio container using ssh.\n                Just upload the file with the key. (Optional)"
+
     IPV4_MESSAGE = r"^Please choose IP Address for (.*) container$"
     IPV6_MESSAGE = r"^Do you want to assign a global IPv6 address to (.*)\?$"
     NODE_ID_MESSAGE = r"^Do you want to automatically select a node for deployment for (.*)\?$"
     POOL_MESSAGE = r"^Please select a pool( for (.*))?$"
     NODE_SELECTION_MESSAGE = r"^Please choose the node you want to deploy (.*) on$"
-
     QS = {
         # strs
         NAME_MESSAGE: "get_name",
@@ -37,6 +36,7 @@ class MinioAutomated(GedisChatBotPatch, MinioDeploy):
         MEM_MESSAGE: "memory",
         DATA_SHARDS_MESSAGE: "data_shards",
         PARITY_SHARDS_MESSAGE: "parity_shards",
+        ZDB_SIZE: "zdb_size",
         # single choice
         SETUP_MESSAGE: "setup",
         ZDB_DISK_TYPE_MESSAGE: "zdb_disk_type",
@@ -50,3 +50,11 @@ class MinioAutomated(GedisChatBotPatch, MinioDeploy):
         # multi choice
         ZDB_POOLS_MESSAGE: "zdb_pools",
     }
+
+    def single_choice(self, msg, *args, **kwargs):
+        selected = self.fetch_param(msg, *args, **kwargs)
+        if args:
+            for m in args[0]:
+                if str(selected) in m:
+                    return m
+        return selected

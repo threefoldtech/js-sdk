@@ -44,7 +44,7 @@ class NginxPackageConfig:
         default_server = {
             "name": "default",
             "ports": self.package.config.get("ports"),
-            "locations": [],
+            "locations": self.package.config.get("locations", []),
             "domain": self.package.default_domain,
             "letsencryptemail": self.package.default_email,
             "acme_server_type": self.package.default_acme_server_type,

@@ -20,6 +20,7 @@ def main():
     email_host_user = os.environ.get("EMAIL_HOST_USER")
     email_host_password = os.environ.get("EMAIL_HOST_PASSWORD")
     ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
+    WALLET_SECRET = os.environ.get("THREEBOT_WALLET_SECRET")
 
     tname = f"{threebot_name}_{instance_name}"
     email = f"{tname}@threefold.me"
@@ -71,6 +72,7 @@ def main():
     if backup_password:
         # Sanitation for the case user deleted his old backups!
         try:
+            # this raises only if backup_password is wrong or new is True
             BACKUP_ACTOR.init(backup_password, new=False)
         except Exception as e:
             new = True
@@ -78,16 +80,26 @@ def main():
 
         try:
             BACKUP_ACTOR.init(backup_password, new=new)
-            if not new:
-                snapshots = j.data.serializers.json.loads(BACKUP_ACTOR.snapshots())
-                if snapshots.get("data"):
-                    j.logger.info("Restoring backup ...")
-                    BACKUP_ACTOR.restore()
+            # now if the user has snapshots we recover, otherwise we take a new backup
+            snapshots = j.data.serializers.json.loads(BACKUP_ACTOR.snapshots())
+            if snapshots.get("data"):
+                j.logger.info("current snapshots:", snapshots)
+                j.logger.info("Restoring backup ...")
+                BACKUP_ACTOR.restore()
             else:
                 j.logger.info("Taking backup ...")
                 BACKUP_ACTOR.backup(tags="init")
         except Exception as e:
             j.logger.error(str(e))
+
+    # get the main wallet
+    j.logger.info("Initalizing main wallet ...")
+    try:
+        wallet = j.clients.stellar.get("main")
+        wallet.secret = WALLET_SECRET
+        wallet.save()
+    except Exception as e:
+        j.logger.error(f"Failed to create wallet, secret wasn't passed correctly: {str(e)}...")
 
     j.logger.info("Starting threebot ...")
 

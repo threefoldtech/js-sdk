@@ -71,6 +71,8 @@ class Network(Enum):
 class Stellar(Client):
     network = fields.Enum(Network)
     address = fields.String()
+    sequence = fields.Integer()
+    sequencedate = fields.Integer()
 
     def secret_updated(self, value):
         self.address = stellar_sdk.Keypair.from_secret(value).public_key
@@ -260,8 +262,6 @@ class Stellar(Client):
         """
         Activate your wallet through threefold services
         """
-        ## Try activating with `activation_wallet` j.clients.stellar.activation_wallet if exists
-        ## this activator should be imported on the system.
         for _ in range(5):
             j.logger.info(f"trying to activate : {self.instance_name}")
             try:
@@ -269,16 +269,28 @@ class Stellar(Client):
                 loaded_json = j.data.serializers.json.loads(resp)
                 xdr = loaded_json["activation_transaction"]
                 self.sign(xdr, submit=True)
+                j.logger.info(f"{self.instance_name} is activated using the activation service.")
                 return
-
             except Exception as e:
                 j.logger.error(f"failed to activate using the activation service {e}")
-                j.logger.info(f"trying to fund the wallet ourselves with the activation wallet")
-                if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
-                    j.logger.info(f"activation wallet {self.instance_name}")
+                ## Try activating with `activation_wallet` j.clients.stellar.activation_wallet if exists
+                ## this activator should be imported on the system.
+
+        if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
+            j.logger.info(f"trying to fund the wallet ourselves with the activation wallet")
+            j.logger.info(f"activation wallet {self.instance_name}")
+            for _ in range(5):
+                try:
                     j.clients.stellar.activation_wallet.activate_account(self.address, "3.6")
                     self.add_known_trustline("TFT")
+                    j.logger.info(f"activated wallet {self.instance_name}")
                     return
+                except Exception as e:
+                    j.logger.error(f"failed to activate wallet {self.instance_name} using activation_wallet")
+        else:
+            raise RuntimeError(
+                "could not activate wallet. tried activation service and there's no activation_wallet configured on the system"
+            )
 
     def activate_account(self, destination_address, starting_balance="3.6"):
         """Activates another account
@@ -326,6 +338,7 @@ class Stellar(Client):
         Args:
             asset_code (str): code of the asset. For example: 'BTC', 'TFT', ...
         """
+        j.logger.info(f"adding trustline {asset_code} to account {self.address}")
         balances = self.get_balance()
         for b in balances.balances:
             if b.asset_code == asset_code:
@@ -408,6 +421,7 @@ class Stellar(Client):
         timeout=30,
         sequence_number: int = None,
         sign: bool = True,
+        retries: int = 5,
     ):
         """Transfer assets to another address
 
@@ -433,6 +447,41 @@ class Stellar(Client):
         Returns:
             [type]: [description]
         """
+        while retries > 0:
+            try:
+                return self._transfer(
+                    destination_address=destination_address,
+                    amount=amount,
+                    asset=asset,
+                    locked_until=locked_until,
+                    memo_text=memo_text,
+                    memo_hash=memo_hash,
+                    fund_transaction=fund_transaction,
+                    from_address=from_address,
+                    timeout=timeout,
+                    sequence_number=sequence_number,
+                    sign=sign,
+                )
+            except Exception as e:
+                retries -= 1
+                j.logger.warning(str(e))
+
+        raise j.exceptions.Runtime(f"Failed to make transaction for {retries} times, Please try again later")
+
+    def _transfer(
+        self,
+        destination_address,
+        amount,
+        asset="XLM",
+        locked_until=None,
+        memo_text=None,
+        memo_hash=None,
+        fund_transaction=True,
+        from_address=None,
+        timeout=30,
+        sequence_number: int = None,
+        sign: bool = True,
+    ):
         issuer = None
         j.logger.info(f"Sending {amount} {asset} to {destination_address}")
         if asset != "XLM":
@@ -501,6 +550,7 @@ class Stellar(Client):
 
         my_keypair = stellar_sdk.Keypair.from_secret(self.secret)
         transaction.sign(my_keypair)
+
         response = horizon_server.submit_transaction(transaction)
         tx_hash = response["hash"]
         j.logger.info(f"Transaction hash: {tx_hash}")
@@ -1067,3 +1117,10 @@ class Stellar(Client):
             j.logger.info("Transaction hash: {}".format(response["hash"]))
         except stellar_sdk.exceptions.BadRequestError as e:
             j.logger.debug(e)
+
+    def get_balance_by_asset(self, asset="TFT") -> float:
+        balances = self.get_balance()
+        for balance in balances.balances:
+            if balance.asset_code == asset:
+                return float(balance.balance)
+        return 0

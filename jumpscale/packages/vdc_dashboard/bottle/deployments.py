@@ -19,6 +19,14 @@ import os
 app = Bottle()
 
 
+def _get_vdc():
+    user_info = j.data.serializers.json.loads(get_user_info())
+    username = user_info["username"]
+    vdc_full_name = list(j.sals.vdc.list_all())[0]
+    vdc_instance = j.sals.vdc.get(vdc_full_name)
+    return VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+
+
 @app.route("/api/kube/get")
 @package_authorized("vdc_dashboard")
 def get_kubeconfig() -> str:
@@ -59,11 +67,7 @@ def delete_node():
 @app.route("/api/s3/expose")
 @package_authorized("vdc_dashboard")
 def expose_s3() -> str:
-    user_info = j.data.serializers.json.loads(get_user_info())
-    username = user_info["username"]
-    vdc_full_name = list(j.sals.vdc.list_all())[0]
-    vdc_instance = j.sals.vdc.get(vdc_full_name)
-    vdc = VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+    vdc = _get_vdc()
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
 
@@ -99,11 +103,7 @@ def list_all_deployments() -> str:
 @app.route("/api/threebot_vdc", method="GET")
 @package_authorized("vdc_dashboard")
 def threebot_vdc():
-    user_info = j.data.serializers.json.loads(get_user_info())
-    username = user_info["username"]
-    vdc_full_name = list(j.sals.vdc.list_all())[0]
-    vdc_instance = j.sals.vdc.get(vdc_full_name)
-    vdc = VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+    vdc = _get_vdc()
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     vdc_dict = vdc.to_dict()
@@ -171,12 +171,39 @@ def cancel_deployment():
     return j.data.serializers.json.dumps({"result": True})
 
 
-@app.route("/api/formattoml", method="POST")
+@app.route("/api/zstor/config", method="POST")
 @authenticated
-def formattoml():
-    request_data = j.data.serializers.json.loads(request.body.read())
-    data = request_data.get("data")
+def get_zstor_config():
+    vdc = _get_vdc()
+    vdc_zdb_monitor = vdc.get_zdb_monitor()
+    password = vdc_zdb_monitor.get_password()
+    data = {
+        "data_shards": 2,
+        "parity_shards": 1,
+        "redundant_groups": 0,
+        "redundant_nodes": 0,
+        "encryption": {"algorithm": "AES", "key": "",},
+        "compression": {"algorithm": "snappy",},
+        "groups": [],
+    }
+    for zdb in vdc.s3.zdbs:
+        data["groups"].append(
+            {
+                "backends": [
+                    {"address": f"[{zdb.ip_address}]:{zdb.port}", "namespace": zdb.namespace, "password": password},
+                ],
+            }
+        )
     return j.data.serializers.json.dumps({"data": j.data.serializers.toml.dumps(data)})
+
+
+@app.route("/api/zdb/secret", method="GET")
+@authenticated
+def get_zdb_secret():
+    vdc = _get_vdc()
+    vdc_zdb_monitor = vdc.get_zdb_monitor()
+    password = vdc_zdb_monitor.get_password()
+    return j.data.serializers.json.dumps({"data": password})
 
 
 @app.route("/api/allowed", method="GET")

@@ -352,6 +352,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         Args:
             master ip: public ip address of kubernetes master
         """
+        j.sals.nettools.wait_connection_test(master_ip, 22)
         ssh_client = j.clients.sshclient.get(self.vdc_name, user="rancher", host=master_ip, sshkey=self.vdc_name)
         rc, out, err = ssh_client.sshclient.run("cat /etc/rancher/k3s/k3s.yaml", warn=True)
         if rc:
@@ -441,3 +442,21 @@ ports:
     tls:
       enabled: true')""",
         )
+
+    def add_traefik_entrypoint(self, entrypoint_name, port, expose=True, protocol="TCP"):
+        """
+        Add a new entrypoint to traefik or override an existing one
+        """
+
+        kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml"
+        k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
+        config_str = k8s_client.get_helm_chart_user_values("traefik", "kube-system")
+        config_json = j.data.serializers.json.loads(config_str)
+        config_json["ports"][entrypoint_name] = {
+            "port": port,
+            "exposedPort": port,
+            "expose": expose,
+            "protocol": protocol,
+        }
+        config_yaml = j.data.serializers.yaml.dumps(config_json)
+        k8s_client.upgrade_release("traefik", "traefik/traefik", "kube-system", config_yaml)
