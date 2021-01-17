@@ -261,6 +261,11 @@ class Admin(BaseActor):
         return j.data.serializers.json.dumps({"data": "blocked nodes got cleared successfully."})
 
     @actor_method
+    def clear_blocked_managed_domains(self) -> str:
+        j.sals.marketplace.deployer.clear_blocked_managed_domains()
+        return j.data.serializers.json.dumps({"data": "blocked managed domains got cleared successfully."})
+
+    @actor_method
     def get_email_server_config(self) -> str:
         email_server_config = j.core.config.get("EMAIL_SERVER_CONFIG", {})
         email_server_config.setdefault("host", "")

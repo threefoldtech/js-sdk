@@ -99,49 +99,38 @@ module.exports = {
       let fileType = null;
       if (this.downloadType === "zdbs") {
         fileType = "json";
-        data = JSON.stringify(this.vdc.s3.zdbs, null, "\t");
-        const blob = new Blob([data]);
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute(
-          "download",
-          `${this.vdc.vdc_name}ZDBsInfo.${fileType}`
-        );
-        document.body.appendChild(link);
-        link.click();
-        link.parentNode.removeChild(link);
-        this.dialogs.downloadInfo = false;
-      } else if (this.downloadType === "zstor") {
-        fileType = "toml";
-        data = {
-          data_shards: 2,
-          parity_shards: 1,
-          redundant_groups: 0,
-          redundant_nodes: 0,
-          encryption: {
-            algorithm: "AES",
-            key: "",
-          },
-          compression: {
-            algorithm: "snappy",
-          },
-          groups: [],
-        };
-        for (i in this.vdc.s3.zdbs) {
-          let zdb = this.vdc.s3.zdbs[i];
-          data.groups.push({
-            backends: [
-              {
-                address: `[${zdb.ip_address}]:${zdb.port}`,
-                namespace: zdb.namespace,
-              },
-            ],
-          });
-        }
         this.loading = true;
         this.$api.solutions
-          .formatTOML(data)
+          .getZdbSecret()
+          .then((response) => {
+            Secret = response.data.data;
+            let zdbs = this.vdc.s3.zdbs;
+            for(i in this.vdc.s3.zdbs){
+              let zdb = this.vdc.s3.zdbs[i]
+              zdb.password = Secret;
+            }
+            data = JSON.stringify(zdbs, null, "\t");
+            const blob = new Blob([data]);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+              "download",
+              `${this.vdc.vdc_name}ZDBsInfo.${fileType}`
+            );
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            this.dialogs.downloadInfo = false;
+          })
+          .finally(() => {
+            this.loading = false;
+          });
+      } else if (this.downloadType === "zstor") {
+        fileType = "toml";
+        this.loading = true;
+        this.$api.solutions
+          .getZstorConfig()
           .then((response) => {
             data = response.data.data;
             const blob = new Blob([data]);

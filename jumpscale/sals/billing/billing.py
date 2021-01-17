@@ -42,7 +42,7 @@ class BillingManager:
         )
         notes_text = "\n".join([f"<h4>Note: {note}</h4>" for note in notes])
         qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
-        msg_text = f"""Please scan the QR Code below for the payment details if you missed it from the previous screen
+        msg_text = f"""Please scan the QR Code below for the payment details
         <div class="text-center">
             <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
         </div>

@@ -31,7 +31,7 @@ class GedisChatBotPatch(GedisChatBot):
     QS = {}
 
     def __init__(self, **kwargs):
-        self.QS = {**self.QS, **self.QS_BASE}
+        self.QS = {**self.QS_BASE, **self.QS}
         self.debug = kwargs.get("debug", False)
 
         for k, v in kwargs.items():

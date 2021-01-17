@@ -378,7 +378,7 @@ class ChatflowDeployer:
             """- Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory).
 - Storage Unit (SU) is the size of data storage capacity.
 
-You can get more detail information about clout units on the wiki: <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">Cloud units details</a>.
+You can get more detail information about cloud units on the wiki: <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">Cloud units details</a>.
 
 
 The way this form works is you define how much cloud units you want to reserve and define for how long you would like the selected amount of cloud units.
@@ -2080,7 +2080,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             bot.md_show_update(msg, html=True)
             pool = j.sals.zos.get(identity_name).pools.get(pool_id)
             if pool.cus >= trigger_cus or pool.sus >= trigger_sus:
-                bot.md_show_update("Preparing app resources")
+                bot.md_show_update("Preparing application resources")
                 return True
             gevent.sleep(2)
 
@@ -2091,7 +2091,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         msg = "<h2> Waiting for payment...</h2>"
         if qr_code:
             qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
-            msg += f"Please scan the QR Code below for the payment details if you missed it from the previous screen"
+            msg += f"Please scan the QR Code below for the payment details"
             qr_code_msg = f"""
             <div class="text-center">
                 <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
@@ -2103,7 +2103,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             bot.md_show_update(msg, html=True)
             pool = j.sals.zos.get(identity_name).pools.get(pool_id)
             if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
-                bot.md_show_update("Preparing app resources")
+                bot.md_show_update("Preparing application resources")
                 return True
             gevent.sleep(2)
 
@@ -2114,7 +2114,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         msg = "<h2> Waiting for payment...</h2>"
         if qr_code:
             qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
-            msg += f"Please scan the QR Code below for the payment details if you missed it from the previous screen"
+            msg += f"Please scan the QR Code below for the payment"
             qr_code_msg = f"""
             <div class="text-center">
                 <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
@@ -2210,6 +2210,15 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             failure_count = int(failure_count_dict[key])
             result[node_id] = {"expiration": expiration, "failure_count": failure_count}
         return result
+
+    def clear_blocked_managed_domains(self):
+        blocked_domains_keys = j.core.db.keys(f"{DOMAINS_DISALLOW_PREFIX}:*")
+
+        if blocked_domains_keys:
+            j.core.db.delete(*blocked_domains_keys)
+        j.core.db.delete(DOMAINS_COUNT_KEY)
+
+        return True
 
     def wait_workload_deletion(self, wid, timeout=5, identity_name=None):
         j.logger.info(f"waiting workload {wid} to be deleted")

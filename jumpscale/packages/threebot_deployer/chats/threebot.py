@@ -134,7 +134,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                 f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
             )
         payment_info = deployer.pay_for_pool(self.pool_info)
-        result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
+        result = deployer.wait_pool_reservation(self.pool_info.reservation_id, bot=self)
         if not result:
             raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
         self.md_show_update(
@@ -154,27 +154,26 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="3Bot Name")
     def get_solution_name(self):
+        self.md_show_update("Starting The Chatflow")
         self._threebot_start()
-        valid = False
 
-        while not valid:
+        threebot_solutions = list_threebot_solutions(self.solution_metadata["owner"])
+        threebot_solutions_names = [threebot["name"] for threebot in threebot_solutions]
+        not_valid_name = True
+        while not_valid_name:
             self.solution_name = self.string_ask(
-                self.CREATE_NAME_MESSAGE, required=True, field="name", is_identifier=True
+                self.CREATE_NAME_MESSAGE,
+                required=True,
+                field="name",
+                is_identifier=True,
+                not_exist=["3Bot", threebot_solutions_names],
             )
-            threebot_solutions = list_threebot_solutions(self.solution_metadata["owner"])
-            valid = True
-            for sol in threebot_solutions:
-                if sol["name"] == self.solution_name:
-                    valid = False
-                    self.md_show("The specified 3Bot name already exists. please choose another name.")
-                    break
-                valid = True
-
-            if valid and self._existing_3bot():
-                valid = False
+            if self._existing_3bot():
                 self.md_show(
                     f"The specified 3Bot name was deployed before. Please go to the previous step and enter a new name."
                 )
+            else:
+                not_valid_name = False
 
         self.backup_model = BACKUP_MODEL_FACTORY.get(f"{self.solution_name}_{self.threebot_name}")
 
@@ -393,6 +392,19 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         if log_config:
             log_config["channel_name"] = f"{self.threebot_name}-{self.SOLUTION_TYPE}-{self.solution_name}".lower()
 
+        # Create wallet for the 3bot
+        threebot_wallet = j.clients.stellar.get(f"{self.SOLUTION_TYPE}_{self.threebot_name}_{self.solution_name}")
+        threebot_wallet.save()
+        threebot_wallet_secret = threebot_wallet.secret
+        try:
+            threebot_wallet.activate_through_threefold_service()
+        except Exception as e:
+            j.logger.warning(
+                f"Failed to activate wallet for {self.threebot_name} {self.solution_name} threebot due to {str(e)}"
+                "3Bot will start without a wallet"
+            )
+            threebot_wallet_secret = ""
+
         self.workload_ids.append(
             deployer.deploy_container(
                 pool_id=self.pool_id,
@@ -409,6 +421,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
                     "BACKUP_TOKEN": backup_token,
                     "EMAIL_HOST_PASSWORD": "",
                     "TRC_SECRET": self.secret,
+                    "THREEBOT_WALLET_SECRET": threebot_wallet_secret,
                 },
                 interactive=False,
                 log_config=log_config,

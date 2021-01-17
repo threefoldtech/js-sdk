@@ -192,6 +192,11 @@ const apiClient = {
                 url: `${baseURL}/admin/clear_blocked_nodes`,
             })
         },
+        clearBlockedManagedDomains: () => {
+            return axios({
+                url: `${baseURL}/admin/clear_blocked_managed_domains`,
+            })
+        },
         getNotifications: () => {
             return axios({
                 url: `${baseURL}/admin/get_notifications`,

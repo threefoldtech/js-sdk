@@ -11,8 +11,14 @@ class ThreebotChangeLocation(GedisChatBotPatch, ThreebotRedeploy):
     QS = {
         PASSWORD: "password",
         NODE_POLICY: "node_policy",
-        EXPIRATION: "expiration",
+        EXPIRATION: "expiration_time",
     }
 
     def ask(self, msg, *args, **kwargs):
         return self.fetch_param(msg["msg"], *args, **kwargs)
+
+    def datetime_picker(self, msg, *args, **kwargs):
+        if hasattr(self, "expiration_time"):
+            return self.fetch_param(msg, *args, **kwargs)
+        else:
+            return kwargs["default"]

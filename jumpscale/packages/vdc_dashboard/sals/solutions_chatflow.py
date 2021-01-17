@@ -321,6 +321,9 @@ class SolutionsChatflowDeploy(GedisChatBot):
             return False
         return True
 
+    def _has_domain(self):
+        return getattr(self, "domain", None) is not None
+
     def chart_resource_failure(self):
         pods_info = self.k8s_client.execute_native_cmd(
             cmd=f"kubectl get pods -l app.kubernetes.io/name={self.SOLUTION_TYPE} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[*].message}}'"
@@ -332,10 +335,13 @@ class SolutionsChatflowDeploy(GedisChatBot):
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self, timeout=300):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
+        domain_message = ""
+        if self._has_domain():
+            domain_message = f"Domain: {self.domain}"
         error_message_template = f"""\
                 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
 
-                Domain: {self.domain}
+                {domain_message}
                 VDC Name: {self.vdc_name}
                 Farm name: {self.vdc_info["farm_name"]}
                 Reason: {{reason}}
@@ -353,7 +359,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             self.k8s_client.delete_deployed_release(self.release_name)
             self.stop(dedent(stop_message))
 
-        if not j.sals.reservation_chatflow.wait_http_test(
+        if self._has_domain() and not j.sals.reservation_chatflow.wait_http_test(
             f"https://{self.domain}", timeout=timeout - POD_INITIALIZING_TIMEOUT, verify=False
         ):
             stop_message = error_message_template.format(reason="Couldn't reach the website after deployment")
@@ -361,10 +367,13 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self, extra_info=""):
+        domain_message = ""
+        if self._has_domain():
+            domain_message = f'- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a><br />\n'
         message = f"""\
         # You deployed a new instance {self.release_name} of {self.SOLUTION_TYPE}
         <br />\n
-        - You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a><br />\n
+        {domain_message}
         {extra_info}
         """
         self.md_show(dedent(message), md=True)

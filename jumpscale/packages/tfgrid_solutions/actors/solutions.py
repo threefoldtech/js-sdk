@@ -12,7 +12,7 @@ class Solutions(BaseActor):
     @actor_method
     def list_all_solutions(self) -> str:
         res = []
-        for workload in j.sals.zos.get().workloads.list(j.core.identity.me.tid):
+        for workload in j.sals.zos.get().workloads.list_workloads(j.core.identity.me.tid):
             w_dict = workload.to_dict()
             w_dict["workload_type"] = workload.info.workload_type.name
             w_dict["pool_id"] = workload.info.pool_id
