@@ -2006,7 +2006,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         subdomain = f"{uuid.uuid4().hex}.{managed_domain}"
         addresses = [j.sals.nettools.get_host_by_name(gateway.dns_nameserver[0])]
         subdomain_id = self.create_subdomain(pool_id, gateway_id, subdomain, addresses, identity_name=identity_name)
-        success = self.wait_workload(subdomain_id)
+        success = self.wait_workload(subdomain_id, identity_name=identity_name)
         if not success:
             return False
         try:
