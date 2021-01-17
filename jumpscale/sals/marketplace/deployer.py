@@ -155,6 +155,14 @@ class MarketPlaceDeployer(ChatflowDeployer):
         farms_ids_with_gateways = [
             gateway_farm.farm_id for gateway_farm in deployer._explorer.gateway.list() if gateway_farm.farm_id > 0
         ]
+        # verify gateway farms is already there
+        for farm_id in farms_ids_with_gateways.copy():
+            try:
+                deployer._explorer.farms.get(farm_id)
+            except:
+                j.logger.warning(f"farm {farm_id} doesn't exist anymore, skipping that gateway")
+                farms_ids_with_gateways.remove(farm_id)
+
         farms_names_with_gateways = set(
             map(lambda farm_id: deployer._explorer.farms.get(farm_id=farm_id).name, farms_ids_with_gateways)
         )
