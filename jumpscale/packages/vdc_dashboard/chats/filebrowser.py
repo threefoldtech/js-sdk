@@ -20,8 +20,8 @@ class FileBrowser(SolutionsChatflowDeploy):
         self._choose_flavor()
 
         self.chart_config.update({
-            "extraEnvVars[0].name"= "DOCUMENTSERVER_URL"
-            "extraEnvVars[0].value"= self.document_url
+            "extraEnvVars[0].name": "DOCUMENTSERVER_URL"
+            "extraEnvVars[0].value": self.document_url
             "ingress.hosts[0]": self.domain,
             "resources.limits.cpu": self.resources_limits["cpu"],
             "resources.limits.memory": self.resources_limits["memory"],
