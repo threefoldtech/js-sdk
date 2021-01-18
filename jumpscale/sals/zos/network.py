@@ -23,15 +23,15 @@ class Network:
         self.network_resources = []
         self.used_ips = []
 
-    def get_free_range(self):
-        used_ip_ranges = set()
+    def get_free_range(self, *excluded_ranges):
+        used_ip_ranges = set(excluded_ranges)
         for workload in self.network_resources:
             used_ip_ranges.add(workload.iprange)
             for peer in workload.peers:
                 used_ip_ranges.add(peer.iprange)
         else:
             network_range = netaddr.IPNetwork(self.iprange)
-            for idx, subnet in enumerate(network_range.subnet(24)):
+            for _, subnet in enumerate(network_range.subnet(24)):
                 if str(subnet) not in used_ip_ranges:
                     break
             else:
@@ -42,7 +42,7 @@ class Network:
         for workload in self.network_resources:
             if workload.info.node_id == node_id:
                 return workload.iprange
-        raise j.exceptions.Input(f"node: {node_id} is not part of network")
+        return None
 
     def get_free_ip(self, node_id):
         free_ips = []
