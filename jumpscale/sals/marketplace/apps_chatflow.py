@@ -50,7 +50,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             try:
                 path = j.packages.threebot_deployer.__file__
                 git_client = j.clients.git.get("default_threebot")
-                git_client.path = j.sals.fs.parents(path)[3]
+                git_client.path = j.tools.git.find_git_path(path)
                 git_client.save()
                 self._branch = git_client.branch_name
             except Exception as e:
