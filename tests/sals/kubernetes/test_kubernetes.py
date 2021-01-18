@@ -2,19 +2,16 @@ from jumpscale.sals.kubernetes.manager import is_helm_installed
 from jumpscale.sals import kubernetes
 import pytest
 from jumpscale.loader import j
-from parameterized import parameterized_class
 
 from tests.sals.vdc.vdc_base import VDCBase
 
 
-@parameterized_class(("flavor"), [("silver",)])
 @pytest.mark.integration
-class TestVDC(VDCBase):
-    flavor = "silver"
-
+class TestKubernetes(VDCBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.flavor = "silver"
         cls.kube_config = cls.deploy_vdc()
         cls.kube_manager = j.sals.kubernetes.Manager(
             f"~/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.instance_name}.yaml"
@@ -24,7 +21,7 @@ class TestVDC(VDCBase):
 
     @classmethod
     def tearDownClass(cls):
-        # j.sals.vdc.delete(cls.vdc.instance_name) Todo: Uncomment before merging with development_vdc
+        j.sals.vdc.delete(cls.vdc.instance_name)
         super().tearDownClass()
 
     def test_01_update_helm_repos(self):
@@ -32,7 +29,7 @@ class TestVDC(VDCBase):
 
         **Test Scenario**
 
-        - Deploy VDC - OR Kubernetes
+        - Deploy VDC
         - Update Helm Repos
         - Check from Logs that all repos are updated.
         """
@@ -49,7 +46,7 @@ class TestVDC(VDCBase):
 
         **Test Scenario**
 
-        - Deploy VDC - OR Kubernetes
+        - Deploy VDC
         - Add Helm Repo
         - Check that the added rebo listed in the helm repos.
         """
@@ -71,7 +68,7 @@ class TestVDC(VDCBase):
 
         **Test Scenario**
 
-        - Deploy VDC - OR Kubernetes
+        - Deploy VDC
         - list all Helm Repos
         - Check that all repos are listed.
         """
@@ -88,7 +85,7 @@ class TestVDC(VDCBase):
 
         **Test Scenario**
 
-        - Deploy VDC - OR Kubernetes
+        - Deploy VDC
         - Install Helm Chart
         - Check that chart is installed.
         """
@@ -109,7 +106,7 @@ class TestVDC(VDCBase):
 
         **Test Scenario**
 
-        - Deploy VDC - OR Kubernetes
+        - Deploy VDC
         - List all deployed charts
         - Check that all deployed charts are listed.
         """
@@ -126,7 +123,7 @@ class TestVDC(VDCBase):
 
         **Test Scenario**
 
-        - Deploy VDC - OR Kubernetes
+        - Deploy VDC
         - Deploy ETCD Chart
         - Delete Deployed Chart
         - List all deployed charts
@@ -151,7 +148,7 @@ class TestVDC(VDCBase):
 
         **Test Scenario**
 
-        - Deploy VDC - OR Kubernetes
+        - Deploy VDC
         - Check if helm installed.
         """
         self.info("Check if helm installed")
@@ -163,7 +160,7 @@ class TestVDC(VDCBase):
 
         **Test Scenario**
 
-        - Deploy VDC - OR Kubernetes
+        - Deploy VDC
         - Excute Kubernetes Command
         - Check that the command executed correctly.
         """
