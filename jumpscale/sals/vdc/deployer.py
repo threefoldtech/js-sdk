@@ -22,6 +22,9 @@ from jumpscale.core.exceptions import exceptions
 from contextlib import ContextDecorator
 from jumpscale.sals.zos.billing import InsufficientFunds
 import os
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
 
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}_{}"  # tname, vdc_name, vdc_uuid
@@ -351,7 +354,7 @@ class VDCDeployer:
             )
         return zdb_threads
 
-    def deploy_vdc_kubernetes(self, farm_name, scheduler, cluster_secret):
+    def deploy_vdc_kubernetes(self, farm_name, scheduler, cluster_secret, pub_keys=None):
         """
         1- deploy master
         2- extend cluster with the flavor no_nodes
@@ -360,12 +363,13 @@ class VDCDeployer:
         master_pool_id, _ = self.get_pool_id_and_reservation_id(NETWORK_FARM.get())
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
+        pub_keys = pub_keys or []
         master_ip = self.kubernetes.deploy_master(
             master_pool_id,
             gs,
             master_size,
             cluster_secret,
-            [self.ssh_key.public_key.strip(), self.threebot_ssh_key.public_key.strip()],
+            pub_keys,
             self.vdc_uuid,
             nv,
         )
@@ -468,6 +472,23 @@ class VDCDeployer:
 
         return gcc.result
 
+    def generate_priv_pub_pairs(self):
+        # generate private/public key pair
+        key = rsa.generate_private_key(backend=default_backend(), public_exponent=65537, key_size=2048)
+        # get public key in OpenSSH format
+        pub_key = (
+            key.public_key()
+            .public_bytes(serialization.Encoding.OpenSSH, serialization.PublicFormat.OpenSSH)
+            .decode("utf-8")
+        )
+        # get private key in PEM container format
+        priv_key = key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption(),
+        ).decode("utf-8")
+        return (priv_key, pub_key)
+
     def deploy_vdc(self, minio_ak, minio_sk, farm_name=None, install_monitoring_stack=False):
         """deploys a new vdc
         Args:
@@ -475,9 +496,7 @@ class VDCDeployer:
             minio_sk: secret key for minio
             farm_name: where to initialize the vdc
         """
-        self.threebot_ssh_key = j.clients.sshkey.get(f"{self.vdc_name}_threebot")
-        self.threebot_ssh_key.generate_keys()
-
+        priv_key, pub_key = self.generate_priv_pub_pairs()
         farm_name = farm_name or PREFERED_FARM.get()
         if not self.check_capacity(farm_name):
             raise j.exceptions.Validation(
@@ -504,10 +523,11 @@ class VDCDeployer:
             # deploy zdbs for s3
             self.bot_show_update("Deploying ZDBs for s3")
             deployment_threads = self.deploy_vdc_zdb(gs)
-
+            # public_keys to deploy vdc with
+            pub_keys = [pub_key.strip(), self.ssh_key.public_key.strip()]
             # deploy k8s cluster
             self.bot_show_update("Deploying kubernetes cluster")
-            k8s_thread = gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret)
+            k8s_thread = gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret, pub_keys=pub_keys)
             deployment_threads.append(k8s_thread)
             gevent.joinall(deployment_threads)
             for thread in deployment_threads:
@@ -561,7 +581,7 @@ class VDCDeployer:
 
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
-            threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id, kube_config=kube_config)
+            threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id, kube_config=kube_config, priv_key=priv_key)
             self.info(f"threebot_wid: {threebot_wid}")
             if not threebot_wid:
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
