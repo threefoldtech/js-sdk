@@ -167,7 +167,7 @@ class VDCDeploy(GedisChatBot):
         if not j.sals.reservation_chatflow.wait_http_test(
             threebot_url, timeout=600, verify=not j.config.get("TEST_CERT")
         ):
-            self.stop(f"Failed to initialize VDV on {threebot_url} , please contact support")
+            self.stop(f"Failed to initialize VDC on {threebot_url} , please contact support")
 
     @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
