@@ -36,7 +36,7 @@ class Network:
                     break
             else:
                 return None
-        return subnet
+        return str(subnet)
 
     def get_node_range(self, node_id):
         for workload in self.network_resources:
@@ -47,12 +47,16 @@ class Network:
     def get_free_ip(self, node_id):
         free_ips = []
         ip_range = self.get_node_range(node_id)
+        if not ip_range:
+            raise j.exceptions.Input(f"node: {node_id} is not part of network: {self.name}")
         hosts = netaddr.IPNetwork(ip_range).iter_hosts()
         next(hosts)  # skip ip used by node
         for host in hosts:
             ip = str(host)
             if ip not in self.used_ips:
                 free_ips.append(ip)
+        if not free_ips:
+            return None
         ip = random.choice(free_ips)
         self.used_ips.append(ip)
         return ip
