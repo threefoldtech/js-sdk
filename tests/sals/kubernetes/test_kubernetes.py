@@ -23,9 +23,6 @@ class TestKubernetes(VDCBase):
     def tearDownClass(cls):
         j.sals.vdc.delete(cls.vdc.instance_name)
         super().tearDownClass()
-        # Clean-up
-        cls.kube_manager.delete_deployed_release("testinstallchart")
-        cls.kube_manager.execute_native_cmd("kubectl delete persistentvolumes testinstallchart testdeletechart")
 
     def test_01_update_helm_repos(self):
         """Test case for updating helm repos.
