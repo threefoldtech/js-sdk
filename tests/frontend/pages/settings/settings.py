@@ -48,13 +48,13 @@ class Settings(Base):
         delete_button = deleted_email.find_element_by_tag_name("button")
         delete_button.click()
 
-    def add_identities(self, name, _3bot_name, email, words):
+    def add_identities(self, name, tname, email, words):
         self.select_card("Identities")
         v_cards = self.driver.find_elements_by_class_name("v-card")
         identity_card = [card for card in v_cards if "Add identity" in card.text][0]
         form = identity_card.find_element_by_tag_name("form")
         inputs_div = form.find_elements_by_class_name("v-text-field__slot")
-        inputs = {"Display name": name, "3Bot name": _3bot_name, "Email": email, "Words": words}
+        inputs = {"Display name": name, "3Bot name": tname, "Email": email, "Words": words}
 
         for input in inputs_div:
             if input.text in inputs.keys():
@@ -72,12 +72,12 @@ class Settings(Base):
         buttons = identity_details.find_element_by_tag_name("button")
         buttons[0].click()
 
-    def developer_options(self):
+    def developer_options(self, label):
         cards = self.driver.find_elements_by_class_name("mt-0")
         developer_card = [card for card in cards if "Developer options" in card.text][0]
-        options = developer_card.find_elements_by_class_name("v-input--selection-controls__input")
-        for option in options:
-            option.click()
+        options = developer_card.find_elements_by_class_name("v-input__slot")
+        button = [option for option in options if option.text == label][0]
+        button.click()
 
     def list(self, name):
         names = {}

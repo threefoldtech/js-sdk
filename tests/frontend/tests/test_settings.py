@@ -2,6 +2,7 @@ import pytest
 from tests.frontend.pages.settings.settings import Settings
 from tests.frontend.tests.base_tests import BaseTest
 from jumpscale.loader import j
+from gevent import sleep
 
 
 @pytest.mark.integration
@@ -91,12 +92,12 @@ class SettingsTests(BaseTest):
         emails = settings.list("Escalation Emails")
         self.assertNotIn(email, emails.keys())
 
-    def test04_developer_options(self):
-        """Test case for changing developer options.
+    def test04_allow_staging_ssl(self):
+        """Test case for changing developer options (Allow staging ssl certificate).
 
         **Test Scenario**
 
-        - Get the config for all options.
+        - Get the config for staging ssl certificate option.
         - Change this config.
         - Check that the config has been changed.
         """
@@ -104,26 +105,133 @@ class SettingsTests(BaseTest):
         settings = Settings(self.driver)
         settings.load()
 
-        self.info("Get the config for all options")
-        options_before_changes = [
-            j.core.config.get("TEST_CERT", False),
-            j.core.config.set("OVER_PROVISIONING", False),
-            j.core.config.get("EXPLORER_LOGS", False),
-            j.core.config.get("ESCALATION_EMAILS_ENABLED", False),
-            j.core.config.get("AUTO_EXTEND_POOLS_ENABLED", False),
-            j.core.config.get("SORT_NODES_BY_SRU", False),
-        ]
+        self.info("Get the config for staging ssl certificate option")
+        option_before_changes = (j.core.config.get("TEST_CERT", False),)
 
         self.info("Change this config")
-        settings.developer_options()
-        options_after_changes = [
-            j.core.config.get("TEST_CERT", False),
-            j.core.config.set("OVER_PROVISIONING", False),
-            j.core.config.get("EXPLORER_LOGS", False),
-            j.core.config.get("ESCALATION_EMAILS_ENABLED", False),
-            j.core.config.get("AUTO_EXTEND_POOLS_ENABLED", False),
-            j.core.config.get("SORT_NODES_BY_SRU", False),
-        ]
+        settings.developer_options("Allow staging ssl certificate")
+        sleep(3)
+        option_after_changes = (j.core.config.get("TEST_CERT", False),)
 
         self.info("Check that the config has been changed")
-        self.assertNotEqual(options_before_changes, options_after_changes)
+        self.assertNotEqual(option_before_changes, option_after_changes)
+
+    def test05_allow_over_provisioning(self):
+        """Test case for changing developer options (Allow over provisioning).
+
+        **Test Scenario**
+
+        - Get the config for over provisioning.
+        - Change this config.
+        - Check that the config has been changed.
+        """
+
+        settings = Settings(self.driver)
+        settings.load()
+
+        self.info("Get the config for over provisioning")
+        option_before_changes = (j.core.config.get("OVER_PROVISIONING", False),)
+
+        self.info("Change this config")
+        settings.developer_options("Allow over provisioning")
+        sleep(3)
+        option_after_changes = (j.core.config.get("OVER_PROVISIONING", False),)
+
+        self.info("Check that the config has been changed")
+        self.assertNotEqual(option_before_changes, option_after_changes)
+
+    def test06_enable_explorer_logs(self):
+        """Test case for changing developer options (Enable explorer logs).
+
+        **Test Scenario**
+
+        - Get the config for explorer logs.
+        - Change this config.
+        - Check that the config has been changed.
+        """
+
+        settings = Settings(self.driver)
+        settings.load()
+
+        self.info("Get the config for explorer logs")
+        option_before_changes = (j.core.config.get("EXPLORER_LOGS", False),)
+
+        self.info("Change this config")
+        settings.developer_options("Enable explorer logs")
+        sleep(3)
+        option_after_changes = (j.core.config.get("EXPLORER_LOGS", False),)
+
+        self.info("Check that the config has been changed")
+        self.assertNotEqual(option_before_changes, option_after_changes)
+
+    def test07_enable_sending_escalation_emails(self):
+        """Test case for changing developer options (Enable sending escalation emails).
+
+        **Test Scenario**
+
+        - Get the config for sending escalation emails.
+        - Change this config.
+        - Check that the config has been changed.
+        """
+
+        settings = Settings(self.driver)
+        settings.load()
+
+        self.info("Get the config for sending escalation emails")
+        option_before_changes = (j.core.config.get("ESCALATION_EMAILS_ENABLED", False),)
+
+        self.info("Change this config")
+        settings.developer_options("Enable sending escalation emails")
+        sleep(3)
+        option_after_changes = (j.core.config.get("ESCALATION_EMAILS_ENABLED", False),)
+
+        self.info("Check that the config has been changed")
+        self.assertNotEqual(option_before_changes, option_after_changes)
+
+    def test08_pools_auto_extension(self):
+        """Test case for changing developer options (Pools auto extension).
+
+        **Test Scenario**
+
+        - Get the config for pools auto extension.
+        - Change this config.
+        - Check that the config has been changed.
+        """
+
+        settings = Settings(self.driver)
+        settings.load()
+
+        self.info("Get the config for pools auto extension")
+        option_before_changes = (j.core.config.get("AUTO_EXTEND_POOLS_ENABLED", False),)
+
+        self.info("Change this config")
+        settings.developer_options("Pools auto extension")
+        sleep(3)
+        option_after_changes = (j.core.config.get("AUTO_EXTEND_POOLS_ENABLED", False),)
+
+        self.info("Check that the config has been changed")
+        self.assertNotEqual(option_before_changes, option_after_changes)
+
+    def test09_sort_nodes_by_SRU(self):
+        """Test case for changing developer options (Sort nodes by SRU).
+
+        **Test Scenario**
+
+        - Get the config for sort nodes by SRU.
+        - Change this config.
+        - Check that the config has been changed.
+        """
+
+        settings = Settings(self.driver)
+        settings.load()
+
+        self.info("Get the config for sort nodes by SRU")
+        option_before_changes = (j.core.config.get("SORT_NODES_BY_SRU", False),)
+
+        self.info("Change this config")
+        settings.developer_options("Sort nodes by SRU")
+        sleep(3)
+        option_after_changes = (j.core.config.get("SORT_NODES_BY_SRU", False),)
+
+        self.info("Check that the config has been changed")
+        self.assertNotEqual(option_before_changes, option_after_changes)

@@ -35,8 +35,9 @@ class Explorer(BaseTests):
             cls.me.set_default()
 
     def test01_check_nodes(self):
-        """
-        #. Check the node lists in explorer client.
+        """Check the node lists in explorer client.
+
+        **Test Scenario**
 
         - List all nodes.
         - Check that node list contains the node_id, farm_id, resources.
@@ -53,8 +54,9 @@ class Explorer(BaseTests):
         self.asserIn("total_resources", str(node))
 
     def test02_check_explorer_url(self):
-        """
-        #. Check the explorer URL.
+        """Check the explorer URL.
+
+        **Test Scenario**
 
         - Check the explorer url.
         - Make sure explorer_url "https://explorer.testnet.grid.tf/api/v1"
@@ -64,8 +66,9 @@ class Explorer(BaseTests):
         self.assertEquals(self.explorer.url, "https://explorer.testnet.grid.tf/api/v1")
 
     def test03_check_farms(self):
-        """
-        #. Check the farms lists in explorer client.
+        """Check the farms lists in explorer client.
+
+        **Test Scenario**
 
         - List all farms.
         - Check that farm list contains the wallet_addresses, id, location.
