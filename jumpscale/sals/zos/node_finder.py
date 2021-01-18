@@ -158,7 +158,7 @@ class NodeFinder:
 
         return self._nodes.list(farm_id=farm_id, country=country, city=city, cru=cru, sru=sru, mru=mru, hru=hru)
 
-    def check_node_public_ip_bridge(self, node):
+    def filter_public_ip_bridge(self, node):
         if not any([self.filter_public_ip4(node), self.filter_public_ip6(node)]):
             return False
 
