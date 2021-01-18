@@ -41,7 +41,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "PROVISIONING_WALLET_SECRET": self.vdc_deployer.vdc_instance.provision_wallet.secret,
             "PREPAID_WALLET_SECRET": self.vdc_deployer.vdc_instance.prepaid_wallet.secret,
             "VDC_INSTANCE": j.data.serializers.json.dumps(vdc_dict),
-            "THREEBOT_PRIVATE_KEY": self.vdc_deployer.threebot.private_key,
+            "THREEBOT_PRIVATE_KEY": self.vdc_deployer.threebot_ssh_key.private_key,
         }
         env = {
             "VDC_NAME": self.vdc_name,

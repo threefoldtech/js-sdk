@@ -365,7 +365,7 @@ class VDCDeployer:
             gs,
             master_size,
             cluster_secret,
-            [self.ssh_key.public_key.strip(), self.threebot.public_key.strip()],
+            [self.ssh_key.public_key.strip(), self.threebot_ssh_key.public_key.strip()],
             self.vdc_uuid,
             nv,
         )
