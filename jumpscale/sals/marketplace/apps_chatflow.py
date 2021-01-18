@@ -22,6 +22,10 @@ RESOURCE_VALUE_KEYS = {"cru": "CPU {}", "mru": "Memory {} GB", "sru": "Disk {} G
 
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.branch = j.clients.git.get("default_threebot").branch_name
+
     def _init_solution(self):
         self.md_show_update("Checking payment service...")
         # check stellar service
