@@ -475,7 +475,7 @@ class VDCDeployer:
             minio_sk: secret key for minio
             farm_name: where to initialize the vdc
         """
-        self.threebot_ssh_key = j.clients.sshclient.get(f"{self.vdc_name}_threebot")
+        self.threebot_ssh_key = j.clients.sshkey.get(f"{self.vdc_name}_threebot")
         self.threebot_ssh_key.generate_keys()
 
         farm_name = farm_name or PREFERED_FARM.get()
@@ -580,7 +580,7 @@ class VDCDeployer:
             self.bot_show_update("Updating Traefik")
             self.kubernetes.upgrade_traefik()
             self.vdc_instance.load_info()
-            j.clients.sshclient.delete(f"{self.vdc_name}_threebot")
+            j.clients.sshkey.delete(f"{self.vdc_name}_threebot")
             return kube_config
 
     def get_prefix(self):
