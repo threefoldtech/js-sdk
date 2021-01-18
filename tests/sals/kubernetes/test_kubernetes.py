@@ -23,6 +23,9 @@ class TestKubernetes(VDCBase):
     def tearDownClass(cls):
         j.sals.vdc.delete(cls.vdc.instance_name)
         super().tearDownClass()
+        # Clean-up
+        cls.kube_manager.delete_deployed_release("testinstallchart")
+        cls.kube_manager.execute_native_cmd("kubectl delete persistentvolumes testinstallchart testdeletechart")
 
     def test_01_update_helm_repos(self):
         """Test case for updating helm repos.
@@ -90,7 +93,7 @@ class TestKubernetes(VDCBase):
         - Check that chart is installed.
         """
         self.info("Install etcd chart from bitnami repo")
-        release_name = "testetcd"
+        release_name = "testinstallchart"
         release_chart = "bitnami/etcd"
         self.kube_manager.install_chart(release_name, release_chart)
         self.info("Check if chart installed")
