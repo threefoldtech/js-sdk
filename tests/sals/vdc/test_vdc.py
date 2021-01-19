@@ -27,13 +27,13 @@ class TestVDC(VDCBase):
         vdc_price = j.tools.zos.consumption.calculate_vdc_price(cls.flavor)
         needed_tft = float(vdc_price) / 24 / 30 + 0.2  # 0.2 transaction fees for creating the pool and extend it
         cls.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
-
         cls.info("Deploy VDC.")
         cls.deployer = cls.vdc.get_deployer(password=cls.password)
         minio_ak = cls.random_name()
         minio_sk = cls.random_string()
         kube_config = cls.deployer.deploy_vdc(minio_ak, minio_sk)
         cls.expiration_value = cls.vdc.calculate_expiration_value()
+        cls.timestamp_now = j.data.time.get().timestamp
         return kube_config
 
     @classmethod
@@ -41,7 +41,26 @@ class TestVDC(VDCBase):
         j.sals.vdc.delete(cls.vdc.instance_name)
         super().tearDownClass()
 
-    def test_01_list_vdcs(self):
+    def test_01_load_info(self):
+        """Test case for load info.
+
+        **Test Scenario**
+
+        - Deploy VDC.
+        - Check instance_name should be empty.
+        - Load info.
+        - Check instace_name should be filled.
+        """
+        self.info("Check instance_name should be empty")
+        self.assertFalse(self.vdc.instance_name)
+
+        self.info("Load info")
+        self.vdc.load_info()
+
+        self.info("Check instace_name should be filled")
+        self.assertTrue(self.vdc.instance_name)
+
+    def test_02_list_vdcs(self):
         """Test case for listing deployed vdcs.
 
         **Test Scenario**
@@ -61,7 +80,7 @@ class TestVDC(VDCBase):
                 break
         self.assertTrue(found)
 
-    def test02_calculate_expiration_value(self):
+    def test03_calculate_expiration_value(self):
         """Test case for checking the expiration value.
 
         **Test Scenario**
@@ -70,9 +89,9 @@ class TestVDC(VDCBase):
         - Get the expiration value.
         - Check expiration value after one hour.
         """
-        self.assertEqual(int(self.expiration_value), j.data.time.get().timestamp + 60 * 60)
+        self.assertEqual(int(self.vdc.expiration_value), (self.timestamp_now) + 60 * 60)
 
-    def test_03_is_empty(self):
+    def test_04_is_empty(self):
         """Test case for checking that deployed vdc not empty.
 
         **Test Scenario**
@@ -82,25 +101,6 @@ class TestVDC(VDCBase):
         """
         self.info("Check that the deployed vdc not empty")
         self.assertEqual(self.vdc.is_empty(), False)
-
-    def test_04_load_info(self):
-        """Test case for load info.
-
-        **Test Scenario**
-
-        - Deploy VDC.
-        - Check instance_name should be empty.
-        - Load info.
-        - Check instace_name should be filled.
-        """
-        self.info("Check instance_name should be empty")
-        self.assertFalse(self.vdc.instance_name)
-
-        self.info("Load info")
-        self.vdc.load_info()
-
-        self.info("Check instace_name should be filled")
-        self.assertTrue(self.vdc.instance_name)
 
     def test_05_find_vdc(self):
         """Test case for find vdc.
@@ -182,6 +182,7 @@ class TestVDC(VDCBase):
         expiration_value = self.vdc.expiration_date
 
         self.info("Renew plan with one day")
+        self.vdc.transfer_to_provisioning_wallet(1, "test_wallet")
         self.deployer.renew_plan(1)
 
         self.info("Check that the expiration value has been changed")
@@ -189,24 +190,23 @@ class TestVDC(VDCBase):
         self.assertNotEqual(expiration_value, self.vdc.expiration_date)
 
     def test09_transfer_to_provisioning_wallet(self):
-        """Test case for transfer 0.1 tft to provisioning wallet.
+        """Test case for transfer TFT to provisioning wallet.
 
         **Test Scenario**
 
         - Deploy VDC.
         - Get wallet balance.
-        - Transfer 0.1 TFT to provisioning wallet.
+        - Transfer TFT to provisioning wallet.
         - Check that the wallet balance has been changed.
         """
 
         self.info("Get wallet balance")
         old_wallet_balance = self.vdc.provision_wallet.get_balance().balances[0].balance  # [0.61 TFT:addres, 0.0 XLM]
 
-        self.info("Transfer 0.1 TFT to provisioning wallet")
-        vdc_price = j.tools.zos.consumption.calculate_vdc_price(self.flavor)
-        needed_tft = float(vdc_price) / 24 / 30 + 0.1
-        self.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
+        self.info("Transfer TFT to provisioning wallet")
+        tft = j.data.idgenerator.random_int(1, 2) + 0.2
+        self.vdc.transfer_to_provisioning_wallet(tft, "test_wallet")
 
         self.info("Check that the wallet balance has been changed")
         new_wallet_balance = self.vdc.provision_wallet.get_balance().balances[0].balance
-        self.assertEqual(float(old_wallet_balance), float(new_wallet_balance) + 0.1)
+        self.assertEqual(float(old_wallet_balance), float(new_wallet_balance) + tft)
