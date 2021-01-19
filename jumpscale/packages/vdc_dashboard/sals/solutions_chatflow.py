@@ -272,13 +272,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def get_release_name(self):
         self._get_vdc_info()
         message = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
-        while True:
-            self.release_name = self.string_ask(message, required=True, is_identifier=True, md=True)
-            # TODO: Check if solution name exist
-            releases = [release["name"] for release in self.k8s_client.list_deployed_releases()]
-            if not self.release_name in releases:
-                break
-            message = "Release name already exists.</br>Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
+        releases = [release["name"] for release in self.k8s_client.list_deployed_releases()]
+        self.release_name = self.string_ask(
+            message, required=True, is_identifier=True, not_exist=["solution name", releases], md=True
+        )
 
     @chatflow_step(title="Create subdomain")
     def create_subdomain(self):
@@ -297,7 +294,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
     @chatflow_step(title="Installation")
     def install_chart(self):
         try:
-            helm_repos_urls = [repo["url"] for repo in self.k8s_client.list_helm_repo()]
+            helm_repos_urls = [repo["url"] for repo in self.k8s_client.list_helm_repos()]
         except Exception as e:
             j.logger.warning(f"The following error happened with helm:\n {str(e)}")  # TODO: tweak this
             helm_repos_urls = []

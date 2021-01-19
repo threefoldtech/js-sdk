@@ -155,6 +155,14 @@ class MarketPlaceDeployer(ChatflowDeployer):
         farms_ids_with_gateways = [
             gateway_farm.farm_id for gateway_farm in deployer._explorer.gateway.list() if gateway_farm.farm_id > 0
         ]
+        # verify gateway farms is already there
+        for farm_id in farms_ids_with_gateways.copy():
+            try:
+                deployer._explorer.farms.get(farm_id)
+            except:
+                j.logger.warning(f"farm {farm_id} doesn't exist anymore, skipping that gateway")
+                farms_ids_with_gateways.remove(farm_id)
+
         farms_names_with_gateways = set(
             map(lambda farm_id: deployer._explorer.farms.get(farm_id=farm_id).name, farms_ids_with_gateways)
         )
@@ -544,6 +552,17 @@ class MarketPlaceDeployer(ChatflowDeployer):
             disallowed_node_ids = set(j.sals.reservation_chatflow.reservation_chatflow.list_blocked_nodes().keys())
             nodes = [node for node in nodes if node.node_id not in disallowed_node_ids]
         return nodes
+
+    def clear_user_pools(self):
+        """Clean all current local pools
+        these pools won't be reused after that
+        WARNING: THIS ACTION COULD NOT BE UNDONE
+        """
+        for pool in pool_factory.list_all():
+            pool_factory.delete(pool)
+            j.logger.info(f"Cleaning pool: {pool}")
+        j.logger.info("Cleaning Done")
+        return True
 
 
 deployer = MarketPlaceDeployer()
