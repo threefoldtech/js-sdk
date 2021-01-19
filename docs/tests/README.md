@@ -15,6 +15,7 @@
 
 ### Sals
 
+- [test_kubernetes](sals/kubernetes/test_kubernetes.md)
 - [test_marketplace_apps](sals/automated_chatflows/test_marketplace_apps.md)
 - [test_pools](sals/automated_chatflows/test_pools.md)
 - [test_solutions](sals/automated_chatflows/test_solutions.md)
