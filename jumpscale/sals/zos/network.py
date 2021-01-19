@@ -170,7 +170,7 @@ class NetworkGenerator:
             return wids
         filtered_workloads = []
         for resource in network.network_resources:
-            owner_tid = resource.info.owner_tid
+            owner_tid = resource.info.customer_tid
             if resource.info.node_id != node_id:
                 new_peers = []
                 for peer in resource.peers:
