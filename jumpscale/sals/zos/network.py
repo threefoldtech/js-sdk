@@ -161,7 +161,7 @@ class NetworkGenerator:
           node_id(str): ID of the node to add to the network
 
         Returns:
-
+            wids: list to decomission
         """
         wids = []
         owner_tid = None
