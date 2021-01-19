@@ -153,6 +153,30 @@ class NetworkGenerator:
         finally:
             self._cleanup_network(network)
 
+    def delete_node(self, network: Network, node_id: str):
+        """deletes a node from the network
+
+        Args:
+          network(Network): network object
+          node_id(str): ID of the node to add to the network
+
+        Returns:
+
+        """
+        node_range = network.get_node_range(node_id)
+        if not node_range:
+            return
+        filtered_workloads = []
+        for resource in network.network_resources:
+            if resource.info.node_id != node_id:
+                new_peers = []
+                for peer in resource.peers:
+                    if peer.iprange != node_range:
+                        new_peers.append(peer)
+                resource.peers = new_peers
+                filtered_workloads.append(resource)
+        network.network_resources = filtered_workloads
+
     def add_access(
         self, network: Network, node_id: str, ip_range: str, wg_public_key: str = None, ipv4: bool = False
     ) -> str:
