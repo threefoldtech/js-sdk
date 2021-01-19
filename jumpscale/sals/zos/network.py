@@ -163,11 +163,14 @@ class NetworkGenerator:
         Returns:
 
         """
+        wids = []
+        owner_tid = None
         node_range = network.get_node_range(node_id)
         if not node_range:
-            return
+            return wids
         filtered_workloads = []
         for resource in network.network_resources:
+            owner_tid = resource.info.owner_tid
             if resource.info.node_id != node_id:
                 new_peers = []
                 for peer in resource.peers:
@@ -176,6 +179,14 @@ class NetworkGenerator:
                 resource.peers = new_peers
                 filtered_workloads.append(resource)
         network.network_resources = filtered_workloads
+        for w in self._workloads.iter(customer_tid=owner_tid, next_action=NextAction.DEPLOY.name):
+            if (
+                w.info.workload_type == WorkloadType.Network_resource
+                and w.name == network.name
+                and w.info.node_id == node_id
+            ):
+                wids.append(w.id)
+        return wids
 
     def add_access(
         self, network: Network, node_id: str, ip_range: str, wg_public_key: str = None, ipv4: bool = False
