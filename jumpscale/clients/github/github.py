@@ -1,8 +1,12 @@
+from gevent import sleep
 from jumpscale.clients.base import Client
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
-from .repo import GithubRepo
+
 from github import Github, GithubObject
+
+from .repo import GithubRepo
+from .helper import retry
 
 NotSet = GithubObject.NotSet
 
@@ -25,21 +29,25 @@ class GithubClient(Client):
                 self.__client = Github(login_or_token=self.username, password=self.password)
         return self.__client
 
+    @retry
     def get_repo(self, repo_full_name):
-        return GithubRepo(self.github_client,repo_full_name)
+        return GithubRepo(self.github_client, repo_full_name)
 
+    @retry
     def get_repos(self):
         l = []
         for r in self.github_client.get_user().get_repos():
-            l.append(GithubRepo(self.github_client,r.full_name))
+            l.append(GithubRepo(self.github_client, r.full_name))
         return l
 
+    @retry
     def get_orgs(self):
         l = []
         for o in self.github_client.get_user().get_orgs():
             l.append(o.login)
         return l
 
+    @retry
     def get_userdata(self):
         u = self.github_client.get_user()
         el = []
@@ -47,6 +55,7 @@ class GithubClient(Client):
             el.append(e)
         return {"name": u.name, "emails": el, "id": u.id, "avatar_url": u.avatar_url}
 
+    @retry
     def create_repo(
         self,
         name,
@@ -72,5 +81,6 @@ class GithubClient(Client):
             gitignore_template=gitignore_template,
         )
 
+    @retry
     def delete_repo(self, repo_name):
         return self.github_client.get_user().get_repo(repo_name).delete()
