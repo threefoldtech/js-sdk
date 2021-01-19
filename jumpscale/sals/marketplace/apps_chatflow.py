@@ -22,6 +22,10 @@ RESOURCE_VALUE_KEYS = {"cru": "CPU {}", "mru": "Memory {} GB", "sru": "Disk {} G
 
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._branch = None
+
     def _init_solution(self):
         self.md_show_update("Checking payment service...")
         # check stellar service
@@ -39,6 +43,23 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.allow_custom_domain = False
         self.currency = "TFT"
         self.identity_name = j.core.identity.me.instance_name
+
+    @property
+    def branch(self):
+        if not self._branch:
+            try:
+                path = j.packages.threebot_deployer.__file__
+                git_client = j.clients.git.get("default_threebot")
+                git_client.path = j.tools.git.find_git_path(path)
+                git_client.save()
+                self._branch = git_client.branch_name
+            except Exception as e:
+                # won't fail unless we move the 3bot deployer package
+                j.logger.critical(
+                    f"Using development as default branch. Threebot package location is changed/courrpted, Please fix me, Error: {str(e)}"
+                )
+                self._branch = "development"
+        return self._branch
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
