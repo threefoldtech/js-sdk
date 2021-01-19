@@ -177,4 +177,4 @@ wallet.save()
 if THREEBOT_PRIVATE_KEY:
     with open("/root/.ssh/id_rsa", "w") as f:
         f.writelines(THREEBOT_PRIVATE_KEY)
-    j.sals.fs.chmod("/root/.ssh/id_rsa", 600)
+    j.sals.fs.chmod("/root/.ssh/id_rsa", 0o600)

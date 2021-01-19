@@ -275,8 +275,10 @@ class UserVDC(Base):
             if ip_address == "::/128":
                 continue
             ssh_key = j.clients.sshkey.get(self.vdc_name)
-            vdc_key_path = j.core.config.get("VDC_KEY_PATH", "~/.ssh/id_rsa")
-            ssh_key.private_key_path = j.sals.fs.expanduser(vdc_key_path)
+            PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.tname}/id_rsa"
+            if not j.sals.fs.exists(PRIV_KEY_PATH):
+                raise j.exceptions.NotFound(f"Can not find ssh key for vdc {self.vdc_name} in {PRIV_KEY_PATH}")
+            ssh_key.private_key_path = PRIV_KEY_PATH
             ssh_key.load_from_file_system()
             try:
                 ssh_client = j.clients.sshclient.get(
@@ -315,8 +317,10 @@ class UserVDC(Base):
             if ip_address == "::/128":
                 continue
             ssh_key = j.clients.sshkey.get(self.vdc_name)
-            vdc_key_path = j.core.config.get("VDC_KEY_PATH", "~/.ssh/id_rsa")
-            ssh_key.private_key_path = j.sals.fs.expanduser(vdc_key_path)
+            PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.tname}/id_rsa"
+            if not j.sals.fs.exists(PRIV_KEY_PATH):
+                raise j.exceptions.NotFound(f"Can not find ssh key for vdc {self.vdc_name} in {PRIV_KEY_PATH}")
+            ssh_key.private_key_path = PRIV_KEY_PATH
             ssh_key.load_from_file_system()
             try:
                 ssh_client = j.clients.sshclient.get(
@@ -357,7 +361,11 @@ class UserVDC(Base):
             refund_extra=False,
             expiry=expiry,
             description=j.data.serializers.json.dumps(
-                {"type": "VDC_INIT", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
+                {
+                    "type": "VDC_INIT",
+                    "owner": self.owner_tname,
+                    "solution_uuid": self.solution_uuid,
+                }
             ),
         )
 
@@ -397,7 +405,11 @@ class UserVDC(Base):
             refund_extra=False,
             expiry=expiry,
             description=j.data.serializers.json.dumps(
-                {"type": "VDC_K8S_EXTEND", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
+                {
+                    "type": "VDC_K8S_EXTEND",
+                    "owner": self.owner_tname,
+                    "solution_uuid": self.solution_uuid,
+                }
             ),
         )
         if amount > 0:

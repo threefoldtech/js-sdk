@@ -180,9 +180,13 @@ class VDCDeployer:
     def ssh_key(self):
         if not self._ssh_key:
             self._ssh_key = j.clients.sshkey.get(self.vdc_name)
-            vdc_key_path = j.core.config.get("VDC_KEY_PATH", "~/.ssh/id_rsa")
-            self._ssh_key.private_key_path = j.sals.fs.expanduser(vdc_key_path)
-            self._ssh_key.load_from_file_system()
+            KEYS_DIR_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.tname}"
+            self._ssh_key.private_key_path = f"{KEYS_DIR_PATH}/id_rsa"
+            if not j.sals.fs.exists(f"{KEYS_DIR_PATH}/id_rsa"):
+                j.sals.fs.mkdirs(KEYS_DIR_PATH)
+                self._ssh_key.generate_keys()
+            else:
+                self._ssh_key.load_from_file_system()
         return self._ssh_key
 
     @property
@@ -472,23 +476,6 @@ class VDCDeployer:
 
         return gcc.result
 
-    def generate_priv_pub_pairs(self):
-        # generate private/public key pair
-        key = rsa.generate_private_key(backend=default_backend(), public_exponent=65537, key_size=2048)
-        # get public key in OpenSSH format
-        pub_key = (
-            key.public_key()
-            .public_bytes(serialization.Encoding.OpenSSH, serialization.PublicFormat.OpenSSH)
-            .decode("utf-8")
-        )
-        # get private key in PEM container format
-        priv_key = key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=serialization.NoEncryption(),
-        ).decode("utf-8")
-        return (priv_key, pub_key)
-
     def deploy_vdc(self, minio_ak, minio_sk, farm_name=None, install_monitoring_stack=False):
         """deploys a new vdc
         Args:
@@ -496,7 +483,6 @@ class VDCDeployer:
             minio_sk: secret key for minio
             farm_name: where to initialize the vdc
         """
-        priv_key, pub_key = self.generate_priv_pub_pairs()
         farm_name = farm_name or PREFERED_FARM.get()
         if not self.check_capacity(farm_name):
             raise j.exceptions.Validation(
@@ -524,7 +510,7 @@ class VDCDeployer:
             self.bot_show_update("Deploying ZDBs for s3")
             deployment_threads = self.deploy_vdc_zdb(gs)
             # public_keys to deploy vdc with
-            pub_keys = [pub_key.strip(), self.ssh_key.public_key.strip()]
+            pub_keys = [self.ssh_key.public_key.strip()]
             # deploy k8s cluster
             self.bot_show_update("Deploying kubernetes cluster")
             k8s_thread = gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret, pub_keys=pub_keys)
@@ -581,7 +567,7 @@ class VDCDeployer:
 
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
-            threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id, kube_config=kube_config, priv_key=priv_key)
+            threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id, kube_config=kube_config)
             self.info(f"threebot_wid: {threebot_wid}")
             if not threebot_wid:
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
