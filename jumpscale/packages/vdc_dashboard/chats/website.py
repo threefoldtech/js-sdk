@@ -5,7 +5,7 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 class WebsiteDeploy(Publisher):
     EXAMPLE_URL = "https://github.com/threefoldfoundation/website_example"
 
-    title = "Deploy a Website"
+    title = "Website"
 
     @chatflow_step(title="Configurations")
     def set_config(self):
@@ -15,7 +15,7 @@ class WebsiteDeploy(Publisher):
         title = form.string_ask("Title", required=True)
         url = form.string_ask("Repository URL", required=True, is_git_url=True)
         branch = form.string_ask("Branch", required=True)
-        srcdir = form.string_ask("Source directory", required=False, default="")
+        srcdir = form.string_ask("Source directory", required=False, default="html")
         msg = self.get_mdconfig_msg()
         form.ask(msg, md=True)
         self.chart_config.update(

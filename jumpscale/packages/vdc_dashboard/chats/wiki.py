@@ -5,7 +5,7 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 class WikiDeploy(Publisher):
     EXAMPLE_URL = "https://github.com/threefoldfoundation/wiki_example"
 
-    title = "Deploy a Wiki"
+    title = "Wiki"
 
     @chatflow_step(title="Configurations")
     def set_config(self):
@@ -15,7 +15,7 @@ class WikiDeploy(Publisher):
         title = form.string_ask("Title", required=True)
         url = form.string_ask("Repository URL", required=True, is_git_url=True)
         branch = form.string_ask("Branch", required=True)
-        srcdir = form.string_ask("Source directory", required=False, default="")
+        srcdir = form.string_ask("Source directory", required=False, default="src")
         msg = self.get_mdconfig_msg()
         form.ask(msg, md=True)
         self.chart_config.update(
