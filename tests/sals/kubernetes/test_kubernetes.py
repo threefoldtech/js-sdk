@@ -56,21 +56,7 @@ class TestKubernetes(VDCBase):
         added_repo = {"name": repo_name, "url": repo_url}
         self.assertIn(added_repo, self.kube_manager.list_helm_repos())
 
-    def test_03_list_helm_repos(self):
-        """Test case for list all helm repos.
-
-        **Test Scenario**
-
-        - Deploy VDC
-        - list all helm repos
-        - Check that all repos are listed.
-        """
-        self.info("list all helm Repos")
-        all_repos = self.kube_manager.list_helm_repos()
-        self.info("Check that helm repo listed")
-        self.assertIsNotNone(all_repos)
-
-    def test_04_install_chart(self):
+    def test_03_install_chart(self):
         """Test case for install helm chart.
 
         **Test Scenario**
@@ -95,21 +81,7 @@ class TestKubernetes(VDCBase):
                 break
         self.assertTrue(is_installed)
 
-    def test_05_list_deployed_charts(self):
-        """Test case for listing all deployed charts.
-
-        **Test Scenario**
-
-        - Deploy VDC
-        - List all deployed charts
-        - Check that all deployed charts are listed.
-        """
-        self.info("list all deployed charts")
-        all_deployed_charts = self.kube_manager.list_deployed_releases()
-        self.info("Check that deployed charts listed")
-        self.assertIsNotNone(all_deployed_charts)
-
-    def test_06_delete_deployed_chart(self):
+    def test_04_delete_deployed_chart(self):
         """Test case for delete deployed chart.
 
         **Test Scenario**
@@ -138,7 +110,7 @@ class TestKubernetes(VDCBase):
         deployed_releases = [release["name"] for release in self.kube_manager.list_deployed_releases()]
         self.assertNotIn(release_name, deployed_releases)
 
-    def test_07_is_helm_installed(self):
+    def test_05_is_helm_installed(self):
         """Test case to check if helm installed.
 
         **Test Scenario**
@@ -151,7 +123,7 @@ class TestKubernetes(VDCBase):
         process_is_installed = j.sals.process.is_installed("helm")
         self.assertEqual(is_helm_installed_function, process_is_installed)
 
-    def test_08_execute_native_cmd(self):
+    def test_06_execute_native_cmd(self):
         """Test case for executing a native kubernetes commands.
 
         **Test Scenario**
