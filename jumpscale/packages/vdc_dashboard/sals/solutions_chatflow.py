@@ -118,8 +118,18 @@ class SolutionsChatflowDeploy(GedisChatBot):
                     ssh_client = j.clients.sshclient.get(
                         self.vdc_name, user="rancher", host=self.vdc_info["master_ip"], sshkey=self.vdc_name
                     )
-                    cmd = f"sudo {socat} tcp-listen:{ports.get('src')},reuseaddr,fork tcp:{cluster_ip}:{ports.get('dest')}"
-                    rc, out, err = ssh_client.sshclient.run(cmd, warn=True)
+                    cmd = f"{socat} tcp-listen:{ports['src']},reuseaddr,fork tcp:{cluster_ip}:{ports['dest']}"
+                    template = f"""#!/sbin/openrc-run
+                    name="{service}"
+                    command="{cmd}"
+                    pidfile="/var/run/{service}.pid"
+                    command_background=true
+                    """
+                    template = dedent(template)
+                    rc, out, err = ssh_client.sshclient.run(
+                        f"sudo touch /etc/init.d/{service} && sudo chmod 777 /etc/init.d/{service} &&  echo '{template}' >> /etc/init.d/{service} && sudo rc-service {service} start",
+                        warn=True,
+                    )
                     if rc:
                         j.logger.critical(
                             f"VDC: Can not expose service using socat error was rc:{rc}, out:{out}, error:{err}"

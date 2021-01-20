@@ -22,10 +22,6 @@ from jumpscale.core.exceptions import exceptions
 from contextlib import ContextDecorator
 from jumpscale.sals.zos.billing import InsufficientFunds
 import os
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
-
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}_{}"  # tname, vdc_name, vdc_uuid
 IP_VERSION = "IPv4"
