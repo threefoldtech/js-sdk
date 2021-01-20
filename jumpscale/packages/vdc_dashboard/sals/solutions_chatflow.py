@@ -108,7 +108,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         for service, ports in port_forwards.items():
             if ports.get("src") and ports.get("dest"):
                 cluster_ip = self.k8s_client.execute_native_cmd(
-                    f"kubectl get service/{{service}} -o jsonpath='{{.spec.clusterIP}}'"
+                    f"kubectl get service/{service} -o jsonpath='{{.spec.clusterIP}}'"
                 )
                 if cluster_ip and j.sals.fs.exists("/root/.ssh/id_rsa"):
                     socat = "/var/lib/rancher/k3s/data/current/bin/socat"
