@@ -106,7 +106,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         """
         port_forwards = port_forwards or {}
         for service, ports in port_forwards.items():
-            if service.get("src") and service.get("dest"):
+            if ports.get("src") and ports.get("dest"):
                 cluster_ip = self.k8s_client.execute_native_cmd(
                     f"kubectl get service/{{service}} -o jsonpath='{{.spec.clusterIP}}'"
                 )
@@ -118,7 +118,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                     ssh_client = j.clients.sshclient.get(
                         self.vdc_name, user="rancher", host=self.vdc_info["master_ip"], sshkey=self.vdc_name
                     )
-                    cmd = f"sudo {socat} tcp-listen:{ports['src']},reuseaddr,fork tcp:{cluster_ip}:{ports['dest']}"
+                    cmd = f"sudo {socat} tcp-listen:{ports.get('src')},reuseaddr,fork tcp:{cluster_ip}:{ports.get('dest')}"
                     rc, out, err = ssh_client.sshclient.run(cmd, warn=True)
                     if rc:
                         j.logger.critical(
