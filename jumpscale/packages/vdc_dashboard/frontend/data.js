@@ -61,7 +61,7 @@ const DECENTRALIZED_WE = {
             name: "Blog",
             type: "blog",
             image: "./assets/blog.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
             description: "Blog is a P2P alternative to centralized blogging platforms like Tumblr or Blogspot."
         },
@@ -69,7 +69,7 @@ const DECENTRALIZED_WE = {
             name: "Website",
             type: "website",
             image: "./assets/web.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
             description: "Website is a P2P alternative to centralized cloud-hosted websites. Host your own website with access via a public web address."
         },
@@ -78,7 +78,7 @@ const DECENTRALIZED_WE = {
             name: "Wiki",
             type: "wiki",
             image: "./assets/doc-flat.svg",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
             description: "Wiki is a versatile online encyclopedia builder, accessible via a public web address."
         },
