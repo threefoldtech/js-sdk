@@ -37,7 +37,6 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Initializing chatflow")
     def choose_name(self):
         self._init_solution()
-        self.branch = "development"
         all_3bot_solutions = list_threebot_solutions(self.threebot_name)
         self.stoped_3bots = [
             threebot for threebot in all_3bot_solutions if threebot["state"] == ThreebotState.STOPPED.value

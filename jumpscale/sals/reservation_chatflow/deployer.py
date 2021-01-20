@@ -901,7 +901,13 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             if expiration_provisioning < j.data.time.get().timestamp:
                 j.sals.reservation_chatflow.reservation_chatflow.block_node(workload.info.node_id)
                 if workload.info.workload_type != WorkloadType.Network_resource:
-                    j.sals.reservation_chatflow.solutions.cancel_solution([workload_id], identity_name)
+                    if cancel_by_uuid:
+                        j.sals.reservation_chatflow.solutions.cancel_solution([workload_id], identity_name)
+                    else:
+                        try:
+                            j.sals.zos.get(identity_name).workloads.decomission(workload_id)
+                        except Exception as e:
+                            j.logger.error(f"failed to delete expired workload {workload_id} due to error {str(e)}")
                 elif breaking_node_id and workload.info.node_id != breaking_node_id:
                     return True
                 raise DeploymentFailed(f"Workload {workload_id} failed to deploy in time")

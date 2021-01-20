@@ -60,6 +60,24 @@ class VDCBase(BaseTests):
         cls.server.packages.add(path)
         cls.server.start()
 
+    @classmethod
+    def deploy_vdc(cls):
+        cls.vdc_name = cls.random_name()
+        cls.password = cls.random_string()
+        cls.vdc = j.sals.vdc.new(cls.vdc_name, cls.tname, cls.flavor)
+
+        cls.info("Transfer needed TFT to deploy vdc for an hour to the provisioning wallet.")
+        vdc_price = j.tools.zos.consumption.calculate_vdc_price(cls.flavor)
+        needed_tft = float(vdc_price) / 24 / 30 + 0.2  # 0.2 transaction fees for creating the pool and extend it
+        cls.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
+
+        cls.info("Deploy VDC.")
+        deployer = cls.vdc.get_deployer(password=cls.password)
+        minio_ak = cls.random_name()
+        minio_sk = cls.random_string()
+        kube_config = deployer.deploy_vdc(minio_ak, minio_sk)
+        return kube_config
+
     @staticmethod
     def random_name():
         return j.data.random_names.random_name()
