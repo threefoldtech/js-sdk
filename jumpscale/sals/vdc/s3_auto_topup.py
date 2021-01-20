@@ -167,7 +167,7 @@ def extend_zdbs(
     4- return wids, password
 
     """
-    description = j.data.serializers.json.dumps({"solution_uuid": solution_uuid})
+    description = j.data.serializers.json.dumps({"vdc_uuid": solution_uuid})
     wallet_name = wallet_name or j.core.config.get("S3_AUTO_TOPUP_WALLET")
     wallet = j.clients.stellar.get(wallet_name)
     zos = get_zos()
