@@ -17,21 +17,15 @@ class TestBilling(BaseTests):
     @classmethod
     def tearDownClass(cls):
         cls.info("Clean-up and teardown")
-        destination_wallet_balance = cls.test_destination_wallet.get_balance_by_asset()
-        payment_id, memo_text = j.sals.billing.submit_payment(
-            amount=destination_wallet_balance, wallet_name=cls.test_source_wallet.instance_name, expiry=1
-        )
+        destination_wallet_balance = round(cls.test_destination_wallet.get_balance_by_asset() - 0.1, 6)
         cls.info(f"Transfer all TFT from destination wallet")
         transaction_hash = cls.test_destination_wallet.transfer(
             cls.test_source_wallet.address,
             amount=destination_wallet_balance,
-            memo_text=memo_text,
             asset=f"{cls.asset.code}:{cls.asset.issuer}",
         )
-        j.sals.billing.process_payments()
-        cls.assertTrue(j.sals.billing.wait_payment(payment_id))
         cls.info("Check if destination wallet is empty")
-        cls.assertAlmostEqual(cls.test_destination_wallet.get_balance_by_asset(), 0)
+        assert round(cls.test_destination_wallet.get_balance_by_asset()) == 0
 
     @classmethod
     def _get_env_vars(cls):
