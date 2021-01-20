@@ -95,6 +95,38 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self.admin_username = admin_username.value
         self.admin_password = admin_password.value
 
+    def _forward_ports(self, port_forwards=None):
+        """
+        portforwards = {"<SERVICE_NAME>": {"src":<src_port>, "dest": <dest_port>} }
+        example: portforwards = {
+            "mysql": {"src": 7070, "dest": 3306, "protocol": "TCP"},
+            "redis": {"src": 6060, "dest", 6379, "protocol": "TCP"}
+            }
+
+        """
+        port_forwards = port_forwards or {}
+        for service, ports in port_forwards.items():
+            if service.get("src") and service.get("dest"):
+                cluster_ip = self.k8s_client.execute_native_cmd(
+                    f"kubectl get service/{{service}} -o jsonpath='{{.spec.clusterIP}}'"
+                )
+                if cluster_ip and j.sals.fs.exists("/root/.ssh/id_rsa"):
+                    socat = "/var/lib/rancher/k3s/data/current/bin/socat"
+                    ssh_key = j.clients.sshkey.get(self.vdc_name)
+                    ssh_key.private_key_path = "/root/.ssh/id_rsa"
+                    ssh_key.load_from_file_system()
+                    ssh_client = j.clients.sshclient.get(
+                        self.vdc_name, user="rancher", host=self.vdc_info["master_ip"], sshkey=self.vdc_name
+                    )
+                    cmd = f"sudo {socat} tcp-listen:{ports['src']},reuseaddr,fork tcp:{cluster_ip}:{ports['dest']}"
+                    rc, out, err = ssh_client.sshclient.run(cmd, warn=True)
+                    if rc:
+                        j.logger.critical(
+                            f"VDC: Can not expose service using socat error was rc:{rc}, out:{out}, error:{err}"
+                        )
+                    return True
+        return False
+
     def _ask_smtp_settings(self):
         form = self.new_form()
         smtp_host = form.string_ask("SMTP Host", required=True)
