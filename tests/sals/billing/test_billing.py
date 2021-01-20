@@ -10,7 +10,7 @@ from jumpscale.sals.billing.models import PAYMENT_FACTORY, REFUND_FACTORY
 class TestBilling(BaseTests):
     @classmethod
     def setUpClass(cls):
-        cls.info("Setup all requirments")
+        cls.info("Setup all requirements")
         cls._get_env_vars()
         cls._setup_wallets()
 
@@ -29,12 +29,12 @@ class TestBilling(BaseTests):
 
     @classmethod
     def _get_env_vars(cls):
-        """Get enviroment variables
+        """Get environment variables
 
         Raises:
-            ValueError: Error raised if enviroment variable not found
+            ValueError: Error raised if environment variable not found
         """
-        cls.info("Get needed enviroment variables")
+        cls.info("Get needed environment variables")
         needed_vars = ["SOURCE_WALLET_SECRET", "DESTINATION_WALLET_SECRET"]
         for var in needed_vars:
             value = os.environ.get(var)
