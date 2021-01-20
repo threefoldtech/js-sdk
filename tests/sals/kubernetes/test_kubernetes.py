@@ -45,7 +45,7 @@ class TestKubernetes(VDCBase):
 
         - Deploy VDC
         - Add helm repo
-        - Check that the added rebo listed in the helm repos.
+        - Check that the added repo listed in the helm repos.
         """
         self.info("Add prometheus-community repo")
         repo_name = "prometheus-community"
@@ -146,10 +146,8 @@ class TestKubernetes(VDCBase):
         - Deploy VDC
         - Check is_helm_installed against process.is_installed.
         """
-        self.info("Get is_helm_installed result")
-        is_helm_installed_function = j.sals.kubernetes.manager.is_helm_installed()
-        process_is_installed = j.sals.process.is_installed("helm")
-        self.assertEqual(is_helm_installed_function, process_is_installed)
+        self.info("Check if helm is installed")
+        self.assertEqual(j.sals.kubernetes.manager.is_helm_installed(), j.sals.process.is_installed("helm"))
 
     def test_08_execute_native_cmd(self):
         """Test case for executing a native kubernetes commands.
