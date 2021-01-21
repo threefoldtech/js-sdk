@@ -24,16 +24,16 @@ class TestVDC(VDCBase):
         cls.vdc = j.sals.vdc.new(cls.vdc_name, cls.tname, cls.flavor)
 
         cls.info("Transfer needed TFT to deploy vdc for an hour to the provisioning wallet.")
-        vdc_price = j.tools.zos.consumption.calculate_vdc_price(cls.flavor)
-        needed_tft = float(vdc_price) / 24 / 30 + 0.2  # 0.2 transaction fees for creating the pool and extend it
+        cls.vdc_price = j.tools.zos.consumption.calculate_vdc_price(cls.flavor)
+        needed_tft = float(cls.vdc_price) / 24 / 30 + 0.2  # 0.2 transaction fees for creating the pool and extend it
         cls.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
         cls.info("Deploy VDC.")
         cls.deployer = cls.vdc.get_deployer(password=cls.password)
         minio_ak = cls.random_name()
         minio_sk = cls.random_string()
+        cls.timestamp_now = j.data.time.get().utcnow().timestamp
         kube_config = cls.deployer.deploy_vdc(minio_ak, minio_sk)
-        cls.expiration_value = cls.vdc.calculate_expiration_value()
-        cls.timestamp_now = j.data.time.get().timestamp
+
         return kube_config
 
     @classmethod
@@ -47,18 +47,20 @@ class TestVDC(VDCBase):
         **Test Scenario**
 
         - Deploy VDC.
-        - Check instance_name should be empty.
+        - Get VDC by j.sals.vdc.get
+        - Check that VDC should be empty.
         - Load info.
         - Check instace_name should be filled.
         """
         self.info("Check instance_name should be empty")
-        self.assertFalse(self.vdc.instance_name)
+        vdc = j.sals.vdc.get(self.vdc.instance_name)
+        self.assertFalse(vdc.kubernetes)
 
         self.info("Load info")
-        self.vdc.load_info()
+        vdc.load_info()
 
         self.info("Check instace_name should be filled")
-        self.assertTrue(self.vdc.instance_name)
+        self.assertTrue(vdc.kubernetes)
 
     def test_02_list_vdcs(self):
         """Test case for listing deployed vdcs.
@@ -89,7 +91,7 @@ class TestVDC(VDCBase):
         - Get the expiration value.
         - Check expiration value after one hour.
         """
-        self.assertEqual(int(self.vdc.expiration_value), (self.timestamp_now) + 60 * 60)
+        self.assertLess(int(self.vdc.calculate_expiration_value()) - self.timestamp_now, 300)
 
     def test_04_is_empty(self):
         """Test case for checking that deployed vdc not empty.
@@ -135,7 +137,7 @@ class TestVDC(VDCBase):
         self.assertEqual(len(self.vdc.kubernetes), k8s_before_add + 1)
 
         self.info("Delete this node")
-        self.deployer.delete_k8s_node(wid)
+        self.deployer.delete_k8s_node(wid[0])
 
         self.info("Check that this node has been deleted")
         self.vdc.load_info()
@@ -182,7 +184,8 @@ class TestVDC(VDCBase):
         expiration_value = self.vdc.expiration_date
 
         self.info("Renew plan with one day")
-        self.vdc.transfer_to_provisioning_wallet(1, "test_wallet")
+        needed_tft = float(self.vdc_price) / 30 + 0.2
+        self.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
         self.deployer.renew_plan(1)
 
         self.info("Check that the expiration value has been changed")
@@ -204,9 +207,35 @@ class TestVDC(VDCBase):
         old_wallet_balance = self.vdc.provision_wallet.get_balance().balances[0].balance  # [0.61 TFT:addres, 0.0 XLM]
 
         self.info("Transfer TFT to provisioning wallet")
-        tft = j.data.idgenerator.random_int(1, 2) + 0.2
+        tft = j.data.idgenerator.random_int(1, 2)
         self.vdc.transfer_to_provisioning_wallet(tft, "test_wallet")
 
         self.info("Check that the wallet balance has been changed")
         new_wallet_balance = self.vdc.provision_wallet.get_balance().balances[0].balance
-        self.assertEqual(float(old_wallet_balance), float(new_wallet_balance) + tft)
+        self.assertEqual(float(old_wallet_balance) + tft, float(new_wallet_balance))
+
+    def test10_extend_zdb(self):
+        """Test case for transfer TFT to provisioning wallet.
+
+        **Test Scenario**
+
+        - Deploy VDC.
+        - Get the zdbs length.
+        - Extend zdbs.
+        - Check that zdbs has been extended.
+        """
+        self.info("Get the zdbs length")
+        zdb_monitor = self.vdc.get_zdb_monitor()
+        old_zdb_total_size = zdb_monitor.zdb_total_size
+
+        self.info("Extend zdbs")
+
+        vdc_identity = f"vdc_ident_{self.vdc.solution_uuid}"
+        if j.core.identity.find(vdc_identity):
+            j.core.identity.set_default(vdc_identity)
+        zdb_monitor.extend(10, ["lochristi_dev_lab"])
+
+        self.info("Check that zdbs has been extended")
+        self.vdc.load_info()
+        zdb_monitor = self.vdc.get_zdb_monitor()
+        self.assertGreater(zdb_monitor.zdb_total_size, old_zdb_total_size + 10)
