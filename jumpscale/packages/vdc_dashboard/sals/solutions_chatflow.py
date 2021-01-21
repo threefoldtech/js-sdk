@@ -95,6 +95,21 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self.admin_username = admin_username.value
         self.admin_password = admin_password.value
 
+    def get_k8s_sshclient(self, private_key_path="/root/.ssh/id_rsa", user="rancher"):
+        ssh_key = j.clients.sshkey.get(self.vdc_name)
+        ssh_key.private_key_path = private_key_path
+        ssh_key.load_from_file_system()
+        ssh_client = j.clients.sshclient.get(
+            self.vdc_name, user=user, host=self.vdc_info["master_ip"], sshkey=self.vdc_name
+        )
+        return ssh_client
+
+    def is_port_exposed(sshclient, src_port):
+        rc, out, err = ssh_client.sshclient.run(f"sudo netstat -tulpn | grep :{src_port}")
+        if rc == 0:
+            return True
+        return False
+
     def _forward_ports(self, port_forwards=None):
         """
         portforwards = {"<SERVICE_NAME>": {"src":<src_port>, "dest": <dest_port>} }
@@ -104,20 +119,21 @@ class SolutionsChatflowDeploy(GedisChatBot):
             }
 
         """
+        ssh_client = self.get_k8s_sshclient()
         port_forwards = port_forwards or {}
         for service, ports in port_forwards.items():
             if ports.get("src") and ports.get("dest"):
+                # Validate if the port not exposed
+                if is_port_exposed(ssh_client, ports.get("src")):
+                    j.logger.critical(
+                        f"VDC: Can not expose service with port {ports.get('src')} using socat, port already in use, error was rc:{rc}, out:{out}, error:{err}"
+                    )
+
                 cluster_ip = self.k8s_client.execute_native_cmd(
                     f"kubectl get service/{service} -o jsonpath='{{.spec.clusterIP}}'"
                 )
                 if cluster_ip and j.sals.fs.exists("/root/.ssh/id_rsa"):
                     socat = "/var/lib/rancher/k3s/data/current/bin/socat"
-                    ssh_key = j.clients.sshkey.get(self.vdc_name)
-                    ssh_key.private_key_path = "/root/.ssh/id_rsa"
-                    ssh_key.load_from_file_system()
-                    ssh_client = j.clients.sshclient.get(
-                        self.vdc_name, user="rancher", host=self.vdc_info["master_ip"], sshkey=self.vdc_name
-                    )
                     cmd = f"{socat} tcp-listen:{ports['src']},reuseaddr,fork tcp:{cluster_ip}:{ports['dest']}"
                     template = f"""#!/sbin/openrc-run
                     name="{service}"
@@ -126,7 +142,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                     command_background=true
                     """
                     template = dedent(template)
-                    file_name = f"{self.release_name}-{service}"
+                    file_name = f"{self.release_name}-socat-{service}"
                     rc, out, err = ssh_client.sshclient.run(
                         f"sudo touch /etc/init.d/{file_name} && sudo chmod 777 /etc/init.d/{file_name} &&  echo '{template}' >> /etc/init.d/{file_name} && sudo rc-service {file_name} start",
                         warn=True,

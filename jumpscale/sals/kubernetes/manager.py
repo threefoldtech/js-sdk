@@ -117,6 +117,13 @@ class Manager:
             raise j.exceptions.Runtime(f"Failed to deploy chart {chart_name}, error was {err}")
         return out
 
+    def get_k8s_sshclient(self, instance, host, private_key_path="/root/.ssh/id_rsa", user="rancher"):
+        ssh_key = j.clients.sshkey.get(instance)
+        ssh_key.private_key_path = private_key_path
+        ssh_key.load_from_file_system()
+        ssh_client = j.clients.sshclient.get(instance, user=user, host=host, sshkey=instance)
+        return ssh_client
+
     @helm_required
     def delete_deployed_release(self, release, namespace="default", vdc_instance=None):
         """deletes deployed helm release
@@ -144,19 +151,17 @@ class Manager:
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to deploy chart {release} , error was {err}")
 
-        if vdc_instance:
-            # Stop and remove Socat service
-            ssh_key = j.clients.sshkey.get(release)
-            ssh_key.private_key_path = "/root/.ssh/id_rsa"
-            ssh_key.load_from_file_system()
-            ssh_client = j.clients.sshclient.get(release, user="rancher", host=k8s_master_ip, sshkey=release)
-            rc, out, err = ssh_client.sshclient.run(
-                f"sudo rc-service {release}-* stop && rm /etc/init.d/{release}-*", warn=True,
-            )
-            if rc != 0:
-                raise j.exceptions.Runtime(
-                    f"Failed to stop kubernetes rc-service starting with name {release} , error was {err}"
+        # Validate service running
+        ssh_client = self.get_k8s_sshclient(release, k8s_master_ip)
+        rc, out, err = ssh_client.sshclient.run(f"sudo rc-service -l | grep -i '^{release}-socat-'", warn=True,)
+
+        if rc == 0:
+            results = out.split("\n")
+            for result in results:
+                rc, out, err = ssh_client.sshclient.run(
+                    f"sudo rc-service -s {result.strip()} stop && sudo rm -f /etc/init.d/{result.strip()}", warn=True,
                 )
+
         return out
 
     @helm_required
