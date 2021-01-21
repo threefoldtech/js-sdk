@@ -104,7 +104,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         )
         return ssh_client
 
-    def is_port_exposed(sshclient, src_port):
+    def is_port_exposed(self, sshclient, src_port):
         rc, out, err = ssh_client.sshclient.run(f"sudo netstat -tulpn | grep :{src_port}")
         if rc == 0:
             return True
@@ -124,7 +124,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         for service, ports in port_forwards.items():
             if ports.get("src") and ports.get("dest"):
                 # Validate if the port not exposed
-                if is_port_exposed(ssh_client, ports.get("src")):
+                if self.is_port_exposed(ssh_client, ports.get("src")):
                     j.logger.critical(
                         f"VDC: Can not expose service with port {ports.get('src')} using socat, port already in use, error was rc:{rc}, out:{out}, error:{err}"
                     )
