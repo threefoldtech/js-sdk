@@ -118,7 +118,7 @@ class Manager:
         return out
 
     @helm_required
-    def delete_deployed_release(self, release, namespace="default"):
+    def delete_deployed_release(self, release, vdc_instance, namespace="default"):
         """deletes deployed helm release
 
         Args:
@@ -132,7 +132,6 @@ class Manager:
         """
         # Getting k8s master IP
         k8s_master_ip = ""
-        vdc_instance = j.sals.vdc.get(release)
         for node in vdc_instance.kubernetes:
             if node.role.value == "master":
                 k8s_master_ip = node.ip_address
