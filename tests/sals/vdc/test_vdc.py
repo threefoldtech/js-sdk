@@ -22,7 +22,7 @@ class TestVDC(VDCBase):
         j.sals.vdc.delete(cls.vdc.instance_name)
         super().tearDownClass()
 
-    def test_01_load_info(self):
+    def test01_load_info(self):
         """Test case for load info.
 
         **Test Scenario**
@@ -50,7 +50,7 @@ class TestVDC(VDCBase):
         self.info("Check instace_name should be filled")
         self.assertTrue(vdc.kubernetes)
 
-    def test_02_list_vdcs(self):
+    def test02_list_vdcs(self):
         """Test case for listing deployed vdcs.
 
         **Test Scenario**
@@ -82,7 +82,7 @@ class TestVDC(VDCBase):
         timestamp_after_one_hour = self.timestamp_now + 60 * 60
         self.assertLess(int(self.vdc.calculate_expiration_value()) - timestamp_after_one_hour, 200)
 
-    def test_04_is_empty(self):
+    def test04_is_empty(self):
         """Test case for checking that deployed vdc not empty.
 
         **Test Scenario**
@@ -93,7 +93,7 @@ class TestVDC(VDCBase):
         self.info("Check that the deployed vdc not empty")
         self.assertEqual(self.vdc.is_empty(), False)
 
-    def test_05_find_vdc(self):
+    def test05_find_vdc(self):
         """Test case for find vdc.
 
         **Test Scenario**
@@ -104,7 +104,7 @@ class TestVDC(VDCBase):
         self.info("Try to find this vdc")
         self.assertTrue(j.sals.vdc.find(self.vdc.instance_name))
 
-    def test_06_add_delete_k8s_node(self):
+    def test06_add_delete_k8s_node(self):
         """Test case for adding and deleting node.
 
         **Test Scenario**
@@ -132,7 +132,7 @@ class TestVDC(VDCBase):
         self.vdc.load_info()
         self.assertEqual(len(self.vdc.kubernetes), k8s_before_add)
 
-    def test_07_apply_grace_period_action(self):
+    def test07_apply_grace_period_action(self):
         """Test case for applay and revert grace period action.
 
         **Test Scenario**
