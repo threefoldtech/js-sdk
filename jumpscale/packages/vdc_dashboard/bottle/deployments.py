@@ -167,7 +167,7 @@ def cancel_deployment():
     config_path = j.sals.fs.expanduser("~/.kube/config")
     k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
     vdc = _get_vdc()
-    k8s_client.delete_deployed_release(release=data["release"], vdc=vdc)
+    k8s_client.delete_deployed_release(release=data["release"], vdc_instance=vdc)
     j.sals.marketplace.solutions.cancel_solution_by_uuid(data["solution_id"])
     return j.data.serializers.json.dumps({"result": True})
 
