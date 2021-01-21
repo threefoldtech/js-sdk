@@ -1,4 +1,4 @@
-### test02_calculate_expiration_value
+### test03_calculate_expiration_value
 
 Test case for checking the expiration value.
 
@@ -21,16 +21,39 @@ Test case for renew plan.
 
 ### test09_transfer_to_provisioning_wallet
 
-Test case for transfer 0.1 tft to provisioning wallet.
+Test case for transfer TFT to provisioning wallet.
 
 **Test Scenario**
 
 - Deploy VDC.
 - Get wallet balance.
-- Transfer 0.1 TFT to provisioning wallet.
+- Transfer TFT to provisioning wallet.
 - Check that the wallet balance has been changed.
 
-### test_01_list_vdcs
+### test10_extend_zdb
+
+Test case for extend zdbs.
+
+**Test Scenario**
+
+- Deploy VDC.
+- Get the zdbs total size.
+- Extend zdbs.
+- Check that zdbs has been extended.
+
+### test_01_load_info
+
+Test case for load info.
+
+**Test Scenario**
+
+- Deploy VDC.
+- Get VDC by j.sals.vdc
+- Check that VDC should be empty.
+- Load info.
+- Check instace_name should be filled.
+
+### test_02_list_vdcs
 
 Test case for listing deployed vdcs.
 
@@ -40,7 +63,7 @@ Test case for listing deployed vdcs.
 - List deployed vdcs.
 - Check that the vdc has been deployed is in the list.
 
-### test_03_is_empty
+### test_04_is_empty
 
 Test case for checking that deployed vdc not empty.
 
@@ -48,17 +71,6 @@ Test case for checking that deployed vdc not empty.
 
 - Deploy VDC.
 - Check that the deployed vdc not empty.
-
-### test_04_load_info
-
-Test case for load info.
-
-**Test Scenario**
-
-- Deploy VDC.
-- Check instance_name should be empty.
-- Load info.
-- Check instace_name should be filled.
 
 ### test_05_find_vdc
 
@@ -93,7 +105,7 @@ Test case for applay and revert grace period action.
 - Revert grace period action.
 - Check that k8s has been reachable.
 
-### test02_calculate_expiration_value
+### test03_calculate_expiration_value
 
 Test case for checking the expiration value.
 
@@ -116,16 +128,39 @@ Test case for renew plan.
 
 ### test09_transfer_to_provisioning_wallet
 
-Test case for transfer 0.1 tft to provisioning wallet.
+Test case for transfer TFT to provisioning wallet.
 
 **Test Scenario**
 
 - Deploy VDC.
 - Get wallet balance.
-- Transfer 0.1 TFT to provisioning wallet.
+- Transfer TFT to provisioning wallet.
 - Check that the wallet balance has been changed.
 
-### test_01_list_vdcs
+### test10_extend_zdb
+
+Test case for extend zdbs.
+
+**Test Scenario**
+
+- Deploy VDC.
+- Get the zdbs total size.
+- Extend zdbs.
+- Check that zdbs has been extended.
+
+### test_01_load_info
+
+Test case for load info.
+
+**Test Scenario**
+
+- Deploy VDC.
+- Get VDC by j.sals.vdc
+- Check that VDC should be empty.
+- Load info.
+- Check instace_name should be filled.
+
+### test_02_list_vdcs
 
 Test case for listing deployed vdcs.
 
@@ -135,7 +170,7 @@ Test case for listing deployed vdcs.
 - List deployed vdcs.
 - Check that the vdc has been deployed is in the list.
 
-### test_03_is_empty
+### test_04_is_empty
 
 Test case for checking that deployed vdc not empty.
 
@@ -143,17 +178,6 @@ Test case for checking that deployed vdc not empty.
 
 - Deploy VDC.
 - Check that the deployed vdc not empty.
-
-### test_04_load_info
-
-Test case for load info.
-
-**Test Scenario**
-
-- Deploy VDC.
-- Check instance_name should be empty.
-- Load info.
-- Check instace_name should be filled.
 
 ### test_05_find_vdc
 
@@ -188,7 +212,7 @@ Test case for applay and revert grace period action.
 - Revert grace period action.
 - Check that k8s has been reachable.
 
-### test02_calculate_expiration_value
+### test03_calculate_expiration_value
 
 Test case for checking the expiration value.
 
@@ -211,16 +235,39 @@ Test case for renew plan.
 
 ### test09_transfer_to_provisioning_wallet
 
-Test case for transfer 0.1 tft to provisioning wallet.
+Test case for transfer TFT to provisioning wallet.
 
 **Test Scenario**
 
 - Deploy VDC.
 - Get wallet balance.
-- Transfer 0.1 TFT to provisioning wallet.
+- Transfer TFT to provisioning wallet.
 - Check that the wallet balance has been changed.
 
-### test_01_list_vdcs
+### test10_extend_zdb
+
+Test case for extend zdbs.
+
+**Test Scenario**
+
+- Deploy VDC.
+- Get the zdbs total size.
+- Extend zdbs.
+- Check that zdbs has been extended.
+
+### test_01_load_info
+
+Test case for load info.
+
+**Test Scenario**
+
+- Deploy VDC.
+- Get VDC by j.sals.vdc
+- Check that VDC should be empty.
+- Load info.
+- Check instace_name should be filled.
+
+### test_02_list_vdcs
 
 Test case for listing deployed vdcs.
 
@@ -230,7 +277,7 @@ Test case for listing deployed vdcs.
 - List deployed vdcs.
 - Check that the vdc has been deployed is in the list.
 
-### test_03_is_empty
+### test_04_is_empty
 
 Test case for checking that deployed vdc not empty.
 
@@ -238,17 +285,6 @@ Test case for checking that deployed vdc not empty.
 
 - Deploy VDC.
 - Check that the deployed vdc not empty.
-
-### test_04_load_info
-
-Test case for load info.
-
-**Test Scenario**
-
-- Deploy VDC.
-- Check instance_name should be empty.
-- Load info.
-- Check instace_name should be filled.
 
 ### test_05_find_vdc
 
@@ -283,7 +319,7 @@ Test case for applay and revert grace period action.
 - Revert grace period action.
 - Check that k8s has been reachable.
 
-### test02_calculate_expiration_value
+### test03_calculate_expiration_value
 
 Test case for checking the expiration value.
 
@@ -306,16 +342,39 @@ Test case for renew plan.
 
 ### test09_transfer_to_provisioning_wallet
 
-Test case for transfer 0.1 tft to provisioning wallet.
+Test case for transfer TFT to provisioning wallet.
 
 **Test Scenario**
 
 - Deploy VDC.
 - Get wallet balance.
-- Transfer 0.1 TFT to provisioning wallet.
+- Transfer TFT to provisioning wallet.
 - Check that the wallet balance has been changed.
 
-### test_01_list_vdcs
+### test10_extend_zdb
+
+Test case for extend zdbs.
+
+**Test Scenario**
+
+- Deploy VDC.
+- Get the zdbs total size.
+- Extend zdbs.
+- Check that zdbs has been extended.
+
+### test_01_load_info
+
+Test case for load info.
+
+**Test Scenario**
+
+- Deploy VDC.
+- Get VDC by j.sals.vdc
+- Check that VDC should be empty.
+- Load info.
+- Check instace_name should be filled.
+
+### test_02_list_vdcs
 
 Test case for listing deployed vdcs.
 
@@ -325,7 +384,7 @@ Test case for listing deployed vdcs.
 - List deployed vdcs.
 - Check that the vdc has been deployed is in the list.
 
-### test_03_is_empty
+### test_04_is_empty
 
 Test case for checking that deployed vdc not empty.
 
@@ -333,17 +392,6 @@ Test case for checking that deployed vdc not empty.
 
 - Deploy VDC.
 - Check that the deployed vdc not empty.
-
-### test_04_load_info
-
-Test case for load info.
-
-**Test Scenario**
-
-- Deploy VDC.
-- Check instance_name should be empty.
-- Load info.
-- Check instace_name should be filled.
 
 ### test_05_find_vdc
 
