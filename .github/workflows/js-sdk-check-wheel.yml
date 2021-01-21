@@ -12,7 +12,7 @@ on:
     branches: [ development ]
 
 jobs:
-  check the wheels:
+  chec-the-wheels:
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental }}
     strategy:
