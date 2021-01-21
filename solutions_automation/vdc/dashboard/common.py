@@ -8,7 +8,6 @@ class CommonChatBot(GedisChatBotPatch):
     CHOOSE_FLAVOR_MESSAGE = "Please choose the flavor you want to use (helm chart limits define how much resources the deployed solution will use)"
 
     QS = {
-        # strs
         NAME_MESSAGE: "get_name",
         SUB_DOMAIN_CHOICE_MESSAGE: "sub_domain_choice",
         CUSTOM_SUB_DOMAIN_MESSAGE: "custom_sub_domin",
