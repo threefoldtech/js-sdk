@@ -75,6 +75,7 @@ class VDCBase(BaseTests):
         deployer = cls.vdc.get_deployer(password=cls.password)
         minio_ak = cls.random_name()
         minio_sk = cls.random_string()
+        cls.timestamp_now = j.data.time.get().utcnow().timestamp
         kube_config = deployer.deploy_vdc(minio_ak, minio_sk)
         return kube_config
 
