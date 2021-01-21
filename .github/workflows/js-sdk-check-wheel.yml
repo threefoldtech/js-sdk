@@ -43,6 +43,6 @@ jobs:
       - name: Build the wheels archives
         run: poetry build --format wheel
       - name: Making Sure The wheels Spin right
-        run: check-wheel-contents dist/*.whl
+        run: check-wheel-contents --ignore W002 dist/*.whl
       - name: confirm that the wheel is pip-installable
         run: python3 -m pip install dist/*.whl
