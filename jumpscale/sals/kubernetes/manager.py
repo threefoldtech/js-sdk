@@ -118,6 +118,15 @@ class Manager:
         return out
 
     def get_k8s_sshclient(self, instance, host, private_key_path="/root/.ssh/id_rsa", user="rancher"):
+        """Get sshclient for k8s
+        Arg:
+            instance(str): name of the instance
+            host(str): the host is used to connect to
+            private_key_path(str): the path of private key to use during ssh
+            user(str): the name of user will be used during ssh
+        Returns:
+            ssh_client(obj): object of ssh client to be used in remote execution
+        """
         ssh_key = j.clients.sshkey.get(instance)
         ssh_key.private_key_path = private_key_path
         ssh_key.load_from_file_system()
@@ -138,7 +147,6 @@ class Manager:
             str: output of the helm command
         """
         # Getting k8s master IP
-        k8s_master_ip = ""
         if vdc_instance:
             for node in vdc_instance.kubernetes:
                 if node.role.value == "master":
@@ -152,7 +160,7 @@ class Manager:
             raise j.exceptions.Runtime(f"Failed to deploy chart {release} , error was {err}")
 
         # Validate service running
-        ssh_client = self.get_k8s_sshclient(release, k8s_master_ip)
+        ssh_client = self.get_k8s_sshclient(instance=release, host=k8s_master_ip)
         rc, out, err = ssh_client.sshclient.run(f"sudo rc-service -l | grep -i '^{release}-socat-'", warn=True,)
 
         if rc == 0:
@@ -204,7 +212,7 @@ class Manager:
 
     @helm_required
     def get_helm_chart_user_values(self, release, namespace="default"):
-        """Get helm chart user supplied values that were supplied during innstallation of the chart(using --set)
+        """Get helm chart user supplied values that were supplied during installation of the chart(using --set)
 
         Args:
             release (str): name of the relase to get chart values for
