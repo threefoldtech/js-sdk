@@ -146,6 +146,11 @@ class Manager:
         Returns:
             str: output of the helm command
         """
+
+        rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} --namespace {namespace} delete {release}")
+        if rc != 0:
+            raise j.exceptions.Runtime(f"Failed to deploy chart {release} , error was {err}")
+
         # Getting k8s master IP
         if vdc_instance:
             for node in vdc_instance.kubernetes:
@@ -155,20 +160,17 @@ class Manager:
             else:
                 raise j.exceptions.Runtime(f"Failed to get the master ip for this release {release}")
 
-        rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} --namespace {namespace} delete {release}")
-        if rc != 0:
-            raise j.exceptions.Runtime(f"Failed to deploy chart {release} , error was {err}")
+            # Validate service running
+            ssh_client = self.get_k8s_sshclient(instance=release, host=k8s_master_ip)
+            rc, out, err = ssh_client.sshclient.run(f"sudo rc-service -l | grep -i '^{release}-socat-'", warn=True,)
 
-        # Validate service running
-        ssh_client = self.get_k8s_sshclient(instance=release, host=k8s_master_ip)
-        rc, out, err = ssh_client.sshclient.run(f"sudo rc-service -l | grep -i '^{release}-socat-'", warn=True,)
-
-        if rc == 0:
-            results = out.split("\n")
-            for result in results:
-                rc, out, err = ssh_client.sshclient.run(
-                    f"sudo rc-service -s {result.strip()} stop && sudo rm -f /etc/init.d/{result.strip()}", warn=True,
-                )
+            if rc == 0:
+                results = out.split("\n")
+                for result in results:
+                    rc, out, err = ssh_client.sshclient.run(
+                        f"sudo rc-service -s {result.strip()} stop && sudo rm -f /etc/init.d/{result.strip()}",
+                        warn=True,
+                    )
 
         return out
 
