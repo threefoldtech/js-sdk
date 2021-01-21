@@ -176,7 +176,7 @@ class VDCDeployer:
     def ssh_key(self):
         if not self._ssh_key:
             self._ssh_key = j.clients.sshkey.get(self.vdc_name)
-            KEYS_DIR_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.tname}"
+            KEYS_DIR_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.tname}/{self.vdc_name}"
             self._ssh_key.private_key_path = f"{KEYS_DIR_PATH}/id_rsa"
             if not j.sals.fs.exists(f"{KEYS_DIR_PATH}/id_rsa"):
                 j.sals.fs.mkdirs(KEYS_DIR_PATH)
@@ -365,13 +365,7 @@ class VDCDeployer:
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         pub_keys = pub_keys or []
         master_ip = self.kubernetes.deploy_master(
-            master_pool_id,
-            gs,
-            master_size,
-            cluster_secret,
-            pub_keys,
-            self.vdc_uuid,
-            nv,
+            master_pool_id, gs, master_size, cluster_secret, pub_keys, self.vdc_uuid, nv,
         )
         if not master_ip:
             self.error("failed to deploy kubernetes master")
