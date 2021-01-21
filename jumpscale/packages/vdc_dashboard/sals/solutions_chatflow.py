@@ -104,7 +104,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         )
         return ssh_client
 
-    def is_port_exposed(self, sshclient, src_port):
+    def is_port_exposed(self, ssh_client, src_port):
         rc, out, err = ssh_client.sshclient.run(f"sudo netstat -tulpn | grep :{src_port}")
         if rc == 0:
             return True
