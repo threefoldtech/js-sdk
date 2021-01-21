@@ -138,8 +138,8 @@ class Manager:
             str: output of the helm command
         """
         # Getting k8s master IP
+        k8s_master_ip = ""
         if vdc_instance:
-            k8s_master_ip = ""
             for node in vdc_instance.kubernetes:
                 if node.role.value == "master":
                     k8s_master_ip = node.ip_address
