@@ -28,13 +28,20 @@ class TestVDC(VDCBase):
         **Test Scenario**
 
         - Deploy VDC.
-        - Get VDC by j.sals.vdc.get
+        - Get VDC by j.sals.vdc
         - Check that VDC should be empty.
         - Load info.
         - Check instace_name should be filled.
         """
-        self.info("Check instance_name should be empty")
-        vdc = j.sals.vdc.get(self.vdc.instance_name)
+
+        self.info("Get VDC by j.sals.vdc")
+        vdcs = j.sals.vdc.list(self.tname)
+        for v in vdcs:
+            if v.vdc_name == self.vdc_name:
+                vdc = v
+                break
+
+        self.info("Check that VDC should be empty")
         self.assertFalse(vdc.kubernetes)
 
         self.info("Load info")
@@ -72,7 +79,8 @@ class TestVDC(VDCBase):
         - Get the expiration value.
         - Check expiration value after one hour.
         """
-        self.assertLess(int(self.vdc.calculate_expiration_value()) - self.timestamp_now, 300)
+        timestamp_after_one_hour = self.timestamp_now + 60 * 60
+        self.assertLess(int(self.vdc.calculate_expiration_value()) - timestamp_after_one_hour, 200)
 
     def test_04_is_empty(self):
         """Test case for checking that deployed vdc not empty.
@@ -162,10 +170,12 @@ class TestVDC(VDCBase):
         - Renew plan with one day.
         - Check that the expiration value has been changed.
         """
+        self.info("Get the expiration date")
         expiration_value = self.vdc.expiration_date
 
         self.info("Renew plan with one day")
-        needed_tft = float(self.vdc_price) / 30 + 0.2
+        vdc_price = j.tools.zos.consumption.calculate_vdc_price(self.flavor)
+        needed_tft = float(vdc_price) / 30
         self.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
         self.deployer.renew_plan(1)
 
@@ -185,8 +195,7 @@ class TestVDC(VDCBase):
         """
 
         self.info("Get wallet balance")
-        old_wallet_balance = self.vdc.provision_wallet.get_balance().balances[0].balance  # [0.61 TFT:addres, 0.0 XLM]
-
+        old_wallet_balance = self.vdc.provision_wallet.get_balance().balances[0].balance
         self.info("Transfer TFT to provisioning wallet")
         tft = j.data.idgenerator.random_int(1, 2)
         self.vdc.transfer_to_provisioning_wallet(tft, "test_wallet")
@@ -195,22 +204,22 @@ class TestVDC(VDCBase):
         new_wallet_balance = self.vdc.provision_wallet.get_balance().balances[0].balance
         self.assertEqual(float(old_wallet_balance) + tft, float(new_wallet_balance))
 
+    # zbd auto extend should be tested manually
     def test10_extend_zdb(self):
-        """Test case for transfer TFT to provisioning wallet.
+        """Test case for extend zdbs.
 
         **Test Scenario**
 
         - Deploy VDC.
-        - Get the zdbs length.
+        - Get the zdbs total size.
         - Extend zdbs.
         - Check that zdbs has been extended.
         """
-        self.info("Get the zdbs length")
+        self.info("Get the zdbs total size")
         zdb_monitor = self.vdc.get_zdb_monitor()
         old_zdb_total_size = zdb_monitor.zdb_total_size
 
         self.info("Extend zdbs")
-
         vdc_identity = f"vdc_ident_{self.vdc.solution_uuid}"
         if j.core.identity.find(vdc_identity):
             j.core.identity.set_default(vdc_identity)
