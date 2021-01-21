@@ -126,8 +126,9 @@ class SolutionsChatflowDeploy(GedisChatBot):
                     command_background=true
                     """
                     template = dedent(template)
+                    file_name = f"{self.release_name}-{service}"
                     rc, out, err = ssh_client.sshclient.run(
-                        f"sudo touch /etc/init.d/{service} && sudo chmod 777 /etc/init.d/{service} &&  echo '{template}' >> /etc/init.d/{service} && sudo rc-service {service} start",
+                        f"sudo touch /etc/init.d/{file_name} && sudo chmod 777 /etc/init.d/{file_name} &&  echo '{template}' >> /etc/init.d/{file_name} && sudo rc-service {file_name} start",
                         warn=True,
                     )
                     if rc:

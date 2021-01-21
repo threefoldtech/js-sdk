@@ -130,9 +130,32 @@ class Manager:
         Returns:
             str: output of the helm command
         """
+        # Getting k8s master IP
+        k8s_master_ip = ""
+        vdc_instance = j.sals.vdc.get(release)
+        for node in vdc_instance.kubernetes:
+            if node.role.value == "master":
+                k8s_master_ip = node.ip_address
+                break
+        else:
+            raise j.exceptions.Runtime(f"Failed to get the master ip for this release {release}")
+
         rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} --namespace {namespace} delete {release}")
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to deploy chart {release} , error was {err}")
+
+        # Stop and remove Socat service
+        ssh_key = j.clients.sshkey.get(release)
+        ssh_key.private_key_path = "/root/.ssh/id_rsa"
+        ssh_key.load_from_file_system()
+        ssh_client = j.clients.sshclient.get(release, user="rancher", host=k8s_master_ip, sshkey=release)
+        rc, out, err = ssh_client.sshclient.run(
+            f"sudo rc-service {release}-* stop && rm /etc/init.d/{release}-*", warn=True,
+        )
+        if rc != 0:
+            raise j.exceptions.Runtime(
+                f"Failed to stop kubernetes rc-service starting with name {release} , error was {err}"
+            )
         return out
 
     @helm_required
