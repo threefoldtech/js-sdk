@@ -228,4 +228,4 @@ class TestVDC(VDCBase):
         self.info("Check that zdbs has been extended")
         self.vdc.load_info()
         zdb_monitor = self.vdc.get_zdb_monitor()
-        self.assertGreater(zdb_monitor.zdb_total_size, old_zdb_total_size + 10)
+        self.assertEqual(zdb_monitor.zdb_total_size, old_zdb_total_size + 10)
