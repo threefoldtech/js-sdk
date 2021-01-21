@@ -4,9 +4,9 @@ from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsCh
 import json
 
 
-class Meetings(SolutionsChatflowDeploy):
-    SOLUTION_TYPE = "meetings"
-    title = "Meetings"
+class DocumentServer(SolutionsChatflowDeploy):
+    SOLUTION_TYPE = "documentserver"
+    title = "Document Server"
     HELM_REPO_NAME = "marketplace"
     steps = [
         "get_release_name",
@@ -30,4 +30,4 @@ class Meetings(SolutionsChatflowDeploy):
         )
 
 
-chat = Meetings
+chat = DocumentServer
