@@ -16,7 +16,7 @@ Test case for adding new helm repo.
 
 - Deploy VDC
 - Add helm repo
-- Check that the added rebo listed in the helm repos.
+- Check that the added repo listed in the helm repos.
 
 ### test_03_install_chart
 
@@ -59,3 +59,14 @@ Test case for executing a native kubernetes commands.
 - Deploy VDC
 - Excute kubernetes command
 - Check that the command executed correctly.
+
+### test_07_get_helm_chart_user_values
+
+Test case for get the custom user values for helm chart
+
+**Test Scenario**
+
+- Deploy VDC
+- Install chart with custom user values
+- Get helm chart user values
+- Check if values are equal

@@ -136,3 +136,31 @@ class TestKubernetes(VDCBase):
         self.info("Check if command executed correctly")
         self.assertEqual(cmd_out.count("master"), 1)
         self.assertGreaterEqual(cmd_out.count("Ready"), 1)
+
+    def test_07_get_helm_chart_user_values(self):
+        """Test case for get the custom user values for helm chart
+
+        **Test Scenario**
+
+        - Deploy VDC
+        - Install chart with custom user values
+        - Get helm chart user values
+        - Check if values are equal
+        """
+        self.info("Add bitnami repo")
+        repo_name = "bitnami"
+        repo_url = "https://charts.bitnami.com/bitnami"
+        self.kube_manager.add_helm_repo(repo_name, repo_url)
+        self.info("Install etcd chart from bitnami repo with custom value")
+        release_name = "testgetuservalues"
+        release_chart = "bitnami/etcd"
+        input_user_values = {"auth.rbac.enabled": "false"}
+        # Modified version of input_user_values as str to be comparable
+        input_user_values_str = "auth:rbac:enabled:false"
+        self.kube_manager.install_chart(release_name, release_chart, extra_config=input_user_values)
+        self.info("Get user values from get_helm_chart_user_values function")
+        func_user_values_str = self.kube_manager.get_helm_chart_user_values(release_name)
+        # Modify returned value to be comparable
+        func_user_values_str = func_user_values_str.replace("{", "").replace("}", "").replace('"', "").replace("\n", "")
+        self.info("Check if get user input work correctly")
+        self.assertEqual(input_user_values_str, func_user_values_str)
