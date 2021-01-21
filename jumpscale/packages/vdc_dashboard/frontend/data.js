@@ -61,7 +61,7 @@ const DECENTRALIZED_WE = {
             name: "Blog",
             type: "blog",
             image: "./assets/blog.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
             description: "Blog is a P2P alternative to centralized blogging platforms like Tumblr or Blogspot."
         },
@@ -69,7 +69,7 @@ const DECENTRALIZED_WE = {
             name: "Website",
             type: "website",
             image: "./assets/web.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
             description: "Website is a P2P alternative to centralized cloud-hosted websites. Host your own website with access via a public web address."
         },
@@ -78,7 +78,7 @@ const DECENTRALIZED_WE = {
             name: "Wiki",
             type: "wiki",
             image: "./assets/doc-flat.svg",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
             description: "Wiki is a versatile online encyclopedia builder, accessible via a public web address."
         },
@@ -110,9 +110,25 @@ const DECENTRALIZED_WE = {
             name: "Video Chat",
             type: "meetings",
             image: "./assets/video_chat.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/video-conf/",
             description: "P2P alternative to centralised video conferencing solution such as Zoom."
+        },
+        documentserver: {
+            name: "Document Server",
+            type: "documentserver",
+            image: "./assets/document_server.jpg",
+            disable: false,
+            helpLink: "https://now.threefold.io/now/docs/documentserver/",
+            description: "Document Server is a free collaborative online office suite comprising viewers and editors for texts, spreadsheets and presentations, fully compatible with Office Open XML formats: .docx, .xlsx, .pptx and enabling collaborative editing in real time"
+        },
+        filebrowser: {
+            name: "File Browser",
+            type: "filebrowser",
+            image: "./assets/file_browser.jpg",
+            disable: false,
+            helpLink: "https://now.threefold.io/now/docs/filebrowser/",
+            description: "File browser is an open source solution that provides a file managing interface"
         },
         virtualspaces: {
             name: "Virtual Spaces",
