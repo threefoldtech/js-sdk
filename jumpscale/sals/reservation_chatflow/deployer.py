@@ -405,7 +405,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
         cu = cu.value * 60 * 60 * 24 * days * ttl
         su = su.value * 60 * 60 * 24 * days * ttl
-        return (cu, su, ipv4u.value, ["TFT"])
+        ipv4u = ipv4u.value * 60 * 60 * 24 * days * ttl
+        return (cu, su, ipv4u, ["TFT"])
 
     def create_pool(self, bot):
         cu, su, ipv4u, currencies = self._pool_form(bot)
