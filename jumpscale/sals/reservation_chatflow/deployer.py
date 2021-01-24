@@ -631,7 +631,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             if not nodes:
                 continue
 
-            pool_msg = f"Pool: {pool} cu: {available_pools[pool][0]} su: {available_pools[pool][1]} ipv4u: {available_pools[pool][2]}"
+            pool_cus, pool_sus, pool_ipv4us = available_pools[pool][:3]
+            pool_msg = f"Pool: {pool} cu: {pool_cus} su: {pool_sus} ipv4u: {pool_ipv4us}"
             if len(available_pools[pool]) > 3:
                 pool_msg += f" Name: {available_pools[pool][3]}"
             pool_messages[pool_msg] = pool
