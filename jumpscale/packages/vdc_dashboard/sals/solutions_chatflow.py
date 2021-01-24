@@ -29,7 +29,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def _init_solution(self):
         # TODO: te be removed
         self.user_info_data = self.user_info()
-        self.username = os.environ.get("VDC_OWNER_TNAME") or j.core.identity.me.tname
+        self.username = self.user_info_data["username"]
         self.solution_id = uuid.uuid4().hex
         self.ip_version = "IPv6"
         self.chart_config = {}
@@ -40,7 +40,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         else:
             raise StopChatFlow(f"No Virtual Data Centres(VDC) were found.", htmlAlert=True)
         self.vdc_info = {}
-        self.vdc = j.sals.vdc.find(name=self.vdc_name, owner_tname=self.username, load_info=True)
+        self.vdc = j.sals.vdc.find(name=self.vdc_name, load_info=True)
         self.identity_name = j.core.identity.me.instance_name
         self.secret = f"{self.vdc.identity_tid}:{uuid.uuid4().hex}"
         for node in self.vdc.kubernetes:
