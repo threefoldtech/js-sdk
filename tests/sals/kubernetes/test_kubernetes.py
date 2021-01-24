@@ -1,6 +1,7 @@
 from jumpscale.sals.kubernetes.manager import is_helm_installed
 from jumpscale.sals import kubernetes
 import pytest
+import yaml
 from jumpscale.loader import j
 
 from tests.sals.vdc.vdc_base import VDCBase
@@ -163,4 +164,59 @@ class TestKubernetes(VDCBase):
         # Modify returned value to be comparable
         func_user_values_str = func_user_values_str.replace("{", "").replace("}", "").replace('"', "").replace("\n", "")
         self.info("Check if get user input work correctly")
+        self.assertEqual(input_user_values_str, func_user_values_str)
+
+    def test_08_upgrade_release(self):
+        """Test case for upgrade helm release
+
+        **Test Scenario**
+
+        - Deploy VDC
+        - Install chart
+        - Upgrade release
+        - Check if release upgraded
+        """
+        self.info("Add bitnami repo")
+        repo_name = "bitnami"
+        repo_url = "https://charts.bitnami.com/bitnami"
+        self.kube_manager.add_helm_repo(repo_name, repo_url)
+        self.info("Install etcd chart from bitnami repo")
+        release_name = "testupgraderelease"
+        release_chart = "bitnami/etcd"
+        self.kube_manager.install_chart(release_name, release_chart)
+        self.info("Upgrade Release")
+        upgrade_status = self.kube_manager.upgrade_release(release_name, release_chart)
+        self.info("Check if release upgraded")
+        self.assertTrue(upgrade_status.find(f'Release "{release_name}" has been upgraded. Happy Helming!') != -1)
+
+    def test_09_upgrade_release_with_yaml_config(self):
+        """Test case for upgrade helm release with given yaml config
+
+        **Test Scenario**
+
+        - Deploy VDC
+        - Install chart
+        - Upgrade release with a yaml config file
+        - Check if release upgraded
+        - Check if yaml config updated in the release values
+        """
+        self.info("Add bitnami repo")
+        repo_name = "bitnami"
+        repo_url = "https://charts.bitnami.com/bitnami"
+        self.kube_manager.add_helm_repo(repo_name, repo_url)
+        self.info("Install etcd chart from bitnami repo")
+        release_name = "testupgradereleasewithyaml"
+        release_chart = "bitnami/etcd"
+        self.kube_manager.install_chart(release_name, release_chart)
+        self.info("Upgrade Release with yaml config")
+        yaml_config = yaml.safe_dump({"auth:rbac:enabled": "false"})
+        upgrade_status = self.kube_manager.upgrade_release(release_name, release_chart, yaml_config=yaml_config)
+        self.info("Check if release upgraded")
+        self.assertTrue(upgrade_status.find(f'Release "{release_name}" has been upgraded. Happy Helming!') != -1)
+        input_user_values_str = "auth:rbac:enabled:false"
+        self.info("Get current user values")
+        func_user_values_str = self.kube_manager.get_helm_chart_user_values(release_name)
+        # Modify returned value to be comparable
+        func_user_values_str = func_user_values_str.replace("{", "").replace("}", "").replace('"', "").replace("\n", "")
+        self.info("Check if value in the yaml config update release correctly")
         self.assertEqual(input_user_values_str, func_user_values_str)

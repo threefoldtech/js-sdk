@@ -70,3 +70,26 @@ Test case for get the custom user values for helm chart
 - Install chart with custom user values
 - Get helm chart user values
 - Check if values are equal
+
+### test_08_upgrade_release
+
+Test case for upgrade helm release
+
+**Test Scenario**
+
+- Deploy VDC
+- Install chart
+- Upgrade release
+- Check if release upgraded
+
+### test_09_upgrade_release_with_yaml_config
+
+Test case for upgrade helm release with given yaml config
+
+**Test Scenario**
+
+- Deploy VDC
+- Install chart
+- Upgrade release with a yaml config file
+- Check if release upgraded
+- Check if yaml config updated in the release values
