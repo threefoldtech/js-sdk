@@ -10,7 +10,7 @@ class CommonChatBot(GedisChatBotPatch):
     QS = {
         NAME_MESSAGE: "get_name",
         SUB_DOMAIN_CHOICE_MESSAGE: "sub_domain_choice",
-        CUSTOM_SUB_DOMAIN_MESSAGE: "custom_sub_domin",
+        CUSTOM_SUB_DOMAIN_MESSAGE: "custom_sub_domain",
         CHOOSE_FLAVOR_MESSAGE: "flavor",
     }
 
