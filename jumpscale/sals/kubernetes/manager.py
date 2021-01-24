@@ -162,15 +162,16 @@ class Manager:
 
             # Validate service running
             ssh_client = self.get_k8s_sshclient(instance=release, host=k8s_master_ip)
-            rc, out, err = ssh_client.sshclient.run(f"sudo rc-service -l | grep -i '^{release}-socat-'", warn=True,)
+            rc, out, err = ssh_client.sshclient.run(f"sudo rc-service -l | grep -i '{release}-socat-'", warn=True,)
 
             if rc == 0:
                 results = out.split("\n")
                 for result in results:
-                    rc, out, err = ssh_client.sshclient.run(
-                        f"sudo rc-service -s {result.strip()} stop && sudo rm -f /etc/init.d/{result.strip()}",
-                        warn=True,
-                    )
+                    if result:
+                        rc, out, err = ssh_client.sshclient.run(
+                            f"sudo rc-service -s {result.strip()} stop && sudo rm -f /etc/init.d/{result.strip()}",
+                            warn=True,
+                        )
 
         return out
 
