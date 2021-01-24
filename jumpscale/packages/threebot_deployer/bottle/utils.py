@@ -476,3 +476,5 @@ def redeploy_threebot_solution(
                 j.logger.error(f"3Bot {solution_uuid} redeployment failed. retrying {retries}")
                 if bot and e.wid:
                     bot.md_show_update(f"Deployment Failed for wid {e.wid}. retrying {retries} ....")
+            else:
+                raise e
