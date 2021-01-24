@@ -126,7 +126,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 # Validate if the port not exposed
                 if self.is_port_exposed(ssh_client, ports.get("src")):
                     j.logger.critical(
-                        f"VDC: Can not expose service with port {ports.get('src')} using socat, port already in use, error was rc:{rc}, out:{out}, error:{err}"
+                        f"VDC: Can not expose service with port {ports.get('src')} using socat, port already in use"
+                    )
+                    raise StopChatFlow(
+                        f"VDC: Can not expose service with port {ports.get('src')} using socat, port already in use"
                     )
 
                 cluster_ip = self.k8s_client.execute_native_cmd(
