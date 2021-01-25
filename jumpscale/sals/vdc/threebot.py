@@ -41,6 +41,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "PROVISIONING_WALLET_SECRET": self.vdc_deployer.vdc_instance.provision_wallet.secret,
             "PREPAID_WALLET_SECRET": self.vdc_deployer.vdc_instance.prepaid_wallet.secret,
             "VDC_INSTANCE": j.data.serializers.json.dumps(vdc_dict),
+            "THREEBOT_PRIVATE_KEY": self.vdc_deployer.ssh_key.private_key.strip(),
         }
         env = {
             "VDC_NAME": self.vdc_name,
@@ -67,7 +68,10 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 return
             remote_ip, remote_port = remote.split(":")
             env.update(
-                {"REMOTE_IP": remote_ip, "REMOTE_PORT": remote_port,}
+                {
+                    "REMOTE_IP": remote_ip,
+                    "REMOTE_PORT": remote_port,
+                }
             )
             secret_env["TRC_SECRET"] = secret
         if not self.vdc_instance.kubernetes:

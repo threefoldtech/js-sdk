@@ -123,8 +123,24 @@ class Manager:
             raise j.exceptions.Runtime(f"Failed to deploy chart {chart_name}, error was {err}")
         return out
 
+    def get_k8s_sshclient(self, instance, host, private_key_path="/root/.ssh/id_rsa", user="rancher"):
+        """Get sshclient for k8s
+        Arg:
+            instance(str): name of the instance
+            host(str): the host is used to connect to
+            private_key_path(str): the path of private key to use during ssh
+            user(str): the name of user will be used during ssh
+        Returns:
+            ssh_client(obj): object of ssh client to be used in remote execution
+        """
+        ssh_key = j.clients.sshkey.get(instance)
+        ssh_key.private_key_path = private_key_path
+        ssh_key.load_from_file_system()
+        ssh_client = j.clients.sshclient.get(instance, user=user, host=host, sshkey=instance)
+        return ssh_client
+
     @helm_required
-    def delete_deployed_release(self, release, namespace="default"):
+    def delete_deployed_release(self, release, namespace="default", vdc_instance=None):
         """deletes deployed helm release
 
         Args:
@@ -136,9 +152,33 @@ class Manager:
         Returns:
             str: output of the helm command
         """
+
         rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} --namespace {namespace} delete {release}")
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to deploy chart {release} , error was {err}")
+
+        # Getting k8s master IP
+        if vdc_instance:
+            for node in vdc_instance.kubernetes:
+                if node.role.value == "master":
+                    k8s_master_ip = node.ip_address
+                    break
+            else:
+                raise j.exceptions.Runtime(f"Failed to get the master ip for this release {release}")
+
+            # Validate service running
+            ssh_client = self.get_k8s_sshclient(instance=release, host=k8s_master_ip)
+            rc, out, err = ssh_client.sshclient.run(f"sudo rc-service -l | grep -i '{release}-socat-'", warn=True,)
+
+            if rc == 0:
+                results = out.split("\n")
+                for result in results:
+                    if result:
+                        rc, out, err = ssh_client.sshclient.run(
+                            f"sudo rc-service -s {result.strip()} stop && sudo rm -f /etc/init.d/{result.strip()}",
+                            warn=True,
+                        )
+
         return out
 
     @helm_required
@@ -181,7 +221,7 @@ class Manager:
 
     @helm_required
     def get_helm_chart_user_values(self, release, namespace="default"):
-        """Get helm chart user supplied values that were supplied during innstallation of the chart(using --set)
+        """Get helm chart user supplied values that were supplied during installation of the chart(using --set)
 
         Args:
             release (str): name of the relase to get chart values for

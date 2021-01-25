@@ -23,7 +23,6 @@ from contextlib import ContextDecorator
 from jumpscale.sals.zos.billing import InsufficientFunds
 import os
 
-
 VDC_IDENTITY_FORMAT = "vdc_{}_{}_{}"  # tname, vdc_name, vdc_uuid
 IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
@@ -177,9 +176,13 @@ class VDCDeployer:
     def ssh_key(self):
         if not self._ssh_key:
             self._ssh_key = j.clients.sshkey.get(self.vdc_name)
-            vdc_key_path = j.core.config.get("VDC_KEY_PATH", "~/.ssh/id_rsa")
-            self._ssh_key.private_key_path = j.sals.fs.expanduser(vdc_key_path)
-            self._ssh_key.load_from_file_system()
+            KEYS_DIR_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.tname}/{self.vdc_name}"
+            self._ssh_key.private_key_path = f"{KEYS_DIR_PATH}/id_rsa"
+            if not j.sals.fs.exists(f"{KEYS_DIR_PATH}/id_rsa"):
+                j.sals.fs.mkdirs(KEYS_DIR_PATH)
+                self._ssh_key.generate_keys()
+            else:
+                self._ssh_key.load_from_file_system()
         return self._ssh_key
 
     @property
@@ -351,7 +354,7 @@ class VDCDeployer:
             )
         return zdb_threads
 
-    def deploy_vdc_kubernetes(self, farm_name, scheduler, cluster_secret):
+    def deploy_vdc_kubernetes(self, farm_name, scheduler, cluster_secret, pub_keys=None):
         """
         1- deploy master
         2- extend cluster with the flavor no_nodes
@@ -360,8 +363,9 @@ class VDCDeployer:
         master_pool_id, _ = self.get_pool_id_and_reservation_id(NETWORK_FARM.get())
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
+        pub_keys = pub_keys or []
         master_ip = self.kubernetes.deploy_master(
-            master_pool_id, gs, master_size, cluster_secret, [self.ssh_key.public_key.strip()], self.vdc_uuid, nv
+            master_pool_id, gs, master_size, cluster_secret, pub_keys, self.vdc_uuid, nv,
         )
         if not master_ip:
             self.error("failed to deploy kubernetes master")
@@ -495,10 +499,11 @@ class VDCDeployer:
             # deploy zdbs for s3
             self.bot_show_update("Deploying ZDBs for s3")
             deployment_threads = self.deploy_vdc_zdb(gs)
-
+            # public_keys to deploy vdc with
+            pub_keys = [self.ssh_key.public_key.strip()]
             # deploy k8s cluster
             self.bot_show_update("Deploying kubernetes cluster")
-            k8s_thread = gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret)
+            k8s_thread = gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret, pub_keys=pub_keys)
             deployment_threads.append(k8s_thread)
             gevent.joinall(deployment_threads)
             for thread in deployment_threads:
@@ -570,7 +575,8 @@ class VDCDeployer:
 
             self.bot_show_update("Updating Traefik")
             self.kubernetes.upgrade_traefik()
-
+            self.vdc_instance.load_info()
+            j.clients.sshkey.delete(f"{self.vdc_name}_threebot")
             return kube_config
 
     def get_prefix(self):
