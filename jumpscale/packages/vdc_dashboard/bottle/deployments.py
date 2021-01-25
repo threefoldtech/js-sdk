@@ -262,7 +262,11 @@ def accept():
 @app.route("/api/update", method="GET")
 @package_authorized("vdc_dashboard")
 def update():
-    branch = os.environ.get("SDK_VERSION", "development")
+    branch_param = request.query["branch"]
+    if branch_param:
+        branch = branch_param
+    else:
+        branch = os.environ.get("SDK_VERSION", "development")
     cmds = [f"git checkout {branch}", "git pull"]
     for cmd in cmds:
         rc, out, err = j.sals.process.execute(cmd, cwd="/sandbox/code/github/threefoldtech/js-sdk")

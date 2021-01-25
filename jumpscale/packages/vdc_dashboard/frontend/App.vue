@@ -50,6 +50,13 @@
             </v-list-item>
             <v-list-item>
               <v-list-item-content>
+                <v-btn text color="blue" @click.stop="updateDashboard()"
+                  >Update Dashboard</v-btn
+                >
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
                 <v-btn text color="blue" :to="'/terms'"
                   >Terms and Conditions</v-btn
                 >
@@ -111,6 +118,16 @@ module.exports = {
           this.user = null;
         });
     },
+    updateDashboard() {
+      this.$api.version
+        .update()
+        .then(() => {
+          this.alert("Dashboard updated successfully", "success");
+        })
+        .catch(() => {
+          this.alert("Failed to update dashboard", "error");
+        });
+    }
   },
   mounted() {
     this.getCurrentUser();
