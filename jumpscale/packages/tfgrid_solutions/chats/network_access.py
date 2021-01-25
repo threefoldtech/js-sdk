@@ -11,7 +11,6 @@ class NetworkAccess(NetworkBase):
     @chatflow_step(title="Network Name")
     def start(self):
         super().start()
-        print(self.kwargs)
         if not self.kwargs.get("name"):
             self.network_view = deployer.select_network(self)
         else:

@@ -124,8 +124,11 @@ module.exports = {
       this.dialogs.info = true;
     },
     addAccess(data) {
-      console.log(data.Name)
-      this.$router.push(`/chatflows/solutions/network_access#/?name=${data.Name}`);
+      let queryparams = {name:data.Name}
+      this.$router.push({
+        name: "SolutionChatflow",
+        params: {topic: "network_access", queryparams: queryparams },
+      });
     },
     getDeployedSolutions(solutionType) {
       this.$api.solutions
