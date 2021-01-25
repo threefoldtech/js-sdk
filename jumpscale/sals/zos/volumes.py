@@ -40,7 +40,7 @@ class VolumesGenerator:
         """
         if isinstance(volume_id, Volume):
             if not volume_id.id:
-                raise j.exceptions.Input("volume needs to be deployed before it can be attached to a container")
+                raise Input("volume needs to be deployed before it can be attached to a container")
             volume_id = f"{volume_id.id}-1"
 
         vol = ContainerMount()
