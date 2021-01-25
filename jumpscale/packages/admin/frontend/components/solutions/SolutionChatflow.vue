@@ -4,7 +4,10 @@
 
 <script>
   module.exports = {
-    props: {topic: String},
+    props: {
+      topic: String,
+      queryparams: Object
+    },
     data () {
       return {
         package: true,
@@ -13,7 +16,15 @@
     },
     computed: {
       url () {
-        return `/chatflows/tfgrid_solutions/chats/${this.topic}`
+        if (this.queryparams !== null) {
+          let chatflowUrl = `/chatflows/tfgrid_solutions/chats/${this.topic}#/?`
+          Object.keys(this.queryparams).forEach(key => {
+            chatflowUrl += `${key}=${this.queryparams[key]}&`
+          });
+          return chatflowUrl;
+        } else {
+          return `/chatflows/tfgrid_solutions/chats/${this.topic}`;
+        }
       }
     },
     mounted() {

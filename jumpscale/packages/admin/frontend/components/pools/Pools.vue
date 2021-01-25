@@ -3,7 +3,7 @@
     <base-component title="Capacity Pools" icon="mdi-cloud">
       <template #actions>
         <v-btn color="primary" text to="/solutions/pools">
-          <v-icon left>mdi-cloud</v-icon>Create/Extend Pool
+          <v-icon left>mdi-cloud</v-icon>Create Pool
         </v-btn>
         <v-btn color="primary" text @click="toggleHiddenPools">
           <v-icon left>mdi-eye-off</v-icon>{{toggle_button_text}}
@@ -21,6 +21,16 @@
           <template v-slot:item.active_su="{ item }">{{ ( item.active_su * (30*24*60*60) ).toFixed(1) }} </template>
           <template v-slot:item.empty_at="{ item }">
             <div :class="`${item.class}`">{{ item.empty_at }}</div>
+          </template>
+          <template v-slot:item.actions="{ item }" #actions>
+              <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn icon @click="openChatflow(item.pool_id)">
+                      <v-icon v-bind="attrs" v-on="on" color=primary>mdi-cloud-upload</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Extend pool</span>
+                </v-tooltip>
           </template>
         </v-data-table>
       </template>
@@ -56,6 +66,7 @@ module.exports = {
         { text: "Active Storage Units / month", value: "active_su" },
         { text: "# Nodes", value: "node_ids" },
         { text: "# Active Workloads", value: "active_workload_ids" },
+        { text: "Actions", value: "actions" },
       ],
     };
   },
@@ -115,6 +126,13 @@ module.exports = {
         this.toggle_button_text = "Show hidden pools";
         this.headers.pop();
       }
+    },
+    openChatflow(pool_id) {
+      let queryparams = {pool_id:pool_id}
+      this.$router.push({
+        name: "SolutionChatflow",
+        params: {topic: "extend_pools", queryparams: queryparams },
+      });
     },
   },
   mounted() {
