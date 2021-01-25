@@ -39,7 +39,7 @@
     </v-tabs>
     <v-btn
       color="#52BE80"
-      class="download-btn ma-2 white--text"
+      class="copy-btn ma-2 white--text"
       fab
       @click="copyjson()"
     >
@@ -74,7 +74,7 @@ module.exports = {
       elem.select();
       document.execCommand("copy");
       document.body.removeChild(elem);
-      this.alert("copyed", "success");
+      this.alert("copied", "success");
     },
   },
   updated() {
@@ -89,7 +89,7 @@ module.exports = {
 
 
 <style>
-.download-btn {
+.copy-btn {
   position: absolute;
   right: 10;
   top: 10;
