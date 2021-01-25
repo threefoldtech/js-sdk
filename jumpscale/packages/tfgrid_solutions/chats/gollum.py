@@ -96,7 +96,7 @@ class GollumDeploy(GedisChatBot):
         )
         form.ask()
 
-    @chatflow_step(title="Container node id")
+    @chatflow_step(title="Choose node to deployed on")
     def container_node_id(self):
         query = {
             "cru": self.resources["cpu"],
