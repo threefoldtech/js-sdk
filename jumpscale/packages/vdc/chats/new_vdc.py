@@ -175,16 +175,9 @@ class VDCDeploy(GedisChatBot):
             f"""\
         # Your VDC {self.vdc.vdc_name} has been deployed successfully.
         <br />\n
-        Please download the config file to `~/.kube/config` to start using your cluster with [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-
         Kubernetes controller public IP: {self.public_ip}
         <br />\n
-        `WARINING: Please keep the kubeconfig file safe and secure. Anyone who has this file can access the kubernetes cluster`
         """
-        )
-
-        self.download_file(
-            msg, self.config, f"{self.vdc.vdc_name}.yaml", md=True,
         )
 
 
