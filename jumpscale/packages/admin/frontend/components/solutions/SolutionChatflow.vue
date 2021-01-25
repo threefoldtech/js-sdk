@@ -40,6 +40,11 @@
             this.$router.push({
               name: "Capacity Pools"
             })
+          } else if (topic === "network_access") {
+            this.$router.push({
+              name: "Solution",
+              params: {type: "network"}
+            })
           }else{
             this.$router.push({
               name: "Solution",
