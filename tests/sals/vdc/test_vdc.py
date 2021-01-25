@@ -19,6 +19,9 @@ class TestVDC(VDCBase):
 
     @classmethod
     def tearDownClass(cls):
+        wallet = j.clients.stellar.get("test_wallet")
+        cls.vdc.provision_wallet.merge_into_account(wallet.address)
+        cls.vdc.prepaid_wallet.merge_into_account(wallet.address)
         j.sals.vdc.delete(cls.vdc.instance_name)
         super().tearDownClass()
 
