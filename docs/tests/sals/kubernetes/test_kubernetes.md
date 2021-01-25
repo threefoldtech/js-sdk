@@ -16,7 +16,7 @@ Test case for adding new helm repo.
 
 - Deploy VDC
 - Add helm repo
-- Check that the added rebo listed in the helm repos.
+- Check that the added repo listed in the helm repos.
 
 ### test_03_install_chart
 

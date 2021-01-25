@@ -23,7 +23,7 @@ class TestVDC(VDCBase):
         super().tearDownClass()
 
     def test01_load_info(self):
-        """Test case for load info.
+        """Test case for loading info.
 
         **Test Scenario**
 
@@ -31,15 +31,11 @@ class TestVDC(VDCBase):
         - Get VDC by j.sals.vdc
         - Check that VDC should be empty.
         - Load info.
-        - Check instace_name should be filled.
+        - Check that kubernetes node should be filled.
         """
 
         self.info("Get VDC by j.sals.vdc")
-        vdcs = j.sals.vdc.list(self.tname)
-        for v in vdcs:
-            if v.vdc_name == self.vdc_name:
-                vdc = v
-                break
+        vdc = j.sals.vdc.find(vdc_name=self.vdc_name, owner_tname=self.tname)
 
         self.info("Check that VDC should be empty")
         self.assertFalse(vdc.kubernetes)
@@ -47,7 +43,7 @@ class TestVDC(VDCBase):
         self.info("Load info")
         vdc.load_info()
 
-        self.info("Check instace_name should be filled")
+        self.info("Check that kubernetes node should be filled")
         self.assertTrue(vdc.kubernetes)
 
     def test02_list_vdcs(self):
@@ -83,7 +79,7 @@ class TestVDC(VDCBase):
         self.assertLess(int(self.vdc.calculate_expiration_value()) - timestamp_after_one_hour, 200)
 
     def test04_is_empty(self):
-        """Test case for checking that deployed vdc not empty.
+        """Test case for checking that deployed vdc is not empty.
 
         **Test Scenario**
 
@@ -133,7 +129,7 @@ class TestVDC(VDCBase):
         self.assertEqual(len(self.vdc.kubernetes), k8s_before_add)
 
     def test07_apply_grace_period_action(self):
-        """Test case for applay and revert grace period action.
+        """Test case for applying and reverting grace period action.
 
         **Test Scenario**
 
@@ -150,18 +146,18 @@ class TestVDC(VDCBase):
         self.info("Check that k8s hasn't been reachable")
         k8s = self.vdc.get_kubernetes_monitor()
         ip_address = k8s.nodes[0].ip_address
-        res = j.sals.nettools.tcp_connection_test(ip_address, port=22, timeout=20)
+        res = j.sals.nettools.tcp_connection_test(ip_address, port=6443, timeout=20)
         self.assertFalse(res)
 
         self.info("Revert grace period action")
         self.vdc.revert_grace_period_action()
 
         self.info("Check that k8s has been reachable")
-        res = j.sals.nettools.tcp_connection_test(ip_address, port=22, timeout=20)
+        res = j.sals.nettools.tcp_connection_test(ip_address, port=6443, timeout=20)
         self.assertFalse(res)
 
     def test08_renew_plan(self):
-        """Test case for renew plan.
+        """Test case for renewing the plan.
 
         **Test Scenario**
 
@@ -171,7 +167,7 @@ class TestVDC(VDCBase):
         - Check that the expiration value has been changed.
         """
         self.info("Get the expiration date")
-        expiration_value = self.vdc.expiration_date
+        pools_expiration_value = self.vdc.get_pools_expiration()
 
         self.info("Renew plan with one day")
         vdc_price = j.tools.zos.consumption.calculate_vdc_price(self.flavor)
@@ -181,7 +177,7 @@ class TestVDC(VDCBase):
 
         self.info("Check that the expiration value has been changed")
         self.vdc.load_info()
-        self.assertNotEqual(expiration_value, self.vdc.expiration_date)
+        self.assertEqual(pools_expiration_value + 60 * 60 * 24, self.vdc.get_pools_expiration())
 
     def test09_transfer_to_provisioning_wallet(self):
         """Test case for transfer TFT to provisioning wallet.
@@ -206,7 +202,7 @@ class TestVDC(VDCBase):
 
     # zbd auto extend should be tested manually
     def test10_extend_zdb(self):
-        """Test case for extend zdbs.
+        """Test case for extending zdbs.
 
         **Test Scenario**
 
@@ -223,7 +219,7 @@ class TestVDC(VDCBase):
         vdc_identity = f"vdc_ident_{self.vdc.solution_uuid}"
         if j.core.identity.find(vdc_identity):
             j.core.identity.set_default(vdc_identity)
-        zdb_monitor.extend(10, ["lochristi_dev_lab"])
+        zdb_monitor.extend(10, ["freefarm"])
 
         self.info("Check that zdbs has been extended")
         self.vdc.load_info()
