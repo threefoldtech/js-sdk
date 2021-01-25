@@ -1115,7 +1115,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         if not workload_name:
             workload_name = "your workload"
         automatic_choice = bot.single_choice(
-            "Do you want to automatically select a node for deployment for" f" {workload_name}?",
+            f"Do you want to automatically select a node to deploy {workload_name} on?",
             ["YES", "NO"],
             default="YES",
             required=True,
