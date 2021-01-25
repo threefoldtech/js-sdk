@@ -23,6 +23,7 @@
 - [test_threebot_deployer](sals/automated_chatflows/test_threebot_deployer.md)
 - [test_nginx](sals/nginx/test_nginx.md)
 - [test_pools](sals/zos/test_pools.md)
+- [test_vdc](sals/vdc/test_vdc.md)
 
 ### Servers
 
