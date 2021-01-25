@@ -20,7 +20,7 @@
       >
         <v-icon color="primary" class="mr-2" right>mdi-apps</v-icon>Marketplace
       </v-btn>
-      <v-btn v-else text href="#/">
+      <v-btn v-else text href="#/settings">
         <v-icon color="primary" class="mr-2" right>mdi-server</v-icon>My VDC
       </v-btn>
 
