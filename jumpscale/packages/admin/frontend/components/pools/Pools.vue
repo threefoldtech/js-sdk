@@ -26,7 +26,7 @@
               <v-tooltip top>
                   <template v-slot:activator="{ on, attrs }">
                     <v-btn icon @click="openChatflow(item.pool_id)">
-                      <v-icon v-bind="attrs" v-on="on" color=primary>mdi-cloud-upload</v-icon>
+                      <v-icon v-bind="attrs" v-on="on" color=primary>mdi-resize</v-icon>
                     </v-btn>
                   </template>
                   <span>Extend pool</span>

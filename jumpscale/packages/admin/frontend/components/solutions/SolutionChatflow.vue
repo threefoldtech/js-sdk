@@ -6,7 +6,7 @@
   module.exports = {
     props: {
       topic: String,
-      queryparams: Object
+      queryparams: {type:Object,default:null}
     },
     data () {
       return {
