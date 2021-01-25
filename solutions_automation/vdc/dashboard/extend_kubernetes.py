@@ -3,6 +3,6 @@ from jumpscale.packages.vdc_dashboard.chats.extend_kubernetes import ExtendKuber
 
 
 class ExtendKubernetesAutomated(GedisChatBotPatch, ExtendKubernetesCluster):
-    FLAVOR_MESSAGE = "Choose the Node size"
+    SIZE_MESSAGE = "Choose the Node size"
 
-    QS = {FLAVOR_MESSAGE: "flavor"}
+    QS = {SIZE_MESSAGE: "size"}

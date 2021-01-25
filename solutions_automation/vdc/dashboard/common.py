@@ -5,13 +5,13 @@ class CommonChatBot(GedisChatBotPatch):
     NAME_MESSAGE = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
     SUB_DOMAIN_CHOICE_MESSAGE = "Select the domain type"
     CUSTOM_SUB_DOMAIN_MESSAGE = r"^Please enter a subdomain to be added to (.*)$"
-    CHOOSE_FLAVOR_MESSAGE = "Please choose the flavor you want to use (helm chart limits define how much resources the deployed solution will use)"
+    FLAVOR_MESSAGE = "Please choose the flavor you want to use (helm chart limits define how much resources the deployed solution will use)"
 
-    QS = {
+    QS_BASE = {
         NAME_MESSAGE: "get_name",
-        SUB_DOMAIN_CHOICE_MESSAGE: "sub_domain_choice",
+        SUB_DOMAIN_CHOICE_MESSAGE: "sub_domain",
         CUSTOM_SUB_DOMAIN_MESSAGE: "custom_sub_domain",
-        CHOOSE_FLAVOR_MESSAGE: "flavor",
+        FLAVOR_MESSAGE: "flavor",
     }
 
     def get_name(self, msg, *args, **kwargs):

@@ -15,11 +15,11 @@ from solutions_automation.vdc.dashboard.zeroci import ZeroCIAutomated
 
 def deploy_blog(
     release_name,
-    flavor,
     title,
     url,
     branch,
-    sub_domain_choice="Choose subdomain for me on a gateway",
+    flavor="Silver",
+    sub_domain="Choose subdomain for me on a gateway",
     custom_sub_domain="",
     debug=True,
 ):
@@ -29,59 +29,59 @@ def deploy_blog(
         title=title,
         url=url,
         branch=branch,
-        sub_domain=sub_domain_choice,
+        sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
         debug=debug,
     )
 
 
 def deploy_cryptpad(
-    release_name, flavor, sub_domain_choice="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
+    release_name, flavor="Silver", sub_domain="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
 ):
     return CryptpadAutomated(
         release_name=release_name,
         flavor=flavor,
-        sub_domain=sub_domain_choice,
+        sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
         debug=debug,
     )
 
 
 def deploy_discourse(
-    release_name, flavor, sub_domain_choice="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
+    release_name, flavor="Silver", sub_domain="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
 ):
     return DiscourseAutomated(
         release_name=release_name,
         flavor=flavor,
-        sub_domain=sub_domain_choice,
+        sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
         debug=debug,
     )
 
 
-def deploy_extend_kubernetes(release_name, flavor, debug=True):
-    return ExtendKubernetesAutomated(release_name=release_name, flavor=flavor, debug=debug)
+def deploy_extend_kubernetes(release_name, size, debug=True):
+    return ExtendKubernetesAutomated(release_name=release_name, size=size, debug=debug)
 
 
-def gitea_gitea(
-    release_name, flavor, sub_domain_choice="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
+def deploy_gitea(
+    release_name, flavor="Silver", sub_domain="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
 ):
     return GiteaAutomated(
         release_name=release_name,
         flavor=flavor,
-        sub_domain=sub_domain_choice,
+        sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
         debug=debug,
     )
 
 
 def deploy_kubeapps(
-    release_name, flavor, sub_domain_choice="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
+    release_name, flavor="Silver", sub_domain="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
 ):
     return KubeappsAutomated(
         release_name=release_name,
         flavor=flavor,
-        sub_domain=sub_domain_choice,
+        sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
         debug=debug,
     )
@@ -89,11 +89,11 @@ def deploy_kubeapps(
 
 def deploy_mattermost(
     release_name,
-    flavor,
     mysql_username,
     mysql_password,
     mysql_root_password,
-    sub_domain_choice="Choose subdomain for me on a gateway",
+    flavor="Silver",
+    sub_domain="Choose subdomain for me on a gateway",
     custom_sub_domain="",
     debug=True,
 ):
@@ -103,55 +103,56 @@ def deploy_mattermost(
         mysql_username=mysql_username,
         mysql_password=mysql_password,
         mysql_root_password=mysql_root_password,
-        sub_domain=sub_domain_choice,
+        sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
         debug=debug,
     )
 
 
 def deploy_monitoring(
-    release_name, flavor, sub_domain_choice="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
+    release_name, flavor="Silver", sub_domain="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
 ):
     return MonitoringStackAutomated(
         release_name=release_name,
         flavor=flavor,
-        sub_domain=sub_domain_choice,
+        sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
         debug=debug,
     )
 
 
 def deploy_peertube(
-    release_name, flavor, sub_domain_choice="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
+    release_name, flavor="Silver", sub_domain="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
 ):
     return PeertubeAutomated(
         release_name=release_name,
         flavor=flavor,
-        sub_domain=sub_domain_choice,
+        sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
         debug=debug,
     )
 
 
 def deploy_taiga(
-    release_name, flavor, sub_domain_choice="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
+    release_name, flavor="Silver", sub_domain="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
 ):
     return TaigaAutomated(
         release_name=release_name,
         flavor=flavor,
-        sub_domain=sub_domain_choice,
+        sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
         debug=debug,
     )
 
 
-def deploy_wibsite(
+def deploy_website(
     release_name,
-    flavor,
     title,
     url,
     branch,
-    sub_domain_choice="Choose subdomain for me on a gateway",
+    src_dir="html",
+    flavor="Silver",
+    sub_domain="Choose subdomain for me on a gateway",
     custom_sub_domain="",
     debug=True,
 ):
@@ -161,7 +162,8 @@ def deploy_wibsite(
         title=title,
         url=url,
         branch=branch,
-        sub_domain=sub_domain_choice,
+        src_dir=src_dir,
+        sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
         debug=debug,
     )
@@ -169,11 +171,12 @@ def deploy_wibsite(
 
 def deploy_wiki(
     release_name,
-    flavor,
     title,
     url,
     branch,
-    sub_domain_choice="Choose subdomain for me on a gateway",
+    src_dir="src",
+    flavor="Silver",
+    sub_domain="Choose subdomain for me on a gateway",
     custom_sub_domain="",
     debug=True,
 ):
@@ -183,19 +186,20 @@ def deploy_wiki(
         title=title,
         url=url,
         branch=branch,
-        sub_domain=sub_domain_choice,
+        src_dir=src_dir,
+        sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
         debug=debug,
     )
 
 
 def deploy_zeroci(
-    release_name, flavor, sub_domain_choice="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
+    release_name, flavor="Silver", sub_domain="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
 ):
     return ZeroCIAutomated(
         release_name=release_name,
         flavor=flavor,
-        sub_domain=sub_domain_choice,
+        sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
         debug=debug,
     )
