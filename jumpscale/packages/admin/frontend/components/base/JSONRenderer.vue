@@ -38,6 +38,7 @@
       </v-tab-item>
     </v-tabs>
     <v-btn
+      v-if="tab === 1"
       color="#52BE80"
       class="copy-btn ma-2 white--text"
       fab
