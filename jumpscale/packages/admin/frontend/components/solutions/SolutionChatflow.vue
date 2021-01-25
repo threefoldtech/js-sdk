@@ -36,7 +36,7 @@
           if(event.origin != location.origin || event.data.slice(0, len) != message)
             return;
           let topic = event.data.slice(len)
-          if(topic == "pools"){
+          if(topic === "pools" || topic === "extend_pools"){
             this.$router.push({
               name: "Capacity Pools"
             })
