@@ -750,6 +750,7 @@ class VDCDeployer:
         if self.vdc_instance.threebot.pool_id:
             pool_ids.add(self.vdc_instance.threebot.pool_id)
         self.info(f"renew plan with pools: {pool_ids}")
+        failed_pools = []
         for pool_id in pool_ids:
             pool = self.zos.pools.get(pool_id)
             sus = pool.active_su * duration * 60 * 60 * 24
@@ -760,9 +761,15 @@ class VDCDeployer:
                 f"renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, ipv4us: {ipv4us} reservation_id: {pool_info.reservation_id}"
             )
             self.pay(pool_info)
+            result = self.wait_pool_payment(pool_info.reservation_id)
+            if not result:
+                self.critical(f"failed to extend pool {pool_id} in reservation: {pool_info.reservation_id}")
+                failed_pools.append((pool_id, pool_info.reservation_id))
         self.vdc_instance.updated = j.data.time.utcnow().timestamp
         if self.vdc_instance.is_blocked:
             self.vdc_instance.revert_grace_period_action()
+        if failed_pools:
+            raise j.exceptions.Runtime(f"failed to renew all vdc pools. failed pools and reservations: {failed_pools}")
 
     def pay(self, pool_info):
         deadline = j.data.time.now().timestamp + 5 * 60
