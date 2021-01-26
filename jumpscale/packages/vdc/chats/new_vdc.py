@@ -1,5 +1,4 @@
-from io import SEEK_CUR
-from jumpscale.sals.vdc import deployer
+from jumpscale.sals.vdc.size import PREFERED_FARM
 from jumpscale.loader import j
 from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
@@ -111,19 +110,24 @@ class VDCDeploy(GedisChatBot):
             j.logger.error(f"failed to initialize wallets for VDC {self.vdc_name.value} due to error {str(e)}")
             self.stop(f"failed to initialize VDC wallets. please try again later")
 
+        try:
+            self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self)
+        except Exception as e:
+            j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
+            j.sals.vdc.delete(self.vdc.instance_name)
+            self.stop("failed to initialize VDC deployer. please contact support")
+
+        farm_name = PREFERED_FARM.get()  # TODO: use the selected farm name when users are allowed to select farms
+        if not self.deployer.check_capacity(farm_name):
+            raise StopChatFlow(
+                f"There are not enough resources available to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
+            )
+
         success, amount, payment_id = self.vdc.show_vdc_payment(self)
         if not success:
             j.sals.vdc.delete(self.vdc.instance_name)  # delete it?
             self.stop(f"payment timedout")
         self.md_show_update("Payment successful")
-
-        try:
-            self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self)
-        except Exception as e:
-            j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
-            j.sals.billing.issue_refund(payment_id)
-            j.sals.vdc.delete(self.vdc.instance_name)
-            self.stop("failed to initialize VDC deployer. please contact support")
 
         self.md_show_update("Deploying your VDC...")
         initialization_wallet_name = j.core.config.get("VDC_INITIALIZATION_WALLET")
