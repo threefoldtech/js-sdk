@@ -28,7 +28,7 @@ class TestKubernetes(VDCBase):
         self.release_name = ""
 
     def tearDown(self):
-        if self.release_name != "":
+        if self.release_name:
             self.info(f"Delete {self.release_name}")
             self.kube_manager.delete_deployed_release(self.release_name)
 
