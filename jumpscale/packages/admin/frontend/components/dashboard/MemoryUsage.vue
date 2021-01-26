@@ -43,7 +43,6 @@
         this.loading = true
         this.$api.health.getMemoryUsage().then((response) => {
           this.usage = JSON.parse(response.data).data
-          console.log(this.usage)
         }).finally (() => {
           this.loading = false
         })
