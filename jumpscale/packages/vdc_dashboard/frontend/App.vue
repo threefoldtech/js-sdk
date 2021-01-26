@@ -50,6 +50,13 @@
             </v-list-item>
             <v-list-item>
               <v-list-item-content>
+                <v-btn :loading="updateLoading" text color="blue" @click.stop="updateDashboard()"
+                  >Update Dashboard</v-btn
+                >
+              </v-list-item-content>
+            </v-list-item>
+            <v-list-item>
+              <v-list-item-content>
                 <v-btn text color="blue" :to="'/terms'"
                   >Terms and Conditions</v-btn
                 >
@@ -98,6 +105,7 @@ module.exports = {
       user: {},
       menu: false,
       mini: false,
+      updateLoading: false,
     };
   },
   methods: {
@@ -111,6 +119,15 @@ module.exports = {
           this.user = null;
         });
     },
+    updateDashboard() {
+      this.updateLoading = true;
+      this.$api.version
+        .update()
+        .then(() => {
+          this.$router.go(0);
+          this.updateLoading = false;
+        })
+    }
   },
   mounted() {
     this.getCurrentUser();
