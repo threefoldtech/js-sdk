@@ -3,6 +3,7 @@ from textwrap import dedent
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
+from collections import OrderedDict
 
 
 class KubernetesDeploy(GedisChatBot):
@@ -17,6 +18,28 @@ class KubernetesDeploy(GedisChatBot):
         "success",
     ]
     title = "Kubernetes"
+    KUBERNETES_SIZES = OrderedDict(
+        {
+            1: {"cru": 1, "mru": 2, "sru": 50},
+            2: {"cru": 2, "mru": 4, "sru": 100},
+            3: {"cru": 2, "mru": 8, "sru": 25},
+            4: {"cru": 2, "mru": 8, "sru": 50},
+            5: {"cru": 2, "mru": 8, "sru": 200},
+            6: {"cru": 4, "mru": 16, "sru": 50},
+            7: {"cru": 4, "mru": 16, "sru": 100},
+            8: {"cru": 4, "mru": 16, "sru": 400},
+            9: {"cru": 8, "mru": 32, "sru": 100},
+            10: {"cru": 8, "mru": 32, "sru": 200},
+            11: {"cru": 8, "mru": 32, "sru": 800},
+            12: {"cru": 16, "mru": 64, "sru": 200},
+            13: {"cru": 16, "mru": 64, "sru": 400},
+            14: {"cru": 16, "mru": 64, "sru": 800},
+            15: {"cru": 1, "mru": 2, "sru": 25},
+            16: {"cru": 2, "mru": 4, "sru": 50},
+            17: {"cru": 4, "mru": 8, "sru": 50},
+            18: {"cru": 1, "mru": 1, "sru": 25},
+        }
+    )
 
     def _deployment_start(self):
         deployer.chatflow_pools_check()
@@ -42,23 +65,18 @@ class KubernetesDeploy(GedisChatBot):
     @chatflow_step(title="Master and Worker flavors")
     def choose_flavor(self):
         form = self.new_form()
-        sizes = ["1 vCPU 2 GiB ram 50GiB disk space", "2 vCPUs 4 GiB ram 100GiB disk space"]
+        sizes = [
+            f"vCPU: {data.get('cru')}, RAM: {data.get('mru')} GiB, Disk Space {data.get('sru')} GiB"
+            for data in self.KUBERNETES_SIZES.values()
+        ]
         cluster_size_string = form.drop_down_choice("Choose the size of your nodes", sizes, default=sizes[0])
-
-        self.workernodes = form.int_ask(
-            "Please specify the number of worker nodes", default=1, required=True, min=1
-        )  # minimum should be 1
-
         form.ask()
         self.cluster_size = sizes.index(cluster_size_string.value) + 1
-        if self.cluster_size == 1:
-            self.master_query = self.worker_query = {"sru": 50, "mru": 2, "cru": 1}
-        else:
-            self.master_query = self.worker_query = {"sru": 100, "mru": 4, "cru": 2}
+        self.master_query = self.worker_query = self.KUBERNETES_SIZES.get(self.cluster_size)
 
     @chatflow_step(title="Containers' node id")
     def nodes_selection(self):
-        no_nodes = self.workernodes.value + 1
+        no_nodes = 2
         workload_name = "Kubernetes nodes"
         self.selected_nodes, self.selected_pool_ids = deployer.ask_multi_pool_distribution(
             self, no_nodes, self.master_query, workload_name=workload_name

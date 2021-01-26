@@ -31,6 +31,11 @@ class Solutions(BaseActor):
         return j.data.serializers.json.dumps({"data": result})
 
     @actor_method
+    def get_k8s_solution_details(self, k8s_solution_name: str) -> str:
+        result = solutions.get_kubernetes_solution_details(k8s_name=k8s_solution_name)
+        return j.data.serializers.json.dumps({"data": result})
+
+    @actor_method
     def cancel_solution(self, wids) -> bool:
         solutions.cancel_solution(wids)
         return True
