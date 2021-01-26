@@ -62,7 +62,7 @@ Test case for executing a native kubernetes commands.
 
 ### test_07_get_helm_chart_user_values
 
-Test case for get the custom user values for helm chart
+Test case for getting the custom user values for helm chart
 
 **Test Scenario**
 
@@ -73,7 +73,7 @@ Test case for get the custom user values for helm chart
 
 ### test_08_upgrade_release
 
-Test case for upgrade helm release
+Test case for upgrading helm release
 
 **Test Scenario**
 
@@ -84,7 +84,7 @@ Test case for upgrade helm release
 
 ### test_09_upgrade_release_with_yaml_config
 
-Test case for upgrade helm release with given yaml config
+Test case for upgrading helm release with given yaml config
 
 **Test Scenario**
 
