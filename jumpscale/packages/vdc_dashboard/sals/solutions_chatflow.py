@@ -239,7 +239,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     def _get_custom_domain(self):
         valid = False
-        cluster_ip = self.vdc_info["master_ip"]
+        cluster_ip = self.vdc_info["public_ip"]
         while not valid:
             custom_domain = self.string_ask(
                 f"Please enter the domain name, make sure the domain points to {cluster_ip}.", required=True,
