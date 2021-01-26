@@ -153,6 +153,42 @@ class ChatflowSolutions:
                         result[name]["Slave IPs"].append(workload.ipaddress)
         return list(result.values())
 
+    def get_kubernetes_solution_details(self, k8s_name, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Kubernetes]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        results = []
+        for kube_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Kubernetes
+        ].values():
+
+            for workload in kube_workloads:
+                if not workload.info.metadata:
+                    continue
+                try:
+                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                except:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                name = metadata["form_info"].get("Solution name", metadata.get("name"))
+                if name == k8s_name:
+                    node = {}
+                    role = "master"
+                    # Slave Node
+                    if workload.master_ips:
+                        role = "slave"
+                    node = {"role": role, "wid": workload.id, "ip_address": workload.ipaddress}
+                    # Handle Storage object
+                    disk_size = self.get_workload_capacity(workload).get("Disk Size")
+                    node.update(self.get_workload_capacity(workload))
+                    del node["Disk Size"]
+                    node.update({"storage": disk_size})
+                    results.append(node)
+
+        return results
+
     def list_monitoring_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
