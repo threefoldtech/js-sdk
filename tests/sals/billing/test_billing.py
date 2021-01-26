@@ -14,6 +14,8 @@ class TestBilling(BaseTests):
         cls.info("Setup all requirements")
         cls._get_env_vars()
         cls._setup_wallets()
+        cls.payment_ids = []
+        cls.refund_ids = []
 
     @classmethod
     def tearDownClass(cls):
@@ -30,9 +32,13 @@ class TestBilling(BaseTests):
             cls.info("Check if destination wallet is empty")
             assert round(cls.test_destination_wallet.get_balance_by_asset()) == 0
 
-        cls.info("Delete all payment ids")
+        cls.info("Delete all payment instances")
         for id in cls.payment_ids:
             PAYMENT_FACTORY.delete(f"payment_{id}")
+
+        cls.info("Delete all refund instances")
+        for id in cls.refund_ids:
+            REFUND_FACTORY.delete(f"payment_{id}")
 
     @classmethod
     def _get_env_vars(cls):
@@ -62,7 +68,6 @@ class TestBilling(BaseTests):
             "test_destination_wallet", secret=cls.destination_wallet_secret
         )
         cls.asset = cls.test_source_wallet._get_asset()
-        cls.payment_ids = []
 
     def test_01_submit_payment(self):
         """Test Case for submitting payment.
@@ -120,6 +125,7 @@ class TestBilling(BaseTests):
             amount=payment_amount, wallet_name=self.test_destination_wallet.instance_name, expiry=1
         )
         self.payment_ids.append(payment_id)
+        self.refund_ids.append(payment_id)
 
         self.info("Get current balance of source wallet")
         balance_before_transfer = self.test_source_wallet.get_balance_by_asset()
@@ -163,6 +169,7 @@ class TestBilling(BaseTests):
             amount=payment_amount, wallet_name=self.test_destination_wallet.instance_name, expiry=1
         )
         self.payment_ids.append(payment_id)
+        self.refund_ids.append(payment_id)
 
         self.info("Get current balance of source wallet")
         balance_before_transfer = self.test_source_wallet.get_balance_by_asset()
@@ -208,6 +215,7 @@ class TestBilling(BaseTests):
             amount=payment_amount, wallet_name=self.test_destination_wallet.instance_name, expiry=1
         )
         self.payment_ids.append(payment_id)
+        self.refund_ids.append(payment_id)
 
         self.info("Get current balance of source wallet")
         balance_before_transfer = self.test_source_wallet.get_balance_by_asset()
@@ -247,6 +255,7 @@ class TestBilling(BaseTests):
             amount=1, wallet_name=self.test_destination_wallet.instance_name, expiry=1
         )
         self.payment_ids.append(payment_id)
+        self.refund_ids.append(payment_id)
 
         self.info("Issue Refund")
         j.sals.billing.issue_refund(payment_id)
@@ -289,6 +298,7 @@ class TestBilling(BaseTests):
             amount=1, wallet_name=self.test_destination_wallet.instance_name, expiry=1
         )
         self.payment_ids.append(payment_id)
+        self.refund_ids.append(payment_id)
 
         self.info("Transfer 1 TFT from source wallet")
         transaction_hash = self.test_source_wallet.transfer(
@@ -362,6 +372,7 @@ class TestBilling(BaseTests):
             amount=1, wallet_name=self.test_destination_wallet.instance_name, expiry=1
         )
         self.payment_ids.append(payment_id)
+        self.refund_ids.append(payment_id)
         payment_instance = PAYMENT_FACTORY.find_by_id(payment_id)
 
         self.info("Get current balance of source wallet")
@@ -401,6 +412,7 @@ class TestBilling(BaseTests):
             amount=1, wallet_name=self.test_destination_wallet.instance_name, expiry=1, refund_extra=False
         )
         self.payment_ids.append(payment_id)
+        self.refund_ids.append(payment_id)
 
         self.info("Transfer 2 TFT from source wallet")
         transaction_hash = self.test_source_wallet.transfer(
