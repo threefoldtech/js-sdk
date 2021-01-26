@@ -24,7 +24,7 @@ from jumpscale.sals.zos.billing import InsufficientFunds
 import os
 
 VDC_IDENTITY_FORMAT = "vdc_{}_{}_{}"  # tname, vdc_name, vdc_uuid
-IP_VERSION = "IPv6"
+IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
 MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/vdc-solutions-charts/"
 NO_DEPLOYMENT_BACKUP_NODES = 0
