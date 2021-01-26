@@ -1,3 +1,4 @@
+from tests.base_tests import BaseTests
 from jumpscale.sals.marketplace import solutions
 import pytest
 from jumpscale.loader import j
@@ -40,6 +41,10 @@ class VDCDashboardChatflows(VDCBase):
             self.solution.k8s_client.delete_deployed_release(self.solution.release_name)
 
         super().tearDown()
+
+    @classmethod
+    def _import_wallet(cls):
+        j.clients.stellar.get("demos_wallet", network="STD", secret=cls.wallet_secret)
 
     # def test01_wiki(self):
     #     """Test case for deploying a wiki.
@@ -136,7 +141,7 @@ class VDCDashboardChatflows(VDCBase):
         - Check that Gitea is reachable.
         """
         self.info("Deploy Gitea")
-        name = self.random_string().lower()
+        name = BaseTests.random_name().lower()
         gitea = deployer.deploy_gitea(release_name=name)
         self.solution_uuid = gitea.solution_id
         self.solution = gitea
@@ -295,15 +300,13 @@ class VDCDashboardChatflows(VDCBase):
         - Extend Kubernetes cluster.
         - Check that node added.
         """
-        pass
-        # self.info("Get Number of Nodes before extend")
-        # before_extend = self.kube_manager.execute_native_cmd("kubectl get nodes")
-        # self.info("Extend Kubernetes")
-        # name = self.random_string().lower()
-        # size = "MEDIUM"
-        # extend_node = deployer.ExtendKubernetesAutomated(release_name=name, size=size)
-        # import ipdb; ipdb.set_trace()
+        self.info("Get Number of Nodes before extend")
+        before_extend = self.kube_manager.execute_native_cmd("kubectl get nodes")
+        self.info("Extend Kubernetes")
+        name = self.random_string().lower()
+        size = "MEDIUM"
+        extend_node = deployer.ExtendKubernetesAutomated(release_name=name, size=size)
 
-        # self.info("Check that node added and ready")
-        # after_extend = self.kube_manager.execute_native_cmd("kubectl get nodes")
-        # self.assertEqual(after_extend.count("Ready"), before_extend.count("Ready") + 1)
+        self.info("Check that node added and ready")
+        after_extend = self.kube_manager.execute_native_cmd("kubectl get nodes")
+        self.assertEqual(after_extend.count("Ready"), before_extend.count("Ready") + 1)
