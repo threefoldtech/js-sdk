@@ -212,9 +212,9 @@ class ServiceManager(Base):
             greenlet.unlink(self.__callback)
             if block:
                 try:
-                    j.logger.log(f"Waiting the service {service_name} to finish")
+                    j.logger.info(f"Waiting the service {service_name} to finish")
                     greenlet.join()
-                    j.logger.log(f"Done waiting the service {service_name}")
+                    j.logger.info(f"Done waiting the service {service_name}")
                 except Exception as e:
                     raise j.exceptions.Runtime(f"Exception on waiting for greenlet: {str(e)}")
             else:
