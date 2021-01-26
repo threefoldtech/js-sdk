@@ -127,10 +127,6 @@ module.exports = {
           this.$router.go(0);
           this.updateLoading = false;
         })
-        .catch(() => {
-          this.$router.go(0);
-          this.updateLoading = false;
-        });
     }
   },
   mounted() {
