@@ -30,7 +30,7 @@ jobs:
           sudo apt-get install -y git tmux redis restic nginx cron wireguard unzip
           sudo service redis stop
           sudo service nginx stop
-          poetry run pip3 install pytest selenium pytest-cov
+          poetry run pip3 install pytest parameterized selenium pytest-cov
       - name: Install
         run: |
           poetry install
