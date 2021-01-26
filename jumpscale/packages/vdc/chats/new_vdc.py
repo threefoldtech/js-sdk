@@ -119,7 +119,7 @@ class VDCDeploy(GedisChatBot):
 
         farm_name = PREFERED_FARM.get()  # TODO: use the selected farm name when users are allowed to select farms
         if not self.deployer.check_capacity(farm_name):
-            raise j.exceptions.Validation(
+            raise StopChatFlow(
                 f"There are not enough resources available to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
             )
 
