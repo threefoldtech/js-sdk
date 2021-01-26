@@ -262,7 +262,7 @@ def accept():
 @app.route("/api/update", method="GET")
 @package_authorized("vdc_dashboard")
 def update():
-    branch_param = request.query["branch"]
+    branch_param = request.params.get("branch")
     if branch_param:
         branch = branch_param
     else:

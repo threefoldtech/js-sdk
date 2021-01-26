@@ -50,7 +50,7 @@
             </v-list-item>
             <v-list-item>
               <v-list-item-content>
-                <v-btn text color="blue" @click.stop="updateDashboard()"
+                <v-btn :loading="updateLoading" text color="blue" @click.stop="updateDashboard()"
                   >Update Dashboard</v-btn
                 >
               </v-list-item-content>
@@ -105,6 +105,7 @@ module.exports = {
       user: {},
       menu: false,
       mini: false,
+      updateLoading: false,
     };
   },
   methods: {
@@ -119,13 +120,16 @@ module.exports = {
         });
     },
     updateDashboard() {
+      this.updateLoading = true;
       this.$api.version
         .update()
         .then(() => {
-          this.alert("Dashboard updated successfully", "success");
+          this.$router.go(0);
+          this.updateLoading = false;
         })
         .catch(() => {
-          this.alert("Failed to update dashboard", "error");
+          this.$router.go(0);
+          this.updateLoading = false;
         });
     }
   },
