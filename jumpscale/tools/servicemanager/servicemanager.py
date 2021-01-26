@@ -155,10 +155,6 @@ class ServiceManager(Base):
     def start(self):
         """Start the service manager and schedule default services
         """
-        # handle signals
-        for signal_type in (SIGTERM, SIGKILL):
-            gevent.signal(signal_type, self.stop)
-
         # schedule default services
         for service in self.services.values():
             next_start = ceil(self.seconds_to_next_interval(service.interval))
@@ -167,9 +163,10 @@ class ServiceManager(Base):
     def stop(self):
         """Stop all background services
         """
-
+        j.logger.info("Stopping background services")
         for service in list(self.services.keys()):
             self.stop_service(service)
+        j.logger.info("Done stopping the background services")
 
     def add_service(self, service_name, service_path):
         """Add a new background service to be managed and scheduled by the service manager
@@ -200,13 +197,24 @@ class ServiceManager(Base):
         if service_name not in self.services:
             raise j.exceptions.Value(f"Service {service_name} is not running")
 
+        # unschedule service if it's scheduled to run again
+        if service_name in self._scheduled:
+            greenlet = self._scheduled[service_name]
+            greenlet.unlink(self.__callback)
+            greenlet.kill()
+            if not greenlet.dead:
+                raise j.exceptions.Runtime("Failed to unschedule greenlet")
+            self._scheduled.pop(service_name)
+
         # wait for service to finish if it's already running
         if service_name in self._running:
             greenlet = self._running[service_name]
             greenlet.unlink(self.__callback)
             if block:
                 try:
+                    j.logger.log(f"Waiting the service {service_name} to finish")
                     greenlet.join()
+                    j.logger.log(f"Done waiting the service {service_name}")
                 except Exception as e:
                     raise j.exceptions.Runtime(f"Exception on waiting for greenlet: {str(e)}")
             else:
@@ -216,14 +224,5 @@ class ServiceManager(Base):
                     raise j.exceptions.Runtime(f"Exception on killing greenlet: {str(e)}")
                 if not greenlet.dead:
                     raise j.exceptions.Runtime("Failed to kill running greenlet")
-
-        # unschedule service if it's scheduled to run again
-        if service_name in self._scheduled:
-            greenlet = self._scheduled[service_name]
-            greenlet.unlink(self.__callback)
-            greenlet.kill()
-            if not greenlet.dead:
-                raise j.exceptions.Runtime("Failed to unschedule greenlet")
-            self._scheduled.pop(service_name)
 
         self.services.pop(service_name)
