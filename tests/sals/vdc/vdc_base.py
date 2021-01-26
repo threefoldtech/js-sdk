@@ -25,8 +25,7 @@ class VDCBase(BaseTests):
 
     @classmethod
     def _get_env_vars(cls):
-        # TODO: uncomment this before merge this branch into development_vdc
-        needed_vars = ["TNAME", "EMAIL", "WORDS", "WALLET_SECRET"]  # , "VDC_NAME_USER", "VDC_NAME_TOKEN"]
+        needed_vars = ["TNAME", "EMAIL", "WORDS", "WALLET_SECRET"]
         for var in needed_vars:
             value = os.environ.get(var)
             if not value:
@@ -72,10 +71,11 @@ class VDCBase(BaseTests):
         cls.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
 
         cls.info("Deploy VDC.")
-        deployer = cls.vdc.get_deployer(password=cls.password)
+        cls.deployer = cls.vdc.get_deployer(password=cls.password)
         minio_ak = cls.random_name()
         minio_sk = cls.random_string()
-        kube_config = deployer.deploy_vdc(minio_ak, minio_sk)
+        cls.timestamp_now = j.data.time.get().utcnow().timestamp
+        kube_config = cls.deployer.deploy_vdc(minio_ak, minio_sk)
         return kube_config
 
     @staticmethod

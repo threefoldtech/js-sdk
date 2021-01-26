@@ -16,6 +16,7 @@
 
 ### Sals
 
+- [test_billing](sals/billing/test_billing.md)
 - [test_kubernetes](sals/kubernetes/test_kubernetes.md)
 - [test_marketplace_apps](sals/automated_chatflows/test_marketplace_apps.md)
 - [test_pools](sals/automated_chatflows/test_pools.md)
@@ -23,6 +24,7 @@
 - [test_threebot_deployer](sals/automated_chatflows/test_threebot_deployer.md)
 - [test_nginx](sals/nginx/test_nginx.md)
 - [test_pools](sals/zos/test_pools.md)
+- [test_vdc](sals/vdc/test_vdc.md)
 
 ### Servers
 
