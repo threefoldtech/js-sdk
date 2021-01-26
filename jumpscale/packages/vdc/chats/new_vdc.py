@@ -181,6 +181,7 @@ class VDCDeploy(GedisChatBot):
         <br />\n
         """
         )
+        self.md_show(dedent(msg), md=True)
 
 
 chat = VDCDeploy
