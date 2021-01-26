@@ -300,15 +300,17 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self.domain_type = self.single_choice(
             "Select the domain type", choices, default="Choose subdomain for me on a gateway"
         )
+        custom_domain = self.domain_type == "Choose a custom domain"
         # get self.domain
-        if self.domain_type == "Choose a custom domain":
+        if custom_domain:
             self._get_custom_domain()
         else:
             self._get_domain()
-        self._create_subdomain()
-
-        # subdomain selected on gateway on preferred farm
-        if self.preferred_farm_gw:
+            self._create_subdomain()
+        if custom_domain:
+            self.chart_config.update({"global.ingress.certresolver": "le"})
+        elif self.preferred_farm_gw:
+            # subdomain selected on gateway on preferred farm
             self.chart_config.update({"global.ingress.certresolver": "gridca"})
 
     @chatflow_step(title="Installation")
