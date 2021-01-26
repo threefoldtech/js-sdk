@@ -117,7 +117,7 @@ class VDCDeploy(GedisChatBot):
             j.sals.vdc.delete(self.vdc.instance_name)
             self.stop("failed to initialize VDC deployer. please contact support")
 
-        farm_name = PREFERED_FARM.get()  # TODO:
+        farm_name = PREFERED_FARM.get()  # TODO: use the selected farm name when users are allowed to select farms
         if not self.deployer.check_capacity(farm_name):
             raise j.exceptions.Validation(
                 f"There are not enough resources available to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
