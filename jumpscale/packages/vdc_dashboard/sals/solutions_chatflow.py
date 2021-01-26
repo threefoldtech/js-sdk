@@ -237,6 +237,19 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 "No active gateways were found.Please contact support. The resources you paid for will be re-used in your upcoming deployments."
             )
 
+    def _get_custom_domain(self):
+        valid = False
+        cluster_ip = self.vdc_info["master_ip"]
+        while not valid:
+            custom_domain = self.string_ask(
+                f"Please enter the domain name, make sure the domain points to {cluster_ip}.", required=True,
+            )
+            if j.sals.nettools.get_host_by_name(custom_domain) != cluster_ip:
+                self.md_show(f"The domain {custom_domain} doesn't point to {cluster_ip}.")
+            else:
+                valid = True
+                self.domain = custom_domain
+
     @deployment_context()
     def _create_subdomain(self):
         self.workload_ids = []
@@ -279,12 +292,19 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     @chatflow_step(title="Create subdomain")
     def create_subdomain(self):
-        choices = ["Choose subdomain for me on a gateway", "Choose a custom subdomain on a gateway"]
+        choices = [
+            "Choose subdomain for me on a gateway",
+            "Choose a custom subdomain on a gateway",
+            "Choose a custom domain",
+        ]
         self.domain_type = self.single_choice(
             "Select the domain type", choices, default="Choose subdomain for me on a gateway"
         )
         # get self.domain
-        self._get_domain()
+        if self.domain_type == "Choose a custom domain":
+            self._get_custom_domain()
+        else:
+            self._get_domain()
         self._create_subdomain()
 
         # subdomain selected on gateway on preferred farm
