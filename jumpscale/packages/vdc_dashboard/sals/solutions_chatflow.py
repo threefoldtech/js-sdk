@@ -237,6 +237,12 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 "No active gateways were found.Please contact support. The resources you paid for will be re-used in your upcoming deployments."
             )
 
+    def _does_domain_point_to_ip(self, domain, ip):
+        try:
+            return j.sals.nettools.get_host_by_name(domain) == ip
+        except TypeError:
+            return False
+
     def _get_custom_domain(self):
         valid = False
         cluster_ip = self.vdc_info["public_ip"]
@@ -244,7 +250,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             custom_domain = self.string_ask(
                 f"Please enter the domain name, make sure the domain points to {cluster_ip}.", required=True,
             )
-            if j.sals.nettools.get_host_by_name(custom_domain) != cluster_ip:
+            if not self._does_domain_point_to_ip(custom_domain, cluster_ip):
                 self.md_show(f"The domain {custom_domain} doesn't point to {cluster_ip}.")
             else:
                 valid = True
