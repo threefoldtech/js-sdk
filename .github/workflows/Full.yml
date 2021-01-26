@@ -20,7 +20,9 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: '3.8'
-      - uses: dschep/install-poetry-action@v1.3
+      - uses: abatilo/actions-poetry@v2.1.0
+        with:
+          poetry-version: '1.1.4'
       - uses: nanasess/setup-chromedriver@master
       - name: Gathering deps
         run: |
