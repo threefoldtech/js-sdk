@@ -175,6 +175,7 @@ class VDCDeploy(GedisChatBot):
             f"""\
         # Your VDC {self.vdc.vdc_name} has been deployed successfully.
         <br />\n
+        You can download the kubeconfig file from the dashboard to ~/.kube/config to start using your cluster with kubectl
         Kubernetes controller public IP: {self.public_ip}
         <br />\n
         """
