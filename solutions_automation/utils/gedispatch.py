@@ -62,21 +62,24 @@ class GedisChatBotPatch(GedisChatBot):
 
         if "Please scan the QR Code below for the payment details" in msg:
             billing = {"Address": "", "Currency": "TFT", "Memo Text": "", "Amount": 0}
-            for info in billing.keys():
-                location = msg.find(info)
-                info_len = len(info) + len(": </h4>  ")
-                billing[info] = msg[location + info_len : msg.find(" \n", location)]
-                if info == "Amount":
-                    billing[info] = float(billing[info].rstrip(billing["Currency"]))
+            try:
+                for info in billing.keys():
+                    location = msg.find(info)
+                    info_len = len(info) + len(": </h4>  ")
+                    billing[info] = msg[location + info_len : msg.find(" \n", location)]
+                    if info == "Amount":
+                        billing[info] = float(billing[info].rstrip(billing["Currency"]))
 
-            wallet = self.get_wallet()
-            asset = wallet._get_asset(billing["Currency"])
-            wallet.transfer(
-                billing["Address"],
-                billing["Amount"],
-                asset=f"{asset.code}:{asset.issuer}",
-                memo_text=billing["Memo Text"],
-            )
+                wallet = self.get_wallet()
+                asset = wallet._get_asset(billing["Currency"])
+                wallet.transfer(
+                    billing["Address"],
+                    billing["Amount"],
+                    asset=f"{asset.code}:{asset.issuer}",
+                    memo_text=billing["Memo Text"],
+                )
+            except Exception as e:
+                j.logger.error(f"Failed to parse or pay due to error: {str(e)}")
 
     def md_show(self, msg, *args, **kwargs):
         if self.debug:
