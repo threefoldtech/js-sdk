@@ -21,7 +21,7 @@ jobs:
           sudo service redis stop
           sudo service nginx stop
           sudo pip3 install poetry
-          sudo poetry run pip3 install pytest selenium pytest-cov
+          sudo poetry run pip3 install pytest selenium
       - name: Install
         run: |
           sudo poetry install
@@ -34,9 +34,4 @@ jobs:
           FAKE_GITHUB_TOKEN: ${{ secrets.FAKE_GITHUB_TOKEN }}
         run: |
           sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN \
-          poetry run pytest tests -sv -m "unittests" --cov=jumpscale --cov-report=xml
-      - name: Upload coverage to Codecov
-        if: success()
-        uses: codecov/codecov-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          poetry run pytest tests -sv -m "unittests"
