@@ -75,8 +75,8 @@
 <script>
 module.exports = {
   components: {
-    "solution-info": httpVueLoader("../base/Info.vue"),
-    "cancel-workload": httpVueLoader("./Delete.vue"),
+    "solution-info": httpVueLoader("./NodeInfo.vue"),
+    "cancel-workload": httpVueLoader("./DeleteNode.vue"),
   },
   props: ["k8sName"],
 

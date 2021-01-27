@@ -60,6 +60,15 @@ class Solutions(BaseActor):
         return j.data.serializers.json.dumps({"result": True})
 
     @actor_method
+    def delete_node(self, wid) -> str:
+        workload = j.sals.zos.get().workloads.get(wid)
+        # Delete public ip
+        if workload.public_ip:
+            j.sals.zos.get().workloads.decomission(workload.public_ip)
+        j.sals.zos.get().workloads.decomission(wid)
+        return j.data.serializers.json.dumps({"result": wid})
+
+    @actor_method
     def list_pools(self, include_hidden) -> str:
         def pool_farm_from_cache(cache_dict, pool):
             for node_id in pool.node_ids:

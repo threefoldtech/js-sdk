@@ -397,6 +397,14 @@ const apiClient = {
                 data: { wid: wid }
             })
         },
+        deleteWorkerWorkload: (wid) => {
+            return axios({
+              url: `/tfgrid_solutions/actors/solutions/delete_node`,
+              method: "post",
+              data: { wid: wid },
+              headers: { 'Content-Type': 'application/json' }
+            })
+          },
         patchCancelWorkload: (wids) => {
             return axios({
                 method: "post",
