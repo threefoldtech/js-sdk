@@ -17,23 +17,18 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: development_vdc_testing
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
-      - uses: abatilo/actions-poetry@v2.1.0
-        with:
-          poetry-version: '1.1.4'
       - uses: nanasess/setup-chromedriver@master
-      - name: Gathering deps
+      - name: Gathering dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git tmux redis restic nginx cron wireguard unzip
+          sudo apt-get install -y python3-pip python3-venv python3-setuptools git tmux redis restic nginx cron wireguard unzip
           sudo service redis stop
           sudo service nginx stop
-          poetry run pip3 install pytest parameterized selenium pytest-cov
+          sudo pip3 install poetry
+          sudo poetry run pip3 install pytest parameterized selenium pytest-cov
       - name: Install
         run: |
-          poetry install
+          sudo poetry install
       - name: Run tests
         env:
           TNAME: ${{ secrets.TNAME }}
@@ -45,8 +40,9 @@ jobs:
           FAKE_EMAIL: ${{ secrets.FAKE_EMAIL }}
           FAKE_GITHUB_TOKEN: ${{ secrets.FAKE_GITHUB_TOKEN }}
         run: |
-          sudo setcap CAP_NET_BIND_SERVICE=+eip $(which nginx)
-          poetry run pytest tests -sv --cov=jumpscale --cov-report=xml
+          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=WALLET_SECRET --preserve-env=SOURCE_WALLET_SECRET \
+          --preserve-env=DESTINATION_WALLET_SECRET --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN \
+          poetry run pytest tests -sv --cov=jumpscale --cov-report=xml --ignore=tests/clients/digitalocean --ignore=tests/clients/sendgrid
       - name: Upload coverage to Codecov
         if: success()
         uses: codecov/codecov-action@v1
