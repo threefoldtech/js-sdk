@@ -1,5 +1,4 @@
 import gevent
-import ipdb
 from tests.base_tests import BaseTests
 import pytest
 from jumpscale.loader import j
@@ -9,6 +8,7 @@ from tests.sals.vdc.vdc_base import VDCBase
 
 @pytest.mark.integration
 class VDCDashboard(VDCBase):
+    @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls._import_wallet()
@@ -59,7 +59,6 @@ class VDCDashboard(VDCBase):
         repo = "https://github.com/threefoldfoundation/info_tfgrid_sdk"
         branch = "development"
         wiki = deployer.deploy_wiki(release_name=name, title=title, url=repo, branch=branch)
-        self.solution_uuid = wiki.solution_id
         self.solution = wiki
 
         self.info("Check that the wiki is reachable.")
@@ -81,7 +80,6 @@ class VDCDashboard(VDCBase):
         repo = "https://github.com/threefoldfoundation/www_tfblog"
         branch = "development"
         blog = deployer.deploy_blog(release_name=name, title=title, url=repo, branch=branch)
-        self.solution_uuid = blog.solution_id
         self.solution = blog
 
         self.info("Check that the blog is reachable.")
@@ -103,7 +101,6 @@ class VDCDashboard(VDCBase):
         repo = "https://github.com/threefoldfoundation/www_tffoundation"
         branch = "development"
         website = deployer.deploy_website(release_name=name, title=title, url=repo, branch=branch)
-        self.solution_uuid = website.solution_id
         self.solution = website
 
         self.info("Check that the website is reachable.")
@@ -122,7 +119,6 @@ class VDCDashboard(VDCBase):
         self.info("Deploy Cryptpad")
         name = BaseTests.random_name().lower()
         cryptpad = deployer.deploy_cryptpad(release_name=name)
-        self.solution_uuid = cryptpad.solution_id
         self.solution = cryptpad
 
         self.info("Check that Cryptpad is reachable")
@@ -141,11 +137,8 @@ class VDCDashboard(VDCBase):
         self.info("Deploy Gitea")
         name = BaseTests.random_name().lower()
         gitea = deployer.deploy_gitea(release_name=name)
-        self.solution_uuid = gitea.solution_id
         self.solution = gitea
-        import ipdb
 
-        ipdb.set_trace()
         self.info("Check that Gitea is reachable.")
         request = j.tools.http.get(f"https://{gitea.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
@@ -176,7 +169,6 @@ class VDCDashboard(VDCBase):
             smtp_username=smtp_username,
             smtp_password=smtp_password,
         )
-        self.solution_uuid = discourse.solution_id
         self.solution = discourse
         self.info("Check that Discourse is reachable.")
         request = j.tools.http.get(f"https://{discourse.domain}", verify=False, timeout=self.timeout)
@@ -213,7 +205,6 @@ class VDCDashboard(VDCBase):
         self.info("Deploy Peertube")
         name = BaseTests.random_name().lower()
         peertube = deployer.deploy_peertube(release_name=name)
-        self.solution_uuid = peertube.solution_id
         self.solution = peertube
 
         self.info("Check that Peertube is reachable.")
@@ -232,7 +223,6 @@ class VDCDashboard(VDCBase):
         self.info("Deploy Taiga")
         name = BaseTests.random_name().lower()
         taiga = deployer.deploy_taiga(release_name=name)
-        self.solution_uuid = taiga.solution_id
         self.solution = taiga
 
         self.info("Check that Taiga is reachable.")
@@ -259,7 +249,6 @@ class VDCDashboard(VDCBase):
             mysql_password=mysql_password,
             mysql_root_password=mysql_root_password,
         )
-        self.solution_uuid = mattermost.solution_id
         self.solution = mattermost
 
         self.info("Check that Mattermost is reachable.")
@@ -278,7 +267,6 @@ class VDCDashboard(VDCBase):
         self.info("Deploy ZeroCI")
         name = BaseTests.random_name().lower()
         zeroci = deployer.deploy_zeroci(release_name=name)
-        self.solution_uuid = zeroci.solution_id
         self.solution = zeroci
 
         self.info("Check that ZeroCI is reachable.")
@@ -297,7 +285,6 @@ class VDCDashboard(VDCBase):
         self.info("Deploy MonitoringStack")
         name = BaseTests.random_name().lower()
         monitoring = deployer.deploy_monitoring(release_name=name)
-        self.solution_uuid = monitoring.solution_id
         self.solution = monitoring
 
         self.info("Check that MonitoringStack is reachable.")
