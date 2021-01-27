@@ -2,6 +2,15 @@
   <div>
     <div class="actions mb-3">
       <h1 class="d-inline" color="primary" text>Wallet Information</h1>
+      <v-btn
+        class="float-right p-4"
+        color="primary"
+        text
+        target="_blank"
+        :href="`https://stellar.expert/explorer/public/account/${wallet.address}`"
+      >
+        <v-icon left>mdi-bank</v-icon>List transactions
+      </v-btn>
     </div>
     <v-simple-table v-if="wallet">
       <template v-slot:default>
@@ -35,7 +44,13 @@
               <v-chip
                 outlined
                 class="ma-2"
-                :color="expirationdays < 2 ? 'error': (expirationdays < 14 ? 'warning': 'primary')"
+                :color="
+                  expirationdays < 2
+                    ? 'error'
+                    : expirationdays < 14
+                    ? 'warning'
+                    : 'primary'
+                "
                 v-for="(balance, i) in wallet.balances"
                 :key="i"
               >
@@ -45,7 +60,9 @@
           </tr>
           <tr>
             <td>VDC expiration date</td>
-            <td class="ml-2">{{ new Date(expirationdate * 1000).toLocaleString("en-GB") }}</td>
+            <td class="ml-2">
+              {{ new Date(expirationdate * 1000).toLocaleString("en-GB") }}
+            </td>
           </tr>
         </tbody>
       </template>
