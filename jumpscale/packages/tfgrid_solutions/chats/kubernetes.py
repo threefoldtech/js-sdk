@@ -12,6 +12,7 @@ class KubernetesDeploy(GedisChatBot):
         "choose_flavor",
         "nodes_selection",
         "network_selection",
+        "public_ip_enable",
         "public_key_get",
         "ip_selection",
         "reservation",
@@ -86,6 +87,14 @@ class KubernetesDeploy(GedisChatBot):
     def network_selection(self):
         self.network_view = deployer.select_network(self, self.all_network_viewes)
 
+    @chatflow_step(title="Public Ip")
+    def public_ip_enable(self):
+        choices = ["Yes", "No"]
+        choice = self.single_choice("Do you want to enable public IP", choices, required=True)
+        self.enable_public_ip = False
+        if choice == "Yes":
+            self.enable_public_ip = True
+
     @chatflow_step(title="Access keys and secret")
     def public_key_get(self):
         self.ssh_keys = self.upload_file(
@@ -152,6 +161,7 @@ class KubernetesDeploy(GedisChatBot):
             ip_addresses=self.ip_addresses,
             slave_pool_ids=self.selected_pool_ids[1:],
             solution_uuid=self.solution_id,
+            public_ip=self.enable_public_ip,
             **self.solution_metadata,
         )
 
