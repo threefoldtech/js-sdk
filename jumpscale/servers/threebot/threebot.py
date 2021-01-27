@@ -841,6 +841,6 @@ class ThreebotServer(Base):
         self.nginx.stop()
         # mark app as stopped, do this before stopping redis
         j.logger.unregister()
-        self.redis.stop()
         self.rack.stop()
+        self.redis.stop()
         self._started = False
