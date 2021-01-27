@@ -42,6 +42,7 @@ class VDCDashboard(VDCBase):
 
     @classmethod
     def _import_wallet(cls):
+        j.clients.stellar.get("test_wallet", network="STD", secret=cls.wallet_secret)
         j.clients.stellar.get("demos_wallet", network="STD", secret=cls.wallet_secret)
 
     def test01_wiki(self):
