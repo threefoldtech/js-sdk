@@ -5,7 +5,7 @@ from collections import defaultdict
 from decimal import Decimal
 from textwrap import dedent
 import requests
-
+import random
 import gevent
 import netaddr
 from nacl.public import Box
@@ -1265,6 +1265,45 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         worker.info.description = description if description else j.data.serializers.json.dumps(desc)
         return j.sals.zos.get(identity_name).workloads.deploy(worker)
 
+    def fetch_available_ips(self, farm):
+        addresses = [address for address in farm.ipaddresses if not address.reservation_id]
+        random.shuffle(addresses)
+        return addresses
+
+    def get_public_ip(self, pool_id, node_id, solution_uuid=None):
+        """
+        try to reserve a public ip on network farm and returns the wid
+        """
+        solution_uuid = solution_uuid or uuid.uuid4().hex
+        # self.vdc_deployer.info(f"searching for available public ip in farm {self.farm_name}")
+        node = j.sals.zos.get()._explorer.nodes.get(node_id)
+        farm = j.sals.zos.get()._explorer.farms.get(node.farm_id)
+        identity = j.core.identity.me.instance_name
+        for farmer_address in self.fetch_available_ips(farm):
+            address = farmer_address.address
+            # self.vdc_deployer.info(
+            #     f"attempting to reserve public ip: {address} on farm: {self.farm_name} pool: {pool_id} node: {node_id}"
+            # )
+            description = (
+                f"attempting to reserve public ip: {address} on farm: {farm.name} pool: {pool_id} node: {node_id}"
+            )
+            wid = deployer.deploy_public_ip(
+                pool_id, node_id, address, identity_name=identity, description=description, solution_uuid=solution_uuid,
+            )
+            try:
+                success = deployer.wait_workload(wid, self.bot, 5, cancel_by_uuid=False, identity_name=identity)
+                if not success:
+                    raise DeploymentFailed(f"public ip workload failed. wid: {wid}")
+                return wid
+            except DeploymentFailed as e:
+                self.vdc_deployer.error(
+                    f"failed to reserve public ip {address} on node {node_id} due to error {str(e)}"
+                )
+                continue
+        self.vdc_deployer.error(
+            f"all tries to reserve a public ip failed on farm: {self.farm_name} pool: {pool_id} node: {node_id}"
+        )
+
     def deploy_kubernetes_cluster(
         self,
         pool_id,
@@ -1276,6 +1315,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         ip_addresses=None,
         slave_pool_ids=None,
         description="",
+        public_ip=False,
         **metadata,
     ):
         """
@@ -1317,6 +1357,12 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
         # deploy_master
         master_ip = ip_addresses[0]
+        # Reserve public_Ip on node_id[0]
+        public_id_wid = 0
+        if public_ip:
+            wid = self.get_public_ip(pool_id, node_ids[0])
+            public_id_wid = wid.id
+
         master_resv_id = self.deploy_kubernetes_master(
             pool_ids[0],
             node_ids[0],
@@ -1326,6 +1372,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             master_ip,
             size,
             decription=description,
+            public_ip_wid=public_id_wid,
             **metadata,
         )
         result.append({"node_id": node_ids[0], "ip_address": master_ip, "reservation_id": master_resv_id})
