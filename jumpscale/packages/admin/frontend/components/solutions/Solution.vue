@@ -76,6 +76,16 @@
                   </template>
                   <span>Nodes</span>
                 </v-tooltip>
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn icon @click.stop="deleteSolution(item.wids)">
+                      <v-icon v-bind="attrs" v-on="on" color="#810000"
+                        >mdi-delete</v-icon
+                      >
+                    </v-btn>
+                  </template>
+                  <span>Delete</span>
+                </v-tooltip>
               </template>
             </v-data-table>
           </v-card-text>
@@ -87,6 +97,10 @@
       v-model="dialogs.info"
       :data="selected"
     ></solution-info>
+    <cancel-solution
+      v-model="dialogs.cancelSolution"
+      :wids="solutionWids"
+    ></cancel-solution>
   </div>
 </template>
 
@@ -95,13 +109,16 @@ module.exports = {
   props: { type: String },
   components: {
     "solution-info": httpVueLoader("./Info.vue"),
+    "cancel-solution": httpVueLoader("./CancelSolution.vue"),
   },
   data() {
     return {
       loading: true,
       selected: null,
+      solutionWids: null,
       dialogs: {
         info: false,
+        cancelSolution: false,
       },
       headers: [
         { text: "Name", value: "Name" },
@@ -152,6 +169,10 @@ module.exports = {
         name: "KubernetesNodes",
         params: { k8sName: k8sName },
       });
+    },
+    deleteSolution(wids) {
+      this.solutionWids = wids;
+      this.dialogs.cancelSolution = true;
     },
   },
   mounted() {
