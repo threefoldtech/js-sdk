@@ -40,7 +40,7 @@ module.exports = {
     submit() {
       this.loading = true;
       return this.$api.solutions
-        .deleteWorkerWorkload(this.wid)
+        .cancelWorkload(this.wid)
         .then(() => {
           console.log("Worker has been deleted successfully");
           this.close();
