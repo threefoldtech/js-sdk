@@ -61,7 +61,7 @@ class VDCBase(BaseTests):
 
     @classmethod
     def deploy_vdc(cls):
-        cls.vdc_name = cls.random_name()
+        cls.vdc_name = cls.random_name().lower()
         cls.password = cls.random_string()
         cls.vdc = j.sals.vdc.new(cls.vdc_name, cls.tname, cls.flavor)
 
@@ -72,12 +72,8 @@ class VDCBase(BaseTests):
 
         cls.info("Deploy VDC.")
         cls.deployer = cls.vdc.get_deployer(password=cls.password)
-        minio_ak = cls.random_name()
+        minio_ak = cls.random_name().lower()
         minio_sk = cls.random_string()
         cls.timestamp_now = j.data.time.get().utcnow().timestamp
         kube_config = cls.deployer.deploy_vdc(minio_ak, minio_sk)
         return kube_config
-
-    @staticmethod
-    def random_name():
-        return j.data.random_names.random_name()

@@ -38,7 +38,7 @@ class TestBilling(BaseTests):
 
         cls.info("Delete all refund instances")
         for id in cls.refund_ids:
-            REFUND_FACTORY.delete(f"payment_{id}")
+            REFUND_FACTORY.delete(f"refund_{id}")
 
     @classmethod
     def _get_env_vars(cls):
