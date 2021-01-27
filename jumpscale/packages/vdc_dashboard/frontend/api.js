@@ -88,5 +88,13 @@ const apiClient = {
         method: "get"
       })
     },
+  },
+  version: {
+    update: () => {
+      return axios({
+        url: `${baseURL}/update`,
+        method: "get"
+      })
+    }
   }
 }
