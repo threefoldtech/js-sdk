@@ -75,8 +75,8 @@ class VDCDashboard(VDCBase):
         self.info("Deploy a wiki.")
         name = BaseTests.random_name().lower()
         title = BaseTests.random_name().lower()
-        repo = "https://github.com/threefoldfoundation/wiki_example"
-        branch = "main"
+        repo = "https://github.com/threefoldfoundation/info_tfgrid_sdk"
+        branch = "development"
         wiki = deployer.deploy_wiki(release_name=name, title=title, url=repo, branch=branch)
         self.solution_uuid = wiki.solution_id
         self.solution = wiki
@@ -97,8 +97,8 @@ class VDCDashboard(VDCBase):
         self.info("Deploy blog.")
         name = BaseTests.random_name().lower()
         title = BaseTests.random_name().lower()
-        repo = "https://github.com/threefoldfoundation/blog_threefold"
-        branch = "main"
+        repo = "https://github.com/threefoldfoundation/www_tfblog"
+        branch = "development"
         blog = deployer.deploy_blog(release_name=name, title=title, url=repo, branch=branch)
         self.solution_uuid = blog.solution_id
         self.solution = blog
@@ -119,9 +119,9 @@ class VDCDashboard(VDCBase):
         self.info("Deploy a website")
         name = BaseTests.random_name().lower()
         title = BaseTests.random_name().lower()
-        repo = "https://github.com/xmonader/www_incubaid"
-        branch = "main"
-        website = deployer.deploy_website(solution_name=name, title=title, repo=repo, branch=branch)
+        repo = "https://github.com/threefoldfoundation/www_tffoundation"
+        branch = "development"
+        website = deployer.deploy_website(release_name=name, title=title, url=repo, branch=branch)
         self.solution_uuid = website.solution_id
         self.solution = website
 
@@ -321,37 +321,37 @@ class VDCDashboard(VDCBase):
         request = j.tools.http.get(f"https://{monitoring.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
-    def test13_ExtendKubernetes(self):
-        """Test case for Extend Kubernetes cluster.
+    # def test13_ExtendKubernetes(self):
+    #     """Test case for Extend Kubernetes cluster.
 
-        **Test Scenario**
+    #     **Test Scenario**
 
-        - Deploy VDC
-        - Extend Kubernetes cluster.
-        - Check that node added.
-        """
-        self.info("Get Number of Nodes before extend")
-        self.vdc.load_info()
-        number_of_nodes_before = len(self.vdc.kubernetes)
-        before_extend = self.kube_manager.execute_native_cmd("kubectl get nodes")
-        self.info("Extend Kubernetes")
-        size = "MEDIUM"
-        extend_node = deployer.extend_kubernetes(size=size)
+    #     - Deploy VDC
+    #     - Extend Kubernetes cluster.
+    #     - Check that node added.
+    #     """
+    #     self.info("Get Number of Nodes before extend")
+    #     self.vdc.load_info()
+    #     number_of_nodes_before = len(self.vdc.kubernetes)
+    #     before_extend = self.kube_manager.execute_native_cmd("kubectl get nodes")
+    #     self.info("Extend Kubernetes")
+    #     size = "MEDIUM"
+    #     extend_node = deployer.extend_kubernetes(size=size)
 
-        self.info("Check that node added")
-        self.vdc.load_info()
-        number_of_nodes_after = len(self.vdc.kubernetes)
-        self.assertEqual(number_of_nodes_after, number_of_nodes_before + 1)
+    #     self.info("Check that node added")
+    #     self.vdc.load_info()
+    #     number_of_nodes_after = len(self.vdc.kubernetes)
+    #     self.assertEqual(number_of_nodes_after, number_of_nodes_before + 1)
 
-        self.info("Check that node added and ready")
-        # Set timeout for 2 min
-        is_ready = False
-        expiry = j.data.time.now().timestamp + 120
-        while j.data.time.now().timestamp < expiry:
-            after_extend = self.kube_manager.execute_native_cmd("kubectl get nodes")
-            if after_extend.count("Ready") == before_extend.count("Ready") + 1:
-                is_ready = True
-                break
-            gevent.sleep(5)
+    #     self.info("Check that node added and ready")
+    #     # Set timeout for 2 min
+    #     is_ready = False
+    #     expiry = j.data.time.now().timestamp + 120
+    #     while j.data.time.now().timestamp < expiry:
+    #         after_extend = self.kube_manager.execute_native_cmd("kubectl get nodes")
+    #         if after_extend.count("Ready") == before_extend.count("Ready") + 1:
+    #             is_ready = True
+    #             break
+    #         gevent.sleep(5)
 
-        self.assertTrue(is_ready, "Added node not ready for 2 mins")
+    #     self.assertTrue(is_ready, "Added node not ready for 2 mins")
