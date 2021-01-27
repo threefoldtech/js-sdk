@@ -1,5 +1,5 @@
+import gevent
 from tests.base_tests import BaseTests
-from jumpscale.sals.marketplace import solutions
 import pytest
 from jumpscale.loader import j
 from solutions_automation.vdc import deployer
@@ -7,10 +7,10 @@ from tests.sals.vdc.vdc_base import VDCBase
 
 
 @pytest.mark.integration
-class VDCDashboardChatflows(VDCBase):
+class VDCDashboard(VDCBase):
+    # TODO: DELETE BEFORE MERGE, FOR TEST ONLY
     @classmethod
     def setUpClass(cls):
-        # super().setUpClass()
         cls._get_env_vars()
         cls._import_wallet()
         cls._start_threebot_server()
@@ -18,99 +18,116 @@ class VDCDashboardChatflows(VDCBase):
         cls.kube_manager = j.sals.kubernetes.Manager(
             f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml"
         )
-        # cls.flavor = "silver"
-        # cls.kube_config = cls.deploy_vdc()
-        # if not cls.kube_config:
-        #     raise RuntimeError("VDC is not deployed")
         # Timeout for any exposed solution to be reachable.
         cls.timeout = 60
 
+    # TODO: UNCOMMENT BEFORE MERGE
+    # def setUpClass(cls):
+    #     super().setUpClass()
+    #     cls._import_wallet()
+    #     cls.flavor = "silver"
+    #     cls.kube_config = cls.deploy_vdc()
+    #     cls.kube_manager = j.sals.kubernetes.Manager(
+    #         f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml"
+    #     )
+    #     if not cls.kube_config:
+    #         raise RuntimeError("VDC is not deployed")
+    #     # Timeout for any exposed solution to be reachable.
+    #     cls.timeout = 60
+
+    # TODO: DELETE BEFORE MERGE, FOR TEST ONLY
     @classmethod
     def tearDownClass(cls):
         cls.server.stop()
-        # j.sals.vdc.delete(cls.vdc.instance_name)
-        # super().tearDownClass()
+
+    # TODO: UNCOMMENT BEFORE MERGE
+    # @classmethod
+    # def tearDownClass(cls):
+    #     wallet = j.clients.stellar.get("demos_wallet")
+    #     cls.vdc.provision_wallet.merge_into_account(wallet.address)
+    #     cls.vdc.prepaid_wallet.merge_into_account(wallet.address)
+    #     j.sals.vdc.delete(cls.vdc.instance_name)
+    #     super().tearDownClass()
 
     def setUp(self):
         self.solution = None
         return super().setUp()
 
     def tearDown(self):
-        self.info(f"Delete {self.solution.release_name}")
         if self.solution:
+            self.info(f"Delete {self.solution.release_name}")
             self.solution.k8s_client.delete_deployed_release(self.solution.release_name)
-
         super().tearDown()
 
     @classmethod
     def _import_wallet(cls):
         j.clients.stellar.get("demos_wallet", network="STD", secret=cls.wallet_secret)
 
-    # def test01_wiki(self):
-    #     """Test case for deploying a wiki.
+    def test01_wiki(self):
+        """Test case for deploying a wiki.
 
-    #     **Test Scenario**
+        **Test Scenario**
 
-    #     - Deploy VDC
-    #     - Deploy a wiki.
-    #     - Check that the wiki is reachable.
-    #     """
-    #     self.info("Deploy a wiki.")
-    #     name = self.random_string().lower()
-    #     title = self.random_string().lower()
-    #     repo = "https://github.com/threefoldfoundation/wiki_example"
-    #     branch = "main"
-    #     wiki = deployer.deploy_wiki(release_name=name, title=title, url=repo, branch=branch)
-    #     self.solution_uuid = wiki.solution_id
-    #     self.solution = wiki
+        - Deploy VDC
+        - Deploy a wiki.
+        - Check that the wiki is reachable.
+        """
+        self.info("Deploy a wiki.")
+        name = BaseTests.random_name().lower()
+        title = BaseTests.random_name().lower()
+        repo = "https://github.com/threefoldfoundation/wiki_example"
+        branch = "main"
+        wiki = deployer.deploy_wiki(release_name=name, title=title, url=repo, branch=branch)
+        self.solution_uuid = wiki.solution_id
+        self.solution = wiki
 
-    #     self.info("Check that the wiki is reachable.")
-    #     request = j.tools.http.get(f"https://{wiki.domain}", verify=False, timeout=self.timeout)
-    #     self.assertEqual(request.status_code, 200)
+        self.info("Check that the wiki is reachable.")
+        request = j.tools.http.get(f"https://{wiki.domain}", verify=False, timeout=self.timeout)
+        self.assertEqual(request.status_code, 200)
 
-    # def test02_blog(self):
-    #     """Test case for deploying a blog.
+    def test02_blog(self):
+        """Test case for deploying a blog.
 
-    #     **Test Scenario**
+        **Test Scenario**
 
-    #     - Deploy VDC
-    #     - Deploy a Blog.
-    #     - Check that the blog is reachable.
-    #     """
-    #     self.info("Deploy blog.")
-    #     name = self.random_string().lower()
-    #     title = self.random_string().lower()
-    #     repo = "https://github.com/threefoldfoundation/blog_threefold"
-    #     branch = "main"
-    #     blog = deployer.deploy_blog(release_name=name, title=title, url=repo, branch=branch)
-    #     self.solution_uuid = blog.solution_id
-    #     self.solution = blog
+        - Deploy VDC
+        - Deploy a Blog.
+        - Check that the blog is reachable.
+        """
+        self.info("Deploy blog.")
+        name = BaseTests.random_name().lower()
+        title = BaseTests.random_name().lower()
+        repo = "https://github.com/threefoldfoundation/blog_threefold"
+        branch = "main"
+        blog = deployer.deploy_blog(release_name=name, title=title, url=repo, branch=branch)
+        self.solution_uuid = blog.solution_id
+        self.solution = blog
 
-    #     self.info("Check that the blog is reachable.")
-    #     request = j.tools.http.get(f"https://{blog.domain}", verify=False, timeout=self.timeout)
-    #     self.assertEqual(request.status_code, 200)
+        self.info("Check that the blog is reachable.")
+        request = j.tools.http.get(f"https://{blog.domain}", verify=False, timeout=self.timeout)
+        self.assertEqual(request.status_code, 200)
 
-    # def test03_website(self):
-    #     """Test case for deploying a website.
+    def test03_website(self):
+        """Test case for deploying a website.
 
-    #     **Test Scenario**
+        **Test Scenario**
 
-    #     - Deploy VDC
-    #     - Deploy a website.
-    #     - Check that the website is reachable.
-    #     """
-    #     self.info("Deploy a website")
-    #     name = self.random_string().lower()
-    #     title = self.random_string().lower()
-    #     repo = "https://github.com/xmonader/www_incubaid"
-    #     branch = "main"
-    #     website = deployer.deploy_website(solution_name=name, title=title, repo=repo, branch=branch)
-    #     self.solution_uuid = website.solution_id
-    #     self.solution = website
+        - Deploy VDC
+        - Deploy a website.
+        - Check that the website is reachable.
+        """
+        self.info("Deploy a website")
+        name = BaseTests.random_name().lower()
+        title = BaseTests.random_name().lower()
+        repo = "https://github.com/xmonader/www_incubaid"
+        branch = "main"
+        website = deployer.deploy_website(solution_name=name, title=title, repo=repo, branch=branch)
+        self.solution_uuid = website.solution_id
+        self.solution = website
 
-    #     self.info("Check that the website is reachable.")
-    #     request = j.tools.http.get(f"https://{website.domain}", verify=False, timeout=self.timeout)
-    #     self.assertEqual(request.status_code, 200)
+        self.info("Check that the website is reachable.")
+        request = j.tools.http.get(f"https://{website.domain}", verify=False, timeout=self.timeout)
+        self.assertEqual(request.status_code, 200)
 
     def test04_cryptpad(self):
         """Test case for deploying Cryptpad.
@@ -122,7 +139,7 @@ class VDCDashboardChatflows(VDCBase):
         - Check that Cryptpad is reachable.
         """
         self.info("Deploy Cryptpad")
-        name = self.random_string().lower()
+        name = BaseTests.random_name().lower()
         cryptpad = deployer.deploy_cryptpad(release_name=name)
         self.solution_uuid = cryptpad.solution_id
         self.solution = cryptpad
@@ -160,11 +177,24 @@ class VDCDashboardChatflows(VDCBase):
         - Check that Discourse is reachable.
         """
         self.info("Deploy Discourse")
-        name = self.random_string().lower()
-        discourse = deployer.deploy_discourse(release_name=name)
+        name = BaseTests.random_name().lower()
+        admin_username = BaseTests.random_name().lower()
+        admin_password = BaseTests.random_name().lower()
+        smtp_host = j.data.fake.email()
+        smtp_port = "587"
+        smtp_username = BaseTests.random_name().lower()
+        smtp_password = BaseTests.random_name().lower()
+        discourse = deployer.deploy_discourse(
+            release_name=name,
+            admin_username=admin_username,
+            admin_password=admin_password,
+            smtp_host=smtp_host,
+            smtp_port=smtp_port,
+            smtp_username=smtp_username,
+            smtp_password=smtp_password,
+        )
         self.solution_uuid = discourse.solution_id
         self.solution = discourse
-
         self.info("Check that Discourse is reachable.")
         request = j.tools.http.get(f"https://{discourse.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
@@ -179,7 +209,7 @@ class VDCDashboardChatflows(VDCBase):
         - Check that Kubeapps is reachable.
         """
         self.info("Deploy Kubeapps")
-        name = self.random_string().lower()
+        name = BaseTests.random_name().lower()
         kubeapps = deployer.deploy_kubeapps(release_name=name)
         self.solution_uuid = kubeapps.solution_id
         self.solution = kubeapps
@@ -198,7 +228,7 @@ class VDCDashboardChatflows(VDCBase):
         - Check that Peertube is reachable.
         """
         self.info("Deploy Peertube")
-        name = self.random_string().lower()
+        name = BaseTests.random_name().lower()
         peertube = deployer.deploy_peertube(release_name=name)
         self.solution_uuid = peertube.solution_id
         self.solution = peertube
@@ -217,7 +247,7 @@ class VDCDashboardChatflows(VDCBase):
         - Check that Taiga is reachable.
         """
         self.info("Deploy Taiga")
-        name = self.random_string().lower()
+        name = BaseTests.random_name().lower()
         taiga = deployer.deploy_taiga(release_name=name)
         self.solution_uuid = taiga.solution_id
         self.solution = taiga
@@ -236,10 +266,10 @@ class VDCDashboardChatflows(VDCBase):
         - Check that Mattermost is reachable.
         """
         self.info("Deploy Mattermost")
-        name = self.random_string().lower()
-        mysql_username = self.random_string().lower()
-        mysql_password = self.random_string().lower()
-        mysql_root_password = self.random_string().lower()
+        name = BaseTests.random_name().lower()
+        mysql_username = BaseTests.random_name().lower()
+        mysql_password = BaseTests.random_name().lower()
+        mysql_root_password = BaseTests.random_name().lower()
         mattermost = deployer.deploy_mattermost(
             release_name=name,
             mysql_username=mysql_username,
@@ -263,7 +293,7 @@ class VDCDashboardChatflows(VDCBase):
         - Check that ZeroCI is reachable.
         """
         self.info("Deploy ZeroCI")
-        name = self.random_string().lower()
+        name = BaseTests.random_name().lower()
         zeroci = deployer.deploy_zeroci(release_name=name)
         self.solution_uuid = zeroci.solution_id
         self.solution = zeroci
@@ -282,7 +312,7 @@ class VDCDashboardChatflows(VDCBase):
         - Check that MonitoringStack is reachable.
         """
         self.info("Deploy MonitoringStack")
-        name = self.random_string().lower()
+        name = BaseTests.random_name().lower()
         monitoring = deployer.deploy_monitoring(release_name=name)
         self.solution_uuid = monitoring.solution_id
         self.solution = monitoring
@@ -301,12 +331,27 @@ class VDCDashboardChatflows(VDCBase):
         - Check that node added.
         """
         self.info("Get Number of Nodes before extend")
+        self.vdc.load_info()
+        number_of_nodes_before = len(self.vdc.kubernetes)
         before_extend = self.kube_manager.execute_native_cmd("kubectl get nodes")
         self.info("Extend Kubernetes")
-        name = self.random_string().lower()
         size = "MEDIUM"
-        extend_node = deployer.ExtendKubernetesAutomated(release_name=name, size=size)
+        extend_node = deployer.extend_kubernetes(size=size)
+
+        self.info("Check that node added")
+        self.vdc.load_info()
+        number_of_nodes_after = len(self.vdc.kubernetes)
+        self.assertEqual(number_of_nodes_after, number_of_nodes_before + 1)
 
         self.info("Check that node added and ready")
-        after_extend = self.kube_manager.execute_native_cmd("kubectl get nodes")
-        self.assertEqual(after_extend.count("Ready"), before_extend.count("Ready") + 1)
+        # Set timeout for 2 min
+        is_ready = False
+        expiry = j.data.time.now().timestamp + 120
+        while j.data.time.now().timestamp < expiry:
+            after_extend = self.kube_manager.execute_native_cmd("kubectl get nodes")
+            if after_extend.count("Ready") == before_extend.count("Ready") + 1:
+                is_ready = True
+                break
+            gevent.sleep(5)
+
+        self.assertTrue(is_ready, "Added node not ready for 2 mins")

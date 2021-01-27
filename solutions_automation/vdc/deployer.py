@@ -48,10 +48,26 @@ def deploy_cryptpad(
 
 
 def deploy_discourse(
-    release_name, flavor="Silver", sub_domain="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
+    release_name,
+    admin_username,
+    admin_password,
+    smtp_host,
+    smtp_port,
+    smtp_username,
+    smtp_password,
+    flavor="Silver",
+    sub_domain="Choose subdomain for me on a gateway",
+    custom_sub_domain="",
+    debug=True,
 ):
     return DiscourseAutomated(
         release_name=release_name,
+        admin_username=admin_username,
+        admin_password=admin_password,
+        smtp_host=smtp_host,
+        smtp_port=smtp_port,
+        smtp_username=smtp_username,
+        smtp_password=smtp_password,
         flavor=flavor,
         sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
@@ -59,8 +75,8 @@ def deploy_discourse(
     )
 
 
-def deploy_extend_kubernetes(release_name, size, debug=True):
-    return ExtendKubernetesAutomated(release_name=release_name, size=size, debug=debug)
+def extend_kubernetes(size, existing_balance="Yes", debug=True):
+    return ExtendKubernetesAutomated(size=size, existing_balance=existing_balance, debug=debug)
 
 
 def deploy_gitea(
