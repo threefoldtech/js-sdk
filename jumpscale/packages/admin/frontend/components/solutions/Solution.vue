@@ -59,6 +59,14 @@
                   </template>
                   <span>Show Information</span>
                 </v-tooltip>
+                <v-tooltip v-if="type == 'network'" top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn icon @click.stop="addAccess(item)">
+                      <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-plus-network</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Add Access</span>
+                </v-tooltip>
               </template>
             </v-data-table>
           </v-card-text>
@@ -114,6 +122,13 @@ module.exports = {
     showInfo(data) {
       this.selected = data;
       this.dialogs.info = true;
+    },
+    addAccess(data) {
+      let queryparams = {name:data.Name}
+      this.$router.push({
+        name: "SolutionChatflow",
+        params: {topic: "network_access", queryparams: queryparams },
+      });
     },
     getDeployedSolutions(solutionType) {
       this.$api.solutions

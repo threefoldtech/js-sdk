@@ -88,11 +88,11 @@ class MarketPlaceDeployer(ChatflowDeployer):
                 j.logger.warning(str(e))
         raise StopChatFlow(f"Failed to pay for pool {pool} in time, Please try again later")
 
-    def list_pools(self, username=None, cu=None, su=None):
+    def list_pools(self, username=None, cu=None, su=None, ipv4u=None):
         all_pools = self.list_user_pools(username)
         available_pools = {}
         for pool in all_pools:
-            res = self.check_pool_capacity(pool, cu, su)
+            res = self.check_pool_capacity(pool, cu, su, ipv4u)
             available = res[0]
             if available:
                 resources = res[1:]
