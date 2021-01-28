@@ -19,7 +19,7 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
         username = self.user_info()["username"]
         self.md_show_update("Preparing the chatflow...")
         if get_deployments(self.SOLUTION_TYPE, username):
-            raise StopChatFlow("You can only have one digibyte solution per VDC")
+            raise StopChatFlow("You can only have one Digibyte solution per VDC")
 
     def get_release_name(self):
         self._check_uniqueness()
@@ -28,8 +28,8 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
     def _enter_credentials(self):
 
         form = self.new_form()
-        self.rpcuser = form.string_ask("Please enter the rpcname.", required=True)
-        self.rpcpassword = form.secret_ask("Please enter the rpcpassword", required=True)
+        self.rpcuser = form.string_ask("RPC Username", required=True)
+        self.rpcpassword = form.secret_ask("RPC Password", required=True)
         form.ask()
         self.rpcuser = self.rpcuser.value
         self.rpcpassword = self.rpcpassword.value
