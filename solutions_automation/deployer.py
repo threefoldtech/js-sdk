@@ -148,7 +148,7 @@ def deploy_minio(
     username,
     password,
     setup="single",
-    zdb_disk_type="SSD",
+    zdb_disk_type="HDD",
     zdb_size=10,
     cpu=1,
     memory=1024,
