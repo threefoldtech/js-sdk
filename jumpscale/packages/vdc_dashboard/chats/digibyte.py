@@ -16,8 +16,9 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
     }
 
     def _check_uniqueness(self):
+        username = self.user_info()["username"]
         self.md_show_update("Preparing the chatflow...")
-        if get_deployments(self.SOLUTION_TYPE):
+        if get_deployments(self.SOLUTION_TYPE, username):
             raise StopChatFlow("You can only have one digibyte solution per VDC")
 
     def get_release_name(self):
