@@ -210,7 +210,7 @@ const BC_SOLUTIONS = {
             name: "Digibyte",
             type: "digibyte",
             image: "./assets/digibyte.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/digibyte/",
             description: "Safest, fastest, longest, and most decentralized UTXO blockchains in existence."
         },
