@@ -1,5 +1,5 @@
 from jumpscale.sals.chatflows.chatflows import chatflow_step
-from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import CHART_LIMITS, SolutionsChatflowDeploy
+from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
 
 
 class DigibyteDeploy(SolutionsChatflowDeploy):
@@ -26,7 +26,7 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
     @chatflow_step(title="Configurations")
     def set_config(self):
         self._enter_credentials()
-        self._choose_flavor(CHART_LIMITS)
+        self._choose_flavor(self.CHART_LIMITS)
         self.vdc.get_deployer().kubernetes.add_traefik_entrypoint("digibyte-rpc", "14022")
         self.vdc.get_deployer().kubernetes.add_traefik_entrypoint("digibyte-p2p", "12024")
 
