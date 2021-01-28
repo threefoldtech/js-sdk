@@ -34,7 +34,7 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
         self.rpcuser = self.rpcuser.value
         self.rpcpassword = self.rpcpassword.value
 
-    @chatflow_step(title="Configurations")
+    @chatflow_step(title="Node Configuration")
     def set_config(self):
         self._enter_credentials()
         self._choose_flavor(self.CHART_LIMITS)
@@ -44,7 +44,7 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
         self.chart_config.update(
             {
                 "env.rpcuser": self.rpcuser,
-                "env.rpcpassword": self.rpcpassword,
+                "env.rpcpasswd": self.rpcpassword,
                 "global.ingress.host": self.domain,
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
