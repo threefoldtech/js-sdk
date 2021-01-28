@@ -160,4 +160,4 @@ class GedisChatBotPatch(GedisChatBot):
         return write_file(filename, data)
 
     def send_error(self, message, **kwargs):
-        pass
+        raise j.exceptions.Runtime(message)
