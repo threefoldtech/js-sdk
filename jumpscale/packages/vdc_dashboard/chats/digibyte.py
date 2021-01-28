@@ -1,5 +1,6 @@
-from jumpscale.sals.chatflows.chatflows import chatflow_step
+from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
 
 
 class DigibyteDeploy(SolutionsChatflowDeploy):
@@ -13,6 +14,15 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
         "Gold": {"cpu": "3000m", "memory": "3072Mi"},
         "Platinum": {"cpu": "4000m", "memory": "4096Mi"},
     }
+
+    def _check_uniqueness(self):
+        self.md_show_update("Preparing the chatflow...")
+        if get_deployments(self.SOLUTION_TYPE):
+            raise StopChatFlow("You can only have one digibyte solution per VDC")
+
+    def get_release_name(self):
+        self._check_uniqueness()
+        super().get_release_name()
 
     def _enter_credentials(self):
 
