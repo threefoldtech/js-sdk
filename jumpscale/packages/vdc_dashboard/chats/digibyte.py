@@ -6,7 +6,7 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "digibyte"
     title = "Digibyte"
     HELM_REPO_NAME = "marketplace"
-    steps = ["get_release_name", "set_config", "create_subdomain", "install_chart", "initializing", "success"]
+    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
 
     CHART_LIMITS = {
         "Silver": {"cpu": "1000m", "memory": "2024Mi"},
