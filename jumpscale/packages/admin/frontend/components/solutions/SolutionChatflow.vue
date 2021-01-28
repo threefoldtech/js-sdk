@@ -4,7 +4,10 @@
 
 <script>
   module.exports = {
-    props: {topic: String},
+    props: {
+      topic: String,
+      queryparams: {type:Object,default:null}
+    },
     data () {
       return {
         package: true,
@@ -13,7 +16,15 @@
     },
     computed: {
       url () {
-        return `/chatflows/tfgrid_solutions/chats/${this.topic}`
+        if (this.queryparams !== null) {
+          let chatflowUrl = `/chatflows/tfgrid_solutions/chats/${this.topic}#/?`
+          Object.keys(this.queryparams).forEach(key => {
+            chatflowUrl += `${key}=${this.queryparams[key]}&`
+          });
+          return chatflowUrl;
+        } else {
+          return `/chatflows/tfgrid_solutions/chats/${this.topic}`;
+        }
       }
     },
     mounted() {
@@ -25,9 +36,14 @@
           if(event.origin != location.origin || event.data.slice(0, len) != message)
             return;
           let topic = event.data.slice(len)
-          if(topic == "pools"){
+          if(topic === "pools" || topic === "extend_pools"){
             this.$router.push({
               name: "Capacity Pools"
+            })
+          } else if (topic === "network_access") {
+            this.$router.push({
+              name: "Solution",
+              params: {type: "network"}
             })
           }else{
             this.$router.push({

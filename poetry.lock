@@ -591,7 +591,7 @@ tests = ["coverage (>=4.0)", "pytest-cache (>=1.0)", "pytest-cov", "flake8", "py
 
 [[package]]
 name = "js-ng"
-version = "11.0b11"
+version = "11.0b12"
 description = "system automation, configuration management and RPC framework"
 category = "main"
 optional = false
@@ -611,6 +611,7 @@ faker = ">=2.0,<3.0"
 gevent = "1.4.0"
 GitPython = ">=3.0,<4.0"
 greenlet = "0.4.16"
+jedi = "0.17.2"
 jinja2 = ">=2.11.1,<3.0.0"
 libtmux = ">=0.8.2,<0.9.0"
 loguru = ">=0.3.2,<0.4.0"
@@ -1504,7 +1505,7 @@ test = ["zope.security", "zope.testrunner"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "774fc8311984ada2c73dc721c137d4f24f0a201f45161b9a100460918f8128d4"
+content-hash = "e5008fbd28c1c27190b5369b04927d44cbd914cd3baace7e2e99c7421260c177"
 
 [metadata.files]
 acme = [
@@ -1799,8 +1800,8 @@ josepy = [
     {file = "josepy-1.4.0.tar.gz", hash = "sha256:c37ff4b93606e6a452b72cdb992da5e0544be12912fac01b31ddbdd61f6d5bd0"},
 ]
 js-ng = [
-    {file = "js-ng-11.0b11.tar.gz", hash = "sha256:3a02fafdab0df4ac985677080daab46019ec25cbb562fd92d9674504d5991366"},
-    {file = "js_ng-11.0b11-py3-none-any.whl", hash = "sha256:4461a75a281345d46d961b1527a216ef3e00c720f4599be19a4e7504ef846ccb"},
+    {file = "js-ng-11.0b12.tar.gz", hash = "sha256:3d7240258dad484639142c23494bd4d28b8e417bb3e173c85ff7bc1fde24dcc1"},
+    {file = "js_ng-11.0b12-py3-none-any.whl", hash = "sha256:974361cc111ba99d06dc8e7538eec8f104d5f9088612b976d14c51cb3920dd92"},
 ]
 jsonpickle = [
     {file = "jsonpickle-1.4.1-py2.py3-none-any.whl", hash = "sha256:8919c166bac0574e3d74425c7559434062002d9dfc0ac2afa6dc746ba4a19439"},
@@ -2045,7 +2046,6 @@ pycryptodomex = [
     {file = "pycryptodomex-3.9.8-cp38-cp38-win_amd64.whl", hash = "sha256:914fbb18e29c54585e6aa39d300385f90d0fa3b3cc02ed829b08f95c1acf60c2"},
     {file = "pycryptodomex-3.9.8-cp39-cp39-manylinux1_i686.whl", hash = "sha256:35b9c9177a9fe7288b19dd41554c9c8ca1063deb426dd5a02e7e2a7416b6bd11"},
     {file = "pycryptodomex-3.9.8-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:e070a1f91202ed34c396be5ea842b886f6fa2b90d2db437dc9fb35a26c80c060"},
-    {file = "pycryptodomex-3.9.8.tar.gz", hash = "sha256:48cc2cfc251f04a6142badeb666d1ff49ca6fdfc303fd72579f62b768aaa52b9"},
 ]
 pygithub = [
     {file = "PyGithub-1.53-py3-none-any.whl", hash = "sha256:8ad656bf79958e775ec59f7f5a3dbcbadac12147ae3dc42708b951064096af15"},

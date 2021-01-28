@@ -147,7 +147,7 @@ class GedisChatBot:
                 getattr(self, step_name)()
             except StopChatFlow as e:
                 internal_error = True
-                j.logger.exception("error", exception=e)
+                j.logger.exception(f"chatflow stopped in step {step_name}. exception: {str(e)}", exception=e)
                 traceback_info = j.tools.errorhandler.get_traceback()
                 j.tools.alerthandler.alert_raise(
                     app_name="chatflows",
@@ -170,7 +170,7 @@ class GedisChatBot:
                 ).get("operations", []):
                     message = "Not enough funds"
                 internal_error = True
-                j.logger.exception("error", exception=e)
+                j.logger.exception(f"error when executing step {step_name}. exception: {str(e)}", exception=e)
                 traceback_info = j.tools.errorhandler.get_traceback()
                 alert = j.tools.alerthandler.alert_raise(
                     app_name="chatflows",

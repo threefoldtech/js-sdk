@@ -135,7 +135,6 @@ class MinioDeploy(GedisChatBot):
     def access_credentials(self):
         name = self.user_info()["username"]
         accesskey_string = f"{name.split('.')[0]}"
-        secret_string = "secret12345"
         form = self.new_form()
         accesskey = form.string_ask(
             "Please add the key to be used for minio when logging in. Make sure not to lose it",
@@ -143,9 +142,8 @@ class MinioDeploy(GedisChatBot):
             min_length=3,
             required=True,
         )
-        secret = form.string_ask(
+        secret = form.secret_ask(
             "Please add the secret to be used for minio when logging in to match the previous key. Make sure not to lose it",
-            default=secret_string,
             min_length=8,
             required=True,
         )
