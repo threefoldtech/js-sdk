@@ -85,16 +85,6 @@ class SolutionsChatflowDeploy(GedisChatBot):
                     f"There are not enough resources to deploy cpu: {cpu}, memory: {memory}. current cluster resources: {monitor.node_stats}"
                 )
 
-    def _configure_admin_username_password(self):
-        form = self.new_form()
-        admin_user_message = "Admin username"
-        admin_pass_message = "Admin Password (should be at least 10 characters long)"
-        admin_username = form.string_ask(admin_user_message, required=True, is_identifier=True)
-        admin_password = form.secret_ask(admin_pass_message, required=True, is_identifier=True, min_length=10)
-        form.ask()
-        self.admin_username = admin_username.value
-        self.admin_password = admin_password.value
-
     def get_k8s_sshclient(self, private_key_path="/root/.ssh/id_rsa", user="rancher"):
         ssh_key = j.clients.sshkey.get(self.vdc_name)
         ssh_key.private_key_path = private_key_path
@@ -159,10 +149,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     def _ask_smtp_settings(self):
         form = self.new_form()
-        smtp_host = form.string_ask("SMTP Host", required=True)
-        smtp_port = form.string_ask("SMTP Port", required=True)
-        smtp_username = form.string_ask("SMTP Username", required=True)
-        smtp_password = form.secret_ask("SMTP Password", required=True)
+        smtp_host = form.string_ask("SMTP Host", default="smtp.gmail.com", required=True)
+        smtp_port = form.string_ask("SMTP Port", default=587, required=True)
+        smtp_username = form.string_ask("Email (SMTP username)", required=True)
+        smtp_password = form.secret_ask("Email Password", required=True)
         form.ask()
         self.smtp_host = smtp_host.value
         self.smtp_port = f'"{smtp_port.value}"'
