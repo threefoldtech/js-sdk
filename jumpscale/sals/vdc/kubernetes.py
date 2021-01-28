@@ -450,6 +450,8 @@ ports:
 
         kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml"
         k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
+        k8s_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
+        k8s_client.update_repos()
         config_str = k8s_client.get_helm_chart_user_values("traefik", "kube-system")
         config_json = j.data.serializers.json.loads(config_str)
         config_json["ports"][entrypoint_name] = {
