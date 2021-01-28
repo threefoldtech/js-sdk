@@ -18,7 +18,10 @@ def info(msg):
 
 def get_funded_wallet():
     if WALLET_NAME and WALLET_SECRET:
-        wallet = j.clients.stellar.get(WALLET_NAME, network="STD", secret=WALLET_SECRET)
+        wallet = j.clients.stellar.get(WALLET_NAME)
+        wallet.secret = WALLET_SECRET
+        wallet.network = "STD"
+        wallet.save()
         return wallet
     else:
         raise ValueError("Please provide add Values to the environment variables WALLET_NAME and WALLET_SECRET")

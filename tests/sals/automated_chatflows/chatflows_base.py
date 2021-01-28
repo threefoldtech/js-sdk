@@ -32,7 +32,7 @@ class ChatflowsBase(BaseTests):
             )
 
         # Import the wallet to be used for payment.
-        j.clients.stellar.get("demos_wallet", secret=cls.wallet_secret)
+        cls.get_wallet(name="demos_wallet", secret=cls.wallet_secret)
 
         # Check if there is identity registered to set it back after the tests are finished.
         cls.me = None
@@ -69,7 +69,11 @@ class ChatflowsBase(BaseTests):
 
     @staticmethod
     def get_wallet(name, secret):
-        return j.clients.stellar.get(name, secret=secret)
+        wallet = j.clients.stellar.get(name)
+        wallet.secret = secret
+        wallet.network = "STD"
+        wallet.save()
+        return wallet
 
     @staticmethod
     def random_name():
