@@ -9,6 +9,22 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
     HELM_REPO_NAME = "marketplace"
     steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
 
+    def _configure_admin_username_password(self):
+        valid_password = False
+        while not valid_password:
+            form = self.new_form()
+            admin_user_message = "Admin username"
+            admin_pass_message = "Admin Password (should be at least 10 characters long, Shouldn't include username)"
+            admin_username = form.string_ask(admin_user_message, required=True, is_identifier=True)
+            admin_password = form.secret_ask(admin_pass_message, required=True, is_identifier=True, min_length=10)
+            form.ask()
+            self.admin_username = admin_username.value
+            self.admin_password = admin_password.value
+            if self.admin_username in self.admin_password:
+                self.md_show("Invalid password, shouldn't include username, Please try again")
+            else:
+                valid_password = True
+
     @chatflow_step(title="Configurations")
     def set_config(self):
         self._choose_flavor()
