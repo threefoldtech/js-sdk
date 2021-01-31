@@ -25,7 +25,7 @@ class ThreebotDeployer(Base):
         iframe = self.driver.find_elements_by_tag_name("iframe")[0]
         self.driver.switch_to_frame(iframe)
 
-    def find_correct_3bot_instance(self, action, my_3bot_instance_name):
+    def find_3bot_instance(self, action, my_3bot_instance_name):
         # Find correct 3bot instance row
         self.wait(self.driver, "v-progress-linear__buffer")
         table_box = self.driver.find_element_by_class_name("v-data-table")
@@ -40,8 +40,6 @@ class ThreebotDeployer(Base):
             if row.text.split()[0] == my_3bot_instance_name:
                 row.find_elements_by_class_name("v-btn__content")[i].click()
                 break
-        else:
-            return
 
     def payment_process(self, wallet_name):
         chat_box = self.driver.find_element_by_class_name("chat")
@@ -52,7 +50,7 @@ class ThreebotDeployer(Base):
         reservation_ID = payment_info[7]
         total_amount = payment_info[9].split()[0]
 
-        a = getattr(j.clients.stellar, wallet_name).get_asset(currency)
+        a = getattr(j.clients.stellar, wallet_name)._get_asset(currency)
         j.clients.stellar.demos_wallet.transfer(
             destination_wallet_address, amount=total_amount, memo_text=reservation_ID, asset=f"{a.code}:{a.issuer}"
         )
@@ -84,16 +82,10 @@ class ThreebotDeployer(Base):
         self.click_button(self.driver, "NEXT")
 
         self.wait(self.driver, "v-card__progress")
-        self.wait(self.driver, "v-card__progress")
 
         # Choose how much resources the deployed solution will use.
         # We use 1 CPU, 2GB Memory, and 2GB[SSD] in this example.
 
-        import ipdb
-
-        ipdb.set_trace()
-
-        self.click_button(self.driver, "NEXT")
         self.click_button(self.driver, "NEXT")
 
         # Threebot recovery password
@@ -160,7 +152,7 @@ class ThreebotDeployer(Base):
         self.view_an_existing_3bot_button()
 
         # Find correct 3bot instance row
-        self.find_correct_3bot_instance("delete", my_3bot_instance_name=my_3bot_instance_name)
+        self.find_3bot_instance("delete", my_3bot_instance_name=my_3bot_instance_name)
 
         # Destroy 3bot box
         destroy_3bot = self.driver.find_element_by_class_name("v-card")
@@ -178,7 +170,7 @@ class ThreebotDeployer(Base):
         self.view_an_existing_3bot_button()
 
         # Find correct 3bot instance row
-        self.find_correct_3bot_instance("start", my_3bot_instance_name=my_3bot_instance_name)
+        self.find_3bot_instance("start", my_3bot_instance_name=my_3bot_instance_name)
 
         # switch driver to iframe
         self.switch_driver_to_iframe()
@@ -209,7 +201,7 @@ class ThreebotDeployer(Base):
         self.view_an_existing_3bot_button()
 
         # Find correct 3bot instance row
-        self.find_correct_3bot_instance("stop", my_3bot_instance_name=my_3bot_instance_name)
+        self.find_3bot_instance("stop", my_3bot_instance_name=my_3bot_instance_name)
 
         password_chat_box = self.driver.find_element_by_class_name("v-card")
         input_password = password_chat_box.find_element_by_tag_name("input")
