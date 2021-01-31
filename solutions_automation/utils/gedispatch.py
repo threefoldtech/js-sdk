@@ -31,6 +31,7 @@ class GedisChatBotPatch(GedisChatBot):
     QS = {}
 
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.QS = {**self.QS_BASE, **self.QS}
         self.debug = kwargs.get("debug", False)
 
@@ -134,6 +135,9 @@ class GedisChatBotPatch(GedisChatBot):
     def int_ask(self, msg, *args, **kwargs):
         return self.fetch_param(msg, *args, **kwargs)
 
+    def secret_ask(self, msg, *args, **kwargs):
+        return self.fetch_param(msg, *args, **kwargs)
+
     def single_choice(self, msg, *args, **kwargs):
         return self.fetch_param(msg, *args, **kwargs)
 
@@ -160,4 +164,4 @@ class GedisChatBotPatch(GedisChatBot):
         return write_file(filename, data)
 
     def send_error(self, message, **kwargs):
-        pass
+        raise j.exceptions.Runtime(message)

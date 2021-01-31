@@ -18,7 +18,10 @@ class PoolsTests(BaseTest):
         if not cls.wallet_secret:
             raise Exception("Please add WALLET_SECRET as environment variables")
 
-        j.clients.stellar.get(cls.wallet_name, network="STD", secret=cls.wallet_secret)
+        wallet = j.clients.stellar.get(cls.wallet_name)
+        wallet.secret = cls.wallet_secret
+        wallet.network = "STD"
+        wallet.save()
 
     def test01_create_pool(self):
         """Test case for creating a pool.

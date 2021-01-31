@@ -141,7 +141,7 @@ class FlistDeploy(GedisChatBot):
         else:
             self.ip_version = None
 
-    @chatflow_step(title="Container node id")
+    @chatflow_step(title="Choose a node to deploy on")
     def container_node_id(self):
         query = {
             "cru": self.resources["cpu"],

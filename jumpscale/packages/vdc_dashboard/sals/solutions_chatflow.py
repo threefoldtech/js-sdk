@@ -58,13 +58,13 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 )
                 break
 
-    def _choose_flavor(self, chart_limits=None):
+    def _choose_flavor(self, chart_limits=None, resource_template=RESOURCE_VALUE_TEMPLATE):
         chart_limits = chart_limits or CHART_LIMITS
         messages = []
         for flavor in chart_limits:
             flavor_specs = ""
             for key in chart_limits[flavor]:
-                flavor_specs += f"{RESOURCE_VALUE_TEMPLATE[key].format(chart_limits[flavor][key])} - "
+                flavor_specs += f"{resource_template[key].format(chart_limits[flavor][key])} - "
             msg = f"{flavor} ({flavor_specs[:-3]})"
             messages.append(msg)
         chosen_flavor = self.single_choice(

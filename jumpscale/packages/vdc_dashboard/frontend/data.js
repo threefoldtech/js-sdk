@@ -146,7 +146,6 @@ const DECENTRALIZED_WE = {
             helpLink: "https://now.threefold.io/now/docs/knowledge-base/",
             description: "A simple, self-hosted, easy-to-use platform for organizing and storing information."
         },
-
     },
 }
 
@@ -184,6 +183,14 @@ const DECENTRALIZED_DEV = {
             disable: false,
             helpLink: "",
             description: "Monitoring Stack makes it easy to monitor your VDC using Grafana, Prometheus, Redis"
+        },
+        etcd: {
+            name: "ETCD",
+            type: "etcd",
+            image: "./assets/etcd.png",
+            disable: false,
+            helpLink: "",
+            description: "A distributed, reliable key-value store for the most critical data of a distributed system. Used by kubectl"
         },
     },
 }

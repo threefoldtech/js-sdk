@@ -253,6 +253,8 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     def _ask_for_node(self):
         nodes = deployer.get_all_farms_nodes(self.available_farms, **self.query)
+        if not nodes:
+            raise StopChatFlow(f"no nodes available to deploy 3bot with resources: {self.query}")
         node_id_dict = {node.node_id: node for node in nodes}
         node_id = self.drop_down_choice(
             "Please select the node you would like to deploy your 3Bot on.", list(node_id_dict.keys()), required=True,
