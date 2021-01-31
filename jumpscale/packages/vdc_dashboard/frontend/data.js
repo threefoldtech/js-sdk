@@ -127,7 +127,7 @@ const DECENTRALIZED_WE = {
             type: "filebrowser",
             image: "./assets/file_browser.jpg",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/filebrowser/",
+            helpLink: "https://now.threefold.io/now/docs/file-browser/",
             description: "File browser is an open source solution that provides a file managing interface"
         },
         virtualspaces: {
