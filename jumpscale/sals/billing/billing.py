@@ -42,16 +42,16 @@ class BillingManager:
         )
         notes_text = "\n".join([f"<h4>Note: {note}</h4>" for note in notes])
         qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
-        msg_text = f"""Please scan the QR Code below for the payment details
+        msg_text = f"""Please scan the QR Code below (Using ThreeFold Connect Application) for the payment details
         <div class="text-center">
             <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
         </div>
         <h4> Destination Wallet Address: </h4>  {payment_obj.wallet.address} \n
         <h4> Currency: </h4>  TFT \n
-        <h4> Memo Text: </h4>  {payment_obj.memo_text} \n
+        <h4> Memo Text (Message): </h4>  {payment_obj.memo_text} \n
         <h4> Total Amount: </h4> {payment_obj.amount} TFT \n
         {notes_text}
-        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 TFT will automatically occur per transaction.</h5>
+        <h5>When using manual payment please note that inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 TFT will automatically occur per transaction.</h5>
         """
         bot.md_show_update(msg_text, html=True)
 
