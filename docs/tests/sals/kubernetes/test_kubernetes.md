@@ -59,3 +59,37 @@ Test case for executing a native kubernetes commands.
 - Deploy VDC
 - Excute kubernetes command
 - Check that the command executed correctly.
+
+### test_07_get_helm_chart_user_values
+
+Test case for getting the custom user values for helm chart
+
+**Test Scenario**
+
+- Deploy VDC
+- Install chart with custom user values
+- Get helm chart user values
+- Check if values are equal
+
+### test_08_upgrade_release
+
+Test case for upgrading helm release
+
+**Test Scenario**
+
+- Deploy VDC
+- Install chart
+- Upgrade release
+- Check if release upgraded
+
+### test_09_upgrade_release_with_yaml_config
+
+Test case for upgrading helm release with given yaml config
+
+**Test Scenario**
+
+- Deploy VDC
+- Install chart
+- Upgrade release with a yaml config file
+- Check if release upgraded
+- Check if yaml config updated in the release values

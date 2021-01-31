@@ -31,7 +31,7 @@ const markdownViewer = httpVueLoader('./components/MarkdownViewer.vue')
 // VDC settings
 const s3 = httpVueLoader('./components/vdcSettings/S3.vue')
 const kubernetes = httpVueLoader('./components/vdcSettings/Kubernetes.vue')
-const vdcHome = httpVueLoader('./components/vdcSettings/Home.vue')
+const vdcSettings = httpVueLoader('./components/vdcSettings/Home.vue')
 const wallet = httpVueLoader('./components/vdcSettings/Wallet.vue')
 
 const app = httpVueLoader('./App.vue')
@@ -57,8 +57,9 @@ Vue.component("wallet", wallet)
 
 const router = new VueRouter({
   routes: [
-    { name: "Home", path: '/', component: vdcHome, meta: { icon: "mdi-tune" } },
+    { name: "Home", path: '/', redirect: 'marketplacevdc' },
     { name: "Marketplace", path: '/marketplacevdc', component: marketplaceHome, meta: { icon: "mdi-tune" } },
+    { name: "VDCSettings", path: '/settings', component: vdcSettings, meta: { icon: "mdi-tune" } },
     { name: "License", path: '/license', component: license, meta: { icon: "mdi-apps" } },
     { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
     { name: "Disclaimer", path: '/disclaimer', component: disclaimer, meta: { icon: "mdi-apps" } },
