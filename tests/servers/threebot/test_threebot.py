@@ -10,7 +10,7 @@ class Test3BotServer(BaseTests):
     tname = environ.get("TNAME")
     email = environ.get("EMAIL")
     words = environ.get("WORDS")
-    explorer_url = "https://explorer.testnet.grid.tf/api/v1"
+    explorer_url = "https://explorer.devnet.grid.tf/api/v1"
     MYID_NAME = "identity_{}".format(randint(1, 1000))
 
     @classmethod
@@ -172,7 +172,7 @@ class Test3BotServer(BaseTests):
 
         farm_management = j.servers.threebot.default.packages.add(path)
         farm_management_dir = {
-            "farmmanagement": {"name": "farmmanagement", "path": path, "giturl": None, "kwargs": {},}
+            "farmmanagement": {"name": "farmmanagement", "path": path, "giturl": None, "kwargs": {}, "admins": []}
         }
         self.assertEqual(farm_management, farm_management_dir)
 
