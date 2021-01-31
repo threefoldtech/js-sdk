@@ -8,27 +8,42 @@ from tests.sals.vdc.vdc_base import VDCBase
 
 @pytest.mark.integration
 class VDCDashboard(VDCBase):
+    # TODO: DELETE BEFORE MERGE, FOR TEST ONLY
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls._import_wallet()
-        cls.flavor = "silver"
-        cls.kube_config = cls.deploy_vdc()
+        cls.vdc = j.sals.vdc.vdc_essamvdc_essam
         cls.kube_manager = j.sals.kubernetes.Manager(
             f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml"
         )
-        if not cls.kube_config:
-            raise RuntimeError("VDC is not deployed")
         # Timeout for any exposed solution to be reachable.
         cls.timeout = 60
 
+    # @classmethod
+    # def setUpClass(cls):
+    #     super().setUpClass()
+    #     cls.flavor = "silver"
+    #     cls.kube_config = cls.deploy_vdc()
+    #     cls.kube_manager = j.sals.kubernetes.Manager(
+    #         f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml"
+    #     )
+    #     if not cls.kube_config:
+    #         raise RuntimeError("VDC is not deployed")
+    #     # Timeout for any exposed solution to be reachable.
+    #     cls.timeout = 60
+
+    # TODO: DELETE BEFORE MERGE, FOR TEST ONLY
     @classmethod
     def tearDownClass(cls):
-        wallet = j.clients.stellar.get("demos_wallet")
-        cls.vdc.provision_wallet.merge_into_account(wallet.address)
-        cls.vdc.prepaid_wallet.merge_into_account(wallet.address)
-        j.sals.vdc.delete(cls.vdc.instance_name)
-        super().tearDownClass()
+        cls.server.stop()
+
+    # @classmethod
+    # def tearDownClass(cls):
+    #     wallet = j.clients.stellar.get("demos_wallet")
+    #     cls.vdc.provision_wallet.merge_into_account(wallet.address)
+    #     cls.vdc.prepaid_wallet.merge_into_account(wallet.address)
+    #     j.sals.vdc.delete(cls.vdc.instance_name)
+    #     super().tearDownClass()
 
     def setUp(self):
         self.solution = None
@@ -42,8 +57,12 @@ class VDCDashboard(VDCBase):
 
     @classmethod
     def _import_wallet(cls):
-        j.clients.stellar.get("test_wallet", network="STD", secret=cls.wallet_secret)
-        j.clients.stellar.get("demos_wallet", network="STD", secret=cls.wallet_secret)
+        super()._import_wallet()
+        wallet = j.clients.stellar.get("demos_wallet")
+        wallet.secret = cls.wallet_secret
+        wallet.network = "STD"
+        wallet.save()
+        return wallet
 
     def test01_wiki(self):
         """Test case for deploying a wiki.
@@ -61,7 +80,7 @@ class VDCDashboard(VDCBase):
         branch = "development"
         wiki = deployer.deploy_wiki(release_name=name, title=title, url=repo, branch=branch)
         self.solution = wiki
-
+        # import ipdb; ipdb.set_trace()
         self.info("Check that the wiki is reachable.")
         request = j.tools.http.get(f"https://{wiki.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
@@ -309,6 +328,9 @@ class VDCDashboard(VDCBase):
         before_extend = self.kube_manager.execute_native_cmd("kubectl get nodes")
         self.info("Extend Kubernetes")
         size = "MEDIUM"
+        import pdb
+
+        pdb.set_trace()
         extend_node = deployer.extend_kubernetes(size=size)
 
         self.info("Check that node added")
@@ -326,5 +348,4 @@ class VDCDashboard(VDCBase):
                 is_ready = True
                 break
             gevent.sleep(5)
-
         self.assertTrue(is_ready, "Added node not ready for 2 mins")
