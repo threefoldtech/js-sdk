@@ -200,7 +200,7 @@ class Workloads:
         """
         me = self._identity
         workload = self.get(workload_id)
-        if workload.info.next_action > 3:
+        if workload.info.next_action.value > 3:
             # workload is not deployed
             return
         signature = sign_delete_request(workload, me.tid, me.nacl.signing_key)
