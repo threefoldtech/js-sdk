@@ -97,7 +97,10 @@ class MinioDeploy(GedisChatBot):
 
     @chatflow_step(title="ZDB Nodes")
     def zdb_nodes_selection(self):
-        query = {"sru": 10}
+        if self.zdb_disk_type == "SSD":
+            query = {"sru": self.zdb_disk_size}
+        else:
+            query = {"hru": self.zdb_disk_size}
         workload_name = "ZDB workloads"
         self.zdb_nodes, self.zdb_pool_ids = deployer.ask_multi_pool_distribution(
             self, self.zdb_number, query, workload_name=workload_name, ip_version="IPv6"
@@ -230,6 +233,7 @@ class MinioDeploy(GedisChatBot):
             pool_ids=self.zdb_pool_ids,
             solution_uuid=self.solution_id,
             disk_size=self.zdb_disk_size,
+            disk_type=self.zdb_disk_type,
             **self.solution_metadata,
         )
         for resv_id in self.zdb_result:

@@ -127,7 +127,7 @@ const DECENTRALIZED_WE = {
             type: "filebrowser",
             image: "./assets/file_browser.jpg",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/filebrowser/",
+            helpLink: "https://now.threefold.io/now/docs/file-browser/",
             description: "File browser is an open source solution that provides a file managing interface"
         },
         virtualspaces: {
@@ -210,7 +210,7 @@ const BC_SOLUTIONS = {
             name: "Digibyte",
             type: "digibyte",
             image: "./assets/digibyte.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/digibyte/",
             description: "Safest, fastest, longest, and most decentralized UTXO blockchains in existence."
         },

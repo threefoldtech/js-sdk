@@ -777,6 +777,7 @@ class VDCDeployer:
             except InsufficientFunds as e:
                 raise e
             except Exception as e:
+                self.bot_show_update(f"failed to submit payment to stellar due to error {str(e)}. retrying..")
                 self.warning(f"failed to submit payment to stellar due to error {str(e)}")
                 gevent.sleep(3)
         if not success:
