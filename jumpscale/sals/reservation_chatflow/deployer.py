@@ -2115,7 +2115,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         msg = "<h2> Waiting for payment...</h2>"
         if qr_code:
             qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
-            msg += f"Please scan the QR Code below for the payment details"
+            msg += f"Please scan the QR Code below (Using ThreeFold Connect Application) for the payment details"
             qr_code_msg = f"""
             <div class="text-center">
                 <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
@@ -2138,7 +2138,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         msg = "<h2> Waiting for payment...</h2>"
         if qr_code:
             qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
-            msg += f"Please scan the QR Code below for the payment"
+            msg += f"Please scan the QR Code below (Using ThreeFold Connect Application) for the payment"
             qr_code_msg = f"""
             <div class="text-center">
                 <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
@@ -2186,7 +2186,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         <h4> Memo Text (Reservation ID): </h4>  p-{info['resv_id']} \n
         <h4> Total Amount: </h4> {total_amount} {info['thecurrency']} \n
 
-        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 {info['thecurrency']} will automatically occurs per transaction.</h5>
+        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 {info['thecurrency']} will automatically occur per transaction.</h5>
         """
 
         return msg_text, qr_code

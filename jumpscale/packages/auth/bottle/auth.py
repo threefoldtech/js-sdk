@@ -131,7 +131,8 @@ def callback():
     )
 
     if res.status_code != 200:
-        return abort(400, "Email is not verified")
+        next_url = request.query.get("next_url", "/auth/logout")
+        return env.get_template("email_not_verified.html").render(next_url=next_url)
 
     username = username.lower()  # workaround usernames that are returned by signed attempt with camel cases
     session["username"] = username

@@ -1,0 +1,15 @@
+{% extends "home.html"%}
+{% block title %}Login{% endblock %}
+{% block content %}
+<br>
+<h3>Email is not verified</h3>
+<p>Please verify your email in the ThreeFold Connect app</p><br/>
+<p>After your email has been verified, try to login again</p>
+<div class="row justify-content-md-center">
+    <div class="col-sm-4">
+        <a class="btn btn-block btn-vk text-center" href="{{next_url}}">
+            <i class="fa fa-{{provider}}"></i> Try again
+        </a>
+    </div>
+</div>
+{% endblock %}
