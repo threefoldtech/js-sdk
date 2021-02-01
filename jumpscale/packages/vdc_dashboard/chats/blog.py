@@ -42,6 +42,7 @@ class BlogDeploy(Publisher):
                 "ingress.host": self.domain,
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
+                "nameOverride": self.SOLUTION_TYPE,
             }
         )
 
