@@ -20,9 +20,14 @@ class VDCDashboard(VDCBase):
             raise RuntimeError("VDC is not deployed")
         # Timeout for any exposed solution to be reachable.
         cls.timeout = 60
+        # Accept Marketplace T&C for testing identity.
+        cls.accept_terms_conditions(type_="marketplace")
 
     @classmethod
     def tearDownClass(cls):
+        # Remove userEntry for accepting T&C.
+        cls.user_factory.delete(cls.user_entry_name)
+
         wallet = j.clients.stellar.get("demos_wallet")
         cls.vdc.provision_wallet.merge_into_account(wallet.address)
         cls.vdc.prepaid_wallet.merge_into_account(wallet.address)
@@ -178,124 +183,7 @@ class VDCDashboard(VDCBase):
         request = j.tools.http.get(f"https://{discourse.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
-    def test07_Kubeapps(self):
-        """Test case for deploying Kubeapps.
-
-        **Test Scenario**
-
-        - Deploy VDC
-        - Deploy Kubeapps.
-        - Check that Kubeapps is reachable.
-        """
-        self.info("Deploy Kubeapps")
-        name = BaseTests.random_name().lower()
-        kubeapps = deployer.deploy_kubeapps(release_name=name)
-        self.solution_uuid = kubeapps.solution_id
-        self.solution = kubeapps
-
-        self.info("Check that Kubeapps is reachable.")
-        request = j.tools.http.get(f"https://{kubeapps.domain}", verify=False, timeout=self.timeout)
-        self.assertEqual(request.status_code, 200)
-
-    def test08_Peertube(self):
-        """Test case for deploying Peertube.
-
-        **Test Scenario**
-
-        - Deploy VDC
-        - Deploy Peertube.
-        - Check that Peertube is reachable.
-        """
-        self.info("Deploy Peertube")
-        name = BaseTests.random_name().lower()
-        peertube = deployer.deploy_peertube(release_name=name)
-        self.solution = peertube
-
-        self.info("Check that Peertube is reachable.")
-        request = j.tools.http.get(f"https://{peertube.domain}", verify=False, timeout=self.timeout)
-        self.assertEqual(request.status_code, 200)
-
-    def test09_Taiga(self):
-        """Test case for deploying Taiga.
-
-        **Test Scenario**
-
-        - Deploy VDC
-        - Deploy Taiga.
-        - Check that Taiga is reachable.
-        """
-        self.info("Deploy Taiga")
-        name = BaseTests.random_name().lower()
-        taiga = deployer.deploy_taiga(release_name=name)
-        self.solution = taiga
-
-        self.info("Check that Taiga is reachable.")
-        request = j.tools.http.get(f"https://{taiga.domain}", verify=False, timeout=self.timeout)
-        self.assertEqual(request.status_code, 200)
-
-    def test10_Mattermost(self):
-        """Test case for deploying Mattermost.
-
-        **Test Scenario**
-
-        - Deploy VDC
-        - Deploy Mattermost.
-        - Check that Mattermost is reachable.
-        """
-        self.info("Deploy Mattermost")
-        name = BaseTests.random_name().lower()
-        mysql_username = BaseTests.random_name().lower()
-        mysql_password = BaseTests.random_name().lower()
-        mysql_root_password = BaseTests.random_name().lower()
-        mattermost = deployer.deploy_mattermost(
-            release_name=name,
-            mysql_username=mysql_username,
-            mysql_password=mysql_password,
-            mysql_root_password=mysql_root_password,
-        )
-        self.solution = mattermost
-
-        self.info("Check that Mattermost is reachable.")
-        request = j.tools.http.get(f"https://{mattermost.domain}", verify=False, timeout=self.timeout)
-        self.assertEqual(request.status_code, 200)
-
-    def test11_ZeroCI(self):
-        """Test case for deploying ZeroCI.
-
-        **Test Scenario**
-
-        - Deploy VDC
-        - Deploy ZeroCI.
-        - Check that ZeroCI is reachable.
-        """
-        self.info("Deploy ZeroCI")
-        name = BaseTests.random_name().lower()
-        zeroci = deployer.deploy_zeroci(release_name=name)
-        self.solution = zeroci
-
-        self.info("Check that ZeroCI is reachable.")
-        request = j.tools.http.get(f"https://{zeroci.domain}", verify=False, timeout=self.timeout)
-        self.assertEqual(request.status_code, 200)
-
-    def test12_MonitoringStack(self):
-        """Test case for deploying MonitoringStack.
-
-        **Test Scenario**
-
-        - Deploy VDC
-        - Deploy MonitoringStack.
-        - Check that MonitoringStack is reachable.
-        """
-        self.info("Deploy MonitoringStack")
-        name = BaseTests.random_name().lower()
-        monitoring = deployer.deploy_monitoring(release_name=name)
-        self.solution = monitoring
-
-        self.info("Check that MonitoringStack is reachable.")
-        request = j.tools.http.get(f"https://{monitoring.domain}", verify=False, timeout=self.timeout)
-        self.assertEqual(request.status_code, 200)
-
-    def test13_ETCD(self):
+    def test07_ETCD(self):
         """Test case for deploying ETCD.
 
         **Test Scenario**
@@ -321,6 +209,123 @@ class VDCDashboard(VDCBase):
                 break
             gevent.sleep(2)
         self.assertEqual(put_hello.count("OK"), 1)
+
+    def test08_Kubeapps(self):
+        """Test case for deploying Kubeapps.
+
+        **Test Scenario**
+
+        - Deploy VDC
+        - Deploy Kubeapps.
+        - Check that Kubeapps is reachable.
+        """
+        self.info("Deploy Kubeapps")
+        name = BaseTests.random_name().lower()
+        kubeapps = deployer.deploy_kubeapps(release_name=name)
+        self.solution_uuid = kubeapps.solution_id
+        self.solution = kubeapps
+
+        self.info("Check that Kubeapps is reachable.")
+        request = j.tools.http.get(f"https://{kubeapps.domain}", verify=False, timeout=self.timeout)
+        self.assertEqual(request.status_code, 200)
+
+    def test09_Peertube(self):
+        """Test case for deploying Peertube.
+
+        **Test Scenario**
+
+        - Deploy VDC
+        - Deploy Peertube.
+        - Check that Peertube is reachable.
+        """
+        self.info("Deploy Peertube")
+        name = BaseTests.random_name().lower()
+        peertube = deployer.deploy_peertube(release_name=name)
+        self.solution = peertube
+
+        self.info("Check that Peertube is reachable.")
+        request = j.tools.http.get(f"https://{peertube.domain}", verify=False, timeout=self.timeout)
+        self.assertEqual(request.status_code, 200)
+
+    def test10_Taiga(self):
+        """Test case for deploying Taiga.
+
+        **Test Scenario**
+
+        - Deploy VDC
+        - Deploy Taiga.
+        - Check that Taiga is reachable.
+        """
+        self.info("Deploy Taiga")
+        name = BaseTests.random_name().lower()
+        taiga = deployer.deploy_taiga(release_name=name)
+        self.solution = taiga
+
+        self.info("Check that Taiga is reachable.")
+        request = j.tools.http.get(f"https://{taiga.domain}", verify=False, timeout=self.timeout)
+        self.assertEqual(request.status_code, 200)
+
+    def test11_Mattermost(self):
+        """Test case for deploying Mattermost.
+
+        **Test Scenario**
+
+        - Deploy VDC
+        - Deploy Mattermost.
+        - Check that Mattermost is reachable.
+        """
+        self.info("Deploy Mattermost")
+        name = BaseTests.random_name().lower()
+        mysql_username = BaseTests.random_name().lower()
+        mysql_password = BaseTests.random_name().lower()
+        mysql_root_password = BaseTests.random_name().lower()
+        mattermost = deployer.deploy_mattermost(
+            release_name=name,
+            mysql_username=mysql_username,
+            mysql_password=mysql_password,
+            mysql_root_password=mysql_root_password,
+        )
+        self.solution = mattermost
+
+        self.info("Check that Mattermost is reachable.")
+        request = j.tools.http.get(f"https://{mattermost.domain}", verify=False, timeout=self.timeout)
+        self.assertEqual(request.status_code, 200)
+
+    def test12_ZeroCI(self):
+        """Test case for deploying ZeroCI.
+
+        **Test Scenario**
+
+        - Deploy VDC
+        - Deploy ZeroCI.
+        - Check that ZeroCI is reachable.
+        """
+        self.info("Deploy ZeroCI")
+        name = BaseTests.random_name().lower()
+        zeroci = deployer.deploy_zeroci(release_name=name)
+        self.solution = zeroci
+
+        self.info("Check that ZeroCI is reachable.")
+        request = j.tools.http.get(f"https://{zeroci.domain}", verify=False, timeout=self.timeout)
+        self.assertEqual(request.status_code, 200)
+
+    def test13_MonitoringStack(self):
+        """Test case for deploying MonitoringStack.
+
+        **Test Scenario**
+
+        - Deploy VDC
+        - Deploy MonitoringStack.
+        - Check that MonitoringStack is reachable.
+        """
+        self.info("Deploy MonitoringStack")
+        name = BaseTests.random_name().lower()
+        monitoring = deployer.deploy_monitoring(release_name=name)
+        self.solution = monitoring
+
+        self.info("Check that MonitoringStack is reachable.")
+        request = j.tools.http.get(f"https://{monitoring.domain}", verify=False, timeout=self.timeout)
+        self.assertEqual(request.status_code, 200)
 
     def test14_ExtendKubernetes(self):
         """Test case for Extend Kubernetes cluster.
