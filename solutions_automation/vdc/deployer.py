@@ -1,6 +1,7 @@
 from solutions_automation.vdc.dashboard.blog import BlogAutomated
 from solutions_automation.vdc.dashboard.cryptpad import CryptpadAutomated
 from solutions_automation.vdc.dashboard.discourse import DiscourseAutomated
+from solutions_automation.vdc.dashboard.etcd import EtcdAutomated
 from solutions_automation.vdc.dashboard.extend_kubernetes import ExtendKubernetesAutomated
 from solutions_automation.vdc.dashboard.gitea import GiteaAutomated
 from solutions_automation.vdc.dashboard.kubeapps import KubeappsAutomated
@@ -73,6 +74,10 @@ def deploy_discourse(
         custom_sub_domain=custom_sub_domain,
         debug=debug,
     )
+
+
+def deploy_etcd(release_name, flavor="Silver", debug=True):
+    return EtcdAutomated(release_name=release_name, flavor=flavor, debug=debug)
 
 
 def extend_kubernetes(size, existing_balance="Yes", debug=True):

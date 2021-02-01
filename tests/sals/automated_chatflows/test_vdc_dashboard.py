@@ -8,42 +8,26 @@ from tests.sals.vdc.vdc_base import VDCBase
 
 @pytest.mark.integration
 class VDCDashboard(VDCBase):
-    # TODO: DELETE BEFORE MERGE, FOR TEST ONLY
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.vdc = j.sals.vdc.vdc_essamvdc_essam
+        cls.flavor = "silver"
+        cls.kube_config = cls.deploy_vdc()
         cls.kube_manager = j.sals.kubernetes.Manager(
             f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml"
         )
+        if not cls.kube_config:
+            raise RuntimeError("VDC is not deployed")
         # Timeout for any exposed solution to be reachable.
         cls.timeout = 60
 
-    # @classmethod
-    # def setUpClass(cls):
-    #     super().setUpClass()
-    #     cls.flavor = "silver"
-    #     cls.kube_config = cls.deploy_vdc()
-    #     cls.kube_manager = j.sals.kubernetes.Manager(
-    #         f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml"
-    #     )
-    #     if not cls.kube_config:
-    #         raise RuntimeError("VDC is not deployed")
-    #     # Timeout for any exposed solution to be reachable.
-    #     cls.timeout = 60
-
-    # TODO: DELETE BEFORE MERGE, FOR TEST ONLY
     @classmethod
     def tearDownClass(cls):
-        cls.server.stop()
-
-    # @classmethod
-    # def tearDownClass(cls):
-    #     wallet = j.clients.stellar.get("demos_wallet")
-    #     cls.vdc.provision_wallet.merge_into_account(wallet.address)
-    #     cls.vdc.prepaid_wallet.merge_into_account(wallet.address)
-    #     j.sals.vdc.delete(cls.vdc.instance_name)
-    #     super().tearDownClass()
+        wallet = j.clients.stellar.get("demos_wallet")
+        cls.vdc.provision_wallet.merge_into_account(wallet.address)
+        cls.vdc.prepaid_wallet.merge_into_account(wallet.address)
+        j.sals.vdc.delete(cls.vdc.instance_name)
+        super().tearDownClass()
 
     def setUp(self):
         self.solution = None
@@ -80,7 +64,7 @@ class VDCDashboard(VDCBase):
         branch = "development"
         wiki = deployer.deploy_wiki(release_name=name, title=title, url=repo, branch=branch)
         self.solution = wiki
-        # import ipdb; ipdb.set_trace()
+
         self.info("Check that the wiki is reachable.")
         request = j.tools.http.get(f"https://{wiki.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
@@ -311,7 +295,34 @@ class VDCDashboard(VDCBase):
         request = j.tools.http.get(f"https://{monitoring.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
-    def test13_ExtendKubernetes(self):
+    def test13_ETCD(self):
+        """Test case for deploying ETCD.
+
+        **Test Scenario**
+
+        - Deploy VDC
+        - Deploy ETCD.
+        - Check that ETCD add data correctly.
+        """
+        self.info("Deploy ETCD")
+        name = BaseTests.random_name().lower()
+        etcd = deployer.deploy_etcd(release_name=name)
+        self.solution = etcd
+
+        self.info("Check that ETCD add data correctly.")
+        expiry = j.data.time.now().timestamp + 20
+        put_hello = ""
+        while j.data.time.now().timestamp < expiry:
+            rc, put_hello, err = j.sals.kubernetes.Manager._execute(
+                f"kubectl --kubeconfig {self.kube_manager.config_path} exec -it {name}-etcd-0 -- etcdctl put message Hello"
+            )
+            if not put_hello == "":
+                is_ready = True
+                break
+            gevent.sleep(2)
+        self.assertEqual(put_hello.count("OK"), 1)
+
+    def test14_ExtendKubernetes(self):
         """Test case for Extend Kubernetes cluster.
 
         **Test Scenario**
@@ -328,9 +339,6 @@ class VDCDashboard(VDCBase):
         before_extend = self.kube_manager.execute_native_cmd("kubectl get nodes")
         self.info("Extend Kubernetes")
         size = "MEDIUM"
-        import pdb
-
-        pdb.set_trace()
         extend_node = deployer.extend_kubernetes(size=size)
 
         self.info("Check that node added")
