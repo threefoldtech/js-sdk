@@ -7,7 +7,10 @@ from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsCh
 class Publisher(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "publishingtools"
     HELM_REPO_NAME = "marketplace"
+    CHART_NAME = "publishingtools"
+
     EXAMPLE_URL = "https://github.com/threefoldfoundation/info_gridmanual"
+    DOC_URL = "https://now.threefold.io/now/docs/publishing-tool/#repository-examples"
 
     title = "Publisher"
     steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
@@ -16,12 +19,13 @@ class Publisher(SolutionsChatflowDeploy):
         msg = dedent(
             f"""\
         Few parameters are needed to be able to publish your content online
-        - Title  is the title shown up on your published content
-        - Repository URL  is a valid git repository URL where your content lives e.g ({self.EXAMPLE_URL})
-        - Branch is the deployment branch that exists on your git repository to be used as the version of your content to publish.
-        - Source directory is the directory where html or markdown files are served.
+        - Create a github account
+        - Fork the following [template repository]({self.EXAMPLE_URL}) and add your content there.
+        - Copy your forked repository URL to this deployer
+        - Select the branch you want to deploy, e.g: main
+        - Identify which source directory where the content lives in, e.g. src, html...
 
-        for more information on the publishing tools please check the [manual](https://manual.threefold.io/)
+        For more information about repository structure and examples please check [the manual]({self.DOC_URL}).
         """
         )
         return msg
@@ -34,7 +38,6 @@ class Publisher(SolutionsChatflowDeploy):
         site_type = form.single_choice(
             "Choose the publication type", options=["wiki", "www", "blog"], default="wiki", required=True
         )
-        title = form.string_ask("Title", required=True)
         url = form.string_ask("Repository URL", required=True, is_git_url=True)
         branch = form.string_ask("Branch", required=True)
         srcdir = form.string_ask("Source directory", required=False, default="")
