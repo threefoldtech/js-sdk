@@ -2,6 +2,15 @@
   <div>
     <div class="actions mb-3">
       <h1 class="d-inline" color="primary" text>Compute Nodes</h1>
+
+      <v-btn
+        class="float-right p-4"
+        color="primary"
+        text
+        @click.stop="openChatflow('extend_kube', k8sNodes[0].wid)"
+      >
+        <v-icon left>mdi-plus</v-icon>Add node
+      </v-btn>
     </div>
 
     <v-data-table
@@ -10,7 +19,7 @@
       :loading="loading"
       class="elevation-1"
     >
-      <template slot="no-data">No VDC instances available</template>
+      <template slot="no-data">No Nodes available</template>
       <template v-slot:item.wid="{ item }">
         <div>{{ item.wid }}</div>
       </template>
@@ -102,6 +111,13 @@ module.exports = {
     };
   },
   methods: {
+    openChatflow(topic, master_wid) {
+      let queryparams = { master_wid: master_wid };
+      this.$router.push({
+        name: "SolutionChatflow",
+        params: { topic: topic, queryparams: queryparams },
+      });
+    },
     open(record) {
       this.selected = record;
       this.dialogs.info = true;
