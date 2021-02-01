@@ -72,17 +72,11 @@ def cost(
 
         Returns:
             float: price in TFT
-        """
-    # tft_price = 0.15$
-    # su_price = 10$
-    # month = 3600*24*30
-    # (su_prince/tft_price) / month  = 0.00002572
-    compute_unit_TFT_cost_second = 0.00002572
-    storage_unit_TFT_cost_second = 0.00002572
-    ipv4_unit_TFT_cost_second = 0.00002572
+    """
     cu = cloud_units(workload)
-    price = cu.cost(compute_unit_TFT_cost_second, storage_unit_TFT_cost_second, ipv4_unit_TFT_cost_second, duration)
-    return price
+    zos = j.sals.zos.get()
+    price = zos._explorer.prices.calculate(cus=cu.cu, sus=cu.su, ipv4us=cu.ipv4u)
+    return price * duration
 
 
 def calculate_vdc_price(flavor, farm_name=None):
@@ -151,12 +145,8 @@ def calculate_vdc_price(flavor, farm_name=None):
     all_cus += n_cus
     all_sus += n_sus
 
-    # create empty pool and get the payment amount
     zos = j.sals.zos.get()
-    farm_name = farm_name or zos._explorer.farms.list()[0].name
-    pool = zos.pools.create(round(all_cus), round(all_sus), round(all_ipv4us), farm_name)
-    amount = pool.escrow_information.amount
-    total_amount_dec = Decimal(amount) / Decimal(1e7)
-    total_amount = "{0:f}".format(total_amount_dec)
+    total_amount = zos._explorer.prices.calculate(cus=all_cus, sus=all_sus, ipv4us=all_ipv4us)
+    total_amount = round(total_amount, 6)
 
     return total_amount
