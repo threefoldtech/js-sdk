@@ -22,7 +22,7 @@ class BaseTest(BaseTests):
         cls.tname = os.environ.get("TNAME")
         cls.email = os.environ.get("EMAIL")
         cls.words = os.environ.get("WORDS")
-        cls.explorer_url = "https://explorer.testnet.grid.tf/api/v1"
+        cls.explorer_url = "https://explorer.devnet.grid.tf/api/v1"
         if not all([cls.tname, cls.email, cls.words]):
             raise Exception("Please add (TNAME, EMAIL, WORDS) of your 3bot identity as environment variables")
 

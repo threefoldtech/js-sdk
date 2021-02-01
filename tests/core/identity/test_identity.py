@@ -22,7 +22,7 @@ class TestIdentity(TestCase):
             tname=self.tname,
             email=self.email,
             words=self.words,
-            explorer_url="https://explorer.testnet.grid.tf/api/v1",
+            explorer_url="https://explorer.devnet.grid.tf/api/v1",
         )
 
     def test001_register(self):
@@ -103,7 +103,7 @@ class TestIdentity(TestCase):
                 tname=f"{self.instance_name}.3bot",
                 email=self.email,
                 words=self.words,
-                explorer_url="https://explorer.testnet.grid.tf/api/v1",
+                explorer_url="https://explorer.devnet.grid.tf/api/v1",
             )
 
             identity.register()
