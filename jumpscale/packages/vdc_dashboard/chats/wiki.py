@@ -21,7 +21,6 @@ class WikiDeploy(Publisher):
         self.chart_config.update(
             {
                 "env.type": "wiki",
-                "env.title": title.value,
                 "env.url": url.value,
                 "env.branch": branch.value,
                 "env.srcdir": srcdir.value,

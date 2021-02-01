@@ -37,7 +37,6 @@ class BlogDeploy(Publisher):
         self.chart_config.update(
             {
                 "env.type": "blog",
-                "env.title": title.value,
                 "env.url": url.value,
                 "env.branch": branch.value,
                 "ingress.host": self.domain,
