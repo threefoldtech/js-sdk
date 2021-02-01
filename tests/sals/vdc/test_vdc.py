@@ -1,5 +1,7 @@
 import pytest
+from jumpscale.clients.explorer.models import K8s, ZdbNamespace
 from jumpscale.loader import j
+from jumpscale.sals.vdc.size import VDC_SIZE
 from parameterized import parameterized_class
 
 from .vdc_base import VDCBase
@@ -109,6 +111,7 @@ class TestVDC(VDCBase):
         **Test Scenario**
 
         - Deploy VDC.
+        - Calculate the price of added zdb and fund the provisioning wallet.
         - Add kubernetes node.
         - Check that the node has been added.
         - Delete this node.
@@ -116,6 +119,13 @@ class TestVDC(VDCBase):
         """
         self.vdc.load_info()
         k8s_before_add = len(self.vdc.kubernetes)
+
+        self.info("Calculate the price of added zdb and fund the provisioning wallet.")
+        kubernetes = K8s()
+        kubernetes.size = VDC_SIZE.K8SNodeFlavor.MEDIUM.value
+        # It will be deployed for an hour.
+        price = j.tools.consumption.cost(kubernetes, 60 * 60) + 0.1  # transactions fees.
+        self.vdc.transfer_to_provisioning_wallet(round(price, 6))
 
         self.info("Add kubernetes node")
         wid = self.deployer.add_k8s_nodes("medium")
@@ -173,8 +183,7 @@ class TestVDC(VDCBase):
         pools_expiration_value = self.vdc.get_pools_expiration()
 
         self.info("Renew plan with one day")
-        vdc_price = j.tools.zos.consumption.calculate_vdc_price(self.flavor)
-        needed_tft = float(vdc_price) / 30
+        needed_tft = float(self.vdc_price) / 30 + 0.1  # 0.1 transaction fees
         self.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
         self.deployer.renew_plan(1)
 
@@ -203,7 +212,6 @@ class TestVDC(VDCBase):
         new_wallet_balance = self.vdc.provision_wallet.get_balance().balances[0].balance
         self.assertEqual(float(old_wallet_balance) + tft, float(new_wallet_balance))
 
-    # zbd auto extend should be tested manually
     def test10_extend_zdb(self):
         """Test case for extending zdbs.
 
@@ -211,12 +219,20 @@ class TestVDC(VDCBase):
 
         - Deploy VDC.
         - Get the zdbs total size.
+        - Calculate the price of added zdb and fund the provisioning wallet.
         - Extend zdbs.
         - Check that zdbs has been extended.
         """
         self.info("Get the zdbs total size")
         zdb_monitor = self.vdc.get_zdb_monitor()
         old_zdb_total_size = zdb_monitor.zdb_total_size
+
+        self.info("Calculate the price of added zdb and fund the provisioning wallet.")
+        zdb = ZdbNamespace()
+        zdb.size = 10
+        # In case of all tests runs, it will be deployed for an hour and renewed by a day.
+        price = j.tools.consumption.cost(zdb, 25 * 60 * 60) + 0.1  # transactions fees.
+        self.vdc.transfer_to_provisioning_wallet(round(price, 6))
 
         self.info("Extend zdbs")
         vdc_identity = f"vdc_ident_{self.vdc.solution_uuid}"
