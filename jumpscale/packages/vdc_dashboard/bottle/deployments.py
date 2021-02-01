@@ -178,12 +178,13 @@ def get_zstor_config():
     vdc = _get_vdc()
     vdc_zdb_monitor = vdc.get_zdb_monitor()
     password = vdc_zdb_monitor.get_password()
+    encryption_key = password[:32].encode().zfill(32).hex()
     data = {
         "data_shards": 2,
         "parity_shards": 1,
         "redundant_groups": 0,
         "redundant_nodes": 0,
-        "encryption": {"algorithm": "AES", "key": "",},
+        "encryption": {"algorithm": "AES", "key": encryption_key,},
         "compression": {"algorithm": "snappy",},
         "groups": [],
     }
