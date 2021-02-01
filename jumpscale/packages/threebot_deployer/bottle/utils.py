@@ -338,7 +338,7 @@ def redeploy_threebot_solution(
                     j.logger.debug(f"searching for old subdomain workloads for domain: {domain}")
                     deployed_workloads = zos.workloads.list_workloads(identity.tid, NextAction.DEPLOY)
                     for workload in deployed_workloads:
-                        if not workload.info.workload_type == WorkloadType.Subdomain:
+                        if workload.info.workload_type != WorkloadType.Subdomain:
                             continue
                         if not workload.domain == domain:
                             continue
