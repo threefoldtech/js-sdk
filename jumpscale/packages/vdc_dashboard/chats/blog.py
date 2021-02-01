@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 from jumpscale.packages.vdc_dashboard.chats.publisher import Publisher
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 
