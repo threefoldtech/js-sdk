@@ -103,7 +103,7 @@ const router = new VueRouter({
         { name: "Settings", path: '/settings', component: settings, meta: { icon: "mdi-tune", listed: true } },
         { name: "SolutionChatflow", path: '/solutions/:topic', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
         { name: "Solution", path: '/solutions/workloads/:type', component: solution, props: true, meta: { icon: "mdi-tune" } },
-        { name: "KubernetesNodes", path: '/nodes/:k8sName', component: KubernetesNodes, props: true, meta: { icon: "mdi-tune" } },
+        { name: "KubernetesNodes", path: '/solutions/kubernetes/nodes/:k8sName', component: KubernetesNodes, props: true, meta: { icon: "mdi-tune" } },
         { name: "Terms", path: '/terms', component: terms, meta: { icon: "mdi-apps" } },
         { name: "Disclaimer", path: '/disclaimer', component: disclaimer, meta: { icon: "mdi-apps" } },
         { name: "License", path: '/license', component: license, meta: { icon: "mdi-apps" } },

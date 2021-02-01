@@ -49,6 +49,11 @@ module.exports = {
             name: "Solution",
             params: { type: "network" },
           });
+        } else if (topic === "extend_kube") {
+          this.$router.push({
+            name: "Solution",
+            params: { type: "kubernetes" },
+          });
         } else {
           this.$router.push({
             name: "Solution",

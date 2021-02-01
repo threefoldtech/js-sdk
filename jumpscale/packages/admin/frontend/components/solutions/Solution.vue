@@ -76,7 +76,7 @@
                   </template>
                   <span>Add Access</span>
                 </v-tooltip>
-                <v-tooltip top>
+                <v-tooltip v-if="type == 'kubernetes'" top>
                   <template v-slot:activator="{ on, attrs }">
                     <a @click.stop="goNodesPage(item.Name)">
                       <v-icon v-bind="attrs" v-on="on" color="primary"

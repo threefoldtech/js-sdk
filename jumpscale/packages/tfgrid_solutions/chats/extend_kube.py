@@ -2,6 +2,7 @@ from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow import deployer
 from collections import OrderedDict
+from jumpscale.clients.explorer.models import State
 
 
 class ExtendKubernetesCluster(GedisChatBot):
@@ -56,10 +57,9 @@ class ExtendKubernetesCluster(GedisChatBot):
         metadata = j.data.serializers.json.loads(metadata)
         pool_id = workload.info.pool_id
         old_wids = j.sals.marketplace.solutions.get_workloads_by_uuid(metadata.get("solution_uuid"))
-        old_nodes = [wid.info.node_id for wid in old_wids]
-        nodes, pools = deployer.ask_multi_pool_distribution(self, self.nodes_count, self.node_query)
-
-        nodes_pools_zip = zip(nodes, pools)
+        old_nodes = [wid.info.node_id for wid in old_wids if wid.info.result.state == State.Ok]
+        nodes, pools = deployer.ask_multi_pool_distribution(self, self.nodes_count + len(old_nodes), self.node_query)
+        nodes_pools_zip = list(zip(nodes, pools))
         selected_nodes = list(filter(lambda x: x[0].node_id not in old_nodes, nodes_pools_zip))
         if len(selected_nodes) < self.nodes_count:
             self.stop(
@@ -103,14 +103,12 @@ class ExtendKubernetesCluster(GedisChatBot):
             success = deployer.wait_workload(resv, self)
             if not success:
                 raise DeploymentFailed(
-                    f"Failed to deploy workload {resv}",
-                    solution_uuid=self.solution_id,
-                    wid=resv,
+                    f"Failed to deploy workload {resv}", solution_uuid=self.solution_id, wid=resv,
                 )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        self.md_show(f"Your cluster has been extended successfuly with workload ids: {self.reservations}")
+        self.md_show(f"Your cluster has been extended successfully with workload ids: {self.reservations}")
 
 
 chat = ExtendKubernetesCluster
