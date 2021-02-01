@@ -340,7 +340,7 @@ def redeploy_threebot_solution(
                     for workload in deployed_workloads:
                         if workload.info.workload_type != WorkloadType.Subdomain:
                             continue
-                        if not workload.domain == domain:
+                        if workload.domain != domain:
                             continue
                         j.logger.debug(f"deleting old workload {workload.id}")
                         zos.workloads.decomission(workload.id)
