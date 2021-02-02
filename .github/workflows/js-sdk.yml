@@ -6,8 +6,12 @@ name: js-sdk
 on:
   push:
     branches: [ development ]
+    paths:
+    - '**.py'
   pull_request:
     branches: [ development ]
+    paths:
+    - '**.py'
 
 jobs:
   build:
