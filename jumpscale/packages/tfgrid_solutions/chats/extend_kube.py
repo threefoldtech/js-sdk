@@ -7,7 +7,7 @@ from jumpscale.clients.explorer.models import State
 
 class ExtendKubernetesCluster(GedisChatBot):
     title = "Extend Kubernetes Cluster"
-    steps = ["choose_nodes_cound", "choose_flavor", "add_nodes", "success"]
+    steps = ["choose_nodes_cound", "choose_flavor", "add_public_ip", "add_nodes", "success"]
     KUBERNETES_SIZES = OrderedDict(
         {
             1: {"cru": 1, "mru": 2, "sru": 50},
@@ -49,6 +49,14 @@ class ExtendKubernetesCluster(GedisChatBot):
         self.node_query = self.KUBERNETES_SIZES.get(self.cluster_size)
         self.public_ip = False
 
+    @chatflow_step(title="Public Ip")
+    def add_public_ip(self):
+        choices = ["No", "Yes"]
+        choice = self.single_choice("Do you want to enable public IP", choices, default="No", required=True)
+        self.enable_public_ip = False
+        if choice == "Yes":
+            self.enable_public_ip = True
+
     @chatflow_step(title="Adding nodes")
     def add_nodes(self):
         zos = j.sals.zos.get()
@@ -82,6 +90,13 @@ class ExtendKubernetesCluster(GedisChatBot):
                 raise StopChatFlow(f"No free IPs for network {network_name} on the specifed node" f" {node_id}")
 
             self.md_show_update(f"Deploying worker on node {node}")
+            # Add public ip
+            public_id_wid = 0
+            if self.enable_public_ip:
+                public_id_wid = deployer.get_public_ip(
+                    pool_id, node.node_id, solution_uuid=metadata.get("solution_uuid")
+                )
+
             self.reservations.append(
                 deployer.deploy_kubernetes_worker(
                     pool_id,
@@ -94,7 +109,7 @@ class ExtendKubernetesCluster(GedisChatBot):
                     size=self.cluster_size,
                     identity_name=None,
                     description="",
-                    public_ip_wid=0,
+                    public_ip_wid=public_id_wid,
                     **metadata,
                 )
             )

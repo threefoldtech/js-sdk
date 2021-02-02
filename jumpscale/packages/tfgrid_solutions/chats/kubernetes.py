@@ -12,6 +12,7 @@ class KubernetesDeploy(GedisChatBot):
         "choose_flavor",
         "nodes_selection",
         "network_selection",
+        "add_public_ip",
         "public_key_get",
         "ip_selection",
         "reservation",
@@ -86,6 +87,14 @@ class KubernetesDeploy(GedisChatBot):
     def network_selection(self):
         self.network_view = deployer.select_network(self, self.all_network_viewes)
 
+    @chatflow_step(title="Public Ip")
+    def add_public_ip(self):
+        choices = ["No", "Yes"]
+        choice = self.single_choice("Do you want to enable public IP", choices, default="No", required=True)
+        self.enable_public_ip = False
+        if choice == "Yes":
+            self.enable_public_ip = True
+
     @chatflow_step(title="Access keys and secret")
     def public_key_get(self):
         self.ssh_keys = self.upload_file(
@@ -152,6 +161,7 @@ class KubernetesDeploy(GedisChatBot):
             ip_addresses=self.ip_addresses,
             slave_pool_ids=self.selected_pool_ids[1:],
             solution_uuid=self.solution_id,
+            public_ip=self.enable_public_ip,
             **self.solution_metadata,
         )
 
@@ -166,14 +176,19 @@ class KubernetesDeploy(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
+        ip = self.reservations[0]["ip_address"]
+
+        if self.reservations[0]["public_ip"]:
+            ip = self.reservations[0]["public_ip"]
+
         res = f"""\
         # Kubernetes cluster has been deployed successfully:
         <br />\n
         - Master
-            - IP: {self.reservations[0]["ip_address"]}
-            - To connect: `ssh rancher@{self.reservations[0]["ip_address"]}`
+            - IP: {ip}
+            - To connect: `ssh rancher@{ip}`
+            <br />\n
         <br />\n
-
         """
         res = dedent(res)
         worker_res = ""

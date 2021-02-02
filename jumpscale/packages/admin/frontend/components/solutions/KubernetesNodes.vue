@@ -24,6 +24,11 @@
         <div>{{ item.wid }}</div>
       </template>
 
+      <template v-slot:item.public_ip="{ item }">
+        <div v-if="item.public_ip != '::/128'">{{ item.public_ip }}</div>
+        <div v-else></div>
+      </template>
+
       <template v-slot:item.ip="{ item }">
         <div v-if="item.ip_address != '::/128'">{{ item.ip_address }}</div>
         <div v-else></div>
@@ -102,6 +107,7 @@ module.exports = {
       headers: [
         { text: "WID", value: "wid" },
         { text: "IP Address", value: "ip" },
+        { text: "Public IP", value: "public_ip" },
         { text: "Role", value: "role" },
         { text: "vCPU", value: "vcpu" },
         { text: "Memory", value: "memory" },
