@@ -7,7 +7,7 @@ from jumpscale.clients.explorer.models import State
 
 class ExtendKubernetesCluster(GedisChatBot):
     title = "Extend Kubernetes Cluster"
-    steps = ["choose_nodes_cound", "choose_flavor", "public_ip_enable", "add_nodes", "success"]
+    steps = ["choose_nodes_cound", "choose_flavor", "add_public_ip", "add_nodes", "success"]
     KUBERNETES_SIZES = OrderedDict(
         {
             1: {"cru": 1, "mru": 2, "sru": 50},
@@ -50,7 +50,7 @@ class ExtendKubernetesCluster(GedisChatBot):
         self.public_ip = False
 
     @chatflow_step(title="Public Ip")
-    def public_ip_enable(self):
+    def add_public_ip(self):
         choices = ["No", "Yes"]
         choice = self.single_choice("Do you want to enable public IP", choices, default="No", required=True)
         self.enable_public_ip = False

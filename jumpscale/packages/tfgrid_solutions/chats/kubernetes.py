@@ -12,7 +12,7 @@ class KubernetesDeploy(GedisChatBot):
         "choose_flavor",
         "nodes_selection",
         "network_selection",
-        "public_ip_enable",
+        "add_public_ip",
         "public_key_get",
         "ip_selection",
         "reservation",
@@ -88,7 +88,7 @@ class KubernetesDeploy(GedisChatBot):
         self.network_view = deployer.select_network(self, self.all_network_viewes)
 
     @chatflow_step(title="Public Ip")
-    def public_ip_enable(self):
+    def add_public_ip(self):
         choices = ["No", "Yes"]
         choice = self.single_choice("Do you want to enable public IP", choices, default="No", required=True)
         self.enable_public_ip = False
