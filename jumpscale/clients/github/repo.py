@@ -76,6 +76,11 @@ class GithubRepo:
         return self._labels
 
     @property
+    def branches(self):
+        """list of `Branch` objects"""
+        return list(self.api.get_branches())
+
+    @property
     def stories(self):
         # walk overall issues find the stories (based on type)
         # only for home type repo, otherwise return []
@@ -440,6 +445,10 @@ class GithubRepo:
                     f.write(base64.b64decode(file_content.content).decode())
 
         return j.sals.fs.join_paths(dest, src)
+
+    def get_git_tree(self, sha_or_branch):
+        """return a list of `GitTreeElement` for every element in source tree"""
+        return self.api.get_git_tree(sha_or_branch).tree
 
     def __str__(self):
         return "gitrepo:%s" % self.fullname
