@@ -1,5 +1,6 @@
 from solutions_automation.vdc.dashboard.blog import BlogAutomated
 from solutions_automation.vdc.dashboard.cryptpad import CryptpadAutomated
+from solutions_automation.vdc.dashboard.digibyte import DigibyteAutomated
 from solutions_automation.vdc.dashboard.discourse import DiscourseAutomated
 from solutions_automation.vdc.dashboard.etcd import EtcdAutomated
 from solutions_automation.vdc.dashboard.extend_kubernetes import ExtendKubernetesAutomated
@@ -45,6 +46,26 @@ def deploy_cryptpad(
         sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
         debug=debug,
+    )
+
+
+def deploy_digibyte(
+    release_name,
+    rpc_username,
+    rpc_password,
+    flavor="Silver",
+    sub_domain="Choose subdomain for me on a gateway",
+    custom_sub_domain="",
+    debug=True,
+):
+    return DigibyteAutomated(
+        release_name=release_name,
+        rpc_username=rpc_username,
+        rpc_password=rpc_password,
+        flavor=flavor,
+        sub_domain=sub_domain,
+        custom_sub_domain=custom_sub_domain,
+        debug=True,
     )
 
 

@@ -327,7 +327,27 @@ class VDCDashboard(VDCBase):
         request = j.tools.http.get(f"https://{monitoring.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
-    def test14_ExtendKubernetes(self):
+    def test14_Digibyte(self):
+        """Test case for deploying Digibyte.
+
+        **Test Scenario**
+
+        - Deploy VDC
+        - Deploy Digibyte.
+        - Check that Digibyte is reachable.
+        """
+        self.info("Deploy Digibyte")
+        name = BaseTests.random_name().lower()
+        rpc_username = BaseTests.random_name().lower()
+        rpc_password = BaseTests.random_name().lower()
+        digibyte = deployer.deploy_digibyte(release_name=name, rpc_username=rpc_username, rpc_password=rpc_password,)
+        self.solution = digibyte
+
+        self.info("Check that Digibyte is reachable.")
+        request = j.tools.http.get(f"https://{digibyte.domain}", verify=False, timeout=self.timeout)
+        self.assertEqual(request.status_code, 200)
+
+    def test15_ExtendKubernetes(self):
         """Test case for Extend Kubernetes cluster.
 
         **Test Scenario**

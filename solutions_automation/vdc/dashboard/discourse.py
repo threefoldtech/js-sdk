@@ -4,11 +4,11 @@ from jumpscale.packages.vdc_dashboard.chats.discourse import DiscourseDeploy
 
 class DiscourseAutomated(CommonChatBot, DiscourseDeploy):
     ADMIN_USER_MESSAGE = "Admin username"
-    ADMIN_PASSWORD_MESSAGE = "Admin Password (should be at least 10 characters long)"
+    ADMIN_PASSWORD_MESSAGE = "Admin Password (should be at least 10 characters long, Shouldn't include username)"
     SMTP_HOST_MESSAGE = "SMTP Host"
     SMTP_PORT_MESSAGE = "SMTP Port"
-    SMTP_USERNAME_MESSAGE = "SMTP Username"
-    SMTP_PASSWORD_MESSAGE = "SMTP Password"
+    SMTP_USERNAME_MESSAGE = "Email (SMTP username)"
+    SMTP_PASSWORD_MESSAGE = "Email Password"
 
     QS = {
         ADMIN_USER_MESSAGE: "admin_username",
