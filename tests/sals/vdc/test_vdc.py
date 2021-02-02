@@ -82,7 +82,7 @@ class TestVDC(VDCBase):
         """
         timestamp_after_one_hour = self.timestamp_now + 60 * 60
         cost_per_second = self.vdc_price / (30 * 24 * 60 * 60)
-        time_in_provision_wallet = self.vdc.provision_wallet / cost_per_second
+        time_in_provision_wallet = self.vdc.provision_wallet.get_balance_by_asset() / cost_per_second
         expiration = timestamp_after_one_hour + time_in_provision_wallet
         self.assertLess(int(self.vdc.calculate_expiration_value()) - expiration, 200)
 
@@ -128,7 +128,7 @@ class TestVDC(VDCBase):
         kubernetes.size = VDC_SIZE.K8SNodeFlavor.MEDIUM.value
         # It will be deployed for an hour.
         price = j.tools.zos.consumption.cost(kubernetes, 60 * 60) + 0.1  # transactions fees.
-        self.vdc.transfer_to_provisioning_wallet(round(price, 6))
+        self.vdc.transfer_to_provisioning_wallet(round(price, 6), "test_wallet")
 
         self.info("Add kubernetes node")
         wid = self.deployer.add_k8s_nodes("medium")
@@ -160,8 +160,8 @@ class TestVDC(VDCBase):
         self.vdc.apply_grace_period_action()
 
         self.info("Check that k8s hasn't been reachable")
-        k8s = self.vdc.get_kubernetes_monitor()
-        ip_address = k8s.nodes[0].ip_address
+        self.vdc.load_info()
+        ip_address = self.vdc.kubernetes[0].public_ip
         res = j.sals.nettools.tcp_connection_test(ip_address, port=6443, timeout=20)
         self.assertFalse(res)
 
@@ -235,7 +235,7 @@ class TestVDC(VDCBase):
         zdb.size = 10
         # In case of all tests runs, it will be deployed for an hour and renewed by a day.
         price = j.tools.zos.consumption.cost(zdb, 25 * 60 * 60) + 0.1  # transactions fees.
-        self.vdc.transfer_to_provisioning_wallet(round(price, 6))
+        self.vdc.transfer_to_provisioning_wallet(round(price, 6), "test_wallet")
 
         self.info("Extend zdbs")
         vdc_identity = f"vdc_ident_{self.vdc.solution_uuid}"
