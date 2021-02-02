@@ -179,7 +179,14 @@ class ChatflowSolutions:
                     # Slave Node
                     if workload.master_ips:
                         role = "slave"
-                    node = {"role": role, "wid": workload.id, "ip_address": workload.ipaddress}
+
+                    # Get public ip
+                    public_ip = ""
+                    if workload.public_ip:
+                        workload_public_ip = j.sals.zos.get().workloads.get(workload.public_ip)
+                        public_ip = workload_public_ip.ipaddress.split("/")[0] if workload_public_ip else ""
+
+                    node = {"role": role, "wid": workload.id, "ip_address": workload.ipaddress, "public_ip": public_ip}
                     # Handle Storage object
                     disk_size = self.get_workload_capacity(workload).get("Disk Size")
                     node.update(self.get_workload_capacity(workload))

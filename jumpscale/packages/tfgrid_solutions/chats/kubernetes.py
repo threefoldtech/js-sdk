@@ -89,8 +89,8 @@ class KubernetesDeploy(GedisChatBot):
 
     @chatflow_step(title="Public Ip")
     def public_ip_enable(self):
-        choices = ["Yes", "No"]
-        choice = self.single_choice("Do you want to enable public IP", choices, required=True)
+        choices = ["No", "Yes"]
+        choice = self.single_choice("Do you want to enable public IP", choices, default="No", required=True)
         self.enable_public_ip = False
         if choice == "Yes":
             self.enable_public_ip = True
@@ -176,14 +176,19 @@ class KubernetesDeploy(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
+        ip = self.reservations[0]["ip_address"]
+
+        if self.reservations[0]["public_ip"]:
+            ip = self.reservations[0]["public_ip"]
+
         res = f"""\
         # Kubernetes cluster has been deployed successfully:
         <br />\n
         - Master
-            - IP: {self.reservations[0]["ip_address"]}
-            - To connect: `ssh rancher@{self.reservations[0]["ip_address"]}`
+            - IP: {ip}
+            - To connect: `ssh rancher@{ip}`
+            <br />\n
         <br />\n
-
         """
         res = dedent(res)
         worker_res = ""

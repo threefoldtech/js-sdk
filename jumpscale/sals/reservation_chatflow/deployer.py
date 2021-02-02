@@ -1275,15 +1275,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         try to reserve a public ip on network farm and returns the wid
         """
         solution_uuid = solution_uuid or uuid.uuid4().hex
-        # self.vdc_deployer.info(f"searching for available public ip in farm {self.farm_name}")
         node = j.sals.zos.get()._explorer.nodes.get(node_id)
         farm = j.sals.zos.get()._explorer.farms.get(node.farm_id)
         identity = j.core.identity.me.instance_name
         for farmer_address in self.fetch_available_ips(farm):
             address = farmer_address.address
-            # self.vdc_deployer.info(
-            #     f"attempting to reserve public ip: {address} on farm: {self.farm_name} pool: {pool_id} node: {node_id}"
-            # )
             description = (
                 f"attempting to reserve public ip: {address} on farm: {farm.name} pool: {pool_id} node: {node_id}"
             )
@@ -1291,17 +1287,15 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 pool_id, node_id, address, identity_name=identity, description=description, solution_uuid=solution_uuid,
             )
             try:
-                success = deployer.wait_workload(wid, self.bot, 5, cancel_by_uuid=False, identity_name=identity)
+                success = deployer.wait_workload(wid, bot=None, expiry=5, cancel_by_uuid=False, identity_name=identity)
                 if not success:
                     raise DeploymentFailed(f"public ip workload failed. wid: {wid}")
                 return wid
             except DeploymentFailed as e:
-                self.vdc_deployer.error(
-                    f"failed to reserve public ip {address} on node {node_id} due to error {str(e)}"
-                )
+                raise StopChatFlow(f"failed to reserve public ip {address} on node {node_id} due to error {str(e)}")
                 continue
-        self.vdc_deployer.error(
-            f"all tries to reserve a public ip failed on farm: {self.farm_name} pool: {pool_id} node: {node_id}"
+        raise StopChatFlow(
+            f"all tries to reserve a public ip failed on farm: {farm.name} pool: {pool_id} node: {node_id}"
         )
 
     def deploy_kubernetes_cluster(
@@ -1319,7 +1313,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         **metadata,
     ):
         """
-        deplou k8s cluster with the same number of nodes as specifed in node_ids
+        deploy k8s cluster with the same number of nodes as specified in node_ids
 
         Args:
             pool_id: this one is always used for master.
@@ -1360,8 +1354,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         # Reserve public_Ip on node_id[0]
         public_id_wid = 0
         if public_ip:
-            wid = self.get_public_ip(pool_id, node_ids[0])
-            public_id_wid = wid.id
+            public_id_wid = self.get_public_ip(pool_id, node_ids[0], solution_uuid=metadata.get("solution_uuid"))
 
         master_resv_id = self.deploy_kubernetes_master(
             pool_ids[0],
@@ -1375,7 +1368,19 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             public_ip_wid=public_id_wid,
             **metadata,
         )
-        result.append({"node_id": node_ids[0], "ip_address": master_ip, "reservation_id": master_resv_id})
+        master_public_ip = (
+            j.sals.zos.get().workloads.get(public_id_wid).ipaddress.split("/")[0]
+            if j.sals.zos.get().workloads.get(public_id_wid).ipaddress
+            else ""
+        )
+        result.append(
+            {
+                "node_id": node_ids[0],
+                "ip_address": master_ip,
+                "reservation_id": master_resv_id,
+                "public_ip": master_public_ip,
+            }
+        )
         for i in range(1, len(node_ids)):
             node_id = node_ids[i]
             pool_id = pool_ids[i]
