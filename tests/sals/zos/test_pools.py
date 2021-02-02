@@ -3,8 +3,8 @@ import string
 import time
 
 import pytest
-
 from jumpscale.loader import j
+from tests.base_tests import BaseTests
 
 WALLET_NAME = os.environ.get("WALLET_NAME")
 WALLET_SECRET = os.environ.get("WALLET_SECRET")
@@ -70,7 +70,8 @@ def test01_create_pool_with_funded_wallet():
     user_tft_amount = get_wallet_balance(wallet)
 
     info("Create a pool")
-    pool = zos.pools.create(cu=1, su=1, ipv4us=0, farm="freefarm", currencies=["TFT"])
+    farm = BaseTests.get_farm_name()
+    pool = zos.pools.create(cu=1, su=1, ipv4us=0, farm=farm, currencies=["TFT"])
 
     info("Pay for the pool")
     needed_tft_ammount = amount_paid_to_farmer(pool)
@@ -141,7 +142,8 @@ def test03_create_pool_with_empty_wallet(new_wallet):
     - Check that the pool has been created with empty units.
     """
     info("Create a pool")
-    pool = zos.pools.create(cu=1, su=1, ipv4us=0, farm="freefarm", currencies=["TFT"])
+    farm = BaseTests.get_farm_name()
+    pool = zos.pools.create(cu=1, su=1, ipv4us=0, farm=farm, currencies=["TFT"])
 
     info("Pay for the pool, should fail")
     with pytest.raises(Exception) as e:

@@ -42,10 +42,11 @@ class PoolsTests(BaseTest):
         su = j.data.idgenerator.random_int(1, 2)
         time_unit = "Day"
         time_to_live = j.data.idgenerator.random_int(1, 2)
+        farm = self.get_farm_name().capitalize()
         pools.create(
             name=pool_name,
             wallet_name=self.wallet_name,
-            farm="Freefarm",
+            farm=farm,
             cu=cu,
             su=su,
             duration_unit=time_unit,
@@ -79,7 +80,8 @@ class PoolsTests(BaseTest):
         pool_name = self.random_name().lower()
         pools = PoolsSolution(self.driver)
         pools.load()
-        pools.create(name=pool_name, wallet_name=self.wallet_name, farm="Freefarm")
+        farm = self.get_farm_name()
+        pools.create(name=pool_name, wallet_name=self.wallet_name, farm=farm)
 
         self.info("Extend this pool")
         cu = j.data.idgenerator.random_int(0, 2)
@@ -122,7 +124,8 @@ class PoolsTests(BaseTest):
         pool_name = self.random_name().lower()
         pools = PoolsSolution(self.driver)
         pools.load()
-        pools.create(name=pool_name, wallet_name=self.wallet_name, farm="Freefarm")
+        farm = self.get_farm_name()
+        pools.create(name=pool_name, wallet_name=self.wallet_name, farm=farm)
 
         self.info("Check that the pool has been created in the pools card")
         test_pools = Pools(self.driver)

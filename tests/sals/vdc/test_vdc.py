@@ -238,7 +238,8 @@ class TestVDC(VDCBase):
         vdc_identity = f"vdc_ident_{self.vdc.solution_uuid}"
         if j.core.identity.find(vdc_identity):
             j.core.identity.set_default(vdc_identity)
-        zdb_monitor.extend(10, ["freefarm"])
+        farm = self.get_farm_name()
+        zdb_monitor.extend(10, [farm])
 
         self.info("Check that zdbs has been extended")
         self.vdc.load_info()
