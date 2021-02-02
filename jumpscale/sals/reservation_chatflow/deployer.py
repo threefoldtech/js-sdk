@@ -1353,8 +1353,14 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         master_ip = ip_addresses[0]
         # Reserve public_Ip on node_id[0]
         public_id_wid = 0
+        master_public_ip = ""
         if public_ip:
             public_id_wid = self.get_public_ip(pool_id, node_ids[0], solution_uuid=metadata.get("solution_uuid"))
+            master_public_ip = (
+                j.sals.zos.get().workloads.get(public_id_wid).ipaddress.split("/")[0]
+                if j.sals.zos.get().workloads.get(public_id_wid).ipaddress
+                else ""
+            )
 
         master_resv_id = self.deploy_kubernetes_master(
             pool_ids[0],
@@ -1368,11 +1374,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             public_ip_wid=public_id_wid,
             **metadata,
         )
-        master_public_ip = (
-            j.sals.zos.get().workloads.get(public_id_wid).ipaddress.split("/")[0]
-            if j.sals.zos.get().workloads.get(public_id_wid).ipaddress
-            else ""
-        )
+
         result.append(
             {
                 "node_id": node_ids[0],
