@@ -3,11 +3,14 @@
 
 name: js-sdk-full
 
-on:
-  schedule:
-    - cron:  '0 0 * * *'
-  workflow_dispatch:
+# on:
+#   schedule:
+#     - cron:  '0 0 * * *'
+#   workflow_dispatch:
 
+on:
+  push:
+  branches: [ development_full_workflow ]
 
 jobs:
   build:
