@@ -81,7 +81,10 @@ class TestVDC(VDCBase):
         - Check expiration value after one hour.
         """
         timestamp_after_one_hour = self.timestamp_now + 60 * 60
-        self.assertLess(int(self.vdc.calculate_expiration_value()) - timestamp_after_one_hour, 200)
+        cost_per_second = self.vdc_price / (30 * 24 * 60 * 60)
+        time_in_provision_wallet = self.vdc.provision_wallet / cost_per_second
+        expiration = timestamp_after_one_hour + time_in_provision_wallet
+        self.assertLess(int(self.vdc.calculate_expiration_value()) - expiration, 200)
 
     def test04_is_empty(self):
         """Test case for checking that deployed vdc is not empty.
@@ -124,7 +127,7 @@ class TestVDC(VDCBase):
         kubernetes = K8s()
         kubernetes.size = VDC_SIZE.K8SNodeFlavor.MEDIUM.value
         # It will be deployed for an hour.
-        price = j.tools.consumption.cost(kubernetes, 60 * 60) + 0.1  # transactions fees.
+        price = j.tools.zos.consumption.cost(kubernetes, 60 * 60) + 0.1  # transactions fees.
         self.vdc.transfer_to_provisioning_wallet(round(price, 6))
 
         self.info("Add kubernetes node")
@@ -231,7 +234,7 @@ class TestVDC(VDCBase):
         zdb = ZdbNamespace()
         zdb.size = 10
         # In case of all tests runs, it will be deployed for an hour and renewed by a day.
-        price = j.tools.consumption.cost(zdb, 25 * 60 * 60) + 0.1  # transactions fees.
+        price = j.tools.zos.consumption.cost(zdb, 25 * 60 * 60) + 0.1  # transactions fees.
         self.vdc.transfer_to_provisioning_wallet(round(price, 6))
 
         self.info("Extend zdbs")
