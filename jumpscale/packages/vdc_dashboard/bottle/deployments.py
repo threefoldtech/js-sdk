@@ -186,6 +186,13 @@ def get_zstor_config():
         "redundant_nodes": 0,
         "encryption": {"algorithm": "AES", "key": encryption_key,},
         "compression": {"algorithm": "snappy",},
+        "meta": {
+            "type": "etcd",
+            "config": {
+                "endpoints": ["http://127.0.0.1:2379", "http://127.0.0.1:22379", "http://127.0.0.1:32379"],
+                "prefix": "someprefix",
+            },
+        },
         "groups": [],
     }
     for zdb in vdc.s3.zdbs:
