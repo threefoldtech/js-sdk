@@ -10,7 +10,7 @@ name: js-sdk-full
 
 on:
   push:
-  branches: [ development_full_workflow ]
+    branches: [ development_full_workflow ]
 
 jobs:
   build:
