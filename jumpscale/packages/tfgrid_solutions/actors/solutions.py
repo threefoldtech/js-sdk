@@ -115,11 +115,12 @@ class Solutions(BaseActor):
 
     @actor_method
     def cancel_workload(self, wid) -> bool:
-        workload = j.sals.zos.get().workloads.get(wid)
+        zos = j.sals.zos.get()
+        workload = zos.workloads.get(wid)
         # Delete public ip
         if workload.public_ip:
-            j.sals.zos.get().workloads.decomission(workload.public_ip)
-        j.sals.zos.get().workloads.decomission(wid)
+            zos.workloads.decomission(workload.public_ip)
+        zos.workloads.decomission(wid)
         return True
 
     @actor_method

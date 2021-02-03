@@ -1275,8 +1275,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         try to reserve a public ip on network farm and returns the wid
         """
         solution_uuid = solution_uuid or uuid.uuid4().hex
-        node = j.sals.zos.get()._explorer.nodes.get(node_id)
-        farm = j.sals.zos.get()._explorer.farms.get(node.farm_id)
+        zos = j.sals.zos.get()
+        node = zos._explorer.nodes.get(node_id)
+        farm = zos._explorer.farms.get(node.farm_id)
         identity = j.core.identity.me.instance_name
         for farmer_address in self.fetch_available_ips(farm):
             address = farmer_address.address
