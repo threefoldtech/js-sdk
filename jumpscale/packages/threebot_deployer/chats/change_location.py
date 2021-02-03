@@ -128,12 +128,16 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         farm_name = None
         for pool in pools:
             try:
-                farm = deployer.get_pool_farm_name(pool=pool)
+                pool_farm = deployer.get_pool_farm_name(pool=pool)
             except requests.exceptions.HTTPError:
                 continue
-            if self._empty_pool(pool) and self._contains_node(pool, self.selected_node) and farm in farms:
+            if (
+                self._empty_pool(pool)
+                and self._contains_node(pool, self.selected_node)
+                and [1 for farm in farms if farm.name == pool_farm]
+            ):
                 max_pool = self._max_pool(max_pool, pool)
-                farm_name = farm
+                farm_name = pool_farm
         return farm_name, max_pool
 
     @chatflow_step("Reserving a new pool")
