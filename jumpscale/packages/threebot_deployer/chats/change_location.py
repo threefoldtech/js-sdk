@@ -119,14 +119,18 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
             return True
         return node.node_id in pool.node_ids
 
-    def _find_free_pool_in_farm(self, farm_name):
-        zos = j.sals.zos.get()
+    def _find_free_pool_in_farm(self, zos, farms):
+        instance = USER_THREEBOT_FACTORY.get(f"threebot_{self.threebot_info['solution_uuid']}")
+        zos = get_threebot_zos(instance)
         pools = zos.pools.list()
         max_pool = None
+        farm_name = None
         for pool in pools:
-            if self._empty_pool(pool) and self._contains_node(pool, self.selected_node):
+            farm = deployer.get_pool_farm_name(pool=pool)
+            if self._empty_pool(pool) and self._contains_node(pool, self.selected_node) and farm in farms:
                 max_pool = self._max_pool(max_pool, pool)
-        return max_pool
+                farm_name = farm
+        return farm_name, max_pool
 
     @chatflow_step("Reserving a new pool")
     def create_pool(self):
@@ -135,12 +139,12 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         zos = get_threebot_zos(threebot)
         identity = generate_user_identity(threebot, self.password, zos)
         zos = j.sals.zos.get(identity.instance_name)
-        farm = random.choice(self.available_farms)
-        farm_name = farm.name
-        existent_pool = self._find_free_pool_in_farm(farm_name)
+        farm_name, existent_pool = self._find_free_pool_in_farm(zos, self.available_farms)
         if existent_pool is not None:
             self.pool_id = existent_pool.pool_id
         else:
+            farm = random.choice(self.available_farms)
+            farm_name = farm.name
             self.pool_info = deployer.create_3bot_pool(
                 farm_name, self.expiration, currency=self.currency, identity_name=identity.instance_name, **self.query,
             )
