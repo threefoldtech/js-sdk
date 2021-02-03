@@ -47,7 +47,8 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="New Expiration")
     def new_expiration(self):
         self.pool = j.sals.zos.get().pools.get(self.pool_id)
-        cu, su = deployer._calculate_cloud_units(**self.query)
+        cloud_units = deployer._calculate_cloud_units(**self.query)
+        cu, su = cloud_units.cu, cloud_units.su
         # guard in case of extending of 0 will raise zero division
         if not cu:
             cu = 1
