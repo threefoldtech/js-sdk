@@ -39,8 +39,15 @@ class PoolChatflows(ChatflowsBase):
         su = j.data.idgenerator.random_int(1, 2)
         time_unit = "Day"
         time_to_live = j.data.idgenerator.random_int(1, 2)
+        farm = self.get_farm_name().capitalize()
         pool = deployer.create_pool(
-            solution_name=name, cu=cu, su=su, time_unit=time_unit, time_to_live=time_to_live, wallet_name="demos_wallet"
+            solution_name=name,
+            farm=farm,
+            cu=cu,
+            su=su,
+            time_unit=time_unit,
+            time_to_live=time_to_live,
+            wallet_name="demos_wallet",
         )
 
         self.info("Check that the pool has been created with the same units.")
@@ -62,7 +69,8 @@ class PoolChatflows(ChatflowsBase):
         """
         self.info("Create a pool with some CU and SU units.")
         name = self.random_name()
-        pool = deployer.create_pool(solution_name=name, wallet_name="demos_wallet")
+        farm = self.get_farm_name().capitalize()
+        pool = deployer.create_pool(solution_name=name, wallet_name="demos_wallet", farm=farm)
         pool_id = pool.pool_data.reservation_id
 
         self.info("Extend the pool has been created.")

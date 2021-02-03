@@ -1,5 +1,7 @@
 import pytest
+from jumpscale.clients.explorer.models import K8s, ZdbNamespace
 from jumpscale.loader import j
+from jumpscale.sals.vdc.size import VDC_SIZE
 from parameterized import parameterized_class
 
 from .vdc_base import VDCBase
@@ -79,7 +81,10 @@ class TestVDC(VDCBase):
         - Check expiration value after one hour.
         """
         timestamp_after_one_hour = self.timestamp_now + 60 * 60
-        self.assertLess(int(self.vdc.calculate_expiration_value()) - timestamp_after_one_hour, 200)
+        cost_per_second = self.vdc_price / (30 * 24 * 60 * 60)
+        time_in_provision_wallet = self.vdc.provision_wallet.get_balance_by_asset() / cost_per_second
+        expiration = timestamp_after_one_hour + time_in_provision_wallet
+        self.assertLess(int(self.vdc.calculate_expiration_value()) - expiration, 200)
 
     def test04_is_empty(self):
         """Test case for checking that deployed vdc is not empty.
@@ -109,6 +114,7 @@ class TestVDC(VDCBase):
         **Test Scenario**
 
         - Deploy VDC.
+        - Calculate the price of added zdb and fund the provisioning wallet.
         - Add kubernetes node.
         - Check that the node has been added.
         - Delete this node.
@@ -116,6 +122,13 @@ class TestVDC(VDCBase):
         """
         self.vdc.load_info()
         k8s_before_add = len(self.vdc.kubernetes)
+
+        self.info("Calculate the price of added zdb and fund the provisioning wallet.")
+        kubernetes = K8s()
+        kubernetes.size = VDC_SIZE.K8SNodeFlavor.MEDIUM.value
+        # It will be deployed for an hour.
+        price = j.tools.zos.consumption.cost(kubernetes, 60 * 60) + 0.1  # transactions fees.
+        self.vdc.transfer_to_provisioning_wallet(round(price, 6), "test_wallet")
 
         self.info("Add kubernetes node")
         wid = self.deployer.add_k8s_nodes("medium")
@@ -147,8 +160,8 @@ class TestVDC(VDCBase):
         self.vdc.apply_grace_period_action()
 
         self.info("Check that k8s hasn't been reachable")
-        k8s = self.vdc.get_kubernetes_monitor()
-        ip_address = k8s.nodes[0].ip_address
+        self.vdc.load_info()
+        ip_address = self.vdc.kubernetes[0].public_ip
         res = j.sals.nettools.tcp_connection_test(ip_address, port=6443, timeout=20)
         self.assertFalse(res)
 
@@ -173,8 +186,7 @@ class TestVDC(VDCBase):
         pools_expiration_value = self.vdc.get_pools_expiration()
 
         self.info("Renew plan with one day")
-        vdc_price = j.tools.zos.consumption.calculate_vdc_price(self.flavor)
-        needed_tft = float(vdc_price) / 30
+        needed_tft = float(self.vdc_price) / 30 + 0.1  # 0.1 transaction fees
         self.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
         self.deployer.renew_plan(1)
 
@@ -203,7 +215,6 @@ class TestVDC(VDCBase):
         new_wallet_balance = self.vdc.provision_wallet.get_balance().balances[0].balance
         self.assertEqual(float(old_wallet_balance) + tft, float(new_wallet_balance))
 
-    # zbd auto extend should be tested manually
     def test10_extend_zdb(self):
         """Test case for extending zdbs.
 
@@ -211,6 +222,7 @@ class TestVDC(VDCBase):
 
         - Deploy VDC.
         - Get the zdbs total size.
+        - Calculate the price of added zdb and fund the provisioning wallet.
         - Extend zdbs.
         - Check that zdbs has been extended.
         """
@@ -218,11 +230,19 @@ class TestVDC(VDCBase):
         zdb_monitor = self.vdc.get_zdb_monitor()
         old_zdb_total_size = zdb_monitor.zdb_total_size
 
+        self.info("Calculate the price of added zdb and fund the provisioning wallet.")
+        zdb = ZdbNamespace()
+        zdb.size = 10
+        # In case of all tests runs, it will be deployed for an hour and renewed by a day.
+        price = j.tools.zos.consumption.cost(zdb, 25 * 60 * 60) + 0.1  # transactions fees.
+        self.vdc.transfer_to_provisioning_wallet(round(price, 6), "test_wallet")
+
         self.info("Extend zdbs")
         vdc_identity = f"vdc_ident_{self.vdc.solution_uuid}"
         if j.core.identity.find(vdc_identity):
             j.core.identity.set_default(vdc_identity)
-        zdb_monitor.extend(10, ["freefarm"])
+        farm = self.get_farm_name()
+        zdb_monitor.extend(10, [farm])
 
         self.info("Check that zdbs has been extended")
         self.vdc.load_info()

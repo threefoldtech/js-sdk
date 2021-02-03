@@ -70,8 +70,8 @@ class VDCBase(BaseTests):
         cls.vdc = j.sals.vdc.new(cls.vdc_name, cls.tname, cls.flavor)
 
         cls.info("Transfer needed TFT to deploy vdc for an hour to the provisioning wallet.")
-        vdc_price = j.tools.zos.consumption.calculate_vdc_price(cls.flavor)
-        needed_tft = float(vdc_price) / 24 / 30 + 0.2  # 0.2 transaction fees for creating the pool and extend it
+        cls.vdc_price = j.tools.zos.consumption.calculate_vdc_price(cls.flavor)
+        needed_tft = float(cls.vdc_price) / 24 / 30 + 0.2  # 0.2 transaction fees for creating the pool and extend it
         cls.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
 
         cls.info("Deploy VDC.")

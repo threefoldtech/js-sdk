@@ -26,6 +26,8 @@ POD_INITIALIZING_TIMEOUT = 120
 
 
 class SolutionsChatflowDeploy(GedisChatBot):
+    CHART_NAME = None
+
     def _init_solution(self):
         # TODO: te be removed
         self.user_info_data = self.user_info()
@@ -371,6 +373,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
             # subdomain selected on gateway on preferred farm
             self.chart_config.update({"global.ingress.certresolver": "gridca"})
 
+    @property
+    def chart_name(self):
+        return self.CHART_NAME or self.SOLUTION_TYPE
+
     @chatflow_step(title="Installation")
     def install_chart(self):
         try:
@@ -384,15 +390,16 @@ class SolutionsChatflowDeploy(GedisChatBot):
             )
         self.k8s_client.update_repos()
         self.chart_config.update({"solution_uuid": self.solution_id})
+
         self.k8s_client.install_chart(
             release=self.release_name,
-            chart_name=f"{self.HELM_REPO_NAME}/{self.SOLUTION_TYPE}",
+            chart_name=f"{self.HELM_REPO_NAME}/{self.chart_name}",
             extra_config=self.chart_config,
         )
 
     def chart_pods_started(self):
         pods_status_info = self.k8s_client.execute_native_cmd(
-            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.SOLUTION_TYPE} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.phase}}'"
+            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.phase}}'"
         )
         if "Pending" in pods_status_info:
             return False
@@ -403,7 +410,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     def chart_resource_failure(self):
         pods_info = self.k8s_client.execute_native_cmd(
-            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.SOLUTION_TYPE} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[*].message}}'"
+            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[*].message}}'"
         )  # Gets the last event message
         if "Insufficient" in pods_info:
             return True

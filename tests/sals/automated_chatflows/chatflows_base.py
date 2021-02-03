@@ -25,7 +25,7 @@ class ChatflowsBase(BaseTests):
         cls.email = os.environ.get("EMAIL")
         cls.words = os.environ.get("WORDS")
         cls.wallet_secret = os.environ.get("WALLET_SECRET")
-        cls.explorer_url = "https://explorer.testnet.grid.tf/api/v1"
+        cls.explorer_url = "https://explorer.devnet.grid.tf/api/v1"
         if not all([cls.tname, cls.email, cls.words, cls.wallet_secret]):
             raise Exception(
                 "Please add (TNAME, EMAIL, WORDS) of your 3bot identity and WALLET_SECRET as environment variables"

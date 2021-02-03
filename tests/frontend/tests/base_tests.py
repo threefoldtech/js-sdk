@@ -15,14 +15,14 @@ from tests.frontend.pages.base import Base
 class BaseTest(BaseTests):
     @classmethod
     def setUpClass(cls):
-        # Set auto login config to disable TF Connect login.
+        # Set auto login config to disable Threefold Connect login.
         j.core.config.set("AUTO_LOGIN", True)
 
         # Get environment variables to create identity.
         cls.tname = os.environ.get("TNAME")
         cls.email = os.environ.get("EMAIL")
         cls.words = os.environ.get("WORDS")
-        cls.explorer_url = "https://explorer.testnet.grid.tf/api/v1"
+        cls.explorer_url = "https://explorer.devnet.grid.tf/api/v1"
         if not all([cls.tname, cls.email, cls.words]):
             raise Exception("Please add (TNAME, EMAIL, WORDS) of your 3bot identity as environment variables")
 

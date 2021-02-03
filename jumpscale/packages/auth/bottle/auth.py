@@ -25,7 +25,7 @@ env = j.tools.jinja2.get_env(templates_path)
 
 @app.route("/login")
 def login():
-    """List available providers for login and redirect to the selected provider (TF Connect)
+    """List available providers for login and redirect to the selected provider (Threefold Connect)
 
     Returns:
         Renders the template of login page

@@ -25,7 +25,7 @@ Parameters:
   - Mainnet: `https://explorer.grid.tf/explorer/`
   - Devnet: `https://explorer.devnet.grid.tf/api/v1/`
 
-It's really recommended to use tname, email, words from TF Connect application .
+It's really recommended to use tname, email, words from Threefold Connect application .
 
 ## To register your identity in TFGrid
 
