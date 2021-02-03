@@ -1,6 +1,7 @@
 import ipaddress
 from datetime import datetime
 from enum import Enum
+from collections import OrderedDict
 
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
@@ -420,9 +421,8 @@ class K8s(Base):
     public_ip = fields.Integer()
     stats_aggregator = fields.List(fields.Object(Statsaggregator))
     info = fields.Object(ReservationInfo)
-
-    def resource_units(self):
-        size_table = {
+    SIZES = OrderedDict(
+        {
             1: {"cru": 1, "mru": 2, "sru": 50},
             2: {"cru": 2, "mru": 4, "sru": 100},
             3: {"cru": 2, "mru": 8, "sru": 25},
@@ -442,9 +442,12 @@ class K8s(Base):
             17: {"cru": 4, "mru": 8, "sru": 50},
             18: {"cru": 1, "mru": 1, "sru": 25},
         }
+    )
+
+    def resource_units(self):
 
         resource_units = ResourceUnitAmount()
-        size = size_table.get(self.size)
+        size = self.SIZES.get(self.size)
         if not size:
             raise j.exceptions.Input(f"kubernetes size {self.size} not supported")
 

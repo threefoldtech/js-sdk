@@ -1,7 +1,6 @@
 from jumpscale.loader import j
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
-
-K8S_SIZES = {1: {"CPU": 1, "Memory": 2048, "Disk Size": "50GiB"}, 2: {"CPU": 2, "Memory": 4096, "Disk Size": "100GiB"}}
+from jumpscale.clients.explorer.models import K8s
 
 
 class ChatflowSolutions:
@@ -148,7 +147,6 @@ class ChatflowSolutions:
                         "Slave Pools": [],
                         "Master Pool": workload.info.pool_id,
                     }
-                    result[name].update(self.get_workload_capacity(workload))
                     if workload.master_ips:
                         result[name]["Slave IPs"].append(workload.ipaddress)
         return list(result.values())
@@ -445,7 +443,8 @@ class ChatflowSolutions:
             result["RootFS Type"] = workload.capacity.disk_type.name
             result["RootFS Size"] = workload.capacity.disk_size
         elif workload.info.workload_type == WorkloadType.Kubernetes:
-            result.update(K8S_SIZES.get(workload.size, {}))
+            size = K8s.SIZES.get(workload.size, {})
+            result.update({"CPU": size.get("cru"), "Memory": size.get("mru"), "Disk Size": size.get("sru")})
         elif workload.info.workload_type == WorkloadType.Volume:
             result["Size"] = workload.size * 1024
             result["Type"] = workload.type.name
