@@ -171,7 +171,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Deployment location policy")
     def choose_location(self):
-        self._get_available_farms()
+        self._get_available_farms(only_one=False)
         self.farms_by_continent = deployer.group_farms_by_continent(self.available_farms)
         choices = ["Automatic", "Farm", "Specific node"]
         if self.farms_by_continent:
