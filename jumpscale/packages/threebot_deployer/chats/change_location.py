@@ -121,8 +121,11 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         return node.node_id in pool.node_ids
 
     def _find_free_pool_in_farm(self, zos, farms):
-        instance = USER_THREEBOT_FACTORY.get(f"threebot_{self.threebot_info['solution_uuid']}")
-        zos = get_threebot_zos(instance)
+        owner = self.threebot_name
+        threebot = get_threebot_config_instance(owner, self.threebot_info["solution_uuid"])
+        zos = get_threebot_zos(threebot)
+        identity = generate_user_identity(threebot, self.password, zos)
+        zos = j.sals.zos.get(identity.instance_name)
         pools = zos.pools.list()
         max_pool = None
         farm_name = None
@@ -140,7 +143,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
                 farm_name = pool_farm
         return farm_name, max_pool
 
-    @chatflow_step("Reserving a new pool")
+    @chatflow_step("Reserving a pool")
     def create_pool(self):
         owner = self.threebot_name
         threebot = get_threebot_config_instance(owner, self.threebot_info["solution_uuid"])
