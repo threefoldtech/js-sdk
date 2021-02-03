@@ -140,12 +140,12 @@ Test case for deploying Digibyte.
 
 ### test15_ExtendKubernetes
 
-Test case for Extend Kubernetes cluster.
+Test case for extending Kubernetes cluster.
 
 **Test Scenario**
 
 - Deploy VDC.
-- Get Number of Nodes before extend.
+- Get the number of nodes before extending.
 - Extend Kubernetes cluster.
-- Get Number of Nodes after extend.
-- Check that node added.
+- Get the number of nodes after extending.
+- Check that node has been added.

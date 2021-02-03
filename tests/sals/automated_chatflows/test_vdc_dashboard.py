@@ -36,7 +36,7 @@ class VDCDashboard(VDCBase):
 
     def setUp(self):
         self.solution = None
-        return super().setUp()
+        super().setUp()
 
     def tearDown(self):
         if self.solution:
@@ -63,15 +63,15 @@ class VDCDashboard(VDCBase):
         - Check that the wiki is reachable.
         """
         self.info("Deploy a wiki.")
-        name = BaseTests.random_name().lower()
-        title = BaseTests.random_name().lower()
+        name = self.random_name().lower()
+        title = self.random_name().lower()
         repo = "https://github.com/threefoldfoundation/info_tfgrid_sdk"
         branch = "development"
         wiki = deployer.deploy_wiki(release_name=name, title=title, url=repo, branch=branch)
         self.solution = wiki
 
         self.info("Check that the wiki is reachable.")
-        request = j.tools.http.get(f"https://{wiki.domain}", verify=False, timeout=self.timeout)
+        request = j.tools.http.get(f"https://{wiki.domain}", timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
     def test02_blog(self):
@@ -84,15 +84,15 @@ class VDCDashboard(VDCBase):
         - Check that the blog is reachable.
         """
         self.info("Deploy blog.")
-        name = BaseTests.random_name().lower()
-        title = BaseTests.random_name().lower()
+        name = self.random_name().lower()
+        title = self.random_name().lower()
         repo = "https://github.com/threefoldfoundation/www_tfblog"
         branch = "development"
         blog = deployer.deploy_blog(release_name=name, title=title, url=repo, branch=branch)
         self.solution = blog
 
         self.info("Check that the blog is reachable.")
-        request = j.tools.http.get(f"https://{blog.domain}", verify=False, timeout=self.timeout)
+        request = j.tools.http.get(f"https://{blog.domain}", timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
     def test03_website(self):
@@ -105,15 +105,15 @@ class VDCDashboard(VDCBase):
         - Check that the website is reachable.
         """
         self.info("Deploy a website")
-        name = BaseTests.random_name().lower()
-        title = BaseTests.random_name().lower()
+        name = self.random_name().lower()
+        title = self.random_name().lower()
         repo = "https://github.com/threefoldfoundation/www_tffoundation"
         branch = "development"
         website = deployer.deploy_website(release_name=name, title=title, url=repo, branch=branch)
         self.solution = website
 
         self.info("Check that the website is reachable.")
-        request = j.tools.http.get(f"https://{website.domain}", verify=False, timeout=self.timeout)
+        request = j.tools.http.get(f"https://{website.domain}", timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
     def test04_cryptpad(self):
@@ -126,12 +126,12 @@ class VDCDashboard(VDCBase):
         - Check that Cryptpad is reachable.
         """
         self.info("Deploy Cryptpad")
-        name = BaseTests.random_name().lower()
+        name = self.random_name().lower()
         cryptpad = deployer.deploy_cryptpad(release_name=name)
         self.solution = cryptpad
 
         self.info("Check that Cryptpad is reachable")
-        request = j.tools.http.get(f"https://{cryptpad.domain}", verify=False, timeout=self.timeout)
+        request = j.tools.http.get(f"https://{cryptpad.domain}", timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
     def test05_gitea(self):
@@ -144,12 +144,12 @@ class VDCDashboard(VDCBase):
         - Check that Gitea is reachable.
         """
         self.info("Deploy Gitea")
-        name = BaseTests.random_name().lower()
+        name = self.random_name().lower()
         gitea = deployer.deploy_gitea(release_name=name)
         self.solution = gitea
 
         self.info("Check that Gitea is reachable.")
-        request = j.tools.http.get(f"https://{gitea.domain}", verify=False, timeout=self.timeout)
+        request = j.tools.http.get(f"https://{gitea.domain}", timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
     def test06_discourse(self):
@@ -162,13 +162,13 @@ class VDCDashboard(VDCBase):
         - Check that Discourse is reachable.
         """
         self.info("Deploy Discourse")
-        name = BaseTests.random_name().lower()
-        admin_username = BaseTests.random_name().lower()
-        admin_password = BaseTests.random_name().lower()
+        name = self.random_name().lower()
+        admin_username = self.random_name().lower()
+        admin_password = self.random_name().lower()
         smtp_host = j.data.fake.email()
         smtp_port = "587"
-        smtp_username = BaseTests.random_name().lower()
-        smtp_password = BaseTests.random_name().lower()
+        smtp_username = self.random_name().lower()
+        smtp_password = self.random_name().lower()
         discourse = deployer.deploy_discourse(
             release_name=name,
             admin_username=admin_username,
@@ -180,7 +180,7 @@ class VDCDashboard(VDCBase):
         )
         self.solution = discourse
         self.info("Check that Discourse is reachable.")
-        request = j.tools.http.get(f"https://{discourse.domain}", verify=False, timeout=self.timeout)
+        request = j.tools.http.get(f"https://{discourse.domain}", timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
     def test07_ETCD(self):
@@ -193,7 +193,7 @@ class VDCDashboard(VDCBase):
         - Check that ETCD add data correctly.
         """
         self.info("Deploy ETCD")
-        name = BaseTests.random_name().lower()
+        name = self.random_name().lower()
         etcd = deployer.deploy_etcd(release_name=name)
         self.solution = etcd
 
@@ -204,8 +204,7 @@ class VDCDashboard(VDCBase):
             rc, put_hello, err = j.sals.kubernetes.Manager._execute(
                 f"kubectl --kubeconfig {self.kube_manager.config_path} exec -it {name}-etcd-0 -- etcdctl put message Hello"
             )
-            if not put_hello == "":
-                is_ready = True
+            if put_hello:
                 break
             gevent.sleep(2)
         self.assertEqual(put_hello.count("OK"), 1)
@@ -220,13 +219,13 @@ class VDCDashboard(VDCBase):
         - Check that Kubeapps is reachable.
         """
         self.info("Deploy Kubeapps")
-        name = BaseTests.random_name().lower()
+        name = self.random_name().lower()
         kubeapps = deployer.deploy_kubeapps(release_name=name)
         self.solution_uuid = kubeapps.solution_id
         self.solution = kubeapps
 
         self.info("Check that Kubeapps is reachable.")
-        request = j.tools.http.get(f"https://{kubeapps.domain}", verify=False, timeout=self.timeout)
+        request = j.tools.http.get(f"https://{kubeapps.domain}", timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
     def test09_Peertube(self):
@@ -239,12 +238,12 @@ class VDCDashboard(VDCBase):
         - Check that Peertube is reachable.
         """
         self.info("Deploy Peertube")
-        name = BaseTests.random_name().lower()
+        name = self.random_name().lower()
         peertube = deployer.deploy_peertube(release_name=name)
         self.solution = peertube
 
         self.info("Check that Peertube is reachable.")
-        request = j.tools.http.get(f"https://{peertube.domain}", verify=False, timeout=self.timeout)
+        request = j.tools.http.get(f"https://{peertube.domain}", timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
     def test10_Taiga(self):
@@ -257,12 +256,12 @@ class VDCDashboard(VDCBase):
         - Check that Taiga is reachable.
         """
         self.info("Deploy Taiga")
-        name = BaseTests.random_name().lower()
+        name = self.random_name().lower()
         taiga = deployer.deploy_taiga(release_name=name)
         self.solution = taiga
 
         self.info("Check that Taiga is reachable.")
-        request = j.tools.http.get(f"https://{taiga.domain}", verify=False, timeout=self.timeout)
+        request = j.tools.http.get(f"https://{taiga.domain}", timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
     def test11_Mattermost(self):
@@ -275,10 +274,10 @@ class VDCDashboard(VDCBase):
         - Check that Mattermost is reachable.
         """
         self.info("Deploy Mattermost")
-        name = BaseTests.random_name().lower()
-        mysql_username = BaseTests.random_name().lower()
-        mysql_password = BaseTests.random_name().lower()
-        mysql_root_password = BaseTests.random_name().lower()
+        name = self.random_name().lower()
+        mysql_username = self.random_name().lower()
+        mysql_password = self.random_name().lower()
+        mysql_root_password = self.random_name().lower()
         mattermost = deployer.deploy_mattermost(
             release_name=name,
             mysql_username=mysql_username,
@@ -288,7 +287,7 @@ class VDCDashboard(VDCBase):
         self.solution = mattermost
 
         self.info("Check that Mattermost is reachable.")
-        request = j.tools.http.get(f"https://{mattermost.domain}", verify=False, timeout=self.timeout)
+        request = j.tools.http.get(f"https://{mattermost.domain}", timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
     def test12_ZeroCI(self):
@@ -301,12 +300,12 @@ class VDCDashboard(VDCBase):
         - Check that ZeroCI is reachable.
         """
         self.info("Deploy ZeroCI")
-        name = BaseTests.random_name().lower()
+        name = self.random_name().lower()
         zeroci = deployer.deploy_zeroci(release_name=name)
         self.solution = zeroci
 
         self.info("Check that ZeroCI is reachable.")
-        request = j.tools.http.get(f"https://{zeroci.domain}", verify=False, timeout=self.timeout)
+        request = j.tools.http.get(f"https://{zeroci.domain}", timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
     def test13_MonitoringStack(self):
@@ -319,12 +318,12 @@ class VDCDashboard(VDCBase):
         - Check that MonitoringStack is reachable.
         """
         self.info("Deploy MonitoringStack")
-        name = BaseTests.random_name().lower()
+        name = self.random_name().lower()
         monitoring = deployer.deploy_monitoring(release_name=name)
         self.solution = monitoring
 
         self.info("Check that MonitoringStack is reachable.")
-        request = j.tools.http.get(f"https://{monitoring.domain}", verify=False, timeout=self.timeout)
+        request = j.tools.http.get(f"https://{monitoring.domain}", timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
     def test14_Digibyte(self):
@@ -337,26 +336,26 @@ class VDCDashboard(VDCBase):
         - Check that Digibyte is reachable.
         """
         self.info("Deploy Digibyte")
-        name = BaseTests.random_name().lower()
-        rpc_username = BaseTests.random_name().lower()
-        rpc_password = BaseTests.random_name().lower()
+        name = self.random_name().lower()
+        rpc_username = self.random_name().lower()
+        rpc_password = self.random_name().lower()
         digibyte = deployer.deploy_digibyte(release_name=name, rpc_username=rpc_username, rpc_password=rpc_password,)
         self.solution = digibyte
 
         self.info("Check that Digibyte is reachable.")
-        request = j.tools.http.get(f"https://{digibyte.domain}", verify=False, timeout=self.timeout)
+        request = j.tools.http.get(f"https://{digibyte.domain}", timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
     def test15_ExtendKubernetes(self):
-        """Test case for Extend Kubernetes cluster.
+        """Test case for extending Kubernetes cluster.
 
         **Test Scenario**
 
         - Deploy VDC.
-        - Get Number of Nodes before extend.
+        - Get the number of nodes before extending.
         - Extend Kubernetes cluster.
-        - Get Number of Nodes after extend.
-        - Check that node added.
+        - Get the number of nodes after extending.
+        - Check that node has been added.
         """
         self.info("Get Number of Nodes before extend")
         self.vdc.load_info()
