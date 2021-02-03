@@ -14,6 +14,7 @@ from textwrap import dedent
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
 import random
+import requests
 
 
 class ThreebotRedeploy(MarketPlaceAppsChatflow):
@@ -126,7 +127,10 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         max_pool = None
         farm_name = None
         for pool in pools:
-            farm = deployer.get_pool_farm_name(pool=pool)
+            try:
+                farm = deployer.get_pool_farm_name(pool=pool)
+            except requests.exceptions.HTTPError:
+                continue
             if self._empty_pool(pool) and self._contains_node(pool, self.selected_node) and farm in farms:
                 max_pool = self._max_pool(max_pool, pool)
                 farm_name = farm
