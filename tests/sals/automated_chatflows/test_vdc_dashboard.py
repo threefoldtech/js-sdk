@@ -8,6 +8,22 @@ from tests.sals.vdc.vdc_base import VDCBase
 
 @pytest.mark.integration
 class VDCDashboard(VDCBase):
+    # # TODO: DELETE BEFORE MERGE, FOR TEST ONLY
+    # @classmethod
+    # def setUpClass(cls):
+    #     super().setUpClass()
+    #     cls.vdc = j.sals.vdc.vdc_essmvdcdev_essam
+    #     cls.kube_manager = j.sals.kubernetes.Manager(
+    #         f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml"
+    #     )
+    #     # Timeout for any exposed solution to be reachable.
+    #     cls.timeout = 60
+
+    # # TODO: DELETE BEFORE MERGE, FOR TEST ONLY
+    # @classmethod
+    # def tearDownClass(cls):
+    #     cls.server.stop()
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -52,6 +68,12 @@ class VDCDashboard(VDCBase):
         wallet.network = "STD"
         wallet.save()
         return wallet
+
+    def _wait_ssl(self, domain, timeout):
+        try:
+            pass
+        except j.tools.http.exceptions.SSLError:
+            pass
 
     def test01_wiki(self):
         """Test case for deploying a wiki.
