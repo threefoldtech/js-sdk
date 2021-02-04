@@ -14,6 +14,7 @@ from textwrap import dedent
 from jumpscale.data.nacl.jsnacl import NACL
 from jumpscale.loader import j
 import random
+import requests
 
 
 class ThreebotRedeploy(MarketPlaceAppsChatflow):
@@ -101,34 +102,79 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         self.selected_node = node_id_dict[node_id]
         self.available_farms = [farm for farm in self.available_farms if farm.id == self.selected_node.farm_id]
 
-    @chatflow_step("Reserving a new pool")
+    def _empty_pool(self, pool):
+        return pool.active_cu == 0 and pool.active_su == 0
+
+    def _max_pool(self, pool1, pool2):
+        if pool1 is None:
+            return pool2
+        if pool2 is None:
+            return pool1
+        if min(pool1.cus, pool1.sus) > min(pool2.cus, pool2.sus):
+            return pool1
+        else:
+            return pool2
+
+    def _contains_node(self, pool, node):
+        if node is None:
+            return True
+        return node.node_id in pool.node_ids
+
+    def _find_free_pool_in_farm(self, zos, farms):
+        owner = self.threebot_name
+        threebot = get_threebot_config_instance(owner, self.threebot_info["solution_uuid"])
+        zos = get_threebot_zos(threebot)
+        identity = generate_user_identity(threebot, self.password, zos)
+        zos = j.sals.zos.get(identity.instance_name)
+        pools = zos.pools.list()
+        max_pool = None
+        farm_name = None
+        for pool in pools:
+            try:
+                pool_farm = deployer.get_pool_farm_name(pool=pool)
+            except requests.exceptions.HTTPError:
+                continue
+            if (
+                self._empty_pool(pool)
+                and self._contains_node(pool, self.selected_node)
+                and [1 for farm in farms if farm.name == pool_farm]
+            ):
+                max_pool = self._max_pool(max_pool, pool)
+                farm_name = pool_farm
+        return farm_name, max_pool
+
+    @chatflow_step("Reserving a pool")
     def create_pool(self):
         owner = self.threebot_name
         threebot = get_threebot_config_instance(owner, self.threebot_info["solution_uuid"])
         zos = get_threebot_zos(threebot)
         identity = generate_user_identity(threebot, self.password, zos)
         zos = j.sals.zos.get(identity.instance_name)
-        farm = random.choice(self.available_farms)
-        farm_name = farm.name
-        self.pool_info = deployer.create_3bot_pool(
-            farm_name, self.expiration, currency=self.currency, identity_name=identity.instance_name, **self.query,
-        )
-        if self.pool_info.escrow_information.address.strip() == "":
-            raise StopChatFlow(
-                f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
+        farm_name, existent_pool = self._find_free_pool_in_farm(zos, self.available_farms)
+        if existent_pool is not None:
+            self.pool_id = existent_pool.pool_id
+        else:
+            farm = random.choice(self.available_farms)
+            farm_name = farm.name
+            self.pool_info = deployer.create_3bot_pool(
+                farm_name, self.expiration, currency=self.currency, identity_name=identity.instance_name, **self.query,
             )
-        msg, qr_code = deployer.get_qr_code_payment_info(self.pool_info)
-        deployer.msg_payment_info = msg
-        result = deployer.wait_pool_reservation(
-            self.pool_info.reservation_id, qr_code=qr_code, bot=self, identity_name=identity.instance_name
-        )
-        if not result:
-            raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
-        self.pool_id = self.pool_info.reservation_id
+            if self.pool_info.escrow_information.address.strip() == "":
+                raise StopChatFlow(
+                    f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
+                )
+            msg, qr_code = deployer.get_qr_code_payment_info(self.pool_info)
+            deployer.msg_payment_info = msg
+            result = deployer.wait_pool_reservation(
+                self.pool_info.reservation_id, qr_code=qr_code, bot=self, identity_name=identity.instance_name
+            )
+            if not result:
+                raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
+            self.pool_id = self.pool_info.reservation_id
 
     @chatflow_step(title="Deployment location policy")
     def choose_location(self):
-        self._get_available_farms()
+        self._get_available_farms(only_one=False)
         self.farms_by_continent = deployer.group_farms_by_continent(self.available_farms)
         choices = ["Automatic", "Farm", "Specific node"]
         if self.farms_by_continent:
