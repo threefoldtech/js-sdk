@@ -5,7 +5,7 @@ from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deploym
 
 class DigibyteDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "digibyte"
-    title = "Digibyte"
+    title = "DigiByte"
     HELM_REPO_NAME = "marketplace"
     steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
 
