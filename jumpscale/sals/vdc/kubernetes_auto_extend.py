@@ -20,6 +20,33 @@ class StatsHistory:
         return [j.data.serializers.json.loads(item.decode()) for item in items]
 
 
+class NodeReservation:
+    def __init__(self, name, reserved_cpu, reserved_memory, total_cpu, total_memory):
+        self.reserved_cpu = reserved_cpu
+        self.reserved_memory = reserved_memory
+        self.total_cpu = total_cpu
+        self.total_memory = total_memory
+
+    @property
+    def free_memory(self):
+        return self.total_memory - self.reserved_memory
+
+    @property
+    def free_cpu(self):
+        return self.total_cpu - self.reserved_cpu
+
+    def has_enough_resources(self, cpu, memory):
+        if self.free_memory < memory:
+            return False
+        if self.free_cpu < cpu:
+            return False
+        return True
+
+    def update(self, cpu, memory):
+        self.reserved_cpu += cpu
+        self.reserved_memory += memory
+
+
 class KubernetesMonitor:
     def __init__(self, vdc_instance, burst_size=5):
         self.vdc_instance = vdc_instance
@@ -162,4 +189,35 @@ class KubernetesMonitor:
             if node_name in node_reservations:
                 node_reservations[node_name]["total_cpu"] = self.node_stats[node_name]["cpu"]["total"]
                 node_reservations[node_name]["total_memory"] = self.node_stats[node_name]["memory"]["total"]
-        return node_reservations
+        result = []
+        for node_name, resv in node_reservations.items():
+            result.append(
+                NodeReservation(
+                    name=node_name,
+                    reserved_cpu=resv["cpu"],
+                    reserved_memory=resv["memory"],
+                    total_cpu=resv["total_cpu"],
+                    total_memory=resv["total_memory"],
+                )
+            )
+        return result
+
+    def check_deployment_resources(self, queries: list):
+        """
+        check if the cluster has enough resources for the queries specified
+
+        Args:
+            queries (list): list of dicts containing cpu, memory of the deployment
+        """
+        node_reservations = self.fetch_resource_reservations()
+        for query in queries:
+            query_result = False
+            node_reservations = sorted(node_reservations, key=lambda resv: resv.free_memory)
+            for node in node_reservations:
+                if node.has_enough_resources(cpu=query.get("cpu", 0), memory=query.get("memory", 0)):
+                    query_result = True
+                    node.update(cpu=query.get("cpu", 0), memory=query.get("memory", 0))
+                    break
+            if not query_result:
+                return False
+        return True
