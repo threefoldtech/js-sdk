@@ -170,7 +170,7 @@ class TestVDC(VDCBase):
 
         self.info("Check that k8s has been reachable")
         res = j.sals.nettools.tcp_connection_test(ip_address, port=6443, timeout=20)
-        self.assertFalse(res)
+        self.assertTrue(res)
 
     def test08_renew_plan(self):
         """Test case for renewing the plan.
