@@ -471,14 +471,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Container Access")
     def wireguard_configs(self):
-        filename = self.solution_metadata["owner"].replace(".3bot", "")
-        wg_file_path = j.sals.fs.join_paths(j.core.dirs.CFGDIR, f"{filename}.3bot_apps.conf")
-        wg_file_path_alt = j.sals.fs.join_paths(j.core.dirs.CFGDIR, "wireguard", f"{filename}.3bot_apps.conf")
-        if j.sals.fs.exists(wg_file_path):
-            content = j.sals.fs.read_file(wg_file_path)
-        elif j.sals.fs.exists(wg_file_path_alt):
-            content = j.sals.fs.read_file(wg_file_path_alt)
-        elif hasattr(self, "wgcfg"):
+        if hasattr(self, "wgcfg"):
             content = self.wgcfg
         else:
             config = deployer.add_access(
