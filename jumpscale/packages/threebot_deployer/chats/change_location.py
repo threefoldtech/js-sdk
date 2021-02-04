@@ -182,6 +182,8 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         self.node_policy = self.single_choice(
             "Please select the deployment location policy.", choices, required=True, default="Automatic"
         )
+        if self.node_policy == "Automatic":
+            self.selected_node = None
 
     @chatflow_step(title="Deployment location")
     def choose_deployment_location(self):
