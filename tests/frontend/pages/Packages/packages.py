@@ -2,6 +2,7 @@ from random import choice
 from urllib.parse import urljoin
 from tests.frontend.pages.base import Base
 from selenium.webdriver.common.keys import Keys
+from gevent import sleep
 
 
 class Packages(Base):
@@ -44,6 +45,7 @@ class Packages(Base):
             git_url_input.send_keys(git_url)
             self.click_button(self.driver, "SUBMIT")
             self.wait(self.driver, "v-dialog")
+            self.wait(self.driver, "v-card__progress")
         else:
             # Clear git_url_input box
             git_url_input.send_keys(Keys.CONTROL + "a")
@@ -51,8 +53,12 @@ class Packages(Base):
             path_input.send_keys(path)
             self.click_button(self.driver, "SUBMIT")
             self.wait(self.driver, "v-dialog")
+            self.wait(self.driver, "v-card__progress")
 
     def get_installed_and_available_packages(self):
+        self.wait(self.driver, "progressbar")
+        # need to wait to load packages and there are no any class to wait till disabeare
+        sleep(20)
         installed_packages = {}
         available_packages = {}
         packages_category = self.driver.find_elements_by_class_name("row")
@@ -77,6 +83,7 @@ class Packages(Base):
             delete_icon = package_card.find_element_by_class_name("v-btn")
             delete_icon.click()
             self.click_button(self.driver, "SUBMIT")
+            self.wait(self.driver, "v-card__progress")
 
     def install_random_package(self):
         installed_packages, available_packages = self.get_installed_and_available_packages()
