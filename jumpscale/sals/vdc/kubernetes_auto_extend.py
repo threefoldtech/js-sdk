@@ -160,6 +160,6 @@ class KubernetesMonitor:
             node_reservations[node]["memory"] += memory
         for node_name in self.node_stats:
             if node_name in node_reservations:
-                node_reservations[node_name]["total_cpu"] = self.node_stats["cpu"]["total"]
-                node_reservations[node_name]["total_memory"] = self.node_stats["memory"]["total"]
+                node_reservations[node_name]["total_cpu"] = self.node_stats[node_name]["cpu"]["total"]
+                node_reservations[node_name]["total_memory"] = self.node_stats[node_name]["memory"]["total"]
         return node_reservations
