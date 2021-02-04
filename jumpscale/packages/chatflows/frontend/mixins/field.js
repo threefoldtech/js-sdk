@@ -25,14 +25,15 @@ validators = {
 
 
         },
-        is_identifier: (field) => {
-            let errmsg = `Invalid value. It should be a valid identifier, all lowercase and starting with a letter, no spaces and no special characters`;
-            const regex = /^[a-z]([a-z0-9]*)$/
+        is_identifier: (field,identifier) => {
+            if(identifier){
 
-            if (!regex.test(field.val)) {
-                return errmsg;
+                let errmsg = `Invalid value. It should be a valid identifier, all lowercase and starting with a letter, no spaces and no special characters`;
+                const regex = /^[a-z]([a-z0-9]*)$/
+                if (!regex.test(field.val)) {
+                    return errmsg;
+                }
             }
-
             return true;
         },
         not_exist: (field, args) => {
