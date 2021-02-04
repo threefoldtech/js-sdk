@@ -1,5 +1,5 @@
 """
-# Auth package is responsible for making authentication and authorization using Threefold Connect
+# Auth package is responsible for making authentication and authorization using ThreeFold Connect
 
 ## Components
 
@@ -15,7 +15,7 @@
 
 - In `bottle/templates` There are 3 templates
   - home.html: the main structure of the auth page
-  - login.html: the login component shows all available providers to login in with (Threefold Connect)
+  - login.html: the login component shows all available providers to login in with (ThreeFold Connect)
   - access_denied.html: this page is when the user is not authorized to view this page
 
 ### Authentication flow:
