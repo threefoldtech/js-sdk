@@ -207,7 +207,7 @@ const BC_SOLUTIONS = {
             description: "Open source peer-to-peer cryptocurrency with a strong focus on the payments industry."
         },
         digibyte: {
-            name: "Digibyte",
+            name: "DigiByte",
             type: "digibyte",
             image: "./assets/digibyte.png",
             disable: false,
@@ -247,7 +247,7 @@ const BC_SOLUTIONS = {
             description: "Scalable, fast, and ultra-secure Blockchain drove by a global community of developers and node operators."
         },
         scale: {
-            name: "Scale",
+            name: "Skale",
             type: "scale",
             image: "./assets/Skale.png",
             disable: true,
