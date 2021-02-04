@@ -118,7 +118,7 @@ const DECENTRALIZED_WE = {
             name: "Document Server",
             type: "documentserver",
             image: "./assets/document_server.jpg",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/now/docs/documentserver/",
             description: "Document Server is a free collaborative online office suite comprising viewers and editors for texts, spreadsheets and presentations, fully compatible with Office Open XML formats: .docx, .xlsx, .pptx and enabling collaborative editing in real time"
         },
