@@ -174,9 +174,9 @@ class ChatflowSolutions:
                 if name == k8s_name:
                     node = {}
                     role = "master"
-                    # Slave Node
+                    # Worker Node
                     if workload.master_ips:
-                        role = "slave"
+                        role = "worker"
 
                     # Get public ip
                     public_ip = ""
@@ -186,9 +186,10 @@ class ChatflowSolutions:
 
                     node = {"role": role, "wid": workload.id, "ip_address": workload.ipaddress, "public_ip": public_ip}
                     # Handle Storage object
-                    disk_size = self.get_workload_capacity(workload).get("Disk Size")
-                    node.update(self.get_workload_capacity(workload))
+                    workload_capacity = self.get_workload_capacity(workload)
+                    node.update(workload_capacity)
                     del node["Disk Size"]
+                    disk_size = workload_capacity.get("Disk Size", 0)
                     node.update({"storage": disk_size})
                     results.append(node)
 

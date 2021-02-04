@@ -118,7 +118,7 @@ class Solutions(BaseActor):
         zos = j.sals.zos.get()
         workload = zos.workloads.get(wid)
         # Delete public ip
-        if workload.public_ip:
+        if hasattr(workload, "public_ip") and workload.public_ip:
             zos.workloads.decomission(workload.public_ip)
         zos.workloads.decomission(wid)
         return True

@@ -50,13 +50,17 @@ class KubernetesDeploy(GedisChatBot):
             for data in self.KUBERNETES_SIZES.values()
         ]
         cluster_size_string = form.drop_down_choice("Choose the size of your nodes", sizes, default=sizes[0])
+        self.workernodes = form.int_ask(
+            "Please specify the number of worker nodes", default=1, required=True, min=1
+        )  # minimum should be 1
+
         form.ask()
         self.cluster_size = sizes.index(cluster_size_string.value) + 1
         self.master_query = self.worker_query = self.KUBERNETES_SIZES.get(self.cluster_size)
 
-    @chatflow_step(title="Containers' node id")
+    @chatflow_step(title="Select Pools")
     def nodes_selection(self):
-        no_nodes = 2
+        no_nodes = self.workernodes.value + 1
         workload_name = "Kubernetes nodes"
         self.selected_nodes, self.selected_pool_ids = deployer.ask_multi_pool_distribution(
             self, no_nodes, self.master_query, workload_name=workload_name
@@ -66,7 +70,7 @@ class KubernetesDeploy(GedisChatBot):
     def network_selection(self):
         self.network_view = deployer.select_network(self, self.all_network_viewes)
 
-    @chatflow_step(title="Public Ip")
+    @chatflow_step(title="Public IP")
     def add_public_ip(self):
         choices = ["No", "Yes"]
         choice = self.single_choice("Do you want to enable public IP", choices, default="No", required=True)

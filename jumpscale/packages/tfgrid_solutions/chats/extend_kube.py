@@ -1,6 +1,6 @@
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
-from jumpscale.sals.reservation_chatflow import deployer
+from jumpscale.sals.reservation_chatflow import deployer, DeploymentFailed
 from jumpscale.clients.explorer.models import State
 from jumpscale.clients.explorer.models import K8s
 
@@ -28,7 +28,7 @@ class ExtendKubernetesCluster(GedisChatBot):
         self.node_query = self.KUBERNETES_SIZES.get(self.cluster_size)
         self.public_ip = False
 
-    @chatflow_step(title="Public Ip")
+    @chatflow_step(title="Public IP")
     def add_public_ip(self):
         choices = ["No", "Yes"]
         choice = self.single_choice("Do you want to enable public IP", choices, default="No", required=True)
@@ -64,15 +64,16 @@ class ExtendKubernetesCluster(GedisChatBot):
                     success = deployer.wait_workload(wid, breaking_node_id=node.node_id)
                     if not success:
                         raise StopChatFlow(f"Failed to add node {node.node_id} to network {wid}")
+            network_view = network_view.copy()
             ip_address = network_view.get_free_ip(node)
             if not ip_address:
                 raise StopChatFlow(f"No free IPs for network {network_name} on the specifed node" f" {node_id}")
 
-            self.md_show_update(f"Deploying worker on node {node}")
+            self.md_show_update(f"Deploying worker on node {node.node_id}")
             # Add public ip
             public_id_wid = 0
             if self.enable_public_ip:
-                public_id_wid = deployer.get_public_ip(
+                public_id_wid, _ = deployer.create_public_ip(
                     pool_id, node.node_id, solution_uuid=metadata.get("solution_uuid")
                 )
 
@@ -93,16 +94,27 @@ class ExtendKubernetesCluster(GedisChatBot):
                 )
             )
 
+        self.success_workload_count = 0
+        zos = j.sals.zos.get()
         for resv in self.reservations:
-            success = deployer.wait_workload(resv, self)
-            if not success:
-                raise DeploymentFailed(
-                    f"Failed to deploy workload {resv}", solution_uuid=self.solution_id, wid=resv,
-                )
+            try:
+                success = deployer.wait_workload(resv, self, cancel_by_uuid=False)
+                self.success_workload_count += 1
+            except DeploymentFailed as ex:
+                # Cleaning k8s workloads and public IP workloads in case of failure in deployment
+                workload = zos.workloads.get(resv)
+                if hasattr(workload, "public_ip") and workload.public_ip:
+                    zos.workloads.decomission(workload.public_ip)
+                zos.workloads.decomission(wid)
+                j.logger.error(f"Failed to deploy  workloads for {resv}, the error: {str(ex)}")
+        if not self.success_workload_count:
+            raise StopChatFlow(msg="Cant extend your cluster, please try again later")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        self.md_show(f"Your cluster has been extended successfully with workload ids: {self.reservations}")
+        self.md_show(
+            f"Your cluster has been extended successfully with {self.success_workload_count} of {self.nodes_count} Nodes, workload ids: {self.reservations}  "
+        )
 
 
 chat = ExtendKubernetesCluster

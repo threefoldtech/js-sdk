@@ -1270,7 +1270,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         random.shuffle(addresses)
         return addresses
 
-    def get_public_ip(self, pool_id, node_id, solution_uuid=None):
+    def create_public_ip(self, pool_id, node_id, solution_uuid=None):
         """
         try to reserve a public ip on network farm and returns the wid
         """
@@ -1291,7 +1291,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 success = deployer.wait_workload(wid, bot=None, expiry=5, cancel_by_uuid=False, identity_name=identity)
                 if not success:
                     raise DeploymentFailed(f"public ip workload failed. wid: {wid}")
-                return wid
+                return wid, address
             except DeploymentFailed as e:
                 raise StopChatFlow(f"failed to reserve public ip {address} on node {node_id} due to error {str(e)}")
                 continue
@@ -1356,12 +1356,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         public_id_wid = 0
         master_public_ip = ""
         if public_ip:
-            public_id_wid = self.get_public_ip(pool_id, node_ids[0], solution_uuid=metadata.get("solution_uuid"))
-            master_public_ip = (
-                j.sals.zos.get().workloads.get(public_id_wid).ipaddress.split("/")[0]
-                if j.sals.zos.get().workloads.get(public_id_wid).ipaddress
-                else ""
+            public_id_wid, master_public_ip = self.create_public_ip(
+                pool_id, node_ids[0], solution_uuid=metadata.get("solution_uuid")
             )
+            master_public_ip = master_public_ip.split("/")[0] if master_public_ip else ""
 
         master_resv_id = self.deploy_kubernetes_master(
             pool_ids[0],
