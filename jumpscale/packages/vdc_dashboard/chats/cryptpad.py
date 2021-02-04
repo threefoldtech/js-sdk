@@ -19,7 +19,7 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
         self.chart_config.update(
             {
                 "ingress.host": self.domain,
-                "volume.size": f"{self.volume_size}Gi",
+                "volume.size": self.volume_size,
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
             }
