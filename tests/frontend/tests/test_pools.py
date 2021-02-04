@@ -40,6 +40,7 @@ class PoolsTests(BaseTest):
         pools.load()
         cu = j.data.idgenerator.random_int(0, 2)
         su = j.data.idgenerator.random_int(1, 2)
+        ips = j.data.idgenerator.random_int(1, 2)
         time_unit = "Day"
         time_to_live = j.data.idgenerator.random_int(1, 2)
         farm = self.get_farm_name().capitalize()
@@ -49,6 +50,7 @@ class PoolsTests(BaseTest):
             farm=farm,
             cu=cu,
             su=su,
+            ips=ips,
             duration_unit=time_unit,
             time_to_live=time_to_live,
         )
