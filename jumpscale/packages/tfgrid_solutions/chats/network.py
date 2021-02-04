@@ -32,7 +32,10 @@ class NetworkDeploy(NetworkBase):
     @chatflow_step(title="IP Configuration")
     def ip_config(self):
         self.ip_range = j.sals.reservation_chatflow.reservation_chatflow.get_ip_range(self)
-        super().ip_config()
+        ips = ["IPv6", "IPv4"]
+        self.ipversion = self.single_choice(
+            "How would you like to connect to your network? If unsure, choose IPv4", ips, required=True, default="IPv4",
+        )
 
     @chatflow_step(title="Reservation")
     @deployment_context()
