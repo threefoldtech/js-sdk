@@ -346,7 +346,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                         continue
                 except requests.exceptions.HTTPError:
                     is_http_failure = True
-                    continue
+
                 domains[domain] = gw_dict
                 self.gateway_pool = gw_dict["pool"]
                 self.gateway = gw_dict["gateway"]
@@ -398,8 +398,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 return self.domain
 
         if is_http_failure:
-            raise StopChatFlow(
-                'An error encountered while trying to fetch certifcates information from <a href="crt.sh" target="_blank">crt.sh</a>. Please try again later.'
+            j.logger.warning(
+                'An error encountered while trying to fetch certifcates information from "https://crt.sh". Please try again later.'
             )
         elif not is_managed_domains:
             raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")

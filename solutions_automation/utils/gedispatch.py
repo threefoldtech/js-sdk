@@ -64,8 +64,11 @@ class GedisChatBotPatch(GedisChatBot):
             try:
                 for info in billing.keys():
                     location = msg.find(info)
-                    info_len = len(info) + len(": </h4>  ")
-                    billing[info] = msg[location + info_len : msg.find(" \n", location)]
+                    hearder_len = len(": </h4>  ")
+                    message = 0
+                    if info == "Memo Text":
+                        message = msg.find(":", location) - location - len(info)
+                    billing[info] = msg[location + len(info) + hearder_len + message : msg.find(" \n", location)]
                     if info == "Amount":
                         billing[info] = float(billing[info].rstrip(billing["Currency"]))
 
