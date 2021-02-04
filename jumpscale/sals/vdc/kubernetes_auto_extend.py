@@ -2,6 +2,7 @@ from collections import defaultdict
 from jumpscale.loader import j
 from jumpscale.sals.kubernetes.manager import Manager
 from .size import INITIAL_RESERVATION_DURATION, VDC_SIZE
+import re
 
 
 class StatsHistory:
@@ -147,8 +148,12 @@ class KubernetesMonitor:
             node = pod_info["spec"]["nodeName"]
             for cont in pod_info["spec"]["containers"]:
                 cont_requests = cont["resources"].get("requests", {})
-                cpu += float(cont_requests.get("cpu", 0))
-                memory += float(cont_requests.get("memory", "0Gi").split("Gi")[0]) * 1000
+                cpu += float(cont_requests.get("cpu", "0m").split("m")[0])
+                p = re.search(r"^([0-9]*)(.*)$", cont_requests.get("memory", "0Gi"))
+                memory = float(p.group(1))
+                memory_unit = p.group(2)
+                if memory_unit == "Gi":
+                    memory *= 1000
             node_reservations[node]["cpu"] += cpu
             node_reservations[node]["memory"] += memory
         for node_name in self.node_stats:
