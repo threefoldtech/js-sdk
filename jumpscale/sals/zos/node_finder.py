@@ -206,9 +206,4 @@ def filter_public_ip(node, version):
             return is_public_ip(node.public_config.ipv4, 4)
         elif node.public_config.ipv6:
             return is_public_ip(node.public_config.ipv6, 6)
-    else:
-        for iface in node.ifaces:
-            for addr in iface.addrs:
-                if is_public_ip(addr, version):
-                    return True
     return False
