@@ -1,3 +1,4 @@
+from collections import defaultdict
 from jumpscale.loader import j
 from jumpscale.sals.kubernetes.manager import Manager
 from .size import INITIAL_RESERVATION_DURATION, VDC_SIZE
@@ -132,3 +133,25 @@ class KubernetesMonitor:
         wids = deployer.add_k8s_nodes(flavor, farm_name, no_nodes=no_nodes, external=False)
         deployer.extend_k8s_workloads(14 - (INITIAL_RESERVATION_DURATION / 24), *wids)
         return wids
+
+    def fetch_resource_reservations(self):
+        out = self.manager.execute_native_cmd("kubectl get pod -A -o json")
+        result = j.data.serializers.json.loads(out)
+        node_reservations = defaultdict(lambda: {"cpu": 0.0, "memory": 0.0})
+        for pod in result["items"]:
+            pod_name = pod["metadata"]["name"]
+            pod_out = self.manager.execute_native_cmd(f"kubectl get pod {pod_name} -o json")
+            pod_info = j.data.serializers.json.loads(pod_out)
+            cpu = memory = 0
+            node = pod_info["spec"]["nodeName"]
+            for cont in pod_info["spec"]["containers"]:
+                cont_requests = cont["resources"].get("requests", {})
+                cpu += float(cont_requests.get("cpu", 0))
+                memory += float(cont_requests.get("memory", "0Gi").split("Gi")[0]) * 1000
+            node_reservations[node]["cpu"] += cpu
+            node_reservations[node]["memory"] += memory
+        for node_name in self.node_stats:
+            if node_name in node_reservations:
+                node_reservations[node_name]["total_cpu"] = self.node_stats["cpu"]["total"]
+                node_reservations[node_name]["total_memory"] = self.node_stats["memory"]["total"]
+        return node_reservations
