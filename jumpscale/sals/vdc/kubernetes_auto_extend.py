@@ -145,6 +145,8 @@ class KubernetesMonitor:
             pod_out = self.manager.execute_native_cmd(f"kubectl get pod -n {pod_ns} {pod_name} -o json")
             pod_info = j.data.serializers.json.loads(pod_out)
             cpu = memory = 0
+            if not "nodeName" in pod_info["spec"]:
+                continue
             node = pod_info["spec"]["nodeName"]
             for cont in pod_info["spec"]["containers"]:
                 cont_requests = cont["resources"].get("requests", {})
