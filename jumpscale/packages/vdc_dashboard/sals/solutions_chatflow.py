@@ -53,7 +53,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 self.vdc_info["farm_name"] = j.core.identity.me.explorer.farms.get(
                     j.core.identity.me.explorer.nodes.get(node.node_id).farm_id
                 ).name
-                self.vdc_info["kube_config_path"] = "/root/.kube/config"
+                self.vdc_info["kube_config_path"] = j.sals.fs.expanduser("~/.kube/config")
                 self.vdc_info["network_name"] = self.vdc_name
                 self.vdc_info["network_view"] = deployer.get_network_view(
                     self.vdc_name, identity_name=self.identity_name
