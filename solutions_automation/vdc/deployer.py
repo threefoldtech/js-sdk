@@ -17,7 +17,6 @@ from solutions_automation.vdc.dashboard.zeroci import ZeroCIAutomated
 
 def deploy_blog(
     release_name,
-    title,
     url,
     branch,
     flavor="Silver",
@@ -28,7 +27,6 @@ def deploy_blog(
     return BlogAutomated(
         release_name=release_name,
         flavor=flavor,
-        title=title,
         url=url,
         branch=branch,
         sub_domain=sub_domain,
@@ -189,7 +187,6 @@ def deploy_taiga(
 
 def deploy_website(
     release_name,
-    title,
     url,
     branch,
     src_dir="html",
@@ -201,7 +198,6 @@ def deploy_website(
     return WebsiteAutomated(
         release_name=release_name,
         flavor=flavor,
-        title=title,
         url=url,
         branch=branch,
         src_dir=src_dir,
@@ -213,7 +209,6 @@ def deploy_website(
 
 def deploy_wiki(
     release_name,
-    title,
     url,
     branch,
     src_dir="src",
@@ -225,7 +220,6 @@ def deploy_wiki(
     return WikiAutomated(
         release_name=release_name,
         flavor=flavor,
-        title=title,
         url=url,
         branch=branch,
         src_dir=src_dir,

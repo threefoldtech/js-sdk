@@ -3,9 +3,8 @@ from jumpscale.packages.vdc_dashboard.chats.website import WebsiteDeploy
 
 
 class WebsiteAutomated(CommonChatBot, WebsiteDeploy):
-    TITLE_MESSAGE = "Title"
     URL_MESSAGE = "Repository URL"
     BRANCH_MESSAGE = "Branch"
     SOURCE_DIR_MESSAGE = "Source directory"
 
-    QS = {TITLE_MESSAGE: "title", URL_MESSAGE: "url", BRANCH_MESSAGE: "branch", SOURCE_DIR_MESSAGE: "src_dir"}
+    QS = {URL_MESSAGE: "url", BRANCH_MESSAGE: "branch", SOURCE_DIR_MESSAGE: "src_dir"}

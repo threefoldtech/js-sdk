@@ -11,7 +11,7 @@ class VDCDashboard(VDCBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.flavor = "silver"
+        cls.flavor = "platinum"
         cls.kube_config = cls.deploy_vdc()
         cls.kube_manager = j.sals.kubernetes.Manager(
             f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml"
@@ -81,10 +81,9 @@ class VDCDashboard(VDCBase):
         """
         self.info("Deploy a wiki.")
         name = self.random_name().lower()
-        title = self.random_name().lower()
         repo = "https://github.com/threefoldfoundation/wiki_example"
         branch = "main"
-        wiki = deployer.deploy_wiki(release_name=name, title=title, url=repo, branch=branch)
+        wiki = deployer.deploy_wiki(release_name=name, url=repo, branch=branch)
         self.solution = wiki
 
         self.info("Check that the wiki is reachable and certified.")
@@ -102,10 +101,9 @@ class VDCDashboard(VDCBase):
         """
         self.info("Deploy blog.")
         name = self.random_name().lower()
-        title = self.random_name().lower()
         repo = "https://github.com/threefoldfoundation/blog_example"
         branch = "main"
-        blog = deployer.deploy_blog(release_name=name, title=title, url=repo, branch=branch)
+        blog = deployer.deploy_blog(release_name=name, url=repo, branch=branch)
         self.solution = blog
 
         self.info("Check that the blog is reachable and certified.")
@@ -123,10 +121,9 @@ class VDCDashboard(VDCBase):
         """
         self.info("Deploy a website")
         name = self.random_name().lower()
-        title = self.random_name().lower()
         repo = "https://github.com/threefoldfoundation/website_example"
         branch = "main"
-        website = deployer.deploy_website(release_name=name, title=title, url=repo, branch=branch)
+        website = deployer.deploy_website(release_name=name, url=repo, branch=branch)
         self.solution = website
 
         self.info("Check that the website is reachable and certified.")
