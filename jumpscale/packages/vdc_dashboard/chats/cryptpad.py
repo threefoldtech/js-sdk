@@ -20,6 +20,7 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
             {
                 "ingress.host": self.domain,
                 "volume.size": self.volume_size,
+                "volume.hostPath": f"/persistent-data/{self.release_name}",
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
             }
