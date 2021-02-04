@@ -2146,9 +2146,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             """
             msg = msg + self.msg_payment_info + qr_code_msg
         zos = j.sals.zos.get(identity_name)
+        if bot:
+            bot.md_show_update(msg, html=True)
         while j.data.time.get().timestamp < expiration:
-            if bot:
-                bot.md_show_update(msg, html=True)
             payment_info = zos.pools.get_payment_info(reservation_id)
             if payment_info.paid and payment_info.released:
                 return True

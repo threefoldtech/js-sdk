@@ -335,6 +335,15 @@ def redeploy_threebot_solution(
                         )
 
                     domain = new_solution_info["domain"]
+                    j.logger.debug(f"searching for old subdomain workloads for domain: {domain}")
+                    deployed_workloads = zos.workloads.list_workloads(identity.tid, NextAction.DEPLOY)
+                    for workload in deployed_workloads:
+                        if workload.info.workload_type != WorkloadType.Subdomain:
+                            continue
+                        if workload.domain != domain:
+                            continue
+                        j.logger.debug(f"deleting old workload {workload.id}")
+                        zos.workloads.decomission(workload.id)
                     j.logger.debug(f"deploying domain {domain} pointing to addresses {addresses}")
                     workload_ids.append(
                         deployer.create_subdomain(
