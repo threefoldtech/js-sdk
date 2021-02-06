@@ -22,6 +22,7 @@ class StatsHistory:
 
 class NodeReservation:
     def __init__(self, name, reserved_cpu, reserved_memory, total_cpu, total_memory):
+        self.name = name
         self.reserved_cpu = reserved_cpu
         self.reserved_memory = reserved_memory
         self.total_cpu = total_cpu
