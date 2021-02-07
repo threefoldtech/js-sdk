@@ -36,6 +36,14 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self.ip_version = "IPv6"
         self.chart_config = {}
 
+    @chatflow_step
+    def ask_backup(self):
+        self.backup = self.single_choice(
+            "Do you want to enable backup for this solution?", ["Yes", "No"], default="Yes", required=True
+        )
+        if self.backup == "Yes":
+            self.chart_config["threefoldVdc.backup"] = "vdc"
+
     def _get_kube_config(self):
         if j.sals.vdc.list_all():
             self.vdc_name = list(j.sals.vdc.list_all())[0]
