@@ -2,7 +2,6 @@ import random
 import gevent
 import requests
 import uuid
-import os
 from textwrap import dedent
 from time import time
 
@@ -27,6 +26,7 @@ POD_INITIALIZING_TIMEOUT = 120
 
 class SolutionsChatflowDeploy(GedisChatBot):
     CHART_NAME = None
+    ADDITIONAL_QUERIES = None  # list of {"cpu": x(m), "memory": x(Mi)} used by chart dependencies
 
     def _init_solution(self):
         # TODO: te be removed
@@ -79,13 +79,14 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self.resources_limits = chart_limits[flavor]
         memory = int(self.resources_limits["memory"][:-2])
         cpu = int(self.resources_limits["cpu"][:-1])
+        queries = [{"cpu": cpu, "memory": memory}]
+        if self.ADDITIONAL_QUERIES:
+            queries += self.ADDITIONAL_QUERIES
         monitor = self.vdc.get_kubernetes_monitor()
-        if not monitor.has_enough_resources(cpu=cpu, memory=memory):
+        if not monitor.check_deployment_resources(queries):
             wids = monitor.extend(bot=self)
             if not wids:
-                raise StopChatFlow(
-                    f"There are not enough resources to deploy cpu: {cpu}, memory: {memory}. current cluster resources: {monitor.node_stats}"
-                )
+                raise StopChatFlow(f"There are not enough resources to deploy cpu: {cpu}, memory: {memory}.")
 
     def get_k8s_sshclient(self, private_key_path="/root/.ssh/id_rsa", user="rancher"):
         ssh_key = j.clients.sshkey.get(self.vdc_name)
