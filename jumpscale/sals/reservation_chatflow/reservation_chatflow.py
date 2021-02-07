@@ -1370,6 +1370,7 @@ class ReservationChatflow:
         sru=None,
         mru=None,
         hru=None,
+        ipv4u=None,
         currency="TFT",
         ip_version=None,
         pool_ids=None,
@@ -1389,7 +1390,6 @@ class ReservationChatflow:
             hru (int, optional): hdd resources. Defaults to None.
             currency (str, optional): wanted currency. Defaults to "TFT".
             sort_by_disk_space (bool, optional): return nodes with highest free disk space (sru). If set to False, can be overriden by SORT_NODES_BY_SRU in config
-
         Raises:
             StopChatFlow: if no nodes found
 
@@ -1414,6 +1414,7 @@ class ReservationChatflow:
         # to avoid using the same node with different networks
         nodes_selected = []
         selected_ids = []
+        zos = j.sals.zos.get()
         for pool_id in nodes_distribution:
             nodes_number = nodes_distribution[pool_id]
             if not pool_ids:
@@ -1434,9 +1435,7 @@ class ReservationChatflow:
                 try:
                     if sort_by_disk_space:
                         if not nodes:
-                            raise StopChatFlow(
-                                err_msg, htmlAlert=True,
-                            )
+                            raise StopChatFlow(err_msg, htmlAlert=True)
                         for node in nodes:
                             if node.node_id not in selected_ids:
                                 break
@@ -1445,12 +1444,18 @@ class ReservationChatflow:
                         while node.node_id in selected_ids:
                             node = random.choice(nodes)
                 except IndexError:
-                    raise StopChatFlow(
-                        err_msg, htmlAlert=True,
-                    )
-                nodes.remove(node)
-                nodes_selected.append(node)
-                selected_ids.append(node.node_id)
+                    raise StopChatFlow(err_msg, htmlAlert=True)
+                # Validate if the selected node has public ip or not
+                if ipv4u:
+                    if zos.nodes_finder.filter_public_ip_bridge(node):
+                        nodes.remove(node)
+                        nodes_selected.append(node)
+                        selected_ids.append(node.node_id)
+
+                else:
+                    nodes.remove(node)
+                    nodes_selected.append(node)
+                    selected_ids.append(node.node_id)
         return nodes_selected
 
     def filter_nodes(self, nodes, free_to_use, ip_version=None):
