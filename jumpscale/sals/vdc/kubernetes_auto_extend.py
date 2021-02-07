@@ -103,6 +103,23 @@ class KubernetesMonitor:
         self.stats_history.update(self._node_stats)
 
     def is_extend_triggered(self, cpu_threshold=0.7, memory_threshold=0.7):
+        if self._is_usage_triggered(cpu_threshold, memory_threshold):
+            return True
+        else:
+            reserved_cpu = reserved_memory = 0.0
+            total_cpu = total_memory = 0.0
+            for node in self.fetch_resource_reservations():
+                total_cpu += node.total_cpu
+                total_memory += node.total_memory
+                reserved_cpu += node.reserved_cpu
+                reserved_memory += node.reserved_memory
+            total_cpu = total_cpu or 1.0
+            total_memory = total_memory or 0.1
+            if any([(reserved_cpu / total_cpu) >= cpu_threshold, (reserved_memory / total_memory) >= memory_threshold]):
+                return True
+        return False
+
+    def _is_usage_triggered(self, cpu_threshold, memory_threshold):
         burst_usage = []
         stats_history = self.stats_history.get()
         if len(stats_history) < self.burst_size:
