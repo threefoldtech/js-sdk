@@ -200,7 +200,7 @@ class KubernetesMonitor:
                 memory = float(p.group(1))
                 memory_unit = p.group(2)
                 if memory_unit == "Gi":
-                    memory *= 1000
+                    memory *= 1024
             node_reservations[node]["cpu"] += cpu
             node_reservations[node]["memory"] += memory
         for node_name in self.node_stats:
