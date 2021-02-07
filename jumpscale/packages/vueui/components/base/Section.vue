@@ -2,7 +2,7 @@
   <v-card :width="width || '100%'" height="auto" :loading="loading">
     <v-toolbar dense flat>
       <v-toolbar-title class="primary--text">
-        <v-icon color="primary" left>{{icon}}</v-icon> {{title}}
+        <v-icon color="primary" left>{{ icon }}</v-icon> {{ title }}
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <slot name="actions"></slot>
@@ -15,12 +15,12 @@
 </template>
 
 <script>
-  module.exports = {
-    props: {
-      title: String,
-      icon: String,
-      loading: Boolean,
-      width: String
-    }
-  }
+module.exports = {
+  props: {
+    title: String,
+    icon: String,
+    loading: Boolean,
+    width: String,
+  },
+};
 </script>

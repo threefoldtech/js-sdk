@@ -27,7 +27,7 @@
 <script>
 module.exports = {
   components: {
-    "deployer-data-table": httpVueLoader("../base/Table.vue"),
+    "deployer-data-table": httpVueLoader("/vueui/base/Table.vue"),
   },
   data() {
     return {
@@ -35,7 +35,7 @@ module.exports = {
       loading: true,
       headers3Bots: [
         { text: "Name", value: "name" },
-        { text: "State", value: "state"},
+        { text: "State", value: "state" },
         { text: "Actions", value: "actions", sortable: false },
       ],
       deployed3Bots: [],

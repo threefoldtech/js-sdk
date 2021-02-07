@@ -1,21 +1,17 @@
 .theme--light .v-main__wrap {
-  background-color: #FBFCFC !important;
+    background-color: #fbfcfc !important;
 }
 
 .theme--light.v-tabs-items {
-  background-color: #FBFCFC !important;
+    background-color: #fbfcfc !important;
 }
 
 .theme--dark tbody {
-  color: #fff;
-}
-
-.theme--dark .v-toolbar {
-  background-color: inherit !important;
+    color: #fff;
 }
 
 .theme--dark .json-tree-root {
-  background-color: rgb(54, 54, 54) !important;
+    background-color: rgb(54, 54, 54) !important;
 }
 
 .theme--dark .json-tree-sign,
@@ -23,51 +19,59 @@
 .theme--dark .json-tree-open,
 .theme--dark .json-tree-close,
 .theme--dark .json-tree-comma {
-  color: #aa0 !important;
+    color: #aa0 !important;
 }
 
 .theme--dark .json-tree-root .json-tree-value {
-  color: #fff !important;
+    color: #fff !important;
 }
 
 .CodeMirror {
-  padding: 15px !important;
-  margin-top: 15px !important;
-  border: 1px solid #BDC3C7;
-  border-radius: 5px;
+    padding: 15px !important;
+    margin-top: 15px !important;
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
 }
 
 .CodeMirror-wrap pre {
-  min-width: 100% !important;
-  word-break: break-word !important;
+    min-width: 100% !important;
+    word-break: break-word !important;
 }
 
 a {
-  text-decoration: none;
+    text-decoration: none;
 }
+
 
 /* width */
+
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+    width: 4px;
+    height: 4px;
 }
+
 
 /* Track */
+
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+    background: #f1f1f1;
 }
+
 
 /* Handle */
+
 ::-webkit-scrollbar-thumb {
-  background: #888;
+    background: #888;
 }
 
+
 /* Handle on hover */
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+    background: #555;
 }
 
 .hidetext {
-  -webkit-text-security: disc;
-  /* Default */
+    -webkit-text-security: disc;
+    /* Default */
 }

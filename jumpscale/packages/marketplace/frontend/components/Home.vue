@@ -3,11 +3,12 @@
     <template>
       <div class="combox">
         <v-row>
-          <h1 class="mx-auto text-center white--text">Decentralized Solutions on the ThreeFold Grid</h1>
+          <h1 class="mx-auto text-center white--text">
+            Decentralized Solutions on the ThreeFold Grid
+          </h1>
           <v-col md="4" offset-md="4">
             <v-autocomplete
               auto-select-first
-
               solo
               v-model="selectedObject"
               :items="autoCompleteList"
@@ -28,7 +29,9 @@
                     <img :src="data.item.avatar" />
                   </v-list-item-avatar>
                   <v-list-item-content>
-                    <v-list-item-title v-html="data.item.name"></v-list-item-title>
+                    <v-list-item-title
+                      v-html="data.item.name"
+                    ></v-list-item-title>
                   </v-list-item-content>
                 </template>
               </template>
@@ -40,12 +43,15 @@
       <div class="categories">
         <v-row>
           <v-tabs vertical class="transparent-body">
-            <v-toolbar-title class="mb-2 font-weight-bold">Categories</v-toolbar-title>
+            <v-toolbar-title class="mb-2 font-weight-bold"
+              >Categories</v-toolbar-title
+            >
             <v-tab
               class="mr-5 justify-start"
               v-for="(section, key) in filteredSections"
               :key="key"
-            >{{ key }} ({{ appsLength(key) }})</v-tab>
+              >{{ key }} ({{ appsLength(key) }})</v-tab
+            >
             <v-tab-item v-for="(section, key) in filteredSections" :key="key">
               <solutions-section
                 :title="key"
@@ -66,7 +72,7 @@
 <script>
 module.exports = {
   components: {
-    "solutions-section": httpVueLoader("./base/SolutionsSection.vue"),
+    "solutions-section": httpVueLoader("/vueui/solutions/SolutionsSection.vue"),
   },
   data() {
     return {

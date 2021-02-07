@@ -1,8 +1,7 @@
 <template>
   <div>
-    <div v-if="package && !installed">
+    <div v-if="isPackage && !installed">
       <v-alert
-        v-if="package && !installed"
         text
         prominent
         class="ma-5"
@@ -17,16 +16,27 @@
           color="info"
           :loading="installLoading"
           @click.stop="install"
-        >Install now</v-btn>
+          >Install now</v-btn
+        >
       </v-alert>
     </div>
     <div v-else>
-      <v-row v-if="iframeLoading" style="height:100%" align="center" justify="center">
-        <v-progress-circular size="100" width="5" color="primary" indeterminate></v-progress-circular>
+      <v-row
+        v-if="iframeLoading"
+        style="height: 100%"
+        align="center"
+        justify="center"
+      >
+        <v-progress-circular
+          size="100"
+          width="5"
+          color="primary"
+          indeterminate
+        ></v-progress-circular>
       </v-row>
       <iframe
         :src="url"
-        style="border:none"
+        style="border: none"
         height="100%"
         width="100%"
         @load="iframeLoading = false"
@@ -41,18 +51,18 @@ module.exports = {
     url: String,
     name: String,
     giturl: String,
-    package: Boolean
+    isPackage: Boolean,
   },
   data() {
     return {
       installed: null,
       iframeLoading: true,
-      installLoading: false
+      installLoading: false,
     };
   },
   methods: {
     isInstalled() {
-      this.$api.packages.getInstalled().then(response => {
+      this.$api.packages.getInstalled().then((response) => {
         this.installed = JSON.parse(response.data).data.includes(this.name);
       });
     },
@@ -68,21 +78,21 @@ module.exports = {
       }
 
       promise
-        .then(response => {
+        .then((response) => {
           location.reload();
         })
-        .catch(error => {
+        .catch((error) => {
           this.alert(error.message, "error");
         })
         .finally(() => {
           this.installLoading = false;
         });
-    }
+    },
   },
   mounted() {
-    if (this.package) {
+    if (this.isPackage) {
       this.isInstalled();
     }
-  }
+  },
 };
 </script>

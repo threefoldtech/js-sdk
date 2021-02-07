@@ -11,7 +11,9 @@
         </thead>
         <tbody>
           <tr v-for="(value, name) in payload.data" :key="name">
-            <td><strong>{{ name }}</strong></td>
+            <td>
+              <strong>{{ name }}</strong>
+            </td>
             <td>{{ value }}</td>
           </tr>
         </tbody>
@@ -21,7 +23,7 @@
 </template>
 
 <script>
-  module.exports = {
-    props: {payload: Object}
-  }
+module.exports = {
+  props: { payload: Object },
+};
 </script>

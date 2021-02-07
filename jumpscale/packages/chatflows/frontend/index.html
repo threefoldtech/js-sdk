@@ -1,13 +1,16 @@
 <html lang="en">
-  <head>
-    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
-    <link href='https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css' rel='stylesheet' />
-    <link href="/chatflows/static/style.css" rel="stylesheet">
-  </head>
 
-  <body>
-    <div id="app"><router-view></router-view></div>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css" rel="stylesheet" />
+    <link href="/chatflows/static/style.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div id="app">
+        <router-view></router-view>
+    </div>
     <script src="/chatflows/static/mixins/field.js"></script>
     <script src="https://unpkg.com/vue"></script>
     <script src="https://unpkg.com/vuex"></script>
@@ -17,106 +20,110 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.js"></script>
-    <script src='https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js'></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js"></script>
     <script type="text/javascript">
+        Vue.use(Vuex);
+        Vue.use(Vuetify);
 
-      Vue.use(Vuex)
-      Vue.use(Vuetify)
+        const baseUrl = "/chatflows/static";
+        const PACKAGE = "{{ package }}";
+        const CHAT = "{{ chat }}";
+        const QS = "{{ qs }}";
+        const USERNAME = "{{ username }}";
+        const EMAIL = "{{ email }}";
+        const CLIENT_IP = "{{ client_ip }}";
+        const NOHEADER = "{{ noheader }}";
 
-      const baseUrl = '/chatflows/static/'
-      const PACKAGE = '{{ package }}'
-      const CHAT = '{{ chat }}'
-      const QS = '{{ qs }}'
-      const USERNAME = '{{ username }}'
-      const EMAIL = '{{ email }}'
-      const CLIENT_IP = '{{ client_ip }}'
-      const NOHEADER = '{{ noheader }}'
+        httpVueLoader.register(Vue, `${baseUrl}/components/Message.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/String.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/Number.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/Secret.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/TextArea.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/DateTime.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/SingleChoice.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/MultipleChoices.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/DropDown.vue`);
+        httpVueLoader.register(
+            Vue,
+            `${baseUrl}/components/MultipleListChoices.vue`
+        );
+        httpVueLoader.register(Vue, `${baseUrl}/components/UploadFile.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/DownloadFile.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/QRCode.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/Markdown.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/Form.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/Captcha.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/Loading.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/InfiniteLoading.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/Confirm.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/TimeDelta.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/Location.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/Error.vue`);
+        httpVueLoader.register(Vue, `${baseUrl}/components/MultiValues.vue`);
 
-      httpVueLoader.register(Vue, `${baseUrl}/components/Message.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/String.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/Number.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/Secret.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/TextArea.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/DateTime.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/SingleChoice.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/MultipleChoices.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/DropDown.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/MultipleListChoices.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/UploadFile.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/DownloadFile.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/QRCode.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/Markdown.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/Form.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/Captcha.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/Loading.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/InfiniteLoading.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/Confirm.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/TimeDelta.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/Location.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/Error.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/MultiValues.vue`)
-
-      Vue.mixin({
-        data: function() {
-          return {
-            categories: {
-              string_ask: 'String',
-              int_ask: 'Number',
-              secret_ask: 'Secret',
-              text_ask: 'TextArea',
-              single_choice: 'SingleChoice',
-              multi_choice: 'MultipleChoices',
-              multi_list_choice: 'MultipleListChoices',
-              drop_down_choice: 'DropDown',
-              datetime_picker: 'DateTime',
-              time_delta: 'TimeDelta',
-              location_ask: 'Location',
-              upload_file: 'UploadFile',
-              download_file: 'DownloadFile',
-              qrcode_show: 'QRCode',
-              captcha_ask: 'Captcha',
-              md_show: 'Markdown',
-              confirm: 'Confirm',
-              loading: 'Loading',
-              infinite_loading: 'InfiniteLoading',
-              ask_multi_values: 'MultiValues',
-              form: 'Form',
-              error: 'Error'
-            }
-          }
-        }
-      })
-
-      const vuetify =  new Vuetify({
-        icons: {
-          iconfont: 'mdi'
-        },
-        theme: {
-          themes: {
-            light: {
-              primary: '#1B4F72',
-              secondary: '#F39C12',
-              accent: '#F4F6F7',
-              error: '#EC7063',
+        Vue.mixin({
+            data: function() {
+                return {
+                    categories: {
+                        string_ask: "String",
+                        int_ask: "Number",
+                        secret_ask: "Secret",
+                        text_ask: "TextArea",
+                        single_choice: "SingleChoice",
+                        multi_choice: "MultipleChoices",
+                        multi_list_choice: "MultipleListChoices",
+                        drop_down_choice: "DropDown",
+                        datetime_picker: "DateTime",
+                        time_delta: "TimeDelta",
+                        location_ask: "Location",
+                        upload_file: "UploadFile",
+                        download_file: "DownloadFile",
+                        qrcode_show: "QRCode",
+                        captcha_ask: "Captcha",
+                        md_show: "Markdown",
+                        confirm: "Confirm",
+                        loading: "Loading",
+                        infinite_loading: "InfiniteLoading",
+                        ask_multi_values: "MultiValues",
+                        form: "Form",
+                        error: "Error",
+                    },
+                };
             },
-          },
-        }
-      })
+        });
 
-      const app = httpVueLoader('/chatflows/static/App.vue')
-      const router = new VueRouter({
-        routes: [
-          { path: '/', component: app},
-        ]
-      })
-      new Vue({
-        el: '#app',
-        components: {
-          App: app,
-        },
-        router,
-        vuetify
-      })
+        const vuetify = new Vuetify({
+            icons: {
+                iconfont: "mdi",
+            },
+            theme: {
+                themes: {
+                    light: {
+                        primary: "#1B4F72",
+                        secondary: "#F39C12",
+                        accent: "#F4F6F7",
+                        error: "#EC7063",
+                    },
+                },
+            },
+        });
+
+        const app = httpVueLoader("/chatflows/static/App.vue");
+        const router = new VueRouter({
+            routes: [{
+                path: "/",
+                component: app
+            }],
+        });
+        new Vue({
+            el: "#app",
+            components: {
+                App: app,
+            },
+            router,
+            vuetify,
+        });
     </script>
-  </body>
+</body>
+
 </html>

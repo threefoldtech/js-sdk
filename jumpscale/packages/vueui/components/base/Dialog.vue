@@ -1,13 +1,24 @@
 <template>
-  <v-dialog v-model="dialog" width="1000" :retain-focus="false" :persistent="persistent">
+  <v-dialog
+    v-model="dialog"
+    width="700"
+    :retain-focus="false"
+    :persistent="persistent"
+  >
     <v-card :loading="loading" :disabled="loading">
-      <v-card-title class="headline">{{title}}</v-card-title>
+      <v-card-title class="headline">{{ title }}</v-card-title>
       <v-card-text class="pa-5">
-        <v-alert v-if="error" dense outlined type="error" class="mb-5">{{error}}</v-alert>
+        <v-alert v-if="error" dense outlined type="error" class="mb-5">{{
+          error
+        }}</v-alert>
 
-        <v-alert v-if="info" dense outlined type="info" class="mb-5">{{info}}</v-alert>
+        <v-alert v-if="info" dense outlined type="info" class="mb-5">{{
+          info
+        }}</v-alert>
 
-        <v-alert v-if="warning" dense outlined type="warning" class="mb-5">{{warning}}</v-alert>
+        <v-alert v-if="warning" dense outlined type="warning" class="mb-5">{{
+          warning
+        }}</v-alert>
 
         <slot name="default"></slot>
       </v-card-text>
@@ -31,7 +42,7 @@ module.exports = {
     loading: Boolean,
     persistent: {
       type: Boolean,
-      default: false
+      default: false,
     },
   },
   computed: {
