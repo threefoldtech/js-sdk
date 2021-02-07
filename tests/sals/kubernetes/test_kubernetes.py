@@ -21,6 +21,9 @@ class TestKubernetes(VDCBase):
     @classmethod
     def tearDownClass(cls):
         j.sals.vdc.delete(cls.vdc.instance_name)
+        wallet = j.clients.stellar.get("test_wallet")
+        cls.vdc.provision_wallet.merge_into_account(wallet.address)
+        cls.vdc.prepaid_wallet.merge_into_account(wallet.address)
         super().tearDownClass()
 
     def setUp(self):

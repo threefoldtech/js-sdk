@@ -46,18 +46,18 @@ class EtcdDeploy(SolutionsChatflowDeploy):
         - etcd can be accessed via port 2379 on the following DNS name from within your cluster:
             {self.release_name}.default.svc.cluster.local
 
-        - Your POD_NAME one of the following:
+        - Your PODNAME one of the following:
             {''.join(replicas_name)}
         - To set a key run the following command:
-            `kubectl exec -it POD_NAME -- etcdctl put message Hello`
+            `kubectl exec -it $PODNAME -- etcdctl put message Hello`
 
         - To get a key run the following command:
-            `kubectl exec -it POD_NAME -- etcdctl get message`
+            `kubectl exec -it $PODNAME -- etcdctl get message`
 
         - To connect to your etcd server from outside the cluster execute the following commands:
             `kubectl port-forward --namespace default svc/{self.release_name} 2379:2379`
 
-        - You can visit <a href="https://etcd.io/docs/v3.4.0/" target="_blank">ETCD Docs</a> for more informations
+        - You can visit <a href="https://etcd.io/docs/v3.4.0/" target="_blank">ETCD Docs</a> for more information
         """
         self.md_show(dedent(message), md=True)
 

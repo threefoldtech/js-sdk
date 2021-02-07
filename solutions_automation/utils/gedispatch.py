@@ -59,7 +59,6 @@ class GedisChatBotPatch(GedisChatBot):
     def md_show_update(self, msg, *args, **kwargs):
         if self.debug:
             j.logger.info(msg)
-
         if "Please scan the QR Code" in msg:
             billing = {"Address": "", "Currency": "TFT", "Memo Text": "", "Amount": 0}
             try:
