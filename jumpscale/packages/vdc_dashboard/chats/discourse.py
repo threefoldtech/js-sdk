@@ -8,6 +8,7 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
     title = "Discourse"
     HELM_REPO_NAME = "marketplace"
     steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    ADDITIONAL_QUERIES = [{"cpu": 250, "memory": 256}]  # postgres
 
     def _configure_admin_username_password(self):
         valid_password = False

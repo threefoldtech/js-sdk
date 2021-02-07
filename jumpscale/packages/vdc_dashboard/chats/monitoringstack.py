@@ -16,6 +16,7 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
         "Gold": {"cpu": "2000m", "memory": "2048Mi"},
         "Platinum": {"cpu": "4000m", "memory": "4096Mi"},
     }
+
     steps = [
         "check_already_deployed",
         "get_release_name",
@@ -25,6 +26,13 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
         "install_chart",
         "initializing",
         "success",
+    ]
+
+    ADDITIONAL_QUERIES = [
+        {"cpu": 100, "memory": 100},  # exporter
+        {"cpu": 100, "memory": 25},  # alertmanager.config-reloader
+        {"cpu": 100, "memory": 100},  # alertmanager.alertmanage
+        {"cpu": 100, "memory": 25},  # prometheus.config-reloader
     ]
 
     @chatflow_step(title="Checking deployed solutions")

@@ -77,9 +77,14 @@ class SolutionsChatflowDeploy(GedisChatBot):
         )
         flavor = chosen_flavor.split()[0]
         self.resources_limits = chart_limits[flavor]
+        no_nodes = self.resources_limits.get("no_nodes", 1)
         memory = int(self.resources_limits["memory"][:-2])
         cpu = int(self.resources_limits["cpu"][:-1])
-        queries = [{"cpu": cpu, "memory": memory}]
+
+        self._validate_resource_limits(cpu, memory, no_nodes)
+
+    def _validate_resource_limits(self, cpu, memory, no_nodes=1):
+        queries = [{"cpu": cpu, "memory": memory}] * no_nodes
         if self.ADDITIONAL_QUERIES:
             queries += self.ADDITIONAL_QUERIES
         monitor = self.vdc.get_kubernetes_monitor()

@@ -7,6 +7,7 @@ class PeertubeDeploy(SolutionsChatflowDeploy):
     title = "Peertube"
     HELM_REPO_NAME = "marketplace"
     steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    ADDITIONAL_QUERIES = [{"cpu": 250, "memory": 256}]  # postgres
 
     def _get_smtp(self):
         form = self.new_form()
