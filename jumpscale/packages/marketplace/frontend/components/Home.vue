@@ -72,7 +72,7 @@
 <script>
 module.exports = {
   components: {
-    "solutions-section": httpVueLoader("/vueui/solutions/SolutionsSection.vue"),
+    "solutions-section": httpVueLoader("./solutions/SolutionsSection.vue"),
   },
   data() {
     return {

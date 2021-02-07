@@ -24,60 +24,79 @@
 
           <v-tooltip bottom>
             <template v-slot:activator="{ on, attrs }">
-              <span v-bind="attrs" v-on="on" class="soTitle font-weight-black mt-4">Solutions</span>
+              <span
+                v-bind="attrs"
+                v-on="on"
+                class="soTitle font-weight-black mt-4"
+                >Solutions</span
+              >
             </template>
             <span>Threefold grid primitives</span>
           </v-tooltip>
           <v-row class="mt-2" align="start" justify="start">
-            <v-card
+            <v-col
               v-for="solution in filteredSolutions"
               :key="solution.type"
-              class="ma-2"
-              width="290"
-              :loading="loading"
-              :disabled="loading"
+              sm="4"
+              md="3"
             >
-              <v-img
-                v-if="solution.image"
-                class="mt-6"
-                height="100px"
-                :contain="true"
-                :src="solution.image"
-              ></v-img>
-              <v-icon v-else class="ma-4" x-large color="primary">{{solution.icon}}</v-icon>
-              <v-card-title class="mx-2 font-weight-bold">
-                {{solution.name}}
-                <v-chip
-                  v-if="solutionCount[solution.type] !== undefined"
-                  :loading="true"
-                  class="ml-2"
-                  small
-                  outlined
-                >{{solutionCount[solution.type]}}</v-chip>
-                <v-tooltip top>
-                  <template v-slot:activator="{ on, attrs }">
-                    <a
-                      class="chatflowInfo"
-                      :href="`https://manual.threefold.io/#/${solution.type}`"
-                      target="blank"
-                    >
-                      <v-icon color="primary" v-bind="attrs" v-on="on" right>mdi-information-outline</v-icon>
-                    </a>
-                  </template>
-                  <span>Go to Wiki</span>
-                </v-tooltip>
-              </v-card-title>
-              <v-card-text style="height:100px" class="mx-2 text--primary">
-                {{solution.description.length > SOLUTION_DESCRIPTION_MAXLENGTH ?
-                solution.description.slice(0, SOLUTION_DESCRIPTION_MAXLENGTH) + " ..." :
-                solution.description}}
-              </v-card-text>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn text medium @click.stop="openChatflow(solution.type)">New</v-btn>
-                <v-btn text medium @click.stop="viewWorkloads(solution.type)">My Workloads</v-btn>
-              </v-card-actions>
-            </v-card>
+              <v-card class="pa-1 ma-2" :loading="loading" :disabled="loading">
+                <v-img
+                  v-if="solution.image"
+                  class="mt-6"
+                  height="100px"
+                  :contain="true"
+                  :src="solution.image"
+                ></v-img>
+                <v-icon v-else class="ma-4" x-large color="primary">{{
+                  solution.icon
+                }}</v-icon>
+                <v-card-title class="mx-2 font-weight-bold">
+                  {{ solution.name }}
+                  <v-chip
+                    v-if="solutionCount[solution.type] !== undefined"
+                    :loading="true"
+                    class="ml-2"
+                    small
+                    outlined
+                    >{{ solutionCount[solution.type] }}</v-chip
+                  >
+                  <v-tooltip top>
+                    <template v-slot:activator="{ on, attrs }">
+                      <a
+                        class="chatflowInfo"
+                        :href="`https://manual.threefold.io/#/${solution.type}`"
+                        target="blank"
+                      >
+                        <v-icon color="primary" v-bind="attrs" v-on="on" right
+                          >mdi-information-outline</v-icon
+                        >
+                      </a>
+                    </template>
+                    <span>Go to Wiki</span>
+                  </v-tooltip>
+                </v-card-title>
+                <v-card-text style="height: 100px" class="mx-2 text--primary">
+                  {{
+                    solution.description.length > SOLUTION_DESCRIPTION_MAXLENGTH
+                      ? solution.description.slice(
+                          0,
+                          SOLUTION_DESCRIPTION_MAXLENGTH
+                        ) + " ..."
+                      : solution.description
+                  }}
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn text medium @click.stop="openChatflow(solution.type)"
+                    >New</v-btn
+                  >
+                  <v-btn text medium @click.stop="viewWorkloads(solution.type)"
+                    >My Workloads</v-btn
+                  >
+                </v-card-actions>
+              </v-card>
+            </v-col>
           </v-row>
           <br />
         </div>
@@ -87,12 +106,15 @@
             <div>Have to migrate first</div>
             <p class="display-1 text--primary">migrate</p>
             <div class="text--primary">
-              The explorer has been upgraded, so you need to initialize the migration of your old reservations to be able to use them.
+              The explorer has been upgraded, so you need to initialize the
+              migration of your old reservations to be able to use them.
               <br />To migrate please click on the bellow button.
             </div>
           </v-card-text>
           <v-card-actions>
-            <v-btn text color="deep-purple accent-4" @click="migrate">migrate</v-btn>
+            <v-btn text color="deep-purple accent-4" @click="migrate"
+              >migrate</v-btn
+            >
           </v-card-actions>
         </v-card>
       </template>

@@ -32,8 +32,8 @@ const app = httpVueLoader('./App.vue')
 const home = httpVueLoader('./components/solutions/Solution.vue')
 const solutionChatflow = httpVueLoader('./components/solutions/SolutionChatflow.vue')
 const workloads = httpVueLoader('./components/solutions/Workloads.vue')
-const license = httpVueLoader('./components/License.vue')
-const terms = httpVueLoader('./components/Terms.vue')
+const license = httpVueLoader('/vueui/License.vue')
+const terms = httpVueLoader('/vueui/Terms.vue')
 const disclaimer = httpVueLoader('/vueui/Disclaimer.vue')
 
 Vue.mixin({

@@ -1,14 +1,20 @@
 <template>
   <div>
-    <base-component title="Solutions Menu" icon="mdi-menu-left" url="/solutions">
+    <base-component
+      title="Solutions Menu"
+      icon="mdi-menu-left"
+      url="/solutions"
+    >
       <template #default>
         <v-card class="pa-3 ml-3">
           <v-card-title class="headline">
             <v-avatar size="50px" class="mr-5" tile>
               <v-img v-if="solution.image" :src="solution.image"></v-img>
-              <v-icon v-else color="primary">{{solution.icon}} mdi-48px</v-icon>
+              <v-icon v-else color="primary"
+                >{{ solution.icon }} mdi-48px</v-icon
+              >
             </v-avatar>
-            <span>{{solution.name}}</span>
+            <span>{{ solution.name }}</span>
             <v-tooltip top>
               <template v-slot:activator="{ on, attrs }">
                 <a
@@ -16,13 +22,9 @@
                   :href="`https://manual.threefold.io/#/${solution.type}`"
                   target="blank"
                 >
-                  <v-icon
-                    color="primary"
-                    large
-                    v-bind="attrs"
-                    v-on="on"
-                    right
-                  >mdi-information-outline</v-icon>
+                  <v-icon color="primary" large v-bind="attrs" v-on="on" right
+                    >mdi-information-outline</v-icon
+                  >
                 </a>
               </template>
               <span>Go to Wiki</span>
@@ -30,15 +32,18 @@
           </v-card-title>
 
           <v-card-text>
-            <span>{{solution.description}}</span>
+            <span>{{ solution.description }}</span>
             <br />
             <br />
-            <v-btn color="primary" @click.stop="restart(solution.type)">New</v-btn>
+            <v-btn color="primary" @click.stop="restart(solution.type)"
+              >New</v-btn
+            >
             <v-btn
               color="primary"
               v-if="started(solution.type)"
               @click.stop="open(solution.type)"
-            >Continue</v-btn>
+              >Continue</v-btn
+            >
 
             <v-divider class="my-5"></v-divider>
             <v-data-table
@@ -48,13 +53,15 @@
               class="elevation-1"
             >
               <template slot="no-data">
-                <p>No {{solution.name.toLowerCase()}} workloads available</p>
+                <p>No {{ solution.name.toLowerCase() }} workloads available</p>
               </template>
               <template v-slot:item.actions="{ item }">
                 <v-tooltip top>
                   <template v-slot:activator="{ on, attrs }">
                     <v-btn icon @click.stop="showInfo(item)">
-                      <v-icon v-bind="attrs" v-on="on" color="#206a5d">mdi-information-outline</v-icon>
+                      <v-icon v-bind="attrs" v-on="on" color="#206a5d"
+                        >mdi-information-outline</v-icon
+                      >
                     </v-btn>
                   </template>
                   <span>Show Information</span>
@@ -65,7 +72,11 @@
         </v-card>
       </template>
     </base-component>
-    <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
+    <solution-info
+      v-if="selected"
+      v-model="dialogs.info"
+      :data="selected"
+    ></solution-info>
   </div>
 </template>
 

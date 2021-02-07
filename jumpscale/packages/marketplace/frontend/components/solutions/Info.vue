@@ -1,6 +1,10 @@
 <template>
   <div>
-    <base-dialog title="Application details" v-model="dialog" :loading="loading">
+    <base-dialog
+      title="Application details"
+      v-model="dialog"
+      :loading="loading"
+    >
       <template #default>
         <v-tabs v-model="tab" background-color="transparent" color="basil" grow>
           <v-tab key="appdetails">App details</v-tab>
@@ -10,13 +14,15 @@
             <v-simple-table>
               <template v-slot:default>
                 <tbody>
-                  <tr v-for="(item, key)  in json" :key="key">
+                  <tr v-for="(item, key) in json" :key="key">
                     <th>{{ key }}</th>
                     <td v-if="KeysWithTypeList.includes(key)" class="pt-2">
-                      <v-chip class="ma-1" v-for="node in item" :key="node">{{ node }}</v-chip>
+                      <v-chip class="ma-1" v-for="node in item" :key="node">{{
+                        node
+                      }}</v-chip>
                     </td>
                     <td v-else-if="key === 'Expiration'">
-                      {{ new Date(item * 1000).toLocaleString('en-GB') }}
+                      {{ new Date(item * 1000).toLocaleString("en-GB") }}
                     </td>
                     <td v-else>{{ item }}</td>
                   </tr>
@@ -37,11 +43,15 @@
           text
           color="error"
           @click.stop="cancel()"
-        >Delete Reservation</v-btn>
+          >Delete Reservation</v-btn
+        >
         <v-btn text @click="close">Close</v-btn>
       </template>
     </base-dialog>
-    <cancel-solution v-model="dialogs.cancelSolution" :wids="data.wids"></cancel-solution>
+    <cancel-solution
+      v-model="dialogs.cancelSolution"
+      :wids="data.wids"
+    ></cancel-solution>
   </div>
 </template>
 
