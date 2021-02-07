@@ -36,7 +36,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self.ip_version = "IPv6"
         self.chart_config = {}
 
-    @chatflow_step
+    @chatflow_step(title="Chart Backup")
     def ask_backup(self):
         self.backup = self.single_choice(
             "Do you want to enable backup for this solution?", ["Yes", "No"], default="Yes", required=True
