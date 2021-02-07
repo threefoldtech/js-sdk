@@ -18,6 +18,9 @@ class ZeroCIDeploy(SolutionsChatflowDeploy):
                 "ingress.hosts[0].paths[0]": "/",
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
+                "volumes.bin": f"/zeroci/{self.release_name}/bin",
+                "volumes.redis": f"/zeroci/{self.release_name}/redis",
+                "volumes.persistent": f"/zeroci/{self.release_name}/persistent",
             }
         )
 

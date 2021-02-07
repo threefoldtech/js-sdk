@@ -118,7 +118,7 @@ const DECENTRALIZED_WE = {
             name: "Document Server",
             type: "documentserver",
             image: "./assets/document_server.jpg",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/now/docs/documentserver/",
             description: "Document Server is a free collaborative online office suite comprising viewers and editors for texts, spreadsheets and presentations, fully compatible with Office Open XML formats: .docx, .xlsx, .pptx and enabling collaborative editing in real time"
         },
@@ -126,7 +126,7 @@ const DECENTRALIZED_WE = {
             name: "File Browser",
             type: "filebrowser",
             image: "./assets/file_browser.jpg",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/now/docs/file-browser/",
             description: "File browser is an open source solution that provides a file managing interface"
         },
@@ -207,7 +207,7 @@ const BC_SOLUTIONS = {
             description: "Open source peer-to-peer cryptocurrency with a strong focus on the payments industry."
         },
         digibyte: {
-            name: "Digibyte",
+            name: "DigiByte",
             type: "digibyte",
             image: "./assets/digibyte.png",
             disable: false,
@@ -247,7 +247,7 @@ const BC_SOLUTIONS = {
             description: "Scalable, fast, and ultra-secure Blockchain drove by a global community of developers and node operators."
         },
         scale: {
-            name: "Scale",
+            name: "Skale",
             type: "scale",
             image: "./assets/Skale.png",
             disable: true,

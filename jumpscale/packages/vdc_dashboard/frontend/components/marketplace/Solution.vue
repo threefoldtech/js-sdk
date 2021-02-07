@@ -118,7 +118,7 @@ module.exports = {
         { text: "URL", value: "domain" },
         { text: "Version", value: "Version" },
         { text: "Status", value: "Status" },
-        { text: "Creation Time", value: "creation" },
+        { text: "Creation Time", value: "Creation" },
         { text: "Actions", value: "actions", sortable: false },
       ],
       deployedSolutions: [],

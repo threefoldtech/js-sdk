@@ -10,12 +10,12 @@ def _filter_data(deployment):
             status = "Error"
             break
 
-    creation_time = j.data.time.get(deployment["metadata"]["creationTimestamp"]).timestamp
+    creation_time = j.data.time.get(deployment["metadata"]["creationTimestamp"]).format()
     # TODO: Add VDC name
     filtered_deployment = {
         "Release": deployment["metadata"]["labels"].get("app.kubernetes.io/instance"),
         "Version": deployment["metadata"]["labels"].get("app.kubernetes.io/version"),
-        "creation": creation_time,
+        "Creation": creation_time,
         "Status": status,
         "Status Details": conditions,
     }

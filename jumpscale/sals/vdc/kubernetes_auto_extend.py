@@ -54,6 +54,8 @@ class KubernetesMonitor:
             except Exception as e:
                 j.logger.warning(f"k8s monitor: failed to get node: {node_name} usage due to error: {e}")
                 continue
+            cpu_percentage = cpu_percentage or 1
+            memory_percentage = memory_percentage or 1
             self._node_stats[node_name] = {
                 "cpu": {"used": cpu_mill, "total": cpu_mill / cpu_percentage,},
                 "memory": {"used": memory_usage, "total": memory_usage / memory_percentage},
