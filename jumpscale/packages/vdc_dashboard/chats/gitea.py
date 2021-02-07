@@ -7,6 +7,7 @@ class GiteaDeploy(SolutionsChatflowDeploy):
     title = "Gitea"
     HELM_REPO_NAME = "marketplace"
     steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    ADDITIONAL_QUERIES = [{"cpu": 250, "memory": 256}, {"cpu": 250, "memory": 256}]  # memcached  # postgresql
 
     @chatflow_step(title="Configurations")
     def set_config(self):
