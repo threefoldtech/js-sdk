@@ -105,17 +105,23 @@ class ExtendKubernetesCluster(GedisChatBot):
             except DeploymentFailed as ex:
                 # Cleaning k8s workloads and public IP workloads in case of failure in deployment
                 workload = zos.workloads.get(resv)
-                if hasattr(workload, "public_ip") and workload.public_ip:
+                if workload.public_ip:
                     zos.workloads.decomission(workload.public_ip)
                 zos.workloads.decomission(wid)
                 j.logger.error(f"Failed to deploy  workloads for {resv}, the error: {str(ex)}")
+
         if not self.success_workload_count:
-            raise StopChatFlow(msg="Cant extend your cluster, please try again later")
+            raise StopChatFlow(msg="Can't extend your cluster, please try again later")
+
+        if self.success_workload_count < len(self.reservations):
+            raise StopChatFlow(
+                msg=f"Some nodes failed to extend, {self.success_workload_count} of {self.nodes_count}, please try again later"
+            )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         self.md_show(
-            f"Your cluster has been extended successfully with {self.success_workload_count} of {self.nodes_count} Nodes, workload ids: {self.reservations}  "
+            f"Your cluster has been extended successfully with {self.nodes_count} Nodes, workload ids: {self.reservations}  "
         )
 
 
