@@ -75,8 +75,10 @@ class VDCDeploy(GedisChatBot):
             "Choose the VDC plan", options=vdc_flavor_messages, default=vdc_flavor_messages[0], required=True,
         )
         form.ask()
+        self.restore = False
         vdc = j.sals.vdc.find(vdc_name=self.vdc_name.value, owner_tname=self.username)
         if vdc:
+            self.restore = True
             j.logger.info(f"deleting empty vdc instance: {vdc.instance_name} with uuid: {vdc.solution_uuid}")
             j.sals.vdc.delete(vdc.instance_name)
 
@@ -90,6 +92,18 @@ class VDCDeploy(GedisChatBot):
         self.minio_secret_key = form.secret_ask(
             "S3 secret key (Credentials used to access the VDC's S3)", min_length=8, required=True,
         )
+        form.ask()
+
+    def _backup_form(self):
+        form = self.new_form()
+        if self.restore:
+            self.s3_url = form.string_ask("S3 URL to restore your k8s cluster", required=True)
+        else:
+            self.s3_url = form.string_ask("S3 URL to back your k8s cluster to", required=True)
+        self.s3_region = form.string_ask("S3 region name", required=True)
+        self.s3_bucked = form.string_ask("S3 bucket name (make sure the bucket policy is Read/Write)", required=True)
+        self.ak = form.string_ask("S3 access key", required=True)
+        self.sk = form.secret_ask("S3 secret key", required=True)
         form.ask()
 
     @chatflow_step(title="VDC Information")

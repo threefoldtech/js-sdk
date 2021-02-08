@@ -162,6 +162,7 @@ j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{vdc.owner_tname}/{vdc.vdc_
 
 j.sals.fs.mkdirs("/root/.kube")
 j.sals.fs.write_file("/root/.kube/config", KUBE_CONFIG)
+j.sals.process.execute('velero create schedule vdc --schedule="@every 24h"')
 
 # Register provisioning and prepaid wallets
 

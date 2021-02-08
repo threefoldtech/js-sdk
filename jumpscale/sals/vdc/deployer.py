@@ -466,12 +466,13 @@ class VDCDeployer:
 
         return gcc.result
 
-    def deploy_vdc(self, minio_ak, minio_sk, farm_name=None, install_monitoring_stack=False):
+    def deploy_vdc(self, minio_ak, minio_sk, farm_name=None, install_monitoring_stack=False, s3_backup_config=None):
         """deploys a new vdc
         Args:
             minio_ak: access key for minio
             minio_sk: secret key for minio
             farm_name: where to initialize the vdc
+            s3_backup_config: dict with keys: url, region, bucket, ak, sk
         """
         farm_name = farm_name or PREFERED_FARM.get()
 
@@ -553,7 +554,9 @@ class VDCDeployer:
 
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
-            threebot_wid = self.threebot.deploy_threebot(minio_wid, pool_id, kube_config=kube_config)
+            threebot_wid = self.threebot.deploy_threebot(
+                minio_wid, pool_id, kube_config=kube_config, backup_config=s3_backup_config
+            )
             self.info(f"threebot_wid: {threebot_wid}")
             if not threebot_wid:
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")

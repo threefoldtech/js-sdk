@@ -23,7 +23,8 @@ THREEBOT_TRC_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-l
 
 
 class VDCThreebotDeployer(VDCBaseComponent):
-    def deploy_threebot(self, minio_wid, pool_id, kube_config, embed_trc=True):
+    def deploy_threebot(self, minio_wid, pool_id, kube_config, embed_trc=True, backup_config=None):
+        backup_config = backup_config or {}
         flist = THREEBOT_TRC_FLIST if embed_trc else THREEBOT_FLIST
         # workload = self.zos.workloads.get(minio_wid)
         # if workload.info.workload_type != WorkloadType.Container:
@@ -34,6 +35,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
         vdc_dict.pop("kubernetes", None)
         vdc_dict.pop("threebot", None)
         secret_env = {
+            "BACKUP_CONFIG": backup_config,
             "VDC_OWNER_TNAME": self.vdc_deployer.tname,
             "VDC_EMAIL": self.vdc_deployer.email,
             "VDC_PASSWORD_HASH": self.vdc_deployer.password_hash,
@@ -68,10 +70,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 return
             remote_ip, remote_port = remote.split(":")
             env.update(
-                {
-                    "REMOTE_IP": remote_ip,
-                    "REMOTE_PORT": remote_port,
-                }
+                {"REMOTE_IP": remote_ip, "REMOTE_PORT": remote_port,}
             )
             secret_env["TRC_SECRET"] = secret
         if not self.vdc_instance.kubernetes:
