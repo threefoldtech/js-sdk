@@ -61,7 +61,7 @@
               <template v-slot:item.actions="{ item }">
                 <v-tooltip top>
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn icon :href="`https://${item.Domain}/`" target="_blank">
+                    <v-btn v-if="item.Domain !== ''" icon :href="`https://${item.Domain}/`" target="_blank">
                       <v-icon v-bind="attrs" v-on="on" color="primary">mdi-web</v-icon>
                     </v-btn>
                   </template>
@@ -118,7 +118,7 @@ module.exports = {
         { text: "URL", value: "domain" },
         { text: "Version", value: "Version" },
         { text: "Status", value: "Status" },
-        { text: "Creation Time", value: "creation" },
+        { text: "Creation Time", value: "Creation" },
         { text: "Actions", value: "actions", sortable: false },
       ],
       deployedSolutions: [],

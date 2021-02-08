@@ -14,7 +14,7 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
     SSH_MESSAGE = "Please upload your public SSH key to be able to access the depolyed container via ssh"
     IPV4_MESSAGE = "Please choose IP Address for your solution"
     IPV6_MESSAGE = r"^Do you want to assign a global IPv6 address to (.*)\?$"
-    NODE_ID_MESSAGE = r"^Do you want to automatically select a node for deployment for (.*)\?$"
+    NODE_ID_MESSAGE = r"^Do you want to automatically select a node to deploy (.*)\?$"
     POOL_MESSAGE = r"^Please select a pool( for (.*))?$"
     NODE_SELECTION_MESSAGE = r"^Please choose the node you want to deploy (.*) on$"
 
@@ -40,7 +40,6 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
 
     def single_choice(self, msg, *args, **kwargs):
         selected = self.fetch_param(msg, *args, **kwargs)
-        print(args)
         if args:
             for m in args[0]:
                 if str(selected) in m:

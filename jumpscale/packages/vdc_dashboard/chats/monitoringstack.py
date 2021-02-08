@@ -75,6 +75,7 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
             {
                 "prometheus.ingress.hosts[0]": self.domain,
                 "grafana.ingress.hosts[0]": self.grafana_domain,
+                "grafana.adminPassword": "prom-operator",
                 "prometheus.prometheusSpec.resources.limits.cpu": self.resources_limits["cpu"],
                 "prometheus.prometheusSpec.resources.limits.memory": self.resources_limits["memory"],
             }

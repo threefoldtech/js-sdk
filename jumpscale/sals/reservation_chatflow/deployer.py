@@ -370,6 +370,7 @@ class ChatflowDeployer:
         form = bot.new_form()
         cu = form.int_ask("Required Amount of Compute Unit (CU)", required=True, min=0, default=0)
         su = form.int_ask("Required Amount of Storage Unit (SU)", required=True, min=0, default=0)
+        ipv4u = form.int_ask("Required Amount of Public IP Unit (IPv4U)", required=True, min=0, default=0)
         time_unit = form.drop_down_choice(
             "Please choose the duration unit", ["Day", "Month", "Year"], required=True, default="Month"
         )
@@ -404,14 +405,17 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
         cu = cu.value * 60 * 60 * 24 * days * ttl
         su = su.value * 60 * 60 * 24 * days * ttl
-        return (cu, su, ["TFT"])
+        ipv4u = ipv4u.value * 60 * 60 * 24 * days * ttl
+        return (cu, su, ipv4u, ["TFT"])
 
     def create_pool(self, bot):
-        cu, su, currencies = self._pool_form(bot)
+        cu, su, ipv4u, currencies = self._pool_form(bot)
         all_farms = self._explorer.farms.list()
         available_farms = {}
         farms_by_name = {}
         for farm in all_farms:
+            if ipv4u and not farm.ipaddresses:
+                continue
             farm_assets = [w.asset for w in farm.wallet_addresses]
             if currencies[0] not in farm_assets:
                 continue
@@ -444,7 +448,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         )
         farm = farm_messages[selected_farm]
         try:
-            pool_info = j.sals.zos.get().pools.create(cu, su, 0, farm, currencies)
+            pool_info = j.sals.zos.get().pools.create(cu, su, ipv4u, farm, currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to reserve pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
@@ -452,10 +456,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return pool_info
 
     def extend_pool(self, bot, pool_id):
-        cu, su, currencies = self._pool_form(bot)
+        cu, su, ipv4u, currencies = self._pool_form(bot)
         currencies = ["TFT"]
         try:
-            pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, 0, currencies=currencies)
+            pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, ipv4u, currencies=currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to extend pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
@@ -564,7 +568,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             return None
         return qr_code
 
-    def list_pools(self, cu=None, su=None):
+    def list_pools(self, cu=None, su=None, ipv4u=None):
         all_pools = [p for p in j.sals.zos.get().pools.list() if p.node_ids]
 
         available_pools = {}
@@ -577,7 +581,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 name = local_config.name
             if hidden:
                 continue
-            res = self.check_pool_capacity(pool, cu, su)
+            res = self.check_pool_capacity(pool, cu, su, ipv4u)
             available = res[0]
             if available:
                 resources = res[1:]
@@ -586,26 +590,39 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 available_pools[pool.pool_id] = resources
         return available_pools
 
-    def check_pool_capacity(self, pool, cu=None, su=None):
+    def check_pool_capacity(self, pool, cu=None, su=None, ipv4u=None):
         available_su = pool.sus
         available_cu = pool.cus
+        available_ipv4u = pool.ipv4us
         if pool.empty_at < 0:
             return False, 0, 0
         if cu and available_cu < cu:
-            return False, available_cu, available_su
+            return False, available_cu, available_su, available_ipv4u
         if su and available_su < su:
-            return False, available_cu, available_su
+            return False, available_cu, available_su, available_ipv4u
+        if ipv4u and available_ipv4u < ipv4u:
+            return False, available_cu, available_su, available_ipv4u
         if (cu or su) and pool.empty_at < j.data.time.now().timestamp:
             return False, 0, 0
-        return True, available_cu, available_su
+        return True, available_cu, available_su, available_ipv4u
 
     def select_pool(
-        self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None
+        self,
+        bot,
+        cu=None,
+        su=None,
+        ipv4u=None,
+        sru=None,
+        mru=None,
+        hru=None,
+        cru=None,
+        available_pools=None,
+        workload_name=None,
     ):
         if j.config.get("OVER_PROVISIONING"):
             cru = 0
             mru = 0
-        available_pools = available_pools or self.list_pools(cu, su)
+        available_pools = available_pools or self.list_pools(cu, su, ipv4u)
         if not available_pools:
             raise StopChatFlow("no available pools with enough capacity for your workload")
         pool_messages = {}
@@ -614,9 +631,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             if not nodes:
                 continue
 
-            pool_msg = f"Pool: {pool} cu: {available_pools[pool][0]} su:" f" {available_pools[pool][1]}"
-            if len(available_pools[pool]) > 2:
-                pool_msg += f" Name: {available_pools[pool][2]}"
+            pool_cus, pool_sus, pool_ipv4us = available_pools[pool][:3]
+            pool_msg = f"Pool: {pool} cu: {pool_cus} su: {pool_sus} ipv4u: {pool_ipv4us}"
+            if len(available_pools[pool]) > 3:
+                pool_msg += f" Name: {available_pools[pool][3]}"
             pool_messages[pool_msg] = pool
         if not pool_messages:
             raise StopChatFlow("no available resources in the farms bound to your pools")
@@ -1149,7 +1167,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         if not workload_name:
             workload_name = "your workload"
         automatic_choice = bot.single_choice(
-            "Do you want to automatically select a node for deployment for" f" {workload_name}?",
+            f"Do you want to automatically select a node to deploy {workload_name} on?",
             ["YES", "NO"],
             default="YES",
             required=True,
@@ -2097,7 +2115,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         msg = "<h2> Waiting for payment...</h2>"
         if qr_code:
             qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
-            msg += f"Please scan the QR Code below for the payment details"
+            msg += f"Please scan the QR Code below (Using ThreeFold Connect Application) for the payment details"
             qr_code_msg = f"""
             <div class="text-center">
                 <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
@@ -2120,7 +2138,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         msg = "<h2> Waiting for payment...</h2>"
         if qr_code:
             qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
-            msg += f"Please scan the QR Code below for the payment"
+            msg += f"Please scan the QR Code below (Using ThreeFold Connect Application) for the payment"
             qr_code_msg = f"""
             <div class="text-center">
                 <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
@@ -2128,9 +2146,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             """
             msg = msg + self.msg_payment_info + qr_code_msg
         zos = j.sals.zos.get(identity_name)
+        if bot:
+            bot.md_show_update(msg, html=True)
         while j.data.time.get().timestamp < expiration:
-            if bot:
-                bot.md_show_update(msg, html=True)
             payment_info = zos.pools.get_payment_info(reservation_id)
             if payment_info.paid and payment_info.released:
                 return True
@@ -2168,7 +2186,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         <h4> Memo Text (Reservation ID): </h4>  p-{info['resv_id']} \n
         <h4> Total Amount: </h4> {total_amount} {info['thecurrency']} \n
 
-        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 {info['thecurrency']} will automatically occurs per transaction.</h5>
+        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 {info['thecurrency']} will automatically occur per transaction.</h5>
         """
 
         return msg_text, qr_code

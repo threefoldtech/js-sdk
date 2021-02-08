@@ -121,6 +121,10 @@ class Solutions(BaseActor):
 
     @actor_method
     def rename_pool(self, pool_id, name) -> str:
+        if not name.isidentifier() or not name.islower():
+            raise j.exceptions.Value(
+                "The pool name must be a lowercase valid python identitifier (English letters, underscores, and numbers not starting with a number)."
+            )
         pool_factory = StoredFactory(PoolConfig)
         if f"pool_{pool_id}" in pool_factory.list_all():
             local_config = pool_factory.get(f"pool_{pool_id}")

@@ -474,10 +474,6 @@ class VDCDeployer:
             farm_name: where to initialize the vdc
         """
         farm_name = farm_name or PREFERED_FARM.get()
-        if not self.check_capacity(farm_name):
-            raise j.exceptions.Validation(
-                f"There are not enough resources available to deploy your VDC of flavor `{self.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
-            )
 
         cluster_secret = self.password_hash
         self.info(f"deploying VDC flavor: {self.flavor} farm: {farm_name}")
@@ -781,6 +777,7 @@ class VDCDeployer:
             except InsufficientFunds as e:
                 raise e
             except Exception as e:
+                self.bot_show_update(f"failed to submit payment to stellar due to error {str(e)}. retrying..")
                 self.warning(f"failed to submit payment to stellar due to error {str(e)}")
                 gevent.sleep(3)
         if not success:

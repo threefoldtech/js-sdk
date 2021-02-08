@@ -178,13 +178,21 @@ def get_zstor_config():
     vdc = _get_vdc()
     vdc_zdb_monitor = vdc.get_zdb_monitor()
     password = vdc_zdb_monitor.get_password()
+    encryption_key = password[:32].encode().zfill(32).hex()
     data = {
         "data_shards": 2,
         "parity_shards": 1,
         "redundant_groups": 0,
         "redundant_nodes": 0,
-        "encryption": {"algorithm": "AES", "key": "",},
+        "encryption": {"algorithm": "AES", "key": encryption_key,},
         "compression": {"algorithm": "snappy",},
+        "meta": {
+            "type": "etcd",
+            "config": {
+                "endpoints": ["http://127.0.0.1:2379", "http://127.0.0.1:22379", "http://127.0.0.1:32379"],
+                "prefix": "someprefix",
+            },
+        },
         "groups": [],
     }
     for zdb in vdc.s3.zdbs:
@@ -262,7 +270,11 @@ def accept():
 @app.route("/api/update", method="GET")
 @package_authorized("vdc_dashboard")
 def update():
-    branch = os.environ.get("SDK_VERSION", "development")
+    branch_param = request.params.get("branch")
+    if branch_param:
+        branch = branch_param
+    else:
+        branch = os.environ.get("SDK_VERSION", "development")
     cmds = [f"git checkout {branch}", "git pull"]
     for cmd in cmds:
         rc, out, err = j.sals.process.execute(cmd, cwd="/sandbox/code/github/threefoldtech/js-sdk")

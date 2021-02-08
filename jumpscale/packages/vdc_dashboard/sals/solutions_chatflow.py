@@ -26,6 +26,8 @@ POD_INITIALIZING_TIMEOUT = 120
 
 
 class SolutionsChatflowDeploy(GedisChatBot):
+    CHART_NAME = None
+
     def _init_solution(self):
         # TODO: te be removed
         self.user_info_data = self.user_info()
@@ -51,20 +53,20 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 self.vdc_info["farm_name"] = j.core.identity.me.explorer.farms.get(
                     j.core.identity.me.explorer.nodes.get(node.node_id).farm_id
                 ).name
-                self.vdc_info["kube_config_path"] = "/root/.kube/config"
+                self.vdc_info["kube_config_path"] = j.sals.fs.expanduser("~/.kube/config")
                 self.vdc_info["network_name"] = self.vdc_name
                 self.vdc_info["network_view"] = deployer.get_network_view(
                     self.vdc_name, identity_name=self.identity_name
                 )
                 break
 
-    def _choose_flavor(self, chart_limits=None):
+    def _choose_flavor(self, chart_limits=None, resource_template=RESOURCE_VALUE_TEMPLATE):
         chart_limits = chart_limits or CHART_LIMITS
         messages = []
         for flavor in chart_limits:
             flavor_specs = ""
             for key in chart_limits[flavor]:
-                flavor_specs += f"{RESOURCE_VALUE_TEMPLATE[key].format(chart_limits[flavor][key])} - "
+                flavor_specs += f"{resource_template[key].format(chart_limits[flavor][key])} - "
             msg = f"{flavor} ({flavor_specs[:-3]})"
             messages.append(msg)
         chosen_flavor = self.single_choice(
@@ -84,16 +86,6 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 raise StopChatFlow(
                     f"There are not enough resources to deploy cpu: {cpu}, memory: {memory}. current cluster resources: {monitor.node_stats}"
                 )
-
-    def _configure_admin_username_password(self):
-        form = self.new_form()
-        admin_user_message = "Admin username"
-        admin_pass_message = "Admin Password (should be at least 10 characters long)"
-        admin_username = form.string_ask(admin_user_message, required=True, is_identifier=True)
-        admin_password = form.secret_ask(admin_pass_message, required=True, is_identifier=True, min_length=10)
-        form.ask()
-        self.admin_username = admin_username.value
-        self.admin_password = admin_password.value
 
     def get_k8s_sshclient(self, private_key_path="/root/.ssh/id_rsa", user="rancher"):
         ssh_key = j.clients.sshkey.get(self.vdc_name)
@@ -159,10 +151,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     def _ask_smtp_settings(self):
         form = self.new_form()
-        smtp_host = form.string_ask("SMTP Host", required=True)
-        smtp_port = form.string_ask("SMTP Port", required=True)
-        smtp_username = form.string_ask("SMTP Username", required=True)
-        smtp_password = form.secret_ask("SMTP Password", required=True)
+        smtp_host = form.string_ask("SMTP Host", default="smtp.gmail.com", required=True)
+        smtp_port = form.string_ask("SMTP Port", default=587, required=True)
+        smtp_username = form.string_ask("Email (SMTP username)", required=True)
+        smtp_password = form.secret_ask("Email Password", required=True)
         form.ask()
         self.smtp_host = smtp_host.value
         self.smtp_port = f'"{smtp_port.value}"'
@@ -299,6 +291,25 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 "No active gateways were found.Please contact support. The resources you paid for will be re-used in your upcoming deployments."
             )
 
+    def _does_domain_point_to_ip(self, domain, ip):
+        try:
+            return j.sals.nettools.get_host_by_name(domain) == ip
+        except TypeError:
+            return False
+
+    def _get_custom_domain(self):
+        valid = False
+        cluster_ip = self.vdc_info["public_ip"]
+        while not valid:
+            custom_domain = self.string_ask(
+                f"Please enter the domain name, make sure the domain points to {cluster_ip}.", required=True,
+            )
+            if not self._does_domain_point_to_ip(custom_domain, cluster_ip):
+                self.md_show(f"The domain {custom_domain} doesn't point to {cluster_ip}.")
+            else:
+                valid = True
+                self.domain = custom_domain
+
     @deployment_context()
     def _create_subdomain(self):
         self.workload_ids = []
@@ -341,17 +352,30 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     @chatflow_step(title="Create subdomain")
     def create_subdomain(self):
-        choices = ["Choose subdomain for me on a gateway", "Choose a custom subdomain on a gateway"]
+        choices = [
+            "Choose subdomain for me on a gateway",
+            "Choose a custom subdomain on a gateway",
+            "Choose a custom domain",
+        ]
         self.domain_type = self.single_choice(
             "Select the domain type", choices, default="Choose subdomain for me on a gateway"
         )
+        custom_domain = self.domain_type == "Choose a custom domain"
         # get self.domain
-        self._get_domain()
-        self._create_subdomain()
-
-        # subdomain selected on gateway on preferred farm
-        if self.preferred_farm_gw:
+        if custom_domain:
+            self._get_custom_domain()
+        else:
+            self._get_domain()
+            self._create_subdomain()
+        if custom_domain:
+            self.chart_config.update({"global.ingress.certresolver": "le"})
+        elif self.preferred_farm_gw:
+            # subdomain selected on gateway on preferred farm
             self.chart_config.update({"global.ingress.certresolver": "gridca"})
+
+    @property
+    def chart_name(self):
+        return self.CHART_NAME or self.SOLUTION_TYPE
 
     @chatflow_step(title="Installation")
     def install_chart(self):
@@ -366,15 +390,16 @@ class SolutionsChatflowDeploy(GedisChatBot):
             )
         self.k8s_client.update_repos()
         self.chart_config.update({"solution_uuid": self.solution_id})
+
         self.k8s_client.install_chart(
             release=self.release_name,
-            chart_name=f"{self.HELM_REPO_NAME}/{self.SOLUTION_TYPE}",
+            chart_name=f"{self.HELM_REPO_NAME}/{self.chart_name}",
             extra_config=self.chart_config,
         )
 
     def chart_pods_started(self):
         pods_status_info = self.k8s_client.execute_native_cmd(
-            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.SOLUTION_TYPE} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.phase}}'"
+            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.phase}}'"
         )
         if "Pending" in pods_status_info:
             return False
@@ -385,7 +410,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     def chart_resource_failure(self):
         pods_info = self.k8s_client.execute_native_cmd(
-            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.SOLUTION_TYPE} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[*].message}}'"
+            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[*].message}}'"
         )  # Gets the last event message
         if "Insufficient" in pods_info:
             return True

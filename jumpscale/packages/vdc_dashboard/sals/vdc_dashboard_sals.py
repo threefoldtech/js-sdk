@@ -10,12 +10,12 @@ def _filter_data(deployment):
             status = "Error"
             break
 
-    creation_time = j.data.time.get(deployment["metadata"]["creationTimestamp"]).timestamp
+    creation_time = j.data.time.get(deployment["metadata"]["creationTimestamp"]).format()
     # TODO: Add VDC name
     filtered_deployment = {
         "Release": deployment["metadata"]["labels"].get("app.kubernetes.io/instance"),
         "Version": deployment["metadata"]["labels"].get("app.kubernetes.io/version"),
-        "creation": creation_time,
+        "Creation": creation_time,
         "Status": status,
         "Status Details": conditions,
     }
@@ -68,13 +68,13 @@ def get_all_deployments() -> list:
     return all_deployments
 
 
-def get_deployments(solution_type: str = None) -> list:
+def get_deployments(solution_type: str = None, username: str = None) -> list:
     """
     List deployments for specific solution type selected from kubectl and corresponding helm list info
 
     """
     all_deployments = []
-    username = j.data.serializers.json.loads(get_user_info()).get("username")
+    username = username or j.data.serializers.json.loads(get_user_info()).get("username")
     vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(username)]
     for vdc_name in vdc_names:
         config_path = j.sals.fs.expanduser("~/.kube/config")

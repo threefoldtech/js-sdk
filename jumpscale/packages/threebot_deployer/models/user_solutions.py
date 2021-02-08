@@ -14,7 +14,7 @@ class UserThreebot(Base):
     solution_uuid = fields.String()
     identity_tid = fields.Integer()
     name = fields.String()
-    owner_tname = fields.String()  # owner's tname in TF Connect after cleaning
+    owner_tname = fields.String()  # owner's tname in ThreeFold Connect after cleaning
     farm_name = fields.String()
     state = fields.Enum(ThreebotState)
     continent = fields.String()

@@ -253,6 +253,8 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     def _ask_for_node(self):
         nodes = deployer.get_all_farms_nodes(self.available_farms, **self.query)
+        if not nodes:
+            raise StopChatFlow(f"no nodes available to deploy 3bot with resources: {self.query}")
         node_id_dict = {node.node_id: node for node in nodes}
         node_id = self.drop_down_choice(
             "Please select the node you would like to deploy your 3Bot on.", list(node_id_dict.keys()), required=True,
@@ -469,14 +471,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Container Access")
     def wireguard_configs(self):
-        filename = self.solution_metadata["owner"].replace(".3bot", "")
-        wg_file_path = j.sals.fs.join_paths(j.core.dirs.CFGDIR, f"{filename}.3bot_apps.conf")
-        wg_file_path_alt = j.sals.fs.join_paths(j.core.dirs.CFGDIR, "wireguard", f"{filename}.3bot_apps.conf")
-        if j.sals.fs.exists(wg_file_path):
-            content = j.sals.fs.read_file(wg_file_path)
-        elif j.sals.fs.exists(wg_file_path_alt):
-            content = j.sals.fs.read_file(wg_file_path_alt)
-        elif hasattr(self, "wgcfg"):
+        if hasattr(self, "wgcfg"):
             content = self.wgcfg
         else:
             config = deployer.add_access(
