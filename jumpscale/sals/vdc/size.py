@@ -17,37 +17,68 @@ INITIAL_RESERVATION_DURATION = 1  # in hours
 
 
 class FarmConfigBase:
+    _LAST_LOADED = None
+    _CONF = None
+    KEY = None
+
+    @classmethod
+    def update_config(cls):
+        conf_file_path = j.core.config.get("VDC_FARMS_CONFIG")
+        if not conf_file_path:
+            return
+        if any(
+            [
+                cls._LAST_LOADED and cls._LAST_LOADED < j.data.time.now().timestamp + 15 * 60,
+                not cls._CONF and not cls._LAST_LOADED,
+            ]
+        ):
+            try:
+                cls._CONF = j.data.serializers.json.load_from_file(conf_file_path)
+            except Exception as e:
+                j.logger.warning(f"failed to load vdc farm config from path: {conf_file_path} due to error: {e}")
+        cls._LAST_LOADED = j.data.time.now().timestamp
+
     @classmethod
     def get(cls):
         network = get_explorer_network()
+        cls.update_config()
+        if cls._CONF:
+            val = cls._CONF.get(cls.KEY, {}).get(network)
+            if val:
+                return val
         return getattr(cls, network)
 
 
 class S3_AUTO_TOPUP_FARMS(FarmConfigBase):
+    KEY = "S3_AUTO_TOPUP_FARMS"
     devnet = ["lochristi_dev_lab", "lochristi_dev_lab"]
     testnet = ["freefarm", "freefarm"]
     mainnet = ["freefarm", "freefarm"]
 
 
 class ZDB_FARMS(FarmConfigBase):
+    KEY = "ZDB_FARMS"
     devnet = ["lochristi_dev_lab", "lochristi_dev_lab"]
     testnet = ["freefarm", "freefarm"]
     mainnet = ["freefarm", "freefarm"]
 
 
 class PREFERED_FARM(FarmConfigBase):
+    KEY = "PREFERED_FARM"
     devnet = "lochristi_dev_lab"
     testnet = "freefarm"
     mainnet = "freefarm"
 
 
 class NETWORK_FARM(FarmConfigBase):
+    KEY = "NETWORK_FARM"
     devnet = "lochristi_dev_lab"
     testnet = "freefarm"
     mainnet = "freefarm"
 
 
 class PROXY_FARM(FarmConfigBase):
+    KEY = "PROXY_FARM"
     devnet = "csfarmer"
     testnet = "csfarmer"
     mainnet = "csfarmer"
