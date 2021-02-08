@@ -353,7 +353,9 @@ class VDCDeployer:
         total_no_nodes = S3_NO_DATA_NODES + S3_NO_PARITY_NODES
         remainder = total_no_nodes % len(zdb_farms)
         no_node_per_farm = (total_no_nodes - remainder) / len(zdb_farms)
-        farm_count = {farm: no_node_per_farm for farm in zdb_farms}
+        farm_count = defaultdict(int)
+        for farm in zdb_farms:
+            farm_count[farm] += no_node_per_farm
         farm_count[zdb_farms[0]] += remainder
         gs = scheduler or GlobalScheduler()
         zdb_threads = []
@@ -436,7 +438,9 @@ class VDCDeployer:
         total_no_nodes = S3_NO_DATA_NODES + S3_NO_PARITY_NODES
         remainder = total_no_nodes % len(zdb_farms)
         no_node_per_farm = (total_no_nodes - remainder) / len(zdb_farms)
-        farm_count = {farm: no_node_per_farm for farm in zdb_farms}
+        farm_count = defaultdict(int)
+        for farm in zdb_farms:
+            farm_count[farm] += no_node_per_farm
         farm_count[zdb_farms[0]] += remainder
         zdb_query = {
             "hru": ZDB_STARTING_SIZE,
