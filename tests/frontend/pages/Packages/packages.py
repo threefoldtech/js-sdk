@@ -98,7 +98,12 @@ class Packages(Base):
         package_card = self.add_package_if_not_added(package, git_url)
         open_in_browser = package_card.find_elements_by_class_name("v-btn__content")[1]
         open_in_browser.click()
-        self.wait(self.driver, "v-toolbar__title primary--text")
+
+        try:
+            self.click_button(self.driver, "AGREE")
+        except:
+            pass
+
         return self.driver.current_url
 
     def chatflows(self, package, git_url):
