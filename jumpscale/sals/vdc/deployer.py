@@ -353,13 +353,14 @@ class VDCDeployer:
         total_no_nodes = S3_NO_DATA_NODES + S3_NO_PARITY_NODES
         remainder = total_no_nodes % len(zdb_farms)
         no_node_per_farm = (total_no_nodes - remainder) / len(zdb_farms)
-        farm_count = defaultdict(int)
+        farm_count = []
         for farm in zdb_farms:
-            farm_count[farm] += no_node_per_farm
-        farm_count[zdb_farms[0]] += remainder
+            farm_count.append(no_node_per_farm)
+        farm_count[0] += remainder
         gs = scheduler or GlobalScheduler()
         zdb_threads = []
-        for farm, no_nodes in farm_count.items():
+        for idx, farm in enumerate(zdb_farms):
+            no_nodes = farm_count[idx]
             pool_id, _ = self.get_pool_id_and_reservation_id(farm)
             zdb_threads.append(
                 gevent.spawn(
