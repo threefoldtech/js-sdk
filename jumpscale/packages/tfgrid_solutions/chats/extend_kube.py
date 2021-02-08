@@ -45,6 +45,8 @@ class ExtendKubernetesCluster(GedisChatBot):
         pool_id = workload.info.pool_id
         old_wids = j.sals.marketplace.solutions.get_workloads_by_uuid(metadata.get("solution_uuid"))
         old_nodes = [wid.info.node_id for wid in old_wids if wid.info.result.state == State.Ok]
+        if self.enable_public_ip:
+            self.node_query["ipv4u"] = self.nodes_count
         nodes, pools = deployer.ask_multi_pool_distribution(self, self.nodes_count + len(old_nodes), self.node_query)
         nodes_pools_zip = list(zip(nodes, pools))
         selected_nodes = list(filter(lambda x: x[0].node_id not in old_nodes, nodes_pools_zip))
@@ -103,17 +105,23 @@ class ExtendKubernetesCluster(GedisChatBot):
             except DeploymentFailed as ex:
                 # Cleaning k8s workloads and public IP workloads in case of failure in deployment
                 workload = zos.workloads.get(resv)
-                if hasattr(workload, "public_ip") and workload.public_ip:
+                if workload.public_ip:
                     zos.workloads.decomission(workload.public_ip)
                 zos.workloads.decomission(wid)
                 j.logger.error(f"Failed to deploy  workloads for {resv}, the error: {str(ex)}")
+
         if not self.success_workload_count:
-            raise StopChatFlow(msg="Cant extend your cluster, please try again later")
+            raise StopChatFlow(msg="Can't extend your cluster, please try again later")
+
+        if self.success_workload_count < len(self.reservations):
+            raise StopChatFlow(
+                msg=f"Some nodes failed to extend, {self.success_workload_count} of {self.nodes_count}, please try again later"
+            )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         self.md_show(
-            f"Your cluster has been extended successfully with {self.success_workload_count} of {self.nodes_count} Nodes, workload ids: {self.reservations}  "
+            f"Your cluster has been extended successfully with {self.nodes_count} Nodes, workload ids: {self.reservations}  "
         )
 
 

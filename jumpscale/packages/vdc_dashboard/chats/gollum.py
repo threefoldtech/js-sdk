@@ -35,8 +35,10 @@ class GollumDeploy(BaseGollumDeploy, MarketPlaceChatflow):
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
-        cu, su = deployer.calculate_capacity_units(**query)
-        self.pool_id = deployer.select_pool(self.solution_metadata["owner"], self, cu=cu, su=su, **query)
+        cloud_units = deployer.calculate_capacity_units(**query)
+        self.pool_id = deployer.select_pool(
+            self.solution_metadata["owner"], self, cu=cloud_units.cu, su=cloud_units.su, **query
+        )
 
     @chatflow_step(title="Network")
     def gollum_network(self):
