@@ -1,8 +1,8 @@
 name: Chatflows
 
 on:
-  schedule:
-    - cron:  '0 0 * * *'
+  push:
+    branches: [ fixing_test_frontend ]
 
 jobs:
   build:
@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: development
+          ref: fixing_test_frontend
       - name: Gathering deps
         run: |
           sudo apt-get update
@@ -30,7 +30,7 @@ jobs:
           WALLET_SECRET: ${{ secrets.WALLET_SECRET }}
         run: |
           sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=WALLET_SECRET \
-          poetry run pytest -sv tests/sals/automated_chatflows --cov=jumpscale --cov-report=xml
+          poetry run pytest -sv tests/frontend/tests/test_packages.py --cov=jumpscale --cov-report=xml
       - name: Upload coverage to Codecov
         if: success()
         uses: codecov/codecov-action@v1
