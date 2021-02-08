@@ -200,6 +200,18 @@ class VDCProxy(VDCBaseComponent):
         deployer.wait_workload_deletion(subdomain_workload.id, identity_name=self.identity.instance_name)
         return False
 
+    def check_subdomain_owner(self, subdomain):
+        e = self.zos._explorer
+        users = e.users.list()
+        uids = [u.id for u in users]
+        for uid in uids:
+            workloads = e.workloads.list_workloads(uid, next_action="DEPLOY")
+            for w in workloads:
+                if w.info.workload_type != WorkloadType.Subdomain:
+                    continue
+                if w.domain == subdomain:
+                    return uid
+
     def reserve_subdomain(self, gateway, prefix, vdc_uuid, pool_id=None, ip_address=None, exposed_wid=None):
         """
         it will try to create a working subdomain on any of the available managed domain of the gateway
@@ -235,10 +247,13 @@ class VDCProxy(VDCBaseComponent):
                 subdomain_workload = self.check_subdomain_existence(subdomain)
                 if not subdomain_workload:
                     # subdomain is not mine, get a new one
-                    self.vdc_deployer.error(
-                        f"subdomain {subdomain} exists and not owned by VDC identity {self.identity.tid}"
-                    )
-                    continue
+                    self.vdc_deployer.info(f"checking if subdomain {subdomain} is deployed on the explorer")
+                    owner_id = self.check_subdomain_owner(subdomain)
+                    if owner_id:
+                        self.vdc_deployer.error(
+                            f"subdomain {subdomain} exists and not owned by VDC identity {self.identity.tid}. Subdomain owner id: {owner_id}"
+                        )
+                        continue
                 # verify the subdomain is pointing to the correct address or cancel it
                 valid = self.verify_subdomain(subdomain_workload, addresses)
                 if valid:

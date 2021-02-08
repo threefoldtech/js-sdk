@@ -50,7 +50,13 @@ class VDCIdentityError(exceptions.Base):
 
 class VDCDeployer:
     def __init__(
-        self, vdc_instance, password: str = None, bot: GedisChatBot = None, proxy_farm_name: str = None, identity=None
+        self,
+        vdc_instance,
+        password: str = None,
+        bot: GedisChatBot = None,
+        proxy_farm_name: str = None,
+        identity=None,
+        deployment_logs=False,
     ):
         self.vdc_instance = vdc_instance
         self.vdc_name = self.vdc_instance.vdc_name
@@ -81,6 +87,7 @@ class VDCDeployer:
         self._monitoring = None
         self._public_ip = None
         self._transaction_hashes = []
+        self.deployment_logs = deployment_logs
 
     def _retry_call(self, func, args=None, kwargs=None, timeout=5):
         args = args or list()
@@ -509,8 +516,8 @@ class VDCDeployer:
                 self.rollback_vdc_deployment()
                 raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy k8s or zdb")
 
-            zdb_wids = deployment_threads[0].value + deployment_threads[1].value
-            scheduler = Scheduler(farm_name)
+            # zdb_wids = deployment_threads[0].value + deployment_threads[1].value
+            # scheduler = Scheduler(farm_name)
             pool_id, _ = self.get_pool_id_and_reservation_id(farm_name)
 
             # deploy minio container
@@ -713,6 +720,8 @@ class VDCDeployer:
 
     def _log(self, msg, loglevel="info"):
         getattr(j.logger, loglevel)(self._log_format.format(msg))
+        if self.deployment_logs:
+            self.bot_show_update(f"{loglevel.upper()}: {msg}")
 
     def info(self, msg):
         self._log(msg, "info")

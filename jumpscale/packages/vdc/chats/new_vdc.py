@@ -1,6 +1,7 @@
 from jumpscale.sals.vdc.size import PREFERED_FARM
 from jumpscale.loader import j
 from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
+from jumpscale.sals.vdc.proxy import VDC_PARENT_DOMAIN
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from textwrap import dedent
 
@@ -74,6 +75,7 @@ class VDCDeploy(GedisChatBot):
         self.vdc_flavor = form.single_choice(
             "Choose the VDC plan", options=vdc_flavor_messages, default=vdc_flavor_messages[0], required=True,
         )
+        self.deployment_logs = form.single_choice("Enable extensive deployment logs?", ["Yes", "No"], default="No")
         form.ask()
         vdc = j.sals.vdc.find(vdc_name=self.vdc_name.value, owner_tname=self.username)
         if vdc:
@@ -112,7 +114,9 @@ class VDCDeploy(GedisChatBot):
             self.stop(f"failed to initialize VDC wallets. please try again later")
 
         try:
-            self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self)
+            self.deployer = self.vdc.get_deployer(
+                password=self.vdc_secret.value, bot=self, deployment_logs=self.deployment_logs.value == "Yes"
+            )
         except Exception as e:
             j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
             j.sals.vdc.delete(self.vdc.instance_name)
@@ -123,6 +127,23 @@ class VDCDeploy(GedisChatBot):
             raise StopChatFlow(
                 f"There are not enough resources available to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
             )
+        prefix = self.deployer.get_prefix()
+        subdomain = f"{prefix}.{VDC_PARENT_DOMAIN}"
+        j.logger.info(f"checking the availability of subdomain {subdomain}")
+        if self.deployer.proxy.check_domain_availability(subdomain):
+            j.logger.info(f"subdomain {subdomain} is resolvable. checking owner info")
+            if not self.deployer.proxy.check_subdomain_existence(subdomain):
+                j.logger.warning(f"subdomain {subdomain} is not owned by vdc identity: {self.deployer.identity.tid}")
+                uid = self.deployer.proxy.check_subdomain_owner(subdomain)
+                if uid:
+                    j.logger.error(f"Subdomain {subdomain} is owned by identity {uid}")
+                    raise StopChatFlow(
+                        f"Subdomain {subdomain} is not available. please use a different name for your vdc"
+                    )
+                else:
+                    j.logger.warning(
+                        f"Subdomain {subdomain} is not reserved on the explorer. continuing with the deployment."
+                    )
 
         success, amount, payment_id = self.vdc.show_vdc_payment(self)
         if not success:
