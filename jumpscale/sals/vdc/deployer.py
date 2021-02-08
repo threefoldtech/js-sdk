@@ -439,15 +439,14 @@ class VDCDeployer:
         remainder = total_no_nodes % len(zdb_farms)
         no_node_per_farm = (total_no_nodes - remainder) / len(zdb_farms)
         farm_count = defaultdict(int)
+        farm_queries = []
         for farm in zdb_farms:
-            farm_count[farm] += no_node_per_farm
-        farm_count[zdb_farms[0]] += remainder
-        zdb_query = {
-            "hru": ZDB_STARTING_SIZE,
-            "ip_version": "IPv6",
-        }
-        for farm, no_nodes in farm_count.items():
-            if not gcc.add_query(farm, no_nodes=no_nodes, **zdb_query):
+            farm_queries.append(
+                {"farm_name": farm, "hru": ZDB_STARTING_SIZE, "ip_version": "IPv6", "no_nodes": no_node_per_farm}
+            )
+        farm_queries[0]["no_nodes"] += remainder
+        for zdb_query in farm_queries:
+            if not gcc.add_query(**zdb_query):
                 return False
 
         plan = VDC_SIZE.VDC_FLAVORS[self.flavor]
