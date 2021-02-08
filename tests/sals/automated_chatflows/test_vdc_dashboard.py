@@ -16,7 +16,7 @@ class VDCDashboard(VDCBase):
         cls.kube_manager = j.sals.kubernetes.Manager(
             f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml"
         )
-        j.sals.fs.copy(
+        j.sals.fs.copy_file(
             f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml",
             j.sals.fs.expanduser("~/.kube/config"),
         )
