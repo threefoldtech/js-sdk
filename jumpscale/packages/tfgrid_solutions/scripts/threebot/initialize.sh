@@ -5,7 +5,11 @@ if [ $MINIMAL == "true" ]; then
   chmod +x kubectl
   mv kubectl /sbin/
   curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-
+  wget https://github.com/vmware-tanzu/velero/releases/download/v1.5.3/velero-v1.5.3-linux-amd64.tar.gz
+  tar -xvf velero-v1.5.3-linux-amd64.tar.gz
+  chmod +x velero-v1.5.3-linux-amd64/velero
+  mv velero-v1.5.3-linux-amd64/velero /sbin/
+  rm -rf velero-v1.5.3-linux-amd64
   python3 jumpscale/packages/tfgrid_solutions/scripts/threebot/minimal_entrypoint.py
 else
   echo "INSTANCE_NAME=${INSTANCE_NAME}" >> ~/.bashrc
