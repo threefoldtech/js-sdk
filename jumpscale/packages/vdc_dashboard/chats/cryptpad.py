@@ -10,7 +10,6 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
         "get_release_name",
         "create_subdomain",
         "set_config",
-        "ask_backup",
         "install_chart",
         "initializing",
         "success",
