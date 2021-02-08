@@ -5,9 +5,9 @@
         "mainnet": ["freefarm"]
     },
     "ZDB_FARMS": {
-        "devnet": ["lochristi_dev_lab", "lochristi_dev_lab"],
-        "testnet": ["freefarm", "freefarm"],
-        "mainnet": ["freefarm", "freefarm"]
+        "devnet": ["lochristi_dev_lab"],
+        "testnet": ["freefarm"],
+        "mainnet": ["freefarm"]
     },
     "PREFERED_FARM": {
         "devnet": "lochristi_dev_lab",
