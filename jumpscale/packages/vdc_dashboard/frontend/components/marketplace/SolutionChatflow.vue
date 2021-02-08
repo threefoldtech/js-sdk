@@ -25,7 +25,7 @@ module.exports = {
         let topic = event.data.slice(len);
         if (topic === "extend_kubernetes") {
           this.$router.push({
-            name: "Home",
+            name: "VDCSettings",
           });
         } else {
           this.$router.push({
