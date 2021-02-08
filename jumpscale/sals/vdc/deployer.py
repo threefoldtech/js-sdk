@@ -274,7 +274,7 @@ class VDCDeployer:
             _, sus = get_cloud_units(zdb)
             for farm_name in zdb_farms:
                 farm_resources[farm_name]["sus"] += sus * no_node_per_farm
-            farm_resources[zdb_farms[0]] += sus * remainder
+            farm_resources[zdb_farms[0]]["sus"] += sus * remainder
 
         calc_zdb_farm_units()
 
