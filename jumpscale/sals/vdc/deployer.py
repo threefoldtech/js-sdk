@@ -50,7 +50,13 @@ class VDCIdentityError(exceptions.Base):
 
 class VDCDeployer:
     def __init__(
-        self, vdc_instance, password: str = None, bot: GedisChatBot = None, proxy_farm_name: str = None, identity=None
+        self,
+        vdc_instance,
+        password: str = None,
+        bot: GedisChatBot = None,
+        proxy_farm_name: str = None,
+        identity=None,
+        deployment_logs=False,
     ):
         self.vdc_instance = vdc_instance
         self.vdc_name = self.vdc_instance.vdc_name
@@ -81,6 +87,7 @@ class VDCDeployer:
         self._monitoring = None
         self._public_ip = None
         self._transaction_hashes = []
+        self.deployment_logs = deployment_logs
 
     def _retry_call(self, func, args=None, kwargs=None, timeout=5):
         args = args or list()
@@ -105,7 +112,7 @@ class VDCDeployer:
 
     @transaction_hashes.setter
     def transaction_hashes(self, value):
-        self.info(f"adding transactions {value}")
+        self.info(f"adding transactions {value}", disable_bot=True)
         if isinstance(value, list):
             self._transaction_hashes += value
         self._transaction_hashes = list((set(self._transaction_hashes)))
@@ -509,8 +516,8 @@ class VDCDeployer:
                 self.rollback_vdc_deployment()
                 raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy k8s or zdb")
 
-            zdb_wids = deployment_threads[0].value + deployment_threads[1].value
-            scheduler = Scheduler(farm_name)
+            # zdb_wids = deployment_threads[0].value + deployment_threads[1].value
+            # scheduler = Scheduler(farm_name)
             pool_id, _ = self.get_pool_id_and_reservation_id(farm_name)
 
             # deploy minio container
@@ -677,6 +684,7 @@ class VDCDeployer:
             )
 
     def wait_pool_payment(self, reservation_id, exp=5):
+        self.info(f"waiting pool payment for reservation_id: {reservation_id}")
         expiration = j.data.time.now().timestamp + exp * 60
         while j.data.time.get().timestamp < expiration:
             payment_info = self.zos.pools.get_payment_info(reservation_id)
@@ -711,20 +719,22 @@ class VDCDeployer:
 
             self.pay(pool_info)
 
-    def _log(self, msg, loglevel="info"):
+    def _log(self, msg, loglevel="info", disable_bot=False):
         getattr(j.logger, loglevel)(self._log_format.format(msg))
+        if self.deployment_logs and not disable_bot:
+            self.bot_show_update(f"{loglevel.upper()}: {msg}")
 
-    def info(self, msg):
-        self._log(msg, "info")
+    def info(self, msg, disable_bot=False):
+        self._log(msg, "info", disable_bot)
 
-    def error(self, msg):
-        self._log(msg, "error")
+    def error(self, msg, disable_bot=False):
+        self._log(msg, "error", disable_bot)
 
-    def warning(self, msg):
-        self._log(msg, "warning")
+    def warning(self, msg, disable_bot=False):
+        self._log(msg, "warning", disable_bot)
 
-    def critical(self, msg):
-        self._log(msg, "critical")
+    def critical(self, msg, disable_bot=False):
+        self._log(msg, "critical", disable_bot)
 
     def bot_show_update(self, msg):
         if self.bot:
