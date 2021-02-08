@@ -75,7 +75,7 @@ class VDCDeploy(GedisChatBot):
         self.vdc_flavor = form.single_choice(
             "Choose the VDC plan", options=vdc_flavor_messages, default=vdc_flavor_messages[0], required=True,
         )
-        self.deployment_logs = form.single_choice("Enable extensive deployment logs?", ["Yes", "No"], default="No")
+        # self.deployment_logs = form.single_choice("Enable extensive deployment logs?", ["Yes", "No"], default="No")
         form.ask()
         vdc = j.sals.vdc.find(vdc_name=self.vdc_name.value, owner_tname=self.username)
         if vdc:
@@ -114,9 +114,7 @@ class VDCDeploy(GedisChatBot):
             self.stop(f"failed to initialize VDC wallets. please try again later")
 
         try:
-            self.deployer = self.vdc.get_deployer(
-                password=self.vdc_secret.value, bot=self, deployment_logs=self.deployment_logs.value == "Yes"
-            )
+            self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self)
         except Exception as e:
             j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
             j.sals.vdc.delete(self.vdc.instance_name)
