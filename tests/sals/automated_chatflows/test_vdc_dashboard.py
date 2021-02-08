@@ -16,6 +16,10 @@ class VDCDashboard(VDCBase):
         cls.kube_manager = j.sals.kubernetes.Manager(
             f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml"
         )
+        j.sals.fs.copy(
+            f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml",
+            j.sals.fs.expanduser("~/.kube/config"),
+        )
         if not cls.kube_config:
             raise RuntimeError("VDC is not deployed")
         # Timeout for any exposed solution to be reachable and certified.
