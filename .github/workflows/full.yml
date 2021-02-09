@@ -3,14 +3,10 @@
 
 name: js-sdk-full
 
-# on:
-#   schedule:
-#     - cron:  '0 0 * * *'
-#   workflow_dispatch:
-
 on:
-  push:
-    branches: [ development_full_workflow ]
+  schedule:
+    - cron:  '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -18,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: development_vdc_testing
+          ref: development_vdc
       - uses: nanasess/setup-chromedriver@master
       - name: Gathering dependencies
         run: |
