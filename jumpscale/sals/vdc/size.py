@@ -36,7 +36,7 @@ class FarmConfigBase:
                 cls._CONF = j.data.serializers.json.load_from_file(conf_file_path)
             except Exception as e:
                 j.logger.warning(f"failed to load vdc farm config from path: {conf_file_path} due to error: {e}")
-        cls._LAST_LOADED = j.data.time.now().timestamp
+            cls._LAST_LOADED = j.data.time.now().timestamp
 
     @classmethod
     def get(cls):
