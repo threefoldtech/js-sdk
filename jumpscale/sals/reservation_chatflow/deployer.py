@@ -468,6 +468,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return pool_info
 
     def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None):
+        zos = j.sals.zos.get()
         node_filter = None
         if j.core.config.get("OVER_PROVISIONING"):
             cru = None
@@ -476,11 +477,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             raise j.exceptions.Runtime(f"{ip_version} is not a valid IP Version")
         else:
             if ip_version == "IPv4":
-                node_filter = j.sals.zos.get().nodes_finder.filter_public_ip4
+                node_filter = zos.nodes_finder.filter_public_ip4
             elif ip_version == "IPv6":
-                node_filter = j.sals.zos.get().nodes_finder.filter_public_ip6
+                node_filter = zos.nodes_finder.filter_public_ip6
         currencies = currencies or []
-        farm_nodes = j.sals.zos.get().nodes_finder.nodes_search(farm_name=farm_name)
+        farm_nodes = zos.nodes_finder.nodes_search(farm_name=farm_name)
         available_cru = 0
         available_sru = 0
         available_mru = 0
@@ -491,7 +492,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         for node in farm_nodes:
             if "FreeTFT" in currencies and not node.free_to_use:
                 continue
-            if not j.sals.zos.get().nodes_finder.filter_is_up(node):
+            if not zos.nodes_finder.filter_is_up(node):
                 continue
             if node.node_id in blocked_nodes:
                 continue
@@ -502,6 +503,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             available_sru += node.total_resources.sru - node.reserved_resources.sru
             available_mru += node.total_resources.mru - node.reserved_resources.mru
             available_hru += node.total_resources.hru - node.reserved_resources.hru
+
+        farm_id = self._explorer.farms.get(farm_name=farm_name).id
+        gateways = [g for g in self._explorer.gateway.list(farm_id) if zos.gateways_finder.filter_is_up(g)]
+        running_nodes += len(gateways)
 
         if not running_nodes:
             return False, available_cru, available_sru, available_mru, available_hru
