@@ -280,7 +280,7 @@ class UserVDC(Base):
             if ip_address == "::/128":
                 continue
             ssh_key = j.clients.sshkey.get(self.vdc_name)
-            PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.tname}/{self.vdc_name}/id_rsa"
+            PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
             if not j.sals.fs.exists(PRIV_KEY_PATH):
                 raise j.exceptions.NotFound(f"Can not find ssh key for vdc {self.vdc_name} in {PRIV_KEY_PATH}")
             ssh_key.private_key_path = PRIV_KEY_PATH
