@@ -1,3 +1,4 @@
+from solutions_automation.vdc.dashboard.vdc import VDCAutomated
 from solutions_automation.vdc.dashboard.blog import BlogAutomated
 from solutions_automation.vdc.dashboard.cryptpad import CryptpadAutomated
 from solutions_automation.vdc.dashboard.digibyte import DigibyteAutomated
@@ -13,6 +14,10 @@ from solutions_automation.vdc.dashboard.taiga import TaigaAutomated
 from solutions_automation.vdc.dashboard.website import WebsiteAutomated
 from solutions_automation.vdc.dashboard.wiki import WikiAutomated
 from solutions_automation.vdc.dashboard.zeroci import ZeroCIAutomated
+
+
+def deploy_vdc(solution_name, vdc_secert, vdc_plan):
+    return VDCAutomated(solution_name=solution_name, vdc_secert=vdc_secert, vdc_plan=vdc_plan)
 
 
 def deploy_blog(
