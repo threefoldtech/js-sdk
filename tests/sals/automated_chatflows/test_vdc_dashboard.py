@@ -1,9 +1,11 @@
 import gevent
 import pytest
+from jumpscale.clients.explorer.models import K8s
 from jumpscale.loader import j
+from jumpscale.sals.vdc.size import VDC_SIZE
 from solutions_automation.vdc import deployer
-from tests.sals.vdc.vdc_base import VDCBase
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
+from tests.sals.vdc.vdc_base import VDCBase
 
 
 @pytest.mark.integration
@@ -22,6 +24,14 @@ class VDCDashboard(VDCBase):
         )
         if not cls.kube_config:
             raise RuntimeError("VDC is not deployed")
+
+        # Add tokens needed in case of extending the cluster automatically.
+        kubernetes = K8s()
+        kubernetes.size = VDC_SIZE.K8SNodeFlavor.MEDIUM.value
+        # It will be deployed for an hour.
+        price = j.tools.zos.consumption.cost(kubernetes, 60 * 60) + 0.1  # transactions fees.
+        cls.vdc.transfer_to_provisioning_wallet(round(price, 6), "test_wallet")
+
         # Timeout for any exposed solution to be reachable and certified.
         cls.timeout = 60
         # Accept Marketplace T&C for testing identity.
