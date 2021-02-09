@@ -36,7 +36,7 @@ module.exports = new Promise(async(resolve, reject) => {
                     },
                     { text: "CU ($/mo)", value: "cu" },
                     { text: "SU ($/mo)", value: "su" },
-                    { text: "IP4U ($/mo", value: "ip4u" },
+                    { text: "IPv4u ($/mo)", value: "ipv4u" },
                     { text: "Actions", value: "action", sortable: false }
                 ],
                 prices: [{ node: 3 }, { node: 8 }],
@@ -61,13 +61,13 @@ module.exports = new Promise(async(resolve, reject) => {
                 default_price: {
                     cu: null,
                     su: null,
-                    ip4u: null
+                    ipv4u: null
                 },
                 customPrice: {
                     name: '',
                     cu: null,
                     su: null,
-                    ip4u: null
+                    ipv4u: null
                 },
                 newFarmAlert: undefined,
                 priceUpdate: undefined,
@@ -201,12 +201,17 @@ module.exports = new Promise(async(resolve, reject) => {
             goToEdit(farm) {
                 this.$router.history.push(`/edit/${farm.id}`)
             },
-            setDefault(cu, su, ip4u) {
-                console.log(cu, su, ip4u)
+            setDefault(cu, su, ipv4u) {
+                prices = {cu, su, ipv4u}
+                this.setDefaultCustomPrices(this.farmSelected, prices)
+                console.log(cu, su, ipv4u)
             },
             addCustomPrice() {
                 this.openAddCustomModel = true;
-            }
+            },
+
+
+
         }
     });
 });

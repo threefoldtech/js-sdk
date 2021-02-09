@@ -56,5 +56,23 @@ export default {
       farm_id: farm_id,
       ip_addresses: ip_addresses,
     })
+  },
+  getCustomPrices(farmId, prices){
+    return axios.get('/farmmanagement/actors/farm_management/get_custom_prices', {
+      farm_id: farmId,
+    })
+  },
+  setDefaultCustomPrices(farmId, prices){
+    return axios.get('/farmmanagement/actors/farm_management/enable_farm_default_prices', {
+      farm_id: farmId,
+      prices
+    })
+  },
+  createOrUpdateFarmThreebotCustomPrice(farmId, threebotId, prices){
+    return axios.post('/farmmanagement/actors/farm_management/create_or_update_custom_price_for_threebot', {
+      farm_id: farmId,
+      threebot_id: threebotId,
+      prices
+    })
   }
 };
