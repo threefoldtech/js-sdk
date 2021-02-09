@@ -34,11 +34,11 @@
               </v-btn>
 
               <v-btn color="primary" small @click="setDefaultPrice = true">
-                Set default
+                Set default prices
               </v-btn>
 
               <v-btn color="accent" small @click="addCustomPrice">
-                Set custom
+                Add custom price
               </v-btn>
 
               <v-dialog v-model="setDefaultPrice" scrollable max-width="700px">
@@ -47,11 +47,14 @@
                     primary-title
                     class="primary py-3 mb-5 white--text"
                   >
-                    Set default price
+                    Set farm default prices
                     <v-spacer />
                   </v-card-title>
                   <v-card-text>
                     <v-container>
+                      <v-row>
+                      <span>Set default prices for the farm in dollars per month</span>
+                      </v-row>
                       <v-row>
                         <v-col cols="12" sm="4">
                           <v-text-field
@@ -113,10 +116,13 @@
                   <v-card-text>
                     <v-container>
                       <v-row>
+                      <span>Add custom prices for a 3Bot</span>
+                      </v-row>
+                      <v-row>
                         <v-col cols="12">
                           <v-text-field
                             v-model="customPrice.name"
-                            label="3Botname*"
+                            label="3Bot Name*"
                             required
                           ></v-text-field>
                         </v-col>

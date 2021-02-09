@@ -36,7 +36,7 @@ module.exports = new Promise(async(resolve, reject) => {
                     },
                     { text: "CU ($/mo)", value: "cu" },
                     { text: "SU ($/mo)", value: "su" },
-                    { text: "IP4U", value: "ip4u" },
+                    { text: "IP4U ($/mo", value: "ip4u" },
                     { text: "Actions", value: "action", sortable: false }
                 ],
                 prices: [{ node: 3 }, { node: 8 }],
