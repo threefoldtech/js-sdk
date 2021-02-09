@@ -36,10 +36,16 @@ def deploy_blog(
 
 
 def deploy_cryptpad(
-    release_name, flavor="Silver", sub_domain="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
+    release_name,
+    storage_size="10",
+    flavor="Silver",
+    sub_domain="Choose subdomain for me on a gateway",
+    custom_sub_domain="",
+    debug=True,
 ):
     return CryptpadAutomated(
         release_name=release_name,
+        storage_size=storage_size,
         flavor=flavor,
         sub_domain=sub_domain,
         custom_sub_domain=custom_sub_domain,
