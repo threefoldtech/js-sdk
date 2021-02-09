@@ -505,7 +505,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             available_hru += node.total_resources.hru - node.reserved_resources.hru
 
         farm_id = self._explorer.farms.get(farm_name=farm_name).id
-        gateways = self._explorer.gateway.list(farm_id)
+        gateways = [g for g in self._explorer.gateway.list(farm_id) if zos.gateways_finder.filter_is_up(g)]
         running_nodes += len(gateways)
 
         if not running_nodes:
