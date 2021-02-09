@@ -28,7 +28,7 @@ class FarmConfigBase:
             return
         if any(
             [
-                cls._LAST_LOADED and cls._LAST_LOADED < j.data.time.now().timestamp + 15 * 60,
+                cls._LAST_LOADED and cls._LAST_LOADED < j.data.time.now().timestamp - 15 * 60,
                 not cls._CONF and not cls._LAST_LOADED,
             ]
         ):
