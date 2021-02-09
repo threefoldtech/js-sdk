@@ -1,13 +1,15 @@
 // require('./farmmanagement/weblibs/gmaps/vue-google-maps.js')
 
-module.exports = new Promise(async (resolve, reject) => {
-    const vuex = await import(
+module.exports = new Promise(async(resolve, reject) => {
+    const vuex = await
+    import (
         "/weblibs/vuex/vuex.esm.browser.js"
     );
     resolve({
         name: "farmManagement",
         components: {
-            nodestable: "url:/farmmanagement/components/nodestable/index.vue"
+            nodestable: "url:/farmmanagement/components/nodestable/index.vue",
+            cspricestable: "url:/farmmanagement/components/cspricestable/index.vue",
         },
         data() {
             return {
@@ -15,6 +17,7 @@ module.exports = new Promise(async (resolve, reject) => {
                 addFarmDialog: false,
                 addNodeDialog: false,
                 settingsDialog: false,
+                setDefaultPrice: false,
                 farmDescriptionRules: [v => v.length <= 250 || "Max 250 characters"],
                 searchFarms: "",
                 'searchnodes': "",
@@ -28,19 +31,22 @@ module.exports = new Promise(async (resolve, reject) => {
                     { text: "Id", value: "id" },
                     {
                         text: "Farm name",
-                        align: "left",
                         sortable: false,
                         value: "name"
                     },
+                    { text: "CU ($/mo)", value: "cu" },
+                    { text: "SU ($/mo)", value: "su" },
+                    { text: "IP4U", value: "ip4u" },
                     { text: "Actions", value: "action", sortable: false }
                 ],
+                prices: [{ node: 3 }, { node: 8 }],
                 newFarm: {
                     threebot_id: "",
                     location: {
                         latitude: 0,
                         longitude: 0
                     },
-                    wallet_addresses:[],
+                    wallet_addresses: [],
                     // resource_prices: [
                     //     {
                     //         currency: "USD",
@@ -52,8 +58,21 @@ module.exports = new Promise(async (resolve, reject) => {
                     //     }
                     // ]
                 },
+                default_price: {
+                    cu: null,
+                    su: null,
+                    ip4u: null
+                },
+                customPrice: {
+                    name: '',
+                    cu: null,
+                    su: null,
+                    ip4u: null
+                },
                 newFarmAlert: undefined,
+                priceUpdate: undefined,
                 searchAddressInput: "",
+                openAddCustomModel: false,
                 namerules: [v => !!v || "Name is required"],
                 nameError: [],
                 mailError: [],
@@ -67,7 +86,7 @@ module.exports = new Promise(async (resolve, reject) => {
                     lat: this.newFarm.location.latitude,
                     lng: this.newFarm.location.longitude
                 };
-            }
+            },
         },
         async mounted() {
             await this.getTfgridUrl();
@@ -101,8 +120,6 @@ module.exports = new Promise(async (resolve, reject) => {
             viewNodes(item) {
                 this.getNodes(item.id);
                 this.farmSelected = item;
-                console.log(item)
-                console.log(this.farmSelected)
             },
             viewSettings(farm) {
                 this.farmToEdit = farm;
@@ -131,10 +148,10 @@ module.exports = new Promise(async (resolve, reject) => {
                 this.registerFarm(this.newFarm).then(response => {
                     if (response.status == 201) {
                         this.newFarmAlert = {
-                            message: "farm created",
-                            type: "success",
-                        }
-                        // update in memory farms
+                                message: "farm created",
+                                type: "success",
+                            }
+                            // update in memory farms
                         this.getFarms();
                     } else {
                         this.newFarmAlert = {
@@ -183,6 +200,12 @@ module.exports = new Promise(async (resolve, reject) => {
             },
             goToEdit(farm) {
                 this.$router.history.push(`/edit/${farm.id}`)
+            },
+            setDefault(cu, su, ip4u) {
+                console.log(cu, su, ip4u)
+            },
+            addCustomPrice() {
+                this.openAddCustomModel = true;
             }
         }
     });
