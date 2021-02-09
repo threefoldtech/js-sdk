@@ -13,9 +13,14 @@ class VDCChatflows(VDCBase):
     flavor = "silver"
 
     def tearDown(self):
+
         self.info("Delete a VDC")
         if self.instance_name:
-            j.sals.vdc.delete(self.instance_name)
+            j.sals.vdc.delete(self.vdc.vdc.instance_name)
+
+        wallet = j.clients.stellar.get("demos_wallet")
+        self.vdc.vdc.provision_wallet.merge_into_account(wallet.address)
+        self.vdc.vdc.prepaid_wallet.merge_into_account(wallet.address)
 
     def test_01_deploy_vdc(self):
         """Test case for deploying a VDC.
@@ -30,8 +35,8 @@ class VDCChatflows(VDCBase):
         self.info("Deploy a VDC")
         vdc_name = self.random_name().lower()
         password = self.random_string()
-        vdc = deployer.deploy_vdc(vdc_name, password, self.flavor.upper())
-        self.instance_name = vdc.vdc.instance_name
+        self.vdc = deployer.deploy_vdc(vdc_name, password, self.flavor.upper())
+
         self.info("Check that VDC is reachable")
         request = j.tools.http.get(f"http://{vdc.vdc.threebot.domain}", timeout=60)
         self.assertEqual(request.status_code, 200)
