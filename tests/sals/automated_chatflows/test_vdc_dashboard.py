@@ -30,9 +30,6 @@ class VDCDashboard(VDCBase):
 
     @classmethod
     def tearDownClass(cls):
-        # Remove userEntry for accepting T&C.
-        cls.user_factory.delete(cls.user_entry_name)
-
         wallet = j.clients.stellar.get("demos_wallet")
         cls.vdc.provision_wallet.merge_into_account(wallet.address)
         cls.vdc.prepaid_wallet.merge_into_account(wallet.address)
