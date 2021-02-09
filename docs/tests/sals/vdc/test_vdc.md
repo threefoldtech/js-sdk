@@ -55,6 +55,7 @@ Test case for adding and deleting node.
 **Test Scenario**
 
 - Deploy VDC.
+- Calculate the price of added zdb and fund the provisioning wallet.
 - Add kubernetes node.
 - Check that the node has been added.
 - Delete this node.
@@ -102,5 +103,6 @@ Test case for extending zdbs.
 
 - Deploy VDC.
 - Get the zdbs total size.
+- Calculate the price of added zdb and fund the provisioning wallet.
 - Extend zdbs.
 - Check that zdbs has been extended.

@@ -6,7 +6,7 @@ Test case for deploying a wiki.
 
 - Deploy VDC
 - Deploy a wiki.
-- Check that the wiki is reachable.
+- Check that the Wiki is reachable and certified.
 
 ### test02_blog
 
@@ -16,7 +16,7 @@ Test case for deploying a blog.
 
 - Deploy VDC
 - Deploy a Blog.
-- Check that the blog is reachable.
+- Check that the Blog is reachable and certified.
 
 ### test03_website
 
@@ -26,7 +26,7 @@ Test case for deploying a website.
 
 - Deploy VDC
 - Deploy a website.
-- Check that the website is reachable.
+- Check that the Website is reachable and certified.
 
 ### test04_cryptpad
 
@@ -36,7 +36,7 @@ Test case for deploying Cryptpad.
 
 - Deploy VDC
 - Deploy Cryptpad.
-- Check that Cryptpad is reachable.
+- Check that Cryptpad is reachable and certified.
 
 ### test05_gitea
 
@@ -46,7 +46,7 @@ Test case for deploying Gitea.
 
 - Deploy VDC
 - Deploy Gitea.
-- Check that Gitea is reachable.
+- Check that Gitea is reachable and certified.
 
 ### test06_discourse
 
@@ -56,7 +56,7 @@ Test case for deploying Discourse.
 
 - Deploy VDC
 - Deploy Discourse.
-- Check that Discourse is reachable.
+- Check that Discourse is reachable and certified.
 
 ### test07_ETCD
 
@@ -76,7 +76,7 @@ Test case for deploying Kubeapps.
 
 - Deploy VDC
 - Deploy Kubeapps.
-- Check that Kubeapps is reachable.
+- Check that Kubeapps is reachable and certified.
 
 ### test09_Peertube
 
@@ -86,7 +86,7 @@ Test case for deploying Peertube.
 
 - Deploy VDC
 - Deploy Peertube.
-- Check that Peertube is reachable.
+- Check that Peertube is reachable and certified.
 
 ### test10_Taiga
 
@@ -96,7 +96,7 @@ Test case for deploying Taiga.
 
 - Deploy VDC
 - Deploy Taiga.
-- Check that Taiga is reachable.
+- Check that Taiga is reachable and certified.
 
 ### test11_Mattermost
 
@@ -106,7 +106,7 @@ Test case for deploying Mattermost.
 
 - Deploy VDC
 - Deploy Mattermost.
-- Check that Mattermost is reachable.
+- Check that Mattermost is reachable and certified.
 
 ### test12_ZeroCI
 
@@ -116,7 +116,7 @@ Test case for deploying ZeroCI.
 
 - Deploy VDC
 - Deploy ZeroCI.
-- Check that ZeroCI is reachable.
+- Check that ZeroCI is reachable and certified.
 
 ### test13_MonitoringStack
 
@@ -126,7 +126,7 @@ Test case for deploying MonitoringStack.
 
 - Deploy VDC
 - Deploy MonitoringStack.
-- Check that MonitoringStack is reachable.
+- Check that MonitoringStack is reachable and certified.
 
 ### test14_Digibyte
 
@@ -136,7 +136,7 @@ Test case for deploying Digibyte.
 
 - Deploy VDC
 - Deploy Digibyte.
-- Check that Digibyte is reachable.
+- Check that Digibyte is reachable and certified.
 
 ### test15_ExtendKubernetes
 
