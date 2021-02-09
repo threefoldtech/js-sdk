@@ -12,15 +12,21 @@ from parameterized import parameterized_class
 class VDCChatflows(VDCBase):
     flavor = "silver"
 
+    def setUp(self):
+        self.vdc = None
+        super().setUp()
+
     def tearDown(self):
 
         self.info("Delete a VDC")
-        if self.instance_name:
+        if self.vdc:
             j.sals.vdc.delete(self.vdc.vdc.instance_name)
 
-        wallet = j.clients.stellar.get("demos_wallet")
-        self.vdc.vdc.provision_wallet.merge_into_account(wallet.address)
-        self.vdc.vdc.prepaid_wallet.merge_into_account(wallet.address)
+            wallet = j.clients.stellar.get("demos_wallet")
+            self.vdc.vdc.provision_wallet.merge_into_account(wallet.address)
+            self.vdc.vdc.prepaid_wallet.merge_into_account(wallet.address)
+
+        super().tearDown()
 
     def test_01_deploy_vdc(self):
         """Test case for deploying a VDC.
