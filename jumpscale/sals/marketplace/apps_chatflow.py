@@ -23,8 +23,8 @@ RESOURCE_VALUE_KEYS = {"cru": "CPU {}", "mru": "Memory {} GB", "sru": "Disk {} G
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self._branch = None
+        super().__init__(*args, **kwargs)
 
     def _init_solution(self):
         self.md_show_update("Checking payment service...")
