@@ -163,7 +163,7 @@ class Admin(BaseActor):
 
     @actor_method
     def get_sdk_version(self) -> str:
-        from importlib import metadata
+        import importlib_metadata as metadata
 
         packages = ["js-ng", "js-sdk"]
         data = {}

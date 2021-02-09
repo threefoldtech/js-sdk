@@ -14,6 +14,10 @@ class MattermostDeploy(SolutionsChatflowDeploy):
         "initializing",
         "success",
     ]
+    ADDITIONAL_QUERIES = [
+        {"cpu": 100, "memory": 256},  # mysql
+        {"cpu": 10, "memory": 10},  # initContainer.remove-lost-found
+    ]
 
     @chatflow_step(title="Configurations")
     def set_config(self):

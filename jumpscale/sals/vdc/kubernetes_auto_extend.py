@@ -1,6 +1,8 @@
+from collections import defaultdict
 from jumpscale.loader import j
 from jumpscale.sals.kubernetes.manager import Manager
 from .size import INITIAL_RESERVATION_DURATION, VDC_SIZE
+import re
 
 
 class StatsHistory:
@@ -16,6 +18,34 @@ class StatsHistory:
     def get(self):
         items = self.client.lrange(self.key, 0, self.rotation_len - 1)
         return [j.data.serializers.json.loads(item.decode()) for item in items]
+
+
+class NodeReservation:
+    def __init__(self, name, reserved_cpu, reserved_memory, total_cpu, total_memory):
+        self.name = name
+        self.reserved_cpu = reserved_cpu
+        self.reserved_memory = reserved_memory
+        self.total_cpu = total_cpu
+        self.total_memory = total_memory
+
+    @property
+    def free_memory(self):
+        return self.total_memory - self.reserved_memory
+
+    @property
+    def free_cpu(self):
+        return self.total_cpu - self.reserved_cpu
+
+    def has_enough_resources(self, cpu, memory):
+        if self.free_memory < memory:
+            return False
+        if self.free_cpu < cpu:
+            return False
+        return True
+
+    def update(self, cpu, memory):
+        self.reserved_cpu += cpu
+        self.reserved_memory += memory
 
 
 class KubernetesMonitor:
@@ -73,6 +103,23 @@ class KubernetesMonitor:
         self.stats_history.update(self._node_stats)
 
     def is_extend_triggered(self, cpu_threshold=0.7, memory_threshold=0.7):
+        if self._is_usage_triggered(cpu_threshold, memory_threshold):
+            return True
+        else:
+            reserved_cpu = reserved_memory = 0.0
+            total_cpu = total_memory = 0.0
+            for node in self.fetch_resource_reservations():
+                total_cpu += node.total_cpu
+                total_memory += node.total_memory
+                reserved_cpu += node.reserved_cpu
+                reserved_memory += node.reserved_memory
+            total_cpu = total_cpu or 1.0
+            total_memory = total_memory or 0.1
+            if any([(reserved_cpu / total_cpu) >= cpu_threshold, (reserved_memory / total_memory) >= memory_threshold]):
+                return True
+        return False
+
+    def _is_usage_triggered(self, cpu_threshold, memory_threshold):
         burst_usage = []
         stats_history = self.stats_history.get()
         if len(stats_history) < self.burst_size:
@@ -132,3 +179,63 @@ class KubernetesMonitor:
         wids = deployer.add_k8s_nodes(flavor, farm_name, no_nodes=no_nodes, external=False)
         deployer.extend_k8s_workloads(14 - (INITIAL_RESERVATION_DURATION / 24), *wids)
         return wids
+
+    def fetch_resource_reservations(self):
+        out = self.manager.execute_native_cmd("kubectl get pod -A -o json")
+        result = j.data.serializers.json.loads(out)
+        node_reservations = defaultdict(lambda: {"cpu": 0.0, "memory": 0.0, "total_cpu": 0.0, "total_memory": 0.0})
+        for pod in result["items"]:
+            pod_name = pod["metadata"]["name"]
+            pod_ns = pod["metadata"]["namespace"]
+            pod_out = self.manager.execute_native_cmd(f"kubectl get pod -n {pod_ns} {pod_name} -o json")
+            pod_info = j.data.serializers.json.loads(pod_out)
+            cpu = memory = 0
+            if not "nodeName" in pod_info["spec"]:
+                continue
+            node = pod_info["spec"]["nodeName"]
+            for cont in pod_info["spec"]["containers"]:
+                cont_requests = cont["resources"].get("requests", {})
+                cpu += float(cont_requests.get("cpu", "0m").split("m")[0])
+                p = re.search(r"^([0-9]*)(.*)$", cont_requests.get("memory", "0Gi"))
+                memory = float(p.group(1))
+                memory_unit = p.group(2)
+                if memory_unit == "Gi":
+                    memory *= 1024
+            node_reservations[node]["cpu"] += cpu
+            node_reservations[node]["memory"] += memory
+        for node_name in self.node_stats:
+            node_reservations[node_name]["total_cpu"] = self.node_stats[node_name]["cpu"]["total"]
+            node_reservations[node_name]["total_memory"] = self.node_stats[node_name]["memory"]["total"]
+
+        result = []
+        for node_name, resv in node_reservations.items():
+            result.append(
+                NodeReservation(
+                    name=node_name,
+                    reserved_cpu=resv["cpu"],
+                    reserved_memory=resv["memory"],
+                    total_cpu=resv["total_cpu"],
+                    total_memory=resv["total_memory"],
+                )
+            )
+        return result
+
+    def check_deployment_resources(self, queries: list):
+        """
+        check if the cluster has enough resources for the queries specified
+
+        Args:
+            queries (list): list of dicts containing cpu, memory of the deployment
+        """
+        node_reservations = self.fetch_resource_reservations()
+        for query in queries:
+            query_result = False
+            node_reservations = sorted(node_reservations, key=lambda resv: resv.free_memory)
+            for node in node_reservations:
+                if node.has_enough_resources(cpu=query.get("cpu", 0), memory=query.get("memory", 0)):
+                    query_result = True
+                    node.update(cpu=query.get("cpu", 0), memory=query.get("memory", 0))
+                    break
+            if not query_result:
+                return False
+        return True
