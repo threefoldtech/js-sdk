@@ -7,7 +7,7 @@ from tests.sals.vdc.vdc_base import VDCBase
 from parameterized import parameterized_class
 
 
-# @parameterized_class(("flavor"), [("silver",), ("gold",), ("platinum",), ("diamond",)])
+@parameterized_class(("flavor"), [("silver",), ("gold",), ("platinum",), ("diamond",)])
 @pytest.mark.integration
 class VDCChatflows(VDCBase):
     flavor = "silver"

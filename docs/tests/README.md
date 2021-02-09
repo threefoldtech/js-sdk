@@ -25,6 +25,7 @@
 - [test_nginx](sals/nginx/test_nginx.md)
 - [test_pools](sals/zos/test_pools.md)
 - [test_vdc](sals/vdc/test_vdc.md)
+- [test_vdc_chatflows](sals/automated_chatflows/test_vdc_chatflows.md)
 - [test_vdc_dashboard](sals/automated_chatflows/test_vdc_dashboard.md)
 
 ### Servers
