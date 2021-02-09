@@ -16,7 +16,7 @@ class GatewayFinder:
         filter out gateways that have not received update for more then 10 minutes
         """
         ago = now().timestamp - (60 * 10)
-        return gw.updated > ago
+        return gw.updated.timestamp() > ago
 
     def gateways_search(self, country: str = None, city: str = None) -> List[Gateway]:
         """search gateways by country and or city
