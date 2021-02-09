@@ -655,7 +655,7 @@ class VDCDeployer:
         meta_dict = j.data.serializers.json.loads(metadata)
         cluster_secret = meta_dict["secret"]
         self.info(f"extending kubernetes cluster on farm: {farm_name}, public_ip: {public_ip}, no_nodes: {no_nodes}")
-        master_ip = self.vdc_instance.kubernetes[0].public_ip
+        master_ip = self.vdc_instance.kubernetes[0].ip_address
         farm_name = farm_name if not public_ip else NETWORK_FARM.get()
         public_key = None
         try:
