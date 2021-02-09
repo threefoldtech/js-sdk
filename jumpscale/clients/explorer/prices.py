@@ -17,3 +17,15 @@ class Prices(BaseResource):
     def calculate(self, cus=0, sus=0, ipv4us=0):
         price, tft_mill = self._get(cus, sus, ipv4us)
         return price * 1000 / tft_mill
+
+
+    def get(self):
+        response = self._session.get(self._url)
+        prices_dict = response.json()
+        return {
+            "cu": prices_dict["CuPriceDollarMonth"],
+            "su": prices_dict["CuPriceDollarMonth"],
+            "ipv4u": prices_dict["CuPriceDollarMonth"]
+        
+        }
+

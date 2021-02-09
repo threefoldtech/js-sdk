@@ -7,8 +7,9 @@ from jumpscale.core.exceptions import Input, NotFound
 
 from .auth import HTTPSignatureAuth
 from .base import BaseResource
-from .models import Farm, FarmerIP
+from .models import Farm, FarmerIP, CloudUnitMonthPrice
 from .pagination import get_all, get_page
+
 
 
 def _build_query(threebot_id: int = None, name: str = None,) -> dict:
@@ -125,3 +126,42 @@ class Farms(BaseResource):
 
     def remove_public_ips(self, farm_id, public_ips):
         self._session.delete(f"{self._url}/{farm_id}/ip", json=public_ips)
+
+    def enable_custom_prices(self, farm_id, default_prices):
+        # field enable_custom_pricing
+        farm = self.get(farm_id)
+        farm.enable_custom_pricing = True
+        ## set default to the grid default
+        default_prices_obj = CloudUnitMonthPrice()
+        default_prices_obj.cu = default_prices["cu"]
+        default_prices_obj.su = default_prices["su"]
+        default_prices_obj.ipv4u = default_prices["ipv4u"]
+
+
+        farm.default_cloudunits_price = default_prices
+        self.update(farm)
+        return True
+
+    def get_custom_prices(self, farm_id):
+        return self._session.get(f"{self._url}/{farm_id}/custom_prices")
+
+    def get_custom_price_for_threebot(self, farm_id, threebot_id):
+        try:
+            return self._session.get(f"{self._url}/{farm_id}/custom_prices/{threebot_id}")
+        except:
+            from .prices import Prices
+            return Prices(self._client).get()
+
+    def create_or_update_custom_price_for_threebot(self, farm_id, threebot_id, custom_prices):
+        farm = self.get(farm_id)
+        self.update(farm)  
+
+        body = {
+            'farm_id': farm_id,
+            'threebot_id': threebot_id,
+            'custom_cloudunits_price': custom_prices
+        }
+
+        return self._session.put(f"{self._url}/{farm_id}/custom_prices", json=body)
+
+    

@@ -49,6 +49,11 @@ class FarmerIP(Base):
     gateway = fields.IPAddress()
     reservation_id = fields.Integer()
 
+class CloudUnitMonthPrice(Base):
+    cu = fields.Float(default=10)
+    su = fields.Float(default=8)
+    ipv4u = fields.Float(default=6)
+
 
 class Farm(Base):
     id = fields.Integer()
@@ -61,10 +66,16 @@ class Farm(Base):
     resource_prices = fields.List(fields.Object(ResourceUnitPrice))
     prefix_zero = fields.IPRange()
     ipaddresses = fields.List(fields.Object(FarmerIP))
+    enable_custom_pricing = fields.Boolean(default=False)
+    default_cloudunits_price = fields.Object(CloudUnitMonthPrice)
 
     def __str__(self):
         return " - ".join([x for x in [self.name, str(self.location)] if x])
 
+class FarmThreebotPrice(Base):
+    threebot_id = fields.Integer()
+    farm_id = fields.Integer()
+    custom_cloudunits_price = fields.Object(CloudUnitMonthPrice)
 
 class WorkloadsAmount(Base):
     network = fields.Integer()

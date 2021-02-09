@@ -42,4 +42,22 @@ class FarmManagemenet(BaseActor):
         return self._explorer.farms.remove_public_ips(farm_id, ip_addresses)
 
 
+    @actor_method
+    def enable_farm_default_prices(self, farm_id, prices):
+        return self._explorer.farms.enable_default_prices(farm_id, prices)
+
+    
+    @actor_method
+    def get_custom_prices(self, farm_id):
+        return self._explorer.farms.get_custom_prices()
+
+    @actor_method
+    def get_custom_price_for_threebot(self, farm_id, threebot_id):
+        return self._explorer.farms.get_custom_price_for_threebot(farm_id, threebot_id)
+
+    @actor_method
+    def create_or_update_custom_price_for_threebot(self, farm_id, threebot_id, custom_prices):
+        return self._explorer.farms.create_or_update_custom_price_for_threebot(farm_id, threebot_id, custom_prices)
+
+
 Actor = FarmManagemenet
