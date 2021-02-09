@@ -15,7 +15,8 @@ class VDCChatflows(VDCBase):
     def tearDown(self):
 
         self.info("Delete a VDC")
-        j.sals.vdc.delete(self.vdc.vdc.instance_name)
+        if self.vdc:
+            j.sals.vdc.delete(self.vdc.vdc.instance_name)
 
         wallet = j.clients.stellar.get("demos_wallet")
         self.vdc.vdc.provision_wallet.merge_into_account(wallet.address)
