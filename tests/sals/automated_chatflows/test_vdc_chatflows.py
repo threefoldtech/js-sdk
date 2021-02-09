@@ -12,6 +12,11 @@ from parameterized import parameterized_class
 class VDCChatflows(VDCBase):
     flavor = "silver"
 
+    def tearDown(self):
+        self.info("Delete a VDC")
+        if self.instance_name:
+            j.sals.vdc.delete(self.instance_name)
+
     def test_01_deploy_vdc(self):
         """Test case for deploying a VDC.
 
@@ -26,10 +31,7 @@ class VDCChatflows(VDCBase):
         vdc_name = self.random_name().lower()
         password = self.random_string()
         vdc = deployer.deploy_vdc(vdc_name, password, self.flavor.upper())
-
+        self.instance_name = vdc.vdc.instance_name
         self.info("Check that VDC is reachable")
-        request = j.tools.http.get(f"http://{vdc.vdc.threebot.domain}", verify=False, timeout=60)
+        request = j.tools.http.get(f"http://{vdc.vdc.threebot.domain}", timeout=60)
         self.assertEqual(request.status_code, 200)
-
-        self.info("Delete a VDC")
-        j.sals.vdc.delete(vdc.vdc.instance_name)
