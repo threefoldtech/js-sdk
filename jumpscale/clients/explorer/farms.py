@@ -9,6 +9,7 @@ from .auth import HTTPSignatureAuth
 from .base import BaseResource
 from .models import Farm, FarmerIP, CloudUnitMonthPrice
 from .pagination import get_all, get_page
+from .prices import Prices
 
 
 
@@ -161,8 +162,7 @@ class Farms(BaseResource):
         try:
             return self._session.get(f"{self._url}/{farm_id}/custom_prices/{threebot_id}").json()
         except:
-            from .prices import Prices
-            return Prices(self._client).get()
+            return self.get_explorer_prices()
 
     def create_or_update_custom_price_for_threebot(self, farm_id, threebot_id, custom_prices):
         farm = self.get(farm_id)
@@ -176,4 +176,5 @@ class Farms(BaseResource):
 
         return self._session.put(f"{self._url}/{farm_id}/custom_prices", json=body)
 
-    
+    def get_explorer_prices(self):
+        return Prices(self._client).get()

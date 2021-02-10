@@ -51,9 +51,14 @@ class FarmManagemenet(BaseActor):
         return j.data.serializers.json.dumps({"data":self._explorer.farms.get_custom_prices(farm_id)})
 
     @actor_method
+    def get_explorer_prices(self, farm_id) -> str:
+        return j.data.serializers.json.dumps({"data":self._explorer.farms.get_explorer_prices()})
+
+
+    @actor_method
     def get_custom_price_for_threebot(self, farm_id, threebot_id) -> str:
         return j.data.serializers.json.dumps({"data": self._explorer.farms.get_custom_price_for_threebot(farm_id, threebot_id)})
- 
+
     @actor_method
     def create_or_update_custom_price_for_threebot(self, farm_id, threebot_id, custom_prices) -> bool:
         return j.data.serializers.json.dumps({"data":self._explorer.farms.create_or_update_custom_price_for_threebot(farm_id, threebot_id, custom_prices)})
