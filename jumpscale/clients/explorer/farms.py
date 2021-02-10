@@ -162,7 +162,7 @@ class Farms(BaseResource):
         try:
             return self._session.get(f"{self._url}/{farm_id}/deals/{threebot_id}").json()
         except:
-            return self.get_explorer_prices()
+            return {"farm_id": farm_id, "threebot_id": threebot_id, "custom_cloudunits_price": self.get_explorer_prices()}
 
     def create_or_update_deal_for_threebot(self, farm_id, threebot_id, custom_prices):
         body = {
