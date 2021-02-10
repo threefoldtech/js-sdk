@@ -35,7 +35,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
         vdc_dict.pop("kubernetes", None)
         vdc_dict.pop("threebot", None)
         secret_env = {
-            "BACKUP_CONFIG": backup_config,
+            "BACKUP_CONFIG": j.data.serializers.json.dumps(backup_config),
             "VDC_OWNER_TNAME": self.vdc_deployer.tname,
             "VDC_EMAIL": self.vdc_deployer.email,
             "VDC_PASSWORD_HASH": self.vdc_deployer.password_hash,
