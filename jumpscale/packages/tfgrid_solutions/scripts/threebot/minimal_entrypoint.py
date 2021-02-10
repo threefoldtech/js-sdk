@@ -196,6 +196,8 @@ try:
             backup_name = ""
             if len(backups.get("items", [])) > 0:
                 backup_name = backups["items"][0].get("metadata", {}).get("name")
+            else:
+                backup_name = backups.get("metadata", {}).get("name")
             if backup_name:
                 j.sals.process.execute(
                     f"/sbin/velero restore create restore-{backup_name}-{j.data.time.utcnow().timestamp} --from-backup {backup_name}",
