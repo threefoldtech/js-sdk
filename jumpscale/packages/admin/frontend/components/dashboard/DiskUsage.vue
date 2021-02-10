@@ -1,5 +1,5 @@
 <template>
-  <base-section title="Disk Usage" icon="mdi-database" :loading="loading">
+  <base-section title="3Node Disk Usage" icon="mdi-database" :loading="loading">
     <v-row class="ma-0 pa-0">
       <v-col cols="6" class="ma-0 pa-0">
         <span>
