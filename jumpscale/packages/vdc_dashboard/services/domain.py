@@ -95,7 +95,6 @@ class VDCDomainsValidation(BackgroundService):
                 j.logger.critical(
                     f"subdomain: {workload.domain} of wid: {wid} failed to redeploy due to error {str(e)}"
                 )
-            # TODO: how to re-invoke ingress/deployment to regenrate certs
 
 
 service = VDCDomainsValidation()
