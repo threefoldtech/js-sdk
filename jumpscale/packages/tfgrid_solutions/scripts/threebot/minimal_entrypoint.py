@@ -177,7 +177,7 @@ region = BACKUP_CONFIG.get("region")
 bucket = BACKUP_CONFIG.get("bucket")
 if all([ak, sk, url, region]):
     j.sals.fs.write_file(
-        "credentials",
+        "/root/credentials",
         f"""
     [default]
     aws_access_key_id={ak}
@@ -186,7 +186,7 @@ if all([ak, sk, url, region]):
     )
     j.sals.process.execute(
         quote(
-            f"velero install --provider aws --use-restic --plugins velero/velero-plugin-for-aws:v1.1.0 --bucket {bucket} --secret-file ./credentials --backup-location-config region={region},s3ForcePathStyle=true,s3Url={url}"
+            f"velero install --provider aws --use-restic --plugins velero/velero-plugin-for-aws:v1.1.0 --bucket {bucket} --secret-file /root/credentials --backup-location-config region={region},s3ForcePathStyle=true,s3Url={url}"
         ),
         showout=True,
     )
