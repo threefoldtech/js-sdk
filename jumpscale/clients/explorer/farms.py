@@ -127,7 +127,7 @@ class Farms(BaseResource):
     def remove_public_ips(self, farm_id, public_ips):
         self._session.delete(f"{self._url}/{farm_id}/ip", json=public_ips)
 
-    def enable_custom_prices(self, farm_id, default_prices):
+    def enable_default_custom_prices(self, farm_id, default_prices):
         # field enable_custom_pricing
         farm = self.get(farm_id)
         farm.enable_custom_pricing = True
@@ -143,11 +143,11 @@ class Farms(BaseResource):
         return True
 
     def get_custom_prices(self, farm_id):
-        return self._session.get(f"{self._url}/{farm_id}/custom_prices")
+        return self._session.get(f"{self._url}/{farm_id}/custom_prices").json()
 
     def get_custom_price_for_threebot(self, farm_id, threebot_id):
         try:
-            return self._session.get(f"{self._url}/{farm_id}/custom_prices/{threebot_id}")
+            return self._session.get(f"{self._url}/{farm_id}/custom_prices/{threebot_id}").json()
         except:
             from .prices import Prices
             return Prices(self._client).get()

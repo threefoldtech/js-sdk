@@ -1,6 +1,7 @@
 // require('./farmmanagement/weblibs/gmaps/vue-google-maps.js')
 
 module.exports = new Promise(async(resolve, reject) => {
+
     const vuex = await
     import (
         "/weblibs/vuex/vuex.esm.browser.js"
@@ -80,7 +81,7 @@ module.exports = new Promise(async(resolve, reject) => {
             }
         },
         computed: {
-            ...vuex.mapGetters("farmmanagement", ["farms", "nodes", "user", "tfgridUrl"]),
+            ...vuex.mapGetters("farmmanagement", ["farms", "nodes", "user", "tfgridUrl", "customPricesList"]),
             parsedLocation() {
                 return {
                     lat: this.newFarm.location.latitude,
@@ -101,7 +102,9 @@ module.exports = new Promise(async(resolve, reject) => {
                 "registerFarm",
                 "getFarms",
                 "getNodes",
-                "getTfgridUrl"
+                "getTfgridUrl",
+                "setCustomPricesList",
+
             ]),
             initialiseRefresh() {
                 const that = this;
@@ -119,6 +122,7 @@ module.exports = new Promise(async(resolve, reject) => {
             },
             viewNodes(item) {
                 this.getNodes(item.id);
+                this.setCustomPricesList(item.id)
                 this.farmSelected = item;
             },
             viewSettings(farm) {
@@ -202,8 +206,9 @@ module.exports = new Promise(async(resolve, reject) => {
                 this.$router.history.push(`/edit/${farm.id}`)
             },
             setDefault(cu, su, ipv4u) {
-                prices = {cu, su, ipv4u}
-                this.setDefaultCustomPrices(this.farmSelected, prices)
+                let prices = {cu:cu, su:su, ipv4u:ipv4u}
+                farmCustomPricesInfo = {farmId:this.farmSelected.id, prices:prices}
+                this.setDefaultCustomPrices(farmCustomPricesInfo)
                 console.log(cu, su, ipv4u)
             },
             addCustomPrice() {

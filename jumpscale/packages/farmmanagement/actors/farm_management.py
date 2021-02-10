@@ -43,21 +43,21 @@ class FarmManagemenet(BaseActor):
 
 
     @actor_method
-    def enable_farm_default_prices(self, farm_id, prices):
-        return self._explorer.farms.enable_default_prices(farm_id, prices)
+    def enable_farm_default_prices(self, farm_id, prices) -> str:
+        return  j.data.serializers.json.dumps({"data":self._explorer.farms.enable_default_custom_prices(farm_id, prices)})
 
     
     @actor_method
-    def get_custom_prices(self, farm_id):
-        return self._explorer.farms.get_custom_prices()
+    def get_custom_prices(self, farm_id) -> str:
+        return j.data.serializers.json.dumps({"data":self._explorer.farms.get_custom_prices(farm_id)})
 
     @actor_method
-    def get_custom_price_for_threebot(self, farm_id, threebot_id):
-        return self._explorer.farms.get_custom_price_for_threebot(farm_id, threebot_id)
-
+    def get_custom_price_for_threebot(self, farm_id, threebot_id) -> str:
+        return j.data.serializers.json.dumps({"data": self._explorer.farms.get_custom_price_for_threebot(farm_id, threebot_id)})
+ 
     @actor_method
-    def create_or_update_custom_price_for_threebot(self, farm_id, threebot_id, custom_prices):
-        return self._explorer.farms.create_or_update_custom_price_for_threebot(farm_id, threebot_id, custom_prices)
+    def create_or_update_custom_price_for_threebot(self, farm_id, threebot_id, custom_prices) -> bool:
+        return j.data.serializers.json.dumps({"data":self._explorer.farms.create_or_update_custom_price_for_threebot(farm_id, threebot_id, custom_prices)})
 
 
 Actor = FarmManagemenet

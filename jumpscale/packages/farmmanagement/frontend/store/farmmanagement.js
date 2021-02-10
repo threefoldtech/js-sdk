@@ -19,7 +19,12 @@ export default {
       mru: 0,
       sru: 0,
       hru: 0
-    }
+    },
+    customPricesList:  [{ id: "50", name: "samar", cu: 32, su: 43, ip4u: 9 },
+                        { id: "57", name: "sara", cu: 87, su: 45, ip4u: 54 },
+                        { id: "89", name: "ehab", cu: 23, su: 34, ip4u: 68 },
+                        { id: "32", name: "thabet", cu: 12, su: 46, ip4u: 76 },],
+    currentCustomPrice: null,
   },
   actions: {
     getTfgridUrl: async context => {
@@ -72,9 +77,32 @@ export default {
     },
     deleteNodeFarm(context, node) {
       return tfService.deleteNodeFarm(node)
-    }
+    },
+    // getCustomPrices(context, farmId){
+    //   return tfService.getCustomPrices(farmId)
+    // },
+    createOrUpdateFarmThreebotCustomPrice(context, createCustomPriceForThreebotInfo){
+      let farmId = createCustomPriceForThreebotInfo.farmId
+      let threebotId = createCustomPriceForThreebotInfo.threebotId
+      let prices = createCustomPriceForThreebotInfo.prices
+      return tfService.createOrUpdateFarmThreebotCustomPrice(farmId, threebotId, prices)
+    },
+    setDefaultCustomPrices(context, farmDefaultCustomPricesInfo){
+      let farmId = farmDefaultCustomPricesInfo.farmId
+      let prices = farmDefaultCustomPricesInfo.prices
+      console.log(farmId, prices, 'storeeee');
+      return tfService.setDefaultCustomPrices(farmId, prices)
+    },
+    setCustomPricesList(context, farmId){
+      tfService.getCustomPrices(farmId).then( response => {
+        context.commit("setCustomPricesList", JSON.parse(response.data))
+      })
+    },
   },
   mutations: {
+    setCustomPricesList(state, pricesList){
+      state.customPricesList = pricesList
+    },
     setFarms(state, value) {
       state.farms = value;
     },
@@ -126,7 +154,9 @@ export default {
     farms: state => state.farms,
     farm: state => state.farm,
     nodeSpecs: state => state.nodeSpecs,
-    freeSwitchAlert: state => state.freeSwitchAlert
+    freeSwitchAlert: state => state.freeSwitchAlert,
+    customPricesList: state => state.customPricesList,
+
   }
 };
 

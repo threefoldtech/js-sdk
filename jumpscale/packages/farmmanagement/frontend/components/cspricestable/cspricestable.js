@@ -27,12 +27,12 @@ module.exports = new Promise(async(resolve, reject) => {
                     { text: "IP4U", value: "ip4u" },
                     { text: "Actions", value: "action" },
                 ],
-                csPricesInfo: [
-                    { id: "50", name: "samar", cu: 32, su: 43, ip4u: 9 },
-                    { id: "57", name: "sara", cu: 87, su: 45, ip4u: 54 },
-                    { id: "89", name: "ehab", cu: 23, su: 34, ip4u: 68 },
-                    { id: "32", name: "thabet", cu: 12, su: 46, ip4u: 76 },
-                ],
+                // csPricesInfo: [
+                //     // { id: "50", name: "samar", cu: 32, su: 43, ip4u: 9 },
+                //     // { id: "57", name: "sara", cu: 87, su: 45, ip4u: 54 },
+                //     // { id: "89", name: "ehab", cu: 23, su: 34, ip4u: 68 },
+                //     // { id: "32", name: "thabet", cu: 12, su: 46, ip4u: 76 },
+                // ],
                 openEditModal: false,
                 openDeleteModal: false,
                 deleteNodeFarmAlert: undefined,
@@ -42,6 +42,8 @@ module.exports = new Promise(async(resolve, reject) => {
             }
         },
         computed: {
+            ...vuex.mapGetters("farmmanagement", ["customPricesList"]),
+
             tableName() {
                 return `${this.farmselected.name} custom prices`
             }
@@ -51,6 +53,17 @@ module.exports = new Promise(async(resolve, reject) => {
                 console.log(node)
                 this.openEditModal = true
                 this.priceToEdit = node
+            },
+            loadPrices() {
+                
+                this.getCustomPrices(this.farmselected.id).then(response => {
+                    if (response.status == 201) {
+                        this.csPricesInfo = response.json()
+                        console.log(this.csPricesInfo);
+                    } else {
+                        console.log("error...")
+                    }
+                })
             },
 
             getRows(rows) {
