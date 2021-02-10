@@ -23,10 +23,12 @@ const apiClient = {
         method: "get",
       })
     },
-    getAllSolutions: () => {
+    getAllSolutions: (solutionTypes) => {
       return axios({
         url: `${baseURL}/deployments`,
-        method: "get",
+        method: "post",
+        data: { solution_types: solutionTypes },
+        headers: { 'Content-Type': 'application/json' }
       })
     },
     deleteSolution: (releaseName, solutionId, vdcName) => {

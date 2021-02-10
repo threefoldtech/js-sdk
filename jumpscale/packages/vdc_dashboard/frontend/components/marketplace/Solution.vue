@@ -114,7 +114,6 @@ module.exports = {
       },
       headers: [
         { text: "Release", value: "Release" },
-        { text: "VDC Name", value: "VDC Name" },
         { text: "URL", value: "domain" },
         { text: "Version", value: "Version" },
         { text: "Status", value: "Status" },
@@ -161,11 +160,15 @@ module.exports = {
     },
     getDeployedSolutions(solution_type) {
       if(solution_type === "all"){
+        let solutionTypes = []
+        for(sol in this.sections["All Solutions"].apps){
+          solutionTypes.push(sol)
+        }
         this.$api.solutions
-        .getAllSolutions()
+        .getAllSolutions(solutionTypes)
         .then((response) => {
           this.deployedSolutions = response.data.data;
-          chartTypeHeader = { text: "Deployment", value: "Chart"}
+          chartTypeHeader = { text: "Solution Type", value: "Chart"}
           this.headers = [this.headers[0],chartTypeHeader,...this.headers.slice(1)]
         })
         .finally(() => {
