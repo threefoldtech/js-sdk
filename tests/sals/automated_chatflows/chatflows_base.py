@@ -25,14 +25,14 @@ class ChatflowsBase(BaseTests):
         cls.email = os.environ.get("EMAIL")
         cls.words = os.environ.get("WORDS")
         cls.wallet_secret = os.environ.get("WALLET_SECRET")
-        cls.explorer_url = "https://explorer.testnet.grid.tf/api/v1"
+        cls.explorer_url = "https://explorer.devnet.grid.tf/api/v1"
         if not all([cls.tname, cls.email, cls.words, cls.wallet_secret]):
             raise Exception(
                 "Please add (TNAME, EMAIL, WORDS) of your 3bot identity and WALLET_SECRET as environment variables"
             )
 
         # Import the wallet to be used for payment.
-        j.clients.stellar.get("demos_wallet", network="TEST", secret=cls.wallet_secret)
+        cls.get_wallet(name="demos_wallet", secret=cls.wallet_secret)
 
         # Check if there is identity registered to set it back after the tests are finished.
         cls.me = None
@@ -57,7 +57,7 @@ class ChatflowsBase(BaseTests):
     def tearDownClass(cls):
         # Return TEST_CERT, OVER_PROVISIONING values after the tests are finished.
         j.core.config.set("TEST_CERT", cls.test_cert)
-        j.core.config.set("OVER_PROVISIONING", cls.over_provisioning)
+        # j.core.config.set("OVER_PROVISIONING", cls.over_provisioning)
 
         # Stop threebot server and the testing identity.
         cls.server.stop()
@@ -69,7 +69,11 @@ class ChatflowsBase(BaseTests):
 
     @staticmethod
     def get_wallet(name, secret):
-        return j.clients.stellar.get(name, network="TEST", secret=secret)
+        wallet = j.clients.stellar.get(name)
+        wallet.secret = secret
+        wallet.network = "STD"
+        wallet.save()
+        return wallet
 
     @staticmethod
     def random_name():

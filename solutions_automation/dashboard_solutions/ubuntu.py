@@ -40,7 +40,6 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
 
     def single_choice(self, msg, *args, **kwargs):
         selected = self.fetch_param(msg, *args, **kwargs)
-        print(args)
         if args:
             for m in args[0]:
                 if str(selected) in m:

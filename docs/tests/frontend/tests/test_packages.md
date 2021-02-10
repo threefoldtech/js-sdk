@@ -16,12 +16,16 @@ Test case for adding a package and deleting it.
 
 - Add a package using GitURL.
 - Check that the package has been installed correctly.
+- Delete the package.
+- Check that the package has been deleted successfully
 - Add a package using path.
 - Check that the package has been installed correctly.
+- Delete the package.
+- Check that the package has been deleted successfully
 - Install another package.
 - Check that the package has been installed correctly.
-- Delete the three packages.
-- Check that the packages have been deleted successfully.
+- Delete the package.
+- Check that the package has been deleted successfully.
 
 ### test03_open_in_browser
 

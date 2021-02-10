@@ -1,7 +1,6 @@
 from jumpscale.loader import j
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
-
-K8S_SIZES = {1: {"CPU": 1, "Memory": 2048, "Disk Size": "50GiB"}, 2: {"CPU": 2, "Memory": 4096, "Disk Size": "100GiB"}}
+from jumpscale.clients.explorer.models import K8s
 
 
 class ChatflowSolutions:
@@ -148,10 +147,53 @@ class ChatflowSolutions:
                         "Slave Pools": [],
                         "Master Pool": workload.info.pool_id,
                     }
-                    result[name].update(self.get_workload_capacity(workload))
                     if workload.master_ips:
                         result[name]["Slave IPs"].append(workload.ipaddress)
         return list(result.values())
+
+    def get_kubernetes_solution_details(self, k8s_name, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Kubernetes]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        results = []
+        for kube_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Kubernetes
+        ].values():
+
+            for workload in kube_workloads:
+                if not workload.info.metadata:
+                    continue
+                try:
+                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                except:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+                name = metadata["form_info"].get("Solution name", metadata.get("name"))
+                if name == k8s_name:
+                    node = {}
+                    role = "master"
+                    # Worker Node
+                    if workload.master_ips:
+                        role = "worker"
+
+                    # Get public ip
+                    public_ip = ""
+                    if workload.public_ip:
+                        workload_public_ip = j.sals.zos.get().workloads.get(workload.public_ip)
+                        public_ip = workload_public_ip.ipaddress.split("/")[0] if workload_public_ip else ""
+
+                    node = {"role": role, "wid": workload.id, "ip_address": workload.ipaddress, "public_ip": public_ip}
+                    # Handle Storage object
+                    workload_capacity = self.get_workload_capacity(workload)
+                    node.update(workload_capacity)
+                    del node["Disk Size"]
+                    disk_size = workload_capacity.get("Disk Size", 0)
+                    node.update({"storage": disk_size})
+                    results.append(node)
+
+        return results
 
     def list_monitoring_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
@@ -402,7 +444,8 @@ class ChatflowSolutions:
             result["RootFS Type"] = workload.capacity.disk_type.name
             result["RootFS Size"] = workload.capacity.disk_size
         elif workload.info.workload_type == WorkloadType.Kubernetes:
-            result.update(K8S_SIZES.get(workload.size, {}))
+            size = K8s.SIZES.get(workload.size, {})
+            result.update({"CPU": size.get("cru"), "Memory": size.get("mru"), "Disk Size": size.get("sru")})
         elif workload.info.workload_type == WorkloadType.Volume:
             result["Size"] = workload.size * 1024
             result["Type"] = workload.type.name

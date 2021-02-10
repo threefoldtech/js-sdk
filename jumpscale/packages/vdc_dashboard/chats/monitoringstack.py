@@ -48,7 +48,7 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Create Prometheus subdomain")
     def create_prometheus_subdomain(self):
-        {super().create_subdomain()}
+        super().create_subdomain()
 
     @chatflow_step(title="Create Grafana subdomain")
     def create_grafane_subdomain(self):

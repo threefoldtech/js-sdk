@@ -109,13 +109,18 @@ class UserVDC(Base):
         active_pools = [p for p in explorer.pools.list(customer_tid=self.identity_tid) if p.pool_id in my_pool_ids]
         return active_pools
 
-    def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=None):
+    def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=None, deployment_logs=False):
         proxy_farm_name = proxy_farm_name or PROXY_FARM.get()
         if not password and not identity:
             identity = self._get_identity()
 
         return VDCDeployer(
-            vdc_instance=self, password=password, bot=bot, proxy_farm_name=proxy_farm_name, identity=identity
+            vdc_instance=self,
+            password=password,
+            bot=bot,
+            proxy_farm_name=proxy_farm_name,
+            identity=identity,
+            deployment_logs=deployment_logs,
         )
 
     def _get_identity(self):
@@ -275,7 +280,7 @@ class UserVDC(Base):
             if ip_address == "::/128":
                 continue
             ssh_key = j.clients.sshkey.get(self.vdc_name)
-            PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.tname}/{self.vdc_name}/id_rsa"
+            PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
             if not j.sals.fs.exists(PRIV_KEY_PATH):
                 raise j.exceptions.NotFound(f"Can not find ssh key for vdc {self.vdc_name} in {PRIV_KEY_PATH}")
             ssh_key.private_key_path = PRIV_KEY_PATH

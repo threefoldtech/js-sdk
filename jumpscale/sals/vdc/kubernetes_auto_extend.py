@@ -183,7 +183,7 @@ class KubernetesMonitor:
     def fetch_resource_reservations(self):
         out = self.manager.execute_native_cmd("kubectl get pod -A -o json")
         result = j.data.serializers.json.loads(out)
-        node_reservations = defaultdict(lambda: {"cpu": 0.0, "memory": 0.0})
+        node_reservations = defaultdict(lambda: {"cpu": 0.0, "memory": 0.0, "total_cpu": 0.0, "total_memory": 0.0})
         for pod in result["items"]:
             pod_name = pod["metadata"]["name"]
             pod_ns = pod["metadata"]["namespace"]
@@ -204,9 +204,9 @@ class KubernetesMonitor:
             node_reservations[node]["cpu"] += cpu
             node_reservations[node]["memory"] += memory
         for node_name in self.node_stats:
-            if node_name in node_reservations:
-                node_reservations[node_name]["total_cpu"] = self.node_stats[node_name]["cpu"]["total"]
-                node_reservations[node_name]["total_memory"] = self.node_stats[node_name]["memory"]["total"]
+            node_reservations[node_name]["total_cpu"] = self.node_stats[node_name]["cpu"]["total"]
+            node_reservations[node_name]["total_memory"] = self.node_stats[node_name]["memory"]["total"]
+
         result = []
         for node_name, resv in node_reservations.items():
             result.append(

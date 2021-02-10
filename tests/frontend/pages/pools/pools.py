@@ -28,12 +28,16 @@ class Pools(Base):
         ]
 
     def hide_pool(self, name):
+        row = self.select_pool(name)
+        row.click()
+        self.click_button(self.driver, "HIDE POOL")
+        self.click_button(self.driver, "CLOSE")
+
+    def select_pool(self, name):
         self.wait(self.driver, "v-progress-linear__buffer")
         table_box = self.driver.find_element_by_class_name("v-data-table")
         table = table_box.find_element_by_tag_name("table")
         rows = table.find_elements_by_tag_name("tr")
         for row in rows:
             if row.text.split()[1] == name:
-                row.click()
-        self.click_button(self.driver, "HIDE POOL")
-        self.click_button(self.driver, "CLOSE")
+                return row
