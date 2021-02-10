@@ -27,11 +27,16 @@ class FarmManagemenet(BaseActor):
 
     @actor_method
     def list_farms(self, user_id) -> str:
-        return j.data.serializers.json.dumps([f.to_dict() for f in self._explorer.farms.list(user_id)])
+        farms = [f.to_dict() for f in self._explorer.farms.list(user_id)]
+        for farm in farms:
+            farm["explorer_prices"] = self._explorer.farms.get_explorer_prices()
+        return j.data.serializers.json.dumps(farms)
 
     @actor_method
     def get_farm(self, farm_id) -> str:
-        return j.data.serializers.json.dumps(self._explorer.farms.get(farm_id).to_dict())
+        farm = self._explorer.farms.get(farm_id).to_dict()
+        farm["explorer_prices"] = self._explorer.farms.get_explorer_prices()
+        return j.data.serializers.json.dumps()
 
     @actor_method
     def add_ip_addresses(self, farm_id, ip_addresses):
