@@ -97,19 +97,31 @@ class VDCDeploy(GedisChatBot):
     def _backup_form(self):
         form = self.new_form()
         if self.restore:
-            self.s3_url = form.string_ask("S3 URL to restore your k8s cluster", required=True)
+            self.s3_url = form.string_ask(
+                "S3 URL to restore your k8s cluster (eg: http://s3.webg1test.grid.tf/)", required=True
+            )
         else:
-            self.s3_url = form.string_ask("S3 URL to back your k8s cluster to", required=True)
-        self.s3_region = form.string_ask("S3 region name", required=True)
-        self.s3_bucked = form.string_ask("S3 bucket name (make sure the bucket policy is Read/Write)", required=True)
-        self.ak = form.string_ask("S3 access key", required=True)
-        self.sk = form.secret_ask("S3 secret key", required=True)
+            self.s3_url = form.string_ask(
+                "S3 URL to back your k8s cluster to (eg: http://s3.webg1test.grid.tf/)", required=True
+            )
+        self.s3_region = form.string_ask("S3 region name (eg: minio in case you are using minio)", required=True)
+        self.s3_bucket = form.string_ask("S3 bucket name (make sure the bucket policy is Read/Write)", required=True)
+        self.ak = form.string_ask("S3 access key (S3 credentials)", required=True)
+        self.sk = form.secret_ask("S3 secret key (S3 credentials)", required=True)
         form.ask()
+        self.backup_config = {
+            "ak": self.ak.value,
+            "sk": self.sk.value,
+            "region": self.s3_region.value,
+            "url": self.s3_url.value,
+            "bucket": self.s3_bucket.value,
+        }
 
     @chatflow_step(title="VDC Information")
     def vdc_info(self):
         self._init()
         self._vdc_form()
+        self._backup_form()
         # self._k3s_and_minio_form() # TODO: Restore later
 
     @chatflow_step(title="VDC Deployment")
@@ -148,7 +160,7 @@ class VDCDeploy(GedisChatBot):
         initialization_wallet_name = j.core.config.get("VDC_INITIALIZATION_WALLET")
         old_wallet = self.deployer._set_wallet(initialization_wallet_name)
         try:
-            self.config = self.deployer.deploy_vdc(minio_ak=None, minio_sk=None)
+            self.config = self.deployer.deploy_vdc(minio_ak=None, minio_sk=None, s3_backup_config=self.backup_config)
             if not self.config:
                 raise StopChatFlow("Failed to deploy VDC due to invlaid kube config. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip

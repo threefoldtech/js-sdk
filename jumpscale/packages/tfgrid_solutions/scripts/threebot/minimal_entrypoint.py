@@ -7,6 +7,7 @@ from jumpscale.loader import j
 from jumpscale.sals.vdc.deployer import VDC_IDENTITY_FORMAT
 import gevent
 import toml
+from shlex import quote
 
 """
 minimal entrypoint for a 3bot container to run as part of VDC deployments on k8s
@@ -29,6 +30,7 @@ Required env variables:
 - PROVISIONING_WALLET_SECRET -> secret for provisioning wallet
 - ACME_SERVER_URL -> to use for package certificate
 - THREEBOT_PRIVATE_KEY -> private key to be set on threebot
+- BACKUP_CONFIG -> dict containing url, region, bucket, ak, sk
 
 
 Role:
@@ -51,6 +53,7 @@ PROVISIONING_WALLET_SECRET = os.environ.get("PROVISIONING_WALLET_SECRET")
 PREPAID_WALLET_SECRET = os.environ.get("PREPAID_WALLET_SECRET")
 ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
 THREEBOT_PRIVATE_KEY = os.environ.get("THREEBOT_PRIVATE_KEY")
+BACKUP_CONFIG = os.environ.get("BACKUP_CONFIG", "{}")
 
 
 vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
@@ -78,6 +81,7 @@ VDC_VARS = {
     "PREPAID_WALLET_SECRET": os.environ.get("PREPAID_WALLET_SECRET"),
     "VDC_INSTANCE_NAME": VDC_INSTANCE_NAME,
     "SDK_VERSION": os.environ.get("SDK_VERSION", "development"),
+    "BACKUP_CONFIG": BACKUP_CONFIG,
 }
 
 
@@ -162,7 +166,44 @@ j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{vdc.owner_tname}/{vdc.vdc_
 
 j.sals.fs.mkdirs("/root/.kube")
 j.sals.fs.write_file("/root/.kube/config", KUBE_CONFIG)
-j.sals.process.execute('velero create schedule vdc --schedule="@every 24h"')
+
+# backup config and restore
+# install velero
+BACKUP_CONFIG = j.data.serializers.json.loads(BACKUP_CONFIG)
+ak = BACKUP_CONFIG.get("ak")
+sk = BACKUP_CONFIG.get("sk")
+url = BACKUP_CONFIG.get("url")
+region = BACKUP_CONFIG.get("region")
+bucket = BACKUP_CONFIG.get("bucket")
+if all([ak, sk, url, region]):
+    j.sals.fs.write_file(
+        "credentials",
+        f"""
+    [default]
+    aws_access_key_id={ak}
+    aws_secret_access_key={sk}
+    """,
+    )
+    j.sals.process.execute(
+        quote(
+            f"velero install --provider aws --use-restic --plugins velero/velero-plugin-for-aws:v1.1.0 --bucket {bucket} --secret-file ./credentials --backup-location-config region={region},s3ForcePathStyle=true,s3Url={url}"
+        ),
+        showout=True,
+    )
+
+    # get and restore latest backup
+    ret, out, _ = j.sals.process.execute("velero backup get -o json")
+    if out:
+        backups = j.data.serializers.json.loads(out)
+        backup_name = ""
+        if len(backups.get("items", [])) > 0:
+            backup_name = backups["items"][0].get("metadata", {}).get("name")
+        if backup_name:
+            j.sals.process.execute(quote(f"velero restore create --from-backup {backup_name}"))
+
+    # create backup schedule for automatic backups
+    j.sals.process.execute('velero create schedule vdc --schedule="@every 24h" -l "backupType=vdc"')
+
 
 # Register provisioning and prepaid wallets
 
