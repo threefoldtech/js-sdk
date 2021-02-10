@@ -78,25 +78,22 @@ export default {
         deleteNodeFarm(context, node) {
             return tfService.deleteNodeFarm(node)
         },
-        getCustomPrices(context, farmId) {
-            return tfService.getCustomPrices(farmId)
-        },
-        createOrUpdateFarmThreebotCustomPrice(context, createCustomPriceForThreebotInfo) {
-            console.log(createCustomPriceForThreebotInfo)
-            let farmId = createCustomPriceForThreebotInfo.farmId
-            let threebotId = createCustomPriceForThreebotInfo.threebotId
-            let prices = createCustomPriceForThreebotInfo.prices
-            return tfService.createOrUpdateFarmThreebotCustomPrice(farmId, threebotId, prices)
+
+        createOrUpdateFarmThreebotCustomPrice(context, createdealForThreebotInfo) {
+            let farmId = createdealForThreebotInfo.farmId
+            let threebotName = createdealForThreebotInfo.threebotName
+            let prices = createdealForThreebotInfo.prices
+            return tfService.createOrUpdateFarmThreebotCustomPrice(farmId, threebotName, prices)
         },
         setDefaultCustomPrices(context, farmDefaultCustomPricesInfo) {
             let farmId = farmDefaultCustomPricesInfo.farmId
             let prices = farmDefaultCustomPricesInfo.prices
-            console.log(farmId, prices, 'storeeee');
             return tfService.setDefaultCustomPrices(farmId, prices)
         },
         setCustomPricesList(context, farmId) {
             tfService.getCustomPrices(farmId).then(response => {
-                context.commit("setCustomPricesList", JSON.parse(response.data))
+                let parsed =JSON.parse(response.data).data
+                context.commit("setCustomPricesList", parsed )
             })
         },
     },

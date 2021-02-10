@@ -30,7 +30,7 @@
                 <v-icon small> fa-trash </v-icon>
               </v-btn>
 
-              <v-dialog v-model="openEditModal" persistent max-width="800">
+              <v-dialog v-model="openEditModal" persistent max-width="800" @keydown.esc="openEditModal = false">
                 <v-card>
                   <v-card-title
                     primary-title
@@ -44,20 +44,20 @@
                       <v-row>
                         <v-col cols="12" sm="4">
                           <v-text-field
-                            v-model="priceToEdit.cu"
+                            v-model.number="priceToEdit.custom_cloudunits_price.cu"
                             label="CU"
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="4">
                           <v-text-field
-                            v-model="priceToEdit.su"
+                            v-model.number="priceToEdit.custom_cloudunits_price.su"
                             label="SU"
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="4">
                           <v-text-field
-                            v-model="priceToEdit.ip4u"
-                            label="IP4U"
+                            v-model.number="priceToEdit.custom_cloudunits_price.ipv4u"
+                            label="IPv4U"
                           ></v-text-field>
                         </v-col>
                       </v-row>
@@ -77,7 +77,7 @@
                   </v-card-actions>
                 </v-card>
               </v-dialog>
-              <v-dialog v-model="openDeleteModal" persistent max-width="800">
+              <v-dialog v-model="openDeleteModal" persistent max-width="800" @keydown.esc="openDeleteModal = false">
                 <v-card>
                   <v-card-title
                     primary-title
@@ -86,8 +86,7 @@
                   >
 
                   <v-card-text>    
-                    Are you sure you want to delete price with ID: {{ priceToDelete.id
-                    }}?</</v-card-text>
+                    Are you sure you want to delete price with ID: {{ priceToDelete.id }}?</</v-card-text>
                   <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn

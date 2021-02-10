@@ -140,7 +140,7 @@ class Farms(BaseResource):
     def remove_public_ips(self, farm_id, public_ips):
         self._session.delete(f"{self._url}/{farm_id}/ip", json=public_ips)
 
-    def enable_default_custom_prices(self, farm_id, default_prices):
+    def enable_custom_farm_prices(self, farm_id, default_prices):
         # field enable_custom_pricing
         farm = self.get(farm_id)
         farm.enable_custom_pricing = True
@@ -151,30 +151,28 @@ class Farms(BaseResource):
         default_prices_obj.ipv4u = default_prices["ipv4u"]
 
 
-        farm.default_cloudunits_price = default_prices
+        farm.farm_cloudunits_price = default_prices
         self.update(farm)
         return True
 
-    def get_custom_prices(self, farm_id):
-        return self._session.get(f"{self._url}/{farm_id}/custom_prices").json()
+    def get_deals(self, farm_id):
+        return self._session.get(f"{self._url}/{farm_id}/deals").json()
 
-    def get_custom_price_for_threebot(self, farm_id, threebot_id):
+    def get_deal_for_threebot(self, farm_id, threebot_id):
         try:
-            return self._session.get(f"{self._url}/{farm_id}/custom_prices/{threebot_id}").json()
+            return self._session.get(f"{self._url}/{farm_id}/deals/{threebot_id}").json()
         except:
             return self.get_explorer_prices()
 
-    def create_or_update_custom_price_for_threebot(self, farm_id, threebot_id, custom_prices):
-        farm = self.get(farm_id)
-        self.update(farm)  
-
+    def create_or_update_deal_for_threebot(self, farm_id, threebot_id, custom_prices):
         body = {
             'farm_id': farm_id,
             'threebot_id': threebot_id,
             'custom_cloudunits_price': custom_prices
         }
+        self._session.put(f"{self._url}/{farm_id}/deals", json=body)
+        return True
 
-        return self._session.put(f"{self._url}/{farm_id}/custom_prices", json=body)
 
     def get_explorer_prices(self):
         return Prices(self._client).get()

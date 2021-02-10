@@ -33,9 +33,9 @@ module.exports = new Promise(async(resolve, reject) => {
                         sortable: false,
                         value: "name"
                     },
-                    { text: "CU ($/mo)", value: "cu" },
-                    { text: "SU ($/mo)", value: "su" },
-                    { text: "IPv4u ($/mo)", value: "ipv4u" },
+                    { text: "CU ($/mo)", value: "farm_cloudunits_price.cu" },
+                    { text: "SU ($/mo)", value: "farm_cloudunits_price.su" },
+                    { text: "IPv4u ($/mo)", value: "farm_cloudunits_price.ipv4u" },
                     { text: "Actions", value: "action", sortable: false }
                 ],
                 prices: [{ node: 3 }, { node: 8 }],
@@ -63,7 +63,7 @@ module.exports = new Promise(async(resolve, reject) => {
                     ipv4u: null
                 },
                 customPrice: {
-                    name: '',
+                    threebotName: '',
                     cu: null,
                     su: null,
                     ipv4u: null,
@@ -125,6 +125,8 @@ module.exports = new Promise(async(resolve, reject) => {
                 this.getNodes(item.id);
                 this.setCustomPricesList(item.id)
                 this.farmSelected = item;
+                console.log("ITEM: ", item)
+                this.default_price = item.default_cloudunits_price && Object.assign(this.default_price, item.default_cloudunits_price) || {cu:0, su:0, ipv4u:0};
             },
             viewSettings(farm) {
                 this.farmToEdit = farm;
@@ -208,7 +210,7 @@ module.exports = new Promise(async(resolve, reject) => {
             },
             setDefault(cu, su, ipv4u) {
                 let prices = { cu: cu, su: su, ipv4u: ipv4u }
-                farmCustomPricesInfo = { farmId: this.farmSelected.id, prices: prices }
+                let farmCustomPricesInfo = { farmId: this.farmSelected.id, prices: prices }
                 this.setDefaultCustomPrices(farmCustomPricesInfo)
                     .then(response => {
                         this.setDefaultPrice = false;
@@ -217,13 +219,13 @@ module.exports = new Promise(async(resolve, reject) => {
                         console.log(err)
                     })
             },
-            addCustomPrice(threebotId, cu, su, ipv4u) {
-                let prices = { cu: cu, su: su, ipv4u: ipv4u }
-                farmCustomPricesInfo = { farmId: this.farmSelected.id, prices: prices, threebot_id: threebotId }
+            addCustomPrice(threebotName, cu, su, ipv4u) {
+                let prices = { cu: +cu, su: +su, ipv4u: +ipv4u }
+                let farmCustomPricesInfo = { farmId: this.farmSelected.id, prices: prices, threebotName: threebotName }
                 this.createOrUpdateFarmThreebotCustomPrice(farmCustomPricesInfo)
                     .then(response => {
                         this.openAddCustomModel = false;
-                        this.getCustomPrices(farmCustomPricesInfo.farmId);
+                        this.setCustomPricesList(farmCustomPricesInfo.farmId);
                     }).catch(err => {
                         console.log(err)
                     })

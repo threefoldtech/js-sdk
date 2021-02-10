@@ -49,11 +49,22 @@ class FarmManagemenet(BaseActor):
 
     @actor_method
     def enable_farm_default_prices(self, farm_id, prices) -> str:
-        return  j.data.serializers.json.dumps({"data":self._explorer.farms.enable_default_custom_prices(farm_id, prices)})
+        return  j.data.serializers.json.dumps({"data":self._explorer.farms.enable_custom_farm_prices(farm_id, prices)})
     
     @actor_method
-    def get_custom_prices(self, farm_id) -> str:
-        return j.data.serializers.json.dumps({"data":self._explorer.farms.get_custom_prices(farm_id)})
+    def get_deals(self, farm_id) -> str:
+        return j.data.serializers.json.dumps({"data":self._explorer.farms.get_deals(farm_id)})
+
+    @actor_method
+    def get_deals_with_threebot_names(self, farm_id) -> str:
+        custom_prices = self._explorer.farms.get_deals(farm_id)
+        for cp in custom_prices:
+            try:
+                cp["threebot_name"] = self._explorer.users.get(cp["threebot_id"]).name
+            except:
+                cp["threebot_name"] = "UNKNOWN_USER"
+        return j.data.serializers.json.dumps({"data":custom_prices})
+
 
     @actor_method
     def get_explorer_prices(self, farm_id) -> str:
@@ -61,12 +72,19 @@ class FarmManagemenet(BaseActor):
 
 
     @actor_method
-    def get_custom_price_for_threebot(self, farm_id, threebot_id) -> str:
-        return j.data.serializers.json.dumps({"data": self._explorer.farms.get_custom_price_for_threebot(farm_id, threebot_id)})
+    def get_deal_for_threebot(self, farm_id, threebot_id) -> str:
+        return j.data.serializers.json.dumps({"data": self._explorer.farms.get_deal_for_threebot(farm_id, threebot_id)})
 
     @actor_method
-    def create_or_update_custom_price_for_threebot(self, farm_id, threebot_id, custom_prices) -> bool:
-        return j.data.serializers.json.dumps({"data":self._explorer.farms.create_or_update_custom_price_for_threebot(farm_id, threebot_id, custom_prices)})
+    def create_or_update_deal_for_threebot_by_name(self, farm_id, threebot_name, custom_prices) -> str:
+        threebot_id = self._explorer.users.get(name=threebot_name).id
+        print(f"++++++++ {threebot_name} {threebot_id} {farm_id} {custom_prices}")
+        return j.data.serializers.json.dumps({"data":self._explorer.farms.create_or_update_deal_for_threebot(farm_id, threebot_id, custom_prices)})
+
+
+    @actor_method
+    def create_or_update_deal_for_threebot(self, farm_id, threebot_id, custom_prices) -> str:
+        return j.data.serializers.json.dumps({"data":self._explorer.farms.create_or_update_deal_for_threebot(farm_id, threebot_id, custom_prices)})
 
 
     @actor_method

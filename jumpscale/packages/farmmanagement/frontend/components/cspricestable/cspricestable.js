@@ -20,10 +20,10 @@ module.exports = new Promise(async(resolve, reject) => {
                 expanded: [],
                 searchNodes: "",
                 headers: [
-                    { text: "ID", value: "id", },
-                    { text: "CU ($/mo)", value: "cu" },
-                    { text: "SU ($/mo)", value: "su" },
-                    { text: "IPv4U", value: "ipv4u" },
+                    { text: "3Bot Name", value: "threebot_name" },
+                    { text: "CU ($/mo)", value: "custom_cloudunits_price.cu" },
+                    { text: "SU ($/mo)", value: "custom_cloudunits_price.su" },
+                    { text: "IPv4U", value: "custom_cloudunits_price.ipv4u" },
                     { text: "Actions", value: "action" },
                 ],
                 // csPricesInfo: [
@@ -35,7 +35,7 @@ module.exports = new Promise(async(resolve, reject) => {
                 openEditModal: false,
                 openDeleteModal: false,
                 deleteNodeFarmAlert: undefined,
-                priceToEdit: { cu: 0, su: 0, ip4u: 0 },
+                priceToEdit: { custom_cloudunits_price:{ cu: 0, su: 0, ipv4u: 0 }},
                 price: {},
                 priceToDelete: { id: 0 }
             }
@@ -53,15 +53,16 @@ module.exports = new Promise(async(resolve, reject) => {
         },
         methods: {
             ...vuex.mapActions("farmmanagement", [
-                "getCustomPrices"
+                "setCustomPricesList",
+                "createOrUpdateFarmThreebotCustomPrice",
             ]),
             openEditPriceModal(node) {
-                console.log(node)
+                console.log("chose item: ", node)
                 this.openEditModal = true
-                this.priceToEdit = node
+                this.priceToEdit = Object.assign(this.priceToEdit, node);
             },
             loadPrices() {
-                this.getCustomPrices({ farmId: this.farmselected.id }).then(response => {
+                this.setCustomPricesList({ farmId: this.farmselected.id }).then(response => {
                     if (response.status == 200) {
                         this.csPricesInfo = JSON.parse(response.data).data;
                         console.log(this.csPricesInfo);
@@ -71,7 +72,9 @@ module.exports = new Promise(async(resolve, reject) => {
                 })
             },
             editPrice(id) {
+                this.createOrUpdateFarmThreebotCustomPrice({farmId:this.priceToEdit.farm_id, threebotName: this.priceToEdit.threebot_name, prices: this.priceToEdit.custom_cloudunits_price})
                 console.log(id)
+                this.openEditModal = false
             },
             deleteModal(id) {
                 this.openDeleteModal = true

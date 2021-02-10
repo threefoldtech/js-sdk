@@ -26,15 +26,15 @@
               nextIcon: 'fa-angle-right'
             }">
                         <template v-slot:item.cu="{ item }">
-              <span>{{item.default_cloudunits_price.cu}}</span>
+              <span>{{item.farm_cloudunits_price.cu}}</span>
             </template>
 
                         <template v-slot:item.su="{ item }">
-              <span>{{item.default_cloudunits_price.su}}</span>
+              <span>{{item.farm_cloudunits_price.su}}</span>
             </template>
 
                         <template v-slot:item.ipv4u="{ item }">
-              <span>{{item.default_cloudunits_price.ipv4u}}</span>
+              <span>{{item.farm_cloudunits_price.ipv4u}}</span>
             </template>
 
                         <template v-slot:item.action="{ item }">
@@ -46,11 +46,11 @@
               </v-btn>
 
               <v-btn color="primary" small @click="setDefaultPrice = true">
-                Set default prices
+                Set farm prices
               </v-btn>
 
               <v-btn color="accent" small @click="openAddCustomModel = true">
-                Add custom price
+                Add a Deal
               </v-btn>
 
               <v-dialog v-model="setDefaultPrice" scrollable max-width="700px">
@@ -59,34 +59,34 @@
                     primary-title
                     class="primary py-3 mb-5 white--text"
                   >
-                    Set farm default prices
+                    Set farm prices
                     <v-spacer />
                   </v-card-title>
                   <v-card-text>
                     <v-container>
                       <v-row>
                         <span
-                          >Set default prices for the farm in dollars per
+                          >Set farm prices for the farm in dollars per
                           month</span
                         >
                       </v-row>
                       <v-row>
                         <v-col cols="12" sm="4">
                           <v-text-field
-                            v-model="default_price.cu"
+                            v-model.number="default_price.cu"
                             label="CU"
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="4">
                           <v-text-field
-                            v-model="default_price.su"
+                            v-model.number="default_price.su"
                             label="SU"
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="4">
                           <v-text-field
-                            v-model="default_price.ip4u"
-                            label="IP4U"
+                            v-model.number="default_price.ipv4u"
+                            label="IPv4U"
                           ></v-text-field>
                         </v-col>
                       </v-row>
@@ -109,7 +109,7 @@
                       text
                       color="secondary"
                       class="mr-3"
-                      @click="setDefault(default_price.cu, default_price.su, default_price.ip4u)"
+                      @click="setDefault(default_price.cu, default_price.su, default_price.ipv4u)"
                       >Save</v-btn
                     >
                   </v-card-actions>
@@ -120,6 +120,8 @@
                 v-model="openAddCustomModel"
                 persistent
                 max-width="700px"
+                @keydown.esc="openAddCustomModel = false"
+                
               >
                 <v-card>
                   <v-card-title
@@ -136,8 +138,8 @@
                       <v-row>
                         <v-col cols="12">
                           <v-text-field
-                            v-model="customPrice.threebotId"
-                            label="3BOT ID*"
+                            v-model="customPrice.threebotName"
+                            label="3Bot Name*"
                             required
                           ></v-text-field>
                         </v-col>
@@ -176,7 +178,7 @@
                     <v-btn
                       color="blue darken-1"
                       text
-                      @click="addCustomPrice(customPrice.threebotId, customPrice.cu, customPrice.su, customPrice.ipv4u)"
+                      @click="addCustomPrice(customPrice.threebotName, customPrice.cu, customPrice.su, customPrice.ipv4u)"
                     >
                       Save
                     </v-btn>
@@ -218,7 +220,8 @@
                 Add custom price
               </v-btn>
 
-              <v-dialog v-model="setDefaultPrice" scrollable max-width="700px">
+              <v-dialog v-model="setDefaultPrice" scrollable max-width="700px" @keydown.esc="setDefaultPrice = false"
+>
                 <v-card style="width: 100%">
                   <v-card-title
                     primary-title
@@ -250,8 +253,8 @@
                         </v-col>
                         <v-col cols="12" sm="4">
                           <v-text-field
-                            v-model="default_price.ip4u"
-                            label="IP4U"
+                            v-model="default_price.ipv4u"
+                            label="IPv4U"
                           ></v-text-field>
                         </v-col>
                       </v-row>
@@ -274,7 +277,7 @@
                       text
                       color="secondary"
                       class="mr-3"
-                      @click="setDefault(default_price.cu, default_price.su, default_price.ip4u)"
+                      @click="setDefault(default_price.cu, default_price.su, default_price.ipv4u)"
                       >Save</v-btn
                     >
                   </v-card-actions>
@@ -320,8 +323,8 @@
                         </v-col>
                         <v-col cols="12" sm="6" md="4">
                           <v-text-field
-                            v-model="customPrice.ip4u"
-                            label="IP4U*"
+                            v-model="customPrice.ipv4u"
+                            label="IPv4U*"
                             required
                           ></v-text-field>
                         </v-col>

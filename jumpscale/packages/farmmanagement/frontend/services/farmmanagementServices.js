@@ -56,7 +56,7 @@ export default {
         })
     },
     getCustomPrices(farmId) {
-        return axios.post('/farmmanagement/actors/farm_management/get_custom_prices', {
+        return axios.post('/farmmanagement/actors/farm_management/get_deals_with_threebot_names', {
             farm_id: farmId
         })
     },
@@ -66,14 +66,16 @@ export default {
             prices: prices,
         })
     },
-    createOrUpdateFarmThreebotCustomPrice(farmId, threebotId, prices) {
-        return axios.post('/farmmanagement/actors/farm_management/create_or_update_custom_price_for_threebot', {
+    createOrUpdateFarmThreebotCustomPrice(farmId, threebotName, prices) {
+        console.log('immed', farmId, threebotName, prices)
+        return axios.post('/farmmanagement/actors/farm_management/create_or_update_deal_for_threebot_by_name', {
             farm_id: farmId,
-            threebot_id: threebotId,
-            prices: prices,
+            threebot_name: threebotName,
+            custom_prices: prices,
         })
 
     },
+
     getExplorerPrices() {
         return axios.post('/farmmanagement/actors/farm_management/get_explorer_prices')
     },
