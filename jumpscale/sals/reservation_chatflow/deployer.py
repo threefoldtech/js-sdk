@@ -1019,7 +1019,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         network_views = network_views or self.list_networks()
         if not network_views:
             raise StopChatFlow(f"You don't have any deployed network.")
-        network_name = bot.single_choice("Please select a network", list(network_views.keys()), required=True)
+        network_name = bot.single_choice("Please select a network to connect your solution to", list(network_views.keys()), required=True)
         return network_views[network_name]
 
     def deploy_volume(

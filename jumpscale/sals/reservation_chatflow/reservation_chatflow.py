@@ -1235,7 +1235,7 @@ class ReservationChatflow:
         """
         ip_range_choose = ["Configure IP range myself", "Choose IP range for me"]
         iprange_user_choice = bot.single_choice(
-            "To have access to the 3Bot, the network must be configured",
+            "How would you like to configure the network IP range",
             ip_range_choose,
             required=True,
             default=ip_range_choose[1],

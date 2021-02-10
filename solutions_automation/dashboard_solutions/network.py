@@ -9,7 +9,7 @@ class NetworkDeployAutomated(GedisChatBotPatch, NetworkDeploy):
     IP_SELECT = "How would you like to configure the network IP range"
     IP_RANGE = "Please add private IP Range of the network"
     ACCESS_NODE = "Please select an access node or leave it empty to automatically select it"
-    NETWORK_NAME = "Please select a network"
+    NETWORK_NAME = "Please select a network to connect your solution to"
     POOL = "Please select a pool or leave it empty to automaically select it"
 
     QS = {
