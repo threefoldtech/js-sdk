@@ -227,6 +227,7 @@ try:
             domains_deployed = set()
             deployments = get_all_vdc_deployments(vdc.vdc_name)
             for deployment in deployments:
+                j.logger.info(f"restoring domain for deployment: {deployment}")
                 domain_name = deployment.get("Domain")
                 if not domain_name:
                     continue
@@ -253,6 +254,7 @@ try:
 
             for wid in wids:
                 try:
+                    j.logger.info(f"waiting workload: {wid}")
                     success = zos.workloads.wait(wid, 1)
                     if not success:
                         j.logger.critical(f"subdomain of wid: {wid} failed to redeploy")
