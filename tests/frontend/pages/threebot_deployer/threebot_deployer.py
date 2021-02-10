@@ -61,7 +61,7 @@ class ThreebotDeployer(Base):
         deploy_new_3bot_button = self.driver.find_elements_by_class_name("v-btn__content")[1]
         deploy_new_3bot_button.click()
 
-        self.wait(self.driver, "v-progress-linear__buffer")
+        self.wait(self.driver, "v-progress-circular")
 
         # switch driver to iframe
         iframe = self.driver.find_elements_by_tag_name("iframe")[0]
@@ -69,12 +69,16 @@ class ThreebotDeployer(Base):
 
         # Create a new 3Bot instance
         chat_box = self.driver.find_element_by_class_name("chat")
-        create_button = chat_box.find_elements_by_class_name("v-input--selection-controls__ripple")[0]
-        create_button.click()
+        # create_button = chat_box.find_elements_by_class_name("v-input--selection-controls__ripple")[0]
+        # create_button.click()
 
-        self.click_button(self.driver, "NEXT")
+        # self.click_button(self.driver, "NEXT")
 
         # ThreeBot instance Name
+        import pdb
+
+        pdb.set_trace()
+        self.wait(self.driver, "v-progress-circular")
         name_element = chat_box.find_element_by_class_name("v-text-field__slot")
         name_input = name_element.find_element_by_tag_name("input")
         name_input.send_keys(my_3bot_instances)
@@ -88,13 +92,19 @@ class ThreebotDeployer(Base):
 
         self.click_button(self.driver, "NEXT")
 
+        ssh_element = chat_box.find_element_by_class_name("v-text-field__slot")
+        ssh_input = ssh_element.find_element_by_tag_name("input")
+        ssh_input.send_keys("/home/hassan/.ssh/id_rsa.pub")
+        self.click_button(self.driver, "NEXT")
+        self.wait(self.driver, "v-progress-circular")
+
         # Threebot recovery password
+        import pdb
+
+        pdb.set_trace()
         password_element = chat_box.find_element_by_class_name("v-text-field__slot")
         password_input = password_element.find_element_by_tag_name("input")
         password_input.send_keys(password)
-
-        self.click_button(self.driver, "NEXT")
-        self.wait(self.driver, "v-progress-circular")
 
         # The deployment location policy ( We here use it automatically )
 
