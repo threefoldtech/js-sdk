@@ -1,4 +1,3 @@
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
 from gevent import monkey
 
 monkey.patch_all(subprocess=False)  # noqa: E402
