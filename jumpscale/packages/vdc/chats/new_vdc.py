@@ -4,6 +4,8 @@ from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
 from jumpscale.sals.vdc.proxy import VDC_PARENT_DOMAIN
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from textwrap import dedent
+import uuid
+from urllib.parse import urlparse
 
 MINIMUM_ACTIVATION_XLMS = 0
 
@@ -97,27 +99,44 @@ class VDCDeploy(GedisChatBot):
         form.ask()
 
     def _backup_form(self):
-        form = self.new_form()
-        if self.restore:
-            self.s3_url = form.string_ask(
-                "S3 URL to restore your k8s cluster (eg: http://s3.webg1test.grid.tf/)", required=True
+        valid = False
+        while not valid:
+            form = self.new_form()
+            if self.restore:
+                self.s3_url = form.string_ask(
+                    "S3 URL to restore your k8s cluster (eg: http://s3.webg1test.grid.tf/)", required=True
+                )
+            else:
+                self.s3_url = form.string_ask(
+                    "S3 URL to back your k8s cluster to (eg: http://s3.webg1test.grid.tf/)", required=True
+                )
+            self.s3_region = form.string_ask("S3 region name (eg: minio in case you are using minio)", required=True)
+            self.s3_bucket = form.string_ask(
+                "S3 bucket name (make sure the bucket policy is Read/Write)", required=True
             )
-        else:
-            self.s3_url = form.string_ask(
-                "S3 URL to back your k8s cluster to (eg: http://s3.webg1test.grid.tf/)", required=True
-            )
-        self.s3_region = form.string_ask("S3 region name (eg: minio in case you are using minio)", required=True)
-        self.s3_bucket = form.string_ask("S3 bucket name (make sure the bucket policy is Read/Write)", required=True)
-        self.ak = form.string_ask("S3 access key (S3 credentials)", required=True)
-        self.sk = form.secret_ask("S3 secret key (S3 credentials)", required=True)
-        form.ask()
-        self.backup_config = {
-            "ak": self.ak.value,
-            "sk": self.sk.value,
-            "region": self.s3_region.value,
-            "url": self.s3_url.value,
-            "bucket": self.s3_bucket.value,
-        }
+            self.ak = form.string_ask("S3 access key (S3 credentials)", required=True)
+            self.sk = form.secret_ask("S3 secret key (S3 credentials)", required=True)
+            form.ask()
+            self.backup_config = {
+                "ak": self.ak.value,
+                "sk": self.sk.value,
+                "region": self.s3_region.value,
+                "url": self.s3_url.value,
+                "bucket": self.s3_bucket.value,
+            }
+            valid, msg = self._validate_s3_config()
+            if not valid:
+                self.md_show(f"{msg}. please try again")
+
+    def _validate_s3_config(self):
+        try:
+            res = urlparse(self.backup_config["url"])
+        except Exception as e:
+            return False, f"invalid url. {str(e)}"
+        if res.scheme not in ["http", "https"]:
+            return False, "invalid scheme. can be either http or https"
+        # TODO: validate bucket existence and policy?
+        return True, ""
 
     @chatflow_step(title="VDC Information")
     def vdc_info(self):
