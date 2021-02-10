@@ -9,7 +9,7 @@ class VDCDomainsValidation(BackgroundService):
 
     def job(self):
         # redeploy subdomain
-        vdc = j.sals.vdc.get(list(j.sals.vdc.list_all()[0]))
+        vdc = j.sals.vdc.get(list(j.sals.vdc.list_all())[0])
         vdc.load_info()
         domains = set()
         try:
