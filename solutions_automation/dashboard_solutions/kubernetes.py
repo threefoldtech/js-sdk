@@ -6,7 +6,7 @@ class KubernetesAutomated(GedisChatBotPatch, KubernetesDeploy):
     NAME_MESSAGE = "Please enter a name for your workload (Can be used to prepare domain for you and needed to track your solution on the grid)"
     NODE_SIZE_MESSAGE = "Choose the size of your nodes"
     WORKERS_NUM_MESSAGE = "Please specify the number of worker nodes"
-    NETWORK_MESSAGE = "Please select a network"
+    NETWORK_MESSAGE = "Please select a network to connect your solution to"
     SSH_MESSAGE = "Please upload your public SSH key to be able to access the depolyed container via ssh"
     SECRET_MESSAGE = "Please add the cluster secret"
     IP_MASTER_MESSAGE = "Please choose IP Address for Master node"
