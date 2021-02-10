@@ -370,6 +370,7 @@ class ChatflowDeployer:
         form = bot.new_form()
         cu = form.int_ask("Required Amount of Compute Unit (CU)", required=True, min=0, default=0)
         su = form.int_ask("Required Amount of Storage Unit (SU)", required=True, min=0, default=0)
+        ipv4u = form.int_ask("Required Amount of Public IP Unit (IPv4U)", required=True, min=0, default=0)
         time_unit = form.drop_down_choice(
             "Please choose the duration unit", ["Day", "Month", "Year"], required=True, default="Month"
         )
@@ -404,14 +405,17 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
         cu = cu.value * 60 * 60 * 24 * days * ttl
         su = su.value * 60 * 60 * 24 * days * ttl
-        return (cu, su, ["TFT"])
+        ipv4u = ipv4u.value * 60 * 60 * 24 * days * ttl
+        return (cu, su, ipv4u, ["TFT"])
 
     def create_pool(self, bot):
-        cu, su, currencies = self._pool_form(bot)
+        cu, su, ipv4u, currencies = self._pool_form(bot)
         all_farms = self._explorer.farms.list()
         available_farms = {}
         farms_by_name = {}
         for farm in all_farms:
+            if ipv4u and not farm.ipaddresses:
+                continue
             farm_assets = [w.asset for w in farm.wallet_addresses]
             if currencies[0] not in farm_assets:
                 continue
@@ -444,7 +448,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         )
         farm = farm_messages[selected_farm]
         try:
-            pool_info = j.sals.zos.get().pools.create(cu, su, 0, farm, currencies)
+            pool_info = j.sals.zos.get().pools.create(cu, su, ipv4u, farm, currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to reserve pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
@@ -452,10 +456,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return pool_info
 
     def extend_pool(self, bot, pool_id):
-        cu, su, currencies = self._pool_form(bot)
+        cu, su, ipv4u, currencies = self._pool_form(bot)
         currencies = ["TFT"]
         try:
-            pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, 0, currencies=currencies)
+            pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, ipv4u, currencies=currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to extend pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
@@ -464,6 +468,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return pool_info
 
     def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None):
+        zos = j.sals.zos.get()
         node_filter = None
         if j.core.config.get("OVER_PROVISIONING"):
             cru = None
@@ -472,11 +477,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             raise j.exceptions.Runtime(f"{ip_version} is not a valid IP Version")
         else:
             if ip_version == "IPv4":
-                node_filter = j.sals.zos.get().nodes_finder.filter_public_ip4
+                node_filter = zos.nodes_finder.filter_public_ip4
             elif ip_version == "IPv6":
-                node_filter = j.sals.zos.get().nodes_finder.filter_public_ip6
+                node_filter = zos.nodes_finder.filter_public_ip6
         currencies = currencies or []
-        farm_nodes = j.sals.zos.get().nodes_finder.nodes_search(farm_name=farm_name)
+        farm_nodes = zos.nodes_finder.nodes_search(farm_name=farm_name)
         available_cru = 0
         available_sru = 0
         available_mru = 0
@@ -487,7 +492,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         for node in farm_nodes:
             if "FreeTFT" in currencies and not node.free_to_use:
                 continue
-            if not j.sals.zos.get().nodes_finder.filter_is_up(node):
+            if not zos.nodes_finder.filter_is_up(node):
                 continue
             if node.node_id in blocked_nodes:
                 continue
@@ -498,6 +503,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             available_sru += node.total_resources.sru - node.reserved_resources.sru
             available_mru += node.total_resources.mru - node.reserved_resources.mru
             available_hru += node.total_resources.hru - node.reserved_resources.hru
+
+        farm_id = self._explorer.farms.get(farm_name=farm_name).id
+        gateways = [g for g in self._explorer.gateway.list(farm_id) if zos.gateways_finder.filter_is_up(g)]
+        running_nodes += len(gateways)
 
         if not running_nodes:
             return False, available_cru, available_sru, available_mru, available_hru
@@ -564,7 +573,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             return None
         return qr_code
 
-    def list_pools(self, cu=None, su=None):
+    def list_pools(self, cu=None, su=None, ipv4u=None):
         all_pools = [p for p in j.sals.zos.get().pools.list() if p.node_ids]
 
         available_pools = {}
@@ -577,7 +586,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 name = local_config.name
             if hidden:
                 continue
-            res = self.check_pool_capacity(pool, cu, su)
+            res = self.check_pool_capacity(pool, cu, su, ipv4u)
             available = res[0]
             if available:
                 resources = res[1:]
@@ -586,26 +595,39 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 available_pools[pool.pool_id] = resources
         return available_pools
 
-    def check_pool_capacity(self, pool, cu=None, su=None):
+    def check_pool_capacity(self, pool, cu=None, su=None, ipv4u=None):
         available_su = pool.sus
         available_cu = pool.cus
+        available_ipv4u = pool.ipv4us
         if pool.empty_at < 0:
             return False, 0, 0
         if cu and available_cu < cu:
-            return False, available_cu, available_su
+            return False, available_cu, available_su, available_ipv4u
         if su and available_su < su:
-            return False, available_cu, available_su
+            return False, available_cu, available_su, available_ipv4u
+        if ipv4u and available_ipv4u < ipv4u:
+            return False, available_cu, available_su, available_ipv4u
         if (cu or su) and pool.empty_at < j.data.time.now().timestamp:
             return False, 0, 0
-        return True, available_cu, available_su
+        return True, available_cu, available_su, available_ipv4u
 
     def select_pool(
-        self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None
+        self,
+        bot,
+        cu=None,
+        su=None,
+        ipv4u=None,
+        sru=None,
+        mru=None,
+        hru=None,
+        cru=None,
+        available_pools=None,
+        workload_name=None,
     ):
         if j.config.get("OVER_PROVISIONING"):
             cru = 0
             mru = 0
-        available_pools = available_pools or self.list_pools(cu, su)
+        available_pools = available_pools or self.list_pools(cu, su, ipv4u)
         if not available_pools:
             raise StopChatFlow("no available pools with enough capacity for your workload")
         pool_messages = {}
@@ -614,9 +636,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             if not nodes:
                 continue
 
-            pool_msg = f"Pool: {pool} cu: {available_pools[pool][0]} su:" f" {available_pools[pool][1]}"
-            if len(available_pools[pool]) > 2:
-                pool_msg += f" Name: {available_pools[pool][2]}"
+            pool_cus, pool_sus, pool_ipv4us = available_pools[pool][:3]
+            pool_msg = f"Pool: {pool} cu: {pool_cus} su: {pool_sus} ipv4u: {pool_ipv4us}"
+            if len(available_pools[pool]) > 3:
+                pool_msg += f" Name: {available_pools[pool][3]}"
             pool_messages[pool_msg] = pool
         if not pool_messages:
             raise StopChatFlow("no available resources in the farms bound to your pools")
@@ -1097,7 +1120,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         if not workload_name:
             workload_name = "your workload"
         automatic_choice = bot.single_choice(
-            "Do you want to automatically select a node for deployment for" f" {workload_name}?",
+            f"Do you want to automatically select a node to deploy {workload_name} on?",
             ["YES", "NO"],
             default="YES",
             required=True,
@@ -1955,9 +1978,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             """
             msg = msg + self.msg_payment_info + qr_code_msg
         zos = j.sals.zos.get(identity_name)
+        if bot:
+            bot.md_show_update(msg, html=True)
         while j.data.time.get().timestamp < expiration:
-            if bot:
-                bot.md_show_update(msg, html=True)
             payment_info = zos.pools.get_payment_info(reservation_id)
             if payment_info.paid and payment_info.released:
                 return True
@@ -2006,7 +2029,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         subdomain = f"{uuid.uuid4().hex}.{managed_domain}"
         addresses = [j.sals.nettools.get_host_by_name(gateway.dns_nameserver[0])]
         subdomain_id = self.create_subdomain(pool_id, gateway_id, subdomain, addresses, identity_name=identity_name)
-        success = self.wait_workload(subdomain_id)
+        success = self.wait_workload(subdomain_id, identity_name=identity_name)
         if not success:
             return False
         try:

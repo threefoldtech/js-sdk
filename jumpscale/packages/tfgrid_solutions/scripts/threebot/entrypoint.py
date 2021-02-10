@@ -73,6 +73,7 @@ def main():
     if backup_password:
         # Sanitation for the case user deleted his old backups!
         try:
+            # this raises only if backup_password is wrong or new is True
             BACKUP_ACTOR.init(backup_password, new=False)
         except Exception as e:
             new = True
@@ -80,11 +81,12 @@ def main():
 
         try:
             BACKUP_ACTOR.init(backup_password, new=new)
-            if not new:
-                snapshots = j.data.serializers.json.loads(BACKUP_ACTOR.snapshots())
-                if snapshots.get("data"):
-                    j.logger.info("Restoring backup ...")
-                    BACKUP_ACTOR.restore()
+            # now if the user has snapshots we recover, otherwise we take a new backup
+            snapshots = j.data.serializers.json.loads(BACKUP_ACTOR.snapshots())
+            if snapshots.get("data"):
+                j.logger.info("current snapshots:", snapshots)
+                j.logger.info("Restoring backup ...")
+                BACKUP_ACTOR.restore()
             else:
                 j.logger.info("Taking backup ...")
                 BACKUP_ACTOR.backup(tags="init")

@@ -1,3 +1,4 @@
+import gevent
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 import uuid
 from jumpscale.sals.marketplace import solutions
@@ -105,15 +106,16 @@ def list_threebot_solutions(owner):
     while cursor:
         cursor, _, result = USER_THREEBOT_FACTORY.find_many(cursor, owner_tname=owner)
         threebots += list(result)
-    for threebot in threebots:
+
+    def get_threebot_info(threebot):
         zos = get_threebot_zos(threebot)
         grouped_identity_workloads = group_threebot_workloads_by_uuid(threebot, zos)
         workloads = grouped_identity_workloads.get(threebot.solution_uuid)
         if not workloads:
-            continue
+            return
         solution_info = build_solution_info(workloads, threebot)
         if "ipv4" not in solution_info or "domain" not in solution_info:
-            continue
+            return
         solution_info["solution_uuid"] = threebot.solution_uuid
         solution_info["farm"] = threebot.farm_name
         solution_info["state"] = threebot.state.value
@@ -121,12 +123,18 @@ def list_threebot_solutions(owner):
         compute_pool = zos.pools.get(solution_info["compute_pool"])
         solution_info["expiration"] = compute_pool.empty_at
         if not compute_pool:
-            continue
+            return
         if threebot.state == ThreebotState.RUNNING and compute_pool.empty_at == 9223372036854775807:
             solution_info["state"] = ThreebotState.STOPPED.value
             threebot.state = ThreebotState.STOPPED
             threebot.save()
         result.append(solution_info)
+
+    threads = []
+    for threebot in threebots:
+        thread = gevent.spawn(get_threebot_info, threebot)
+        threads.append(thread)
+    gevent.joinall(threads)
     return result
 
 
@@ -327,6 +335,15 @@ def redeploy_threebot_solution(
                         )
 
                     domain = new_solution_info["domain"]
+                    j.logger.debug(f"searching for old subdomain workloads for domain: {domain}")
+                    deployed_workloads = zos.workloads.list_workloads(identity.tid, NextAction.DEPLOY)
+                    for workload in deployed_workloads:
+                        if workload.info.workload_type != WorkloadType.Subdomain:
+                            continue
+                        if workload.domain != domain:
+                            continue
+                        j.logger.debug(f"deleting old workload {workload.id}")
+                        zos.workloads.decomission(workload.id)
                     j.logger.debug(f"deploying domain {domain} pointing to addresses {addresses}")
                     workload_ids.append(
                         deployer.create_subdomain(
@@ -394,7 +411,7 @@ def redeploy_threebot_solution(
 
                     log_config = j.core.config.get("LOGGING_SINK", {})
                     if log_config:
-                        log_config["channel_name"] = f'{owner}-{new_solution_info["name"]}'.lower()
+                        log_config["channel_name"] = f'{owner}-threebot-{new_solution_info["name"]}'.lower()
 
                     # Create wallet for the 3bot
                     threebot_wallet = j.clients.stellar.get(f"threebot_{owner}_{new_solution_info['name']}")
@@ -476,3 +493,5 @@ def redeploy_threebot_solution(
                 j.logger.error(f"3Bot {solution_uuid} redeployment failed. retrying {retries}")
                 if bot and e.wid:
                     bot.md_show_update(f"Deployment Failed for wid {e.wid}. retrying {retries} ....")
+            else:
+                raise e

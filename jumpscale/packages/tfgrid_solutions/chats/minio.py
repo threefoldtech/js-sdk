@@ -97,7 +97,10 @@ class MinioDeploy(GedisChatBot):
 
     @chatflow_step(title="ZDB Nodes")
     def zdb_nodes_selection(self):
-        query = {"sru": 10}
+        if self.zdb_disk_type == "SSD":
+            query = {"sru": self.zdb_disk_size}
+        else:
+            query = {"hru": self.zdb_disk_size}
         workload_name = "ZDB workloads"
         self.zdb_nodes, self.zdb_pool_ids = deployer.ask_multi_pool_distribution(
             self, self.zdb_number, query, workload_name=workload_name, ip_version="IPv6"
@@ -135,7 +138,6 @@ class MinioDeploy(GedisChatBot):
     def access_credentials(self):
         name = self.user_info()["username"]
         accesskey_string = f"{name.split('.')[0]}"
-        secret_string = "secret12345"
         form = self.new_form()
         accesskey = form.string_ask(
             "Please add the key to be used for minio when logging in. Make sure not to lose it",
@@ -143,9 +145,8 @@ class MinioDeploy(GedisChatBot):
             min_length=3,
             required=True,
         )
-        secret = form.string_ask(
+        secret = form.secret_ask(
             "Please add the secret to be used for minio when logging in to match the previous key. Make sure not to lose it",
-            default=secret_string,
             min_length=8,
             required=True,
         )
@@ -237,6 +238,7 @@ class MinioDeploy(GedisChatBot):
             pool_ids=self.zdb_pool_ids,
             solution_uuid=self.solution_id,
             disk_size=self.zdb_disk_size,
+            disk_type=self.zdb_disk_type,
             **self.solution_metadata,
         )
         for resv_id in self.zdb_result:

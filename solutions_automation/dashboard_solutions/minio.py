@@ -22,7 +22,7 @@ class MinioAutomated(GedisChatBotPatch, MinioDeploy):
 
     IPV4_MESSAGE = r"^Please choose IP Address for (.*) container$"
     IPV6_MESSAGE = r"^Do you want to assign a global IPv6 address to (.*)\?$"
-    NODE_ID_MESSAGE = r"^Do you want to automatically select a node for deployment for (.*)\?$"
+    NODE_ID_MESSAGE = r"^Do you want to automatically select a node to deploy (.*)\?$"
     POOL_MESSAGE = r"^Please select a pool( for (.*))?$"
     NODE_SELECTION_MESSAGE = r"^Please choose the node you want to deploy (.*) on$"
     QS = {

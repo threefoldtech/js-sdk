@@ -1,17 +1,21 @@
-import threading
-import copy
 import base64
-from .issue import Issue
+import copy
+import threading
 
-from .base import replacelabels
+# import collections
+import urllib
+
+from gevent import sleep
 from jumpscale.clients.base import Client
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 
-# import collections
-import urllib
-from .milestone import RepoMilestone
 from github.GithubException import UnknownObjectException
+
+from .base import replacelabels
+from .helper import retry
+from .issue import Issue
+from .milestone import RepoMilestone
 
 
 class GithubRepo:
@@ -286,6 +290,7 @@ class GithubRepo:
         else:
             return None
 
+    @retry
     def create_milestone(self, name, title, description="", deadline="", owner=""):
         self._log_info('Attempt to create milestone "%s" [%s] deadline %s' % (name, title, deadline))
 
@@ -379,6 +384,7 @@ class GithubRepo:
 
         return "ffffff"
 
+    @retry
     def set_file(self, path, content, message="update file"):
         """
         Creates or updates the file content at path with given content
@@ -422,7 +428,7 @@ class GithubRepo:
         contents = self.api.get_dir_contents(src, ref=branch)
 
         for content in contents:
-            if content.type == 'dir':
+            if content.type == "dir":
                 dir_path = j.sals.fs.join_paths(dest, content.path)
                 j.sals.fs.mkdirs(dir_path)
                 self.download_directory(content.path, download_dir, branch)
