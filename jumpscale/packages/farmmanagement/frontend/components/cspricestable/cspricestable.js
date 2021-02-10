@@ -21,10 +21,9 @@ module.exports = new Promise(async(resolve, reject) => {
                 searchNodes: "",
                 headers: [
                     { text: "ID", value: "id", },
-                    { text: "3Bot name", value: "name" },
                     { text: "CU ($/mo)", value: "cu" },
                     { text: "SU ($/mo)", value: "su" },
-                    { text: "IP4U", value: "ip4u" },
+                    { text: "IPv4U", value: "ipv4u" },
                     { text: "Actions", value: "action" },
                 ],
                 // csPricesInfo: [
@@ -41,6 +40,10 @@ module.exports = new Promise(async(resolve, reject) => {
                 priceToDelete: { id: 0 }
             }
         },
+
+        mounted() {
+            this.loadPrices()
+        },
         computed: {
             ...vuex.mapGetters("farmmanagement", ["customPricesList"]),
 
@@ -49,45 +52,24 @@ module.exports = new Promise(async(resolve, reject) => {
             }
         },
         methods: {
+            ...vuex.mapActions("farmmanagement", [
+                "getCustomPrices"
+            ]),
             openEditPriceModal(node) {
                 console.log(node)
                 this.openEditModal = true
                 this.priceToEdit = node
             },
             loadPrices() {
-                
-                this.getCustomPrices(this.farmselected.id).then(response => {
-                    if (response.status == 201) {
-                        this.csPricesInfo = response.json()
+                this.getCustomPrices({ farmId: this.farmselected.id }).then(response => {
+                    if (response.status == 200) {
+                        this.csPricesInfo = JSON.parse(response.data).data;
                         console.log(this.csPricesInfo);
                     } else {
                         console.log("error...")
                     }
                 })
             },
-
-            getRows(rows) {
-                const result = {};
-                _.forEach(rows, (i, key) => {
-                    if (i.children) {
-                        _.forEach(i.children, (i1, key1) => {
-                            result["c" + key1] = i1;
-                        });
-                    } else result[key] = i;
-                });
-                return result;
-            },
-
-            getSubHeader(headers) {
-                let result = [];
-                headers
-                    .filter((i) => i.children)
-                    .forEach((v) => {
-                        result = result.concat(v.children);
-                    });
-                return result;
-            },
-
             editPrice(id) {
                 console.log(id)
             },

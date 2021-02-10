@@ -1,7 +1,5 @@
 // require('./farmmanagement/weblibs/gmaps/vue-google-maps.js')
-
 module.exports = new Promise(async(resolve, reject) => {
-
     const vuex = await
     import (
         "/weblibs/vuex/vuex.esm.browser.js"
@@ -68,7 +66,8 @@ module.exports = new Promise(async(resolve, reject) => {
                     name: '',
                     cu: null,
                     su: null,
-                    ipv4u: null
+                    ipv4u: null,
+                    threebotId: null
                 },
                 newFarmAlert: undefined,
                 priceUpdate: undefined,
@@ -77,7 +76,8 @@ module.exports = new Promise(async(resolve, reject) => {
                 namerules: [v => !!v || "Name is required"],
                 nameError: [],
                 mailError: [],
-                countries: []
+                countries: [],
+                loading: false
             }
         },
         computed: {
@@ -92,7 +92,7 @@ module.exports = new Promise(async(resolve, reject) => {
         async mounted() {
             await this.getTfgridUrl();
             await this.getUser();
-            this.getFarms();
+            await this.getFarms();
             this.initialiseRefresh()
             this.newFarm.threebot_id = this.user.id;
         },
@@ -104,7 +104,8 @@ module.exports = new Promise(async(resolve, reject) => {
                 "getNodes",
                 "getTfgridUrl",
                 "setCustomPricesList",
-
+                "setDefaultCustomPrices",
+                "createOrUpdateFarmThreebotCustomPrice"
             ]),
             initialiseRefresh() {
                 const that = this;
@@ -206,17 +207,27 @@ module.exports = new Promise(async(resolve, reject) => {
                 this.$router.history.push(`/edit/${farm.id}`)
             },
             setDefault(cu, su, ipv4u) {
-                let prices = {cu:cu, su:su, ipv4u:ipv4u}
-                farmCustomPricesInfo = {farmId:this.farmSelected.id, prices:prices}
+                let prices = { cu: cu, su: su, ipv4u: ipv4u }
+                farmCustomPricesInfo = { farmId: this.farmSelected.id, prices: prices }
                 this.setDefaultCustomPrices(farmCustomPricesInfo)
-                console.log(cu, su, ipv4u)
+                    .then(response => {
+                        this.setDefaultPrice = false;
+                        this.getFarms();
+                    }).catch(err => {
+                        console.log(err)
+                    })
             },
-            addCustomPrice() {
-                this.openAddCustomModel = true;
+            addCustomPrice(threebotId, cu, su, ipv4u) {
+                let prices = { cu: cu, su: su, ipv4u: ipv4u }
+                farmCustomPricesInfo = { farmId: this.farmSelected.id, prices: prices, threebot_id: threebotId }
+                this.createOrUpdateFarmThreebotCustomPrice(farmCustomPricesInfo)
+                    .then(response => {
+                        this.openAddCustomModel = false;
+                        this.getCustomPrices(farmCustomPricesInfo.farmId);
+                    }).catch(err => {
+                        console.log(err)
+                    })
             },
-
-
-
         }
     });
 });
