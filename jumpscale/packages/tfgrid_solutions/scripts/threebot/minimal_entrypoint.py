@@ -7,7 +7,6 @@ from jumpscale.loader import j
 from jumpscale.sals.vdc.deployer import VDC_IDENTITY_FORMAT
 import gevent
 import toml
-from shlex import quote
 
 """
 minimal entrypoint for a 3bot container to run as part of VDC deployments on k8s
@@ -185,24 +184,22 @@ if all([ak, sk, url, region]):
     """,
     )
     j.sals.process.execute(
-        quote(
-            f"velero install --provider aws --use-restic --plugins velero/velero-plugin-for-aws:v1.1.0 --bucket {bucket} --secret-file /root/credentials --backup-location-config region={region},s3ForcePathStyle=true,s3Url={url}"
-        ),
+        f"/sbin/velero install --provider aws --use-restic --plugins velero/velero-plugin-for-aws:v1.1.0 --bucket {bucket} --secret-file /root/credentials --backup-location-config region={region},s3ForcePathStyle=true,s3Url={url}",
         showout=True,
     )
 
     # get and restore latest backup
-    ret, out, _ = j.sals.process.execute("velero backup get -o json")
+    ret, out, _ = j.sals.process.execute("/sbin/velero backup get -o json")
     if out:
         backups = j.data.serializers.json.loads(out)
         backup_name = ""
         if len(backups.get("items", [])) > 0:
             backup_name = backups["items"][0].get("metadata", {}).get("name")
         if backup_name:
-            j.sals.process.execute(quote(f"velero restore create --from-backup {backup_name}"))
+            j.sals.process.execute(f"/sbin/velero restore create --from-backup {backup_name}", showout=True)
 
     # create backup schedule for automatic backups
-    j.sals.process.execute('velero create schedule vdc --schedule="@every 24h" -l "backupType=vdc"')
+    j.sals.process.execute('/sbin/velero create schedule vdc --schedule="@every 24h" -l "backupType=vdc"')
 
 
 # Register provisioning and prepaid wallets
