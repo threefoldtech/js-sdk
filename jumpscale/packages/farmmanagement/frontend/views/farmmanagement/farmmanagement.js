@@ -150,7 +150,7 @@ module.exports = new Promise(async(resolve, reject) => {
 
 
                 this.registerFarm(this.newFarm).then(response => {
-                    if (response.status == 201) {
+                    if (response.data) {
                         this.newFarmAlert = {
                                 message: "farm created",
                                 type: "success",
