@@ -1,3 +1,4 @@
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
 from gevent import monkey
 
 monkey.patch_all(subprocess=False)  # noqa: E402
@@ -189,17 +190,75 @@ if all([ak, sk, url, region]):
     )
 
     # get and restore latest backup
-    ret, out, _ = j.sals.process.execute("/sbin/velero backup get -o json")
+    ret, out, _ = j.sals.process.execute("/sbin/velero backup get -o json", showout=True)
     if out:
         backups = j.data.serializers.json.loads(out)
         backup_name = ""
         if len(backups.get("items", [])) > 0:
             backup_name = backups["items"][0].get("metadata", {}).get("name")
         if backup_name:
-            j.sals.process.execute(f"/sbin/velero restore create --from-backup {backup_name}", showout=True)
+            j.sals.process.execute(
+                f"/sbin/velero restore create restore-{backup_name}-{j.data.time.utcnow().timestamp} --from-backup {backup_name}",
+                showout=True,
+            )
 
     # create backup schedule for automatic backups
-    j.sals.process.execute('/sbin/velero create schedule vdc --schedule="@every 24h" -l "backupType=vdc"')
+    j.sals.process.execute('/sbin/velero create schedule vdc --schedule="@every 24h" -l "backupType=vdc"', showout=True)
+
+    # redeploy subdomain
+    try:
+        from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_vdc_deployments
+
+        public_ip = vdc.kubernetes[0].public_ip
+        zos = j.sals.zos.get()
+        gateways = zos.gateways_finder.gateways_search()
+        domain_mapping = {}
+        wids = []
+        for gw in gateways:
+            if not gw.managed_domains:
+                continue
+            domain_mapping.update({dom: gw for dom in gw.managed_domains})
+        all_pools = zos.pools.list()
+        node_mapping = {}
+        for pool in all_pools:
+            node_mapping.update({node_id: pool.pool_id for node_id in pool.node_ids})
+        domains_deployed = set()
+        deployments = get_all_vdc_deployments(vdc.vdc_name)
+        for deployment in deployments:
+            domain_name = deployment.get("Domain")
+            if not domain_name:
+                continue
+            if domain_name in domains_deployed:
+                continue
+            try:
+                parent_domain = ".".join(domain_name.split(".")[1:])
+                gw = domain_mapping.get(parent_domain)
+                if not gw:
+                    j.logger.warning(f"unable to get the gateway that managed this domain {domain_name}")
+                    continue
+                pool_id = node_mapping.get(gw.node_id)
+                if not pool_id:
+                    farm_name = zos._explorer.farms.get(gw.farm_id).name
+                    pool = zos.pools.create(0, 0, 0, farm_name)
+                    pool = zos.pools.get(pool.reservation_id)
+                    node_mapping.update({node_id: pool.pool_id for node_id in pool.node_ids})
+                    pool_id = pool.pool_id
+                domain = zos.gateway.sub_domain(gw.node_id, domain_name, [public_ip], pool_id)
+                wids.append(zos.workloads.deploy(domain))
+                domains_deployed.add(domain_name)
+            except Exception as e:
+                j.logger.critical(f"failed to redeploy domain {domain_name} due to error {str(e)}")
+
+        for wid in wids:
+            try:
+                success = zos.workloads.wait(wid, 1)
+                if not success:
+                    j.logger.critical(f"subdomain of wid: {wid} failed to redeploy")
+            except Exception as e:
+                j.logger.critical(f"subdomain of wid: {wid} failed to redeploy due to error {str(e)}")
+        # TODO: how to re-invoke ingress/deployment to regenrate certs
+    except Exception as e:
+        j.logger.error(f"couldn't restore subdomains due to error {str(e)}")
 
 
 # Register provisioning and prepaid wallets

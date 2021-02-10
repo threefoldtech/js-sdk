@@ -28,47 +28,7 @@ def get_all_deployments() -> list:
     username = j.data.serializers.json.loads(get_user_info()).get("username")
     vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(username)]
     for vdc_name in vdc_names:
-        config_path = j.sals.fs.expanduser("~/.kube/config")
-        k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
-        # Get all deployments
-        kubectl_deployment_info = k8s_client.execute_native_cmd(cmd=f"kubectl get deployments -o json")
-        deployments = j.data.serializers.json.loads(kubectl_deployment_info)["items"]
-
-        kubectl_statefulset_info = k8s_client.execute_native_cmd(cmd=f"kubectl get statefulset -o json")
-        kubectl_statefulset_info = j.data.serializers.json.loads(kubectl_statefulset_info)["items"]
-
-        deployments.extend(kubectl_statefulset_info)
-        deployment_names = []
-        for deployment_info in deployments:
-            if "app.kubernetes.io/name" not in deployment_info["metadata"]["labels"]:
-                continue
-
-            solution_type = deployment_info["metadata"]["labels"]["app.kubernetes.io/name"]
-            deployment_info = _filter_data(deployment_info)
-            release_name = deployment_info["Release"]
-            helm_chart_supplied_values = "{}"
-            try:
-                helm_chart_supplied_values = k8s_client.get_helm_chart_user_values(release=release_name)
-            except:
-                pass
-            deployment_host = ""
-            try:
-                deployment_host = k8s_client.execute_native_cmd(
-                    cmd=f"kubectl get ingress -l app.kubernetes.io/instance={release_name} -o=jsonpath='{{.items[0].spec.rules[0].host}}'"
-                )
-            except:
-                pass
-
-            deployment_info.update(
-                {
-                    "User Supplied Values": j.data.serializers.json.loads(helm_chart_supplied_values),
-                    "VDC Name": vdc_name,
-                    "Domain": deployment_host,
-                    "Chart": solution_type,
-                }
-            )
-            all_deployments.append(deployment_info)
-            deployment_names.append(release_name)
+        all_deployments += get_all_vdc_deployments(vdc_name)
 
     return all_deployments
 
@@ -130,4 +90,50 @@ def get_deployments(solution_type: str = None, username: str = None) -> list:
             )
             all_deployments.append(deployment_info)
 
+    return all_deployments
+
+
+def get_all_vdc_deployments(vdc_name):
+    all_deployments = []
+    config_path = j.sals.fs.expanduser("~/.kube/config")
+    k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
+    # Get all deployments
+    kubectl_deployment_info = k8s_client.execute_native_cmd(cmd=f"kubectl get deployments -o json")
+    deployments = j.data.serializers.json.loads(kubectl_deployment_info)["items"]
+
+    kubectl_statefulset_info = k8s_client.execute_native_cmd(cmd=f"kubectl get statefulset -o json")
+    kubectl_statefulset_info = j.data.serializers.json.loads(kubectl_statefulset_info)["items"]
+
+    deployments.extend(kubectl_statefulset_info)
+    deployment_names = []
+    for deployment_info in deployments:
+        if "app.kubernetes.io/name" not in deployment_info["metadata"]["labels"]:
+            continue
+
+        solution_type = deployment_info["metadata"]["labels"]["app.kubernetes.io/name"]
+        deployment_info = _filter_data(deployment_info)
+        release_name = deployment_info["Release"]
+        helm_chart_supplied_values = "{}"
+        try:
+            helm_chart_supplied_values = k8s_client.get_helm_chart_user_values(release=release_name)
+        except:
+            pass
+        deployment_host = ""
+        try:
+            deployment_host = k8s_client.execute_native_cmd(
+                cmd=f"kubectl get ingress -l app.kubernetes.io/instance={release_name} -o=jsonpath='{{.items[0].spec.rules[0].host}}'"
+            )
+        except:
+            pass
+
+        deployment_info.update(
+            {
+                "User Supplied Values": j.data.serializers.json.loads(helm_chart_supplied_values),
+                "VDC Name": vdc_name,
+                "Domain": deployment_host,
+                "Chart": solution_type,
+            }
+        )
+        all_deployments.append(deployment_info)
+        deployment_names.append(release_name)
     return all_deployments
