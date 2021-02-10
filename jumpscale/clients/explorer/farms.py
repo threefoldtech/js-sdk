@@ -78,6 +78,18 @@ class Farms(BaseResource):
         resp = self._session.post(self._url, json=farm.to_dict())
         return resp.json()["id"]
 
+    def register_farm_dict(self, farm_dict) -> int:
+        """
+        register a farm on the explorer
+
+        :param farm: farm object created by the "new" method
+        :type farm: Farm
+        :return: the created farm ID
+        :rtype: integer
+        """
+        resp = self._session.post(self._url, json=farm_dict)
+        return resp.json()["id"]
+
     def get(self, farm_id: int = None, farm_name: str = None) -> Farm:
         """
         get the detail of a farm

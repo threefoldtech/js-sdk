@@ -18,7 +18,7 @@ export default {
     })
   },
   registerFarm(tfgridUrl, farm) {
-    return axios.post(`${tfgridUrl}/farms`, farm);
+    return axios.post(`/farmmanagement/actors/farm_management/register_farm`, {farm: farm});
   },
   updateFarm(farm_id, farm) {
     return axios.post('/farmmanagement/actors/farm_management/update_farm', {
@@ -33,7 +33,7 @@ export default {
     })
   },
   getNodes(tfgridUrl, farm_id = undefined) {
-    return axios.get(`${tfgridUrl}/nodes`, {
+    return axios.get(`/farmmanagement/actors/farm_management/list_nodes`, {
       params: {
         farm: farm_id
       }

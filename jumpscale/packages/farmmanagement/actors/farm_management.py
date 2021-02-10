@@ -45,7 +45,6 @@ class FarmManagemenet(BaseActor):
     @actor_method
     def enable_farm_default_prices(self, farm_id, prices) -> str:
         return  j.data.serializers.json.dumps({"data":self._explorer.farms.enable_default_custom_prices(farm_id, prices)})
-
     
     @actor_method
     def get_custom_prices(self, farm_id) -> str:
@@ -58,6 +57,16 @@ class FarmManagemenet(BaseActor):
     @actor_method
     def create_or_update_custom_price_for_threebot(self, farm_id, threebot_id, custom_prices) -> bool:
         return j.data.serializers.json.dumps({"data":self._explorer.farms.create_or_update_custom_price_for_threebot(farm_id, threebot_id, custom_prices)})
+
+
+    @actor_method
+    def list_nodes(self, farm_id) -> str:
+        return j.data.serializers.json.dumps([f.to_dict() for f in self._explorer.nodes.list(farm_id)])
+
+
+    @actor_method
+    def register_farm(self, farm) -> str:
+        return j.data.serializers.json.dumps({"data":self._explorer.farms.register_farm_dict(farm)})
 
 
 Actor = FarmManagemenet
