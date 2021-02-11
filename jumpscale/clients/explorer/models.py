@@ -354,8 +354,7 @@ class ReservationInfo(Base):
     metadata = fields.String(default="")
     result = fields.Object(ReservationResult)
     workload_type = fields.Enum(WorkloadType)
-    sponsor_tid = fields.Integer()
-    sponsor_signature = fields.String()
+
 
 
 class GatewayProxy(Base):
@@ -657,6 +656,8 @@ class PoolCreate(Base):
     data_reservation = fields.Object(PoolCreateData)
     customer_tid = fields.Integer()
     customer_signature = fields.String()
+    sponsor_tid = fields.Integer()
+    sponsor_signature = fields.String()
 
 
 class Pool(Base):
