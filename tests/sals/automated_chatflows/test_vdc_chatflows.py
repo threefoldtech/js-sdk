@@ -18,8 +18,7 @@ class VDCChatflows(VDCBase):
         cls._import_wallet(wallet_name="vdc_init")
         cls._import_wallet(wallet_name="grace_period")
         cls.config_vdc = j.core.config.get("VDC_INITIALIZATION_WALLET")
-        if not cls.config_vdc:
-            j.core.config.set("VDC_INITIALIZATION_WALLET", "vdc_init")
+        j.core.config.set("VDC_INITIALIZATION_WALLET", "vdc_init")
 
     @classmethod
     def tearDownClass(cls):
