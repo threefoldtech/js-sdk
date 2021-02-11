@@ -15,9 +15,16 @@ class VDCChatflows(VDCBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls._import_wallet("vdc_init")
-        cls._import_wallet("grace_period")
-        j.core.config.set("VDC_INITIALIZATION_WALLET", "vdc_init")
+        cls._import_wallet(wallet_name="vdc_init")
+        cls._import_wallet(wallet_name="grace_period")
+        cls.config_vdc = j.core.config.get("VDC_INITIALIZATION_WALLET")
+        if not cls.config_vdc:
+            j.core.config.set("VDC_INITIALIZATION_WALLET", "vdc_init")
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls.config_vdc:
+            j.core.config.set("VDC_INITIALIZATION_WALLET", cls.config_vdc)
 
     def setUp(self):
         self.vdc = None
