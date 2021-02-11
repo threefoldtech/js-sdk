@@ -12,6 +12,13 @@ from parameterized import parameterized_class
 class VDCChatflows(VDCBase):
     flavor = "silver"
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._import_wallet("vdc_init")
+        cls._import_wallet("grace_period")
+        j.core.config.set("VDC_INITIALIZATION_WALLET", "vdc_init")
+
     def setUp(self):
         self.vdc = None
         super().setUp()
