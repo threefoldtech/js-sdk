@@ -71,8 +71,8 @@ class ThreebotDeployerTests(BaseTest):
         threebot_deployer.load()
 
         self.info("Create a threebot instance")
-        threebot_name = "threebot{}".format(randint(1, 1000))
-        password = randint(1, 500000)
+        threebot_name = self.random_name().lower()
+        password = "hassan"  # randint(1, 500000)
         threebot_deployer.deploy_new_3bot(
             my_3bot_instances=threebot_name, password=password, wallet_name=self.wallet_name
         )
@@ -95,4 +95,39 @@ class ThreebotDeployerTests(BaseTest):
         self.assertIn(threebot_name, my_3bot_instances)
 
         self.info("Delete the 3bot instance")
+        threebot_deployer.delete_threebot_instance(my_3bot_instance_name=threebot_name, password=password)
+
+    def test03_change_deployed_threebot_location(self):
+        """Test case for changing a threebot location.
+
+        **Test Scenario**
+
+        - Create a threebot instance.
+        - Stopped the new created 3bot instance.
+        - Change the stopped threebot location.
+        - Check that threebot is reachable.
+        """
+
+        threebot_deployer = ThreebotDeployer(self.driver)
+        threebot_deployer.load()
+
+        self.info("Create a threebot instance")
+        threebot_name = self.random_name().lower()
+        password = "hassan"  # randint(1, 500000)
+        threebot_deployer.deploy_new_3bot(
+            my_3bot_instances=threebot_name, password=password, wallet_name=self.wallet_name
+        )
+        self.info("Stopped the new created 3bot instance")
+        threebot_deployer.stop_running_3bot_instance(my_3bot_instance_name=threebot_name, password=password)
+
+        self.info("Change the stopped threebot location")
+        threebot_instance_url = threebot_deployer.change_location(
+            my_3bot_instance_name=threebot_name, password=password
+        )
+
+        self.info("Check that the 3bot instance has been started successfully")
+        self.assertEqual(urllib.request.urlopen(threebot_instance_url).getcode(), 200)
+        my_3bot_instances = threebot_deployer.view_my_3bot("RUNNING")
+        self.assertIn(threebot_name, my_3bot_instances)
+
         threebot_deployer.delete_threebot_instance(my_3bot_instance_name=threebot_name, password=password)

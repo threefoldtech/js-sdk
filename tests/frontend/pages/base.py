@@ -11,7 +11,7 @@ class Base:
         pass
 
     def wait(self, driver, class_name):
-        wait = WebDriverWait(driver, 180)
+        wait = WebDriverWait(driver, 600)
         wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, class_name)))
 
     def click_button(self, driver, text):
