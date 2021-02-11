@@ -7,11 +7,12 @@ class KubernetesAutomated(GedisChatBotPatch, KubernetesDeploy):
     NODE_SIZE_MESSAGE = "Choose the size of your nodes"
     WORKERS_NUM_MESSAGE = "Please specify the number of worker nodes"
     NETWORK_MESSAGE = "Please select a network to connect your solution to"
-    SSH_MESSAGE = "Please upload your public SSH key to be able to access the depolyed container via ssh"
+    SSH_MESSAGE = "Please upload your public SSH key to be able to access the deployed container via ssh"
     SECRET_MESSAGE = "Please add the cluster secret"
     IP_MASTER_MESSAGE = "Please choose IP Address for Master node"
     IP_SLAVE_MESSAGE = r"Please choose IP Address for Slave node (.*)"
     POOL_MESSAGE = "Please select the pools you wish to distribute you Kubernetes nodes on"
+    PUBLIC_IP = "Do you want to enable public IP"
 
     QS = {
         # strs
@@ -23,6 +24,7 @@ class KubernetesAutomated(GedisChatBotPatch, KubernetesDeploy):
         # single choice
         NODE_SIZE_MESSAGE: "size",
         NETWORK_MESSAGE: "network",
+        PUBLIC_IP: "public_ip",
         IP_MASTER_MESSAGE: "choose_random",
         IP_SLAVE_MESSAGE: "choose_random",
         # multi choice
