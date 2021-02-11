@@ -34,7 +34,7 @@ class VDCBase(BaseTests):
 
     @classmethod
     def _import_wallet(cls, wallet_name="test_wallet"):
-        wallet = j.clients.stellar.get("test_wallet")
+        wallet = j.clients.stellar.get(wallet_name)
         wallet.secret = cls.wallet_secret
         wallet.network = "STD"
         wallet.save()
