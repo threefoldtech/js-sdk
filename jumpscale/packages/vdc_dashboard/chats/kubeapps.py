@@ -1,6 +1,7 @@
 from textwrap import dedent
-from jumpscale.sals.chatflows.chatflows import chatflow_step
+from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
 from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
 import json
 
 
@@ -9,6 +10,7 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
     title = "Kubeapps"
     HELM_REPO_NAME = "marketplace"
     steps = [
+        "check_already_deployed",
         "get_release_name",
         "create_subdomain",
         "set_config",
@@ -29,6 +31,13 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
         {"cpu": 25, "memory": 32},  # nginx1?
         {"cpu": 25, "memory": 32},  # nginx2?
     ]
+
+    @chatflow_step(title="Checking deployed solutions")
+    def check_already_deployed(self):
+        username = self.user_info()["username"]
+        self.md_show_update("Preparing the chatflow...")
+        if get_deployments(self.SOLUTION_TYPE, username):
+            raise StopChatFlow("You can only have one Kubeapps solution per VDC")
 
     @chatflow_step(title="Configurations")
     def set_config(self):

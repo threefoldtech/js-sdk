@@ -322,7 +322,6 @@ class VDCDashboard(VDCBase):
                 gevent.sleep(2)
             self.assertEqual(put_hello.count("OK"), 1)
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2513")
     def test08_Kubeapps(self):
         """Test case for deploying Kubeapps.
 
@@ -330,28 +329,22 @@ class VDCDashboard(VDCBase):
 
         - Deploy VDC
         - Deploy Kubeapps.
-        - Deploy another Kubeapps.
         - Check that Kubeapps is reachable and certified.
-        - Check that deploying Kubeapps deployed successfully.
+        - Check that deploying another Kubeapps will raise error.
         """
         self.info("Deploy Kubeapps")
         name = self.random_name().lower()
         kubeapps = deployer.deploy_kubeapps(release_name=name)
-        self.solution_uuid = kubeapps.solution_id
         self.solutions.append(kubeapps)
-
-        self.info("Deploy another Kubeapps.")
-        name_second = self.random_name().lower()
-        kubeapps_second = deployer.deploy_kubeapps(release_name=name_second)
-        self.solutions.append(kubeapps_second)
 
         self.info("Check that Kubeapps is reachable and certified.")
         request = self._get_and_wait_ssl(domain=f"https://{kubeapps.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second Kubeapps deployed successfully.")
-        request_second = j.tools.http.get(url=f"https://{kubeapps_second.domain}", timeout=self.timeout, verify=False)
-        self.assertEqual(request_second.status_code, 200)
+        self.info("Check that second MonitoringStack raise error.")
+        name_second = self.random_name().lower()
+        with self.assertRaises(j.exceptions.Runtime):
+            deployer.deploy_kubeapps(release_name=name_second)
 
     def test09_Peertube(self):
         """Test case for deploying Peertube.
