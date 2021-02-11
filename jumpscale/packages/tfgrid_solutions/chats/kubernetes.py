@@ -46,7 +46,7 @@ class KubernetesDeploy(GedisChatBot):
     def choose_flavor(self):
         form = self.new_form()
         sizes = [
-            f"vCPU: {data.get('cru')}, RAM: {data.get('mru')} GiB, Disk Space {data.get('sru')} GiB"
+            f"vCPU: {data.get('cru')}, RAM: {data.get('mru')} GiB, Disk Space: {data.get('sru')} GiB"
             for data in self.KUBERNETES_SIZES.values()
         ]
         cluster_size_string = form.drop_down_choice("Choose the size of your nodes", sizes, default=sizes[0])
@@ -81,7 +81,7 @@ class KubernetesDeploy(GedisChatBot):
     @chatflow_step(title="Access keys and secret")
     def public_key_get(self):
         self.ssh_keys = self.upload_file(
-            """Please upload your public SSH key to be able to access the depolyed container via ssh
+            """Please upload your public SSH key to be able to access the deployed container via ssh
                 Note: please use keys compatible with Dropbear server eg: RSA""",
             required=True,
         ).splitlines()
