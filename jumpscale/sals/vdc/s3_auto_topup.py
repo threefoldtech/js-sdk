@@ -14,10 +14,7 @@ from jumpscale.tools import http
 
 from .scheduler import GlobalScheduler
 
-METRIC_KEYS = {
-    "used": "minio_zerostor_data_size",
-    "free": "minio_zerostor_data_free_space",
-}
+METRIC_KEYS = {"used": "minio_zerostor_data_size", "free": "minio_zerostor_data_free_space"}
 
 MINIO_CONFIG_DICT = {
     "password": "",
@@ -32,7 +29,7 @@ MINIO_CONFIG_DICT = {
             "encryption": {"private_key": "", "type": "aes"},
             "distribution": {"data_shards": 2, "parity_shards": 1},
         },
-        "tls": {"enabled": False, "server": "", "root_ca": "", "min_version": "", "max_version": "",},
+        "tls": {"enabled": False, "server": "", "root_ca": "", "min_version": "", "max_version": ""},
     },
     "jobs": 0,
     "minio": {"healer": {"listen": ""}},
@@ -157,9 +154,7 @@ def check_s3_utilization(url, threshold=0.7, clear_threshold=0.4, max_storage=No
     return disk_utilization, (required_capacity / (1024 ** 3))
 
 
-def extend_zdbs(
-    name, pool_ids, solution_uuid, password, current_expiration, size=10, wallet_name=None,
-):
+def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, size=10, wallet_name=None):
     """
     1- create/extend pools with enough cloud units for the new zdbs
     2- deploy a zdb with the same size and password for each wid
@@ -175,7 +170,8 @@ def extend_zdbs(
 
     pool_total_sus = defaultdict(int)
     for _, pool_id in enumerate(pool_ids):
-        _, su = deployer.calculate_capacity_units(sru=size)
+        cloud_units = deployer.calculate_capacity_units(sru=size)
+        su = cloud_units.su
         pool_total_sus[pool_id] += su
 
     for pool_id, su in pool_total_sus.items():
@@ -208,7 +204,7 @@ def extend_zdbs(
                 description=description,
             )
             try:
-                success = deployer.wait_workload(wid, cancel_by_uuid=False,)
+                success = deployer.wait_workload(wid, cancel_by_uuid=False)
                 if not success:
                     raise DeploymentFailed()
                 wids.append(wid)

@@ -31,6 +31,11 @@ class Solutions(BaseActor):
         return j.data.serializers.json.dumps({"data": result})
 
     @actor_method
+    def get_k8s_solution_details(self, k8s_solution_name: str) -> str:
+        result = solutions.get_kubernetes_solution_details(k8s_name=k8s_solution_name)
+        return j.data.serializers.json.dumps({"data": result})
+
+    @actor_method
     def cancel_solution(self, wids) -> bool:
         solutions.cancel_solution(wids)
         return True
@@ -110,7 +115,12 @@ class Solutions(BaseActor):
 
     @actor_method
     def cancel_workload(self, wid) -> bool:
-        j.sals.zos.get().workloads.decomission(wid)
+        zos = j.sals.zos.get()
+        workload = zos.workloads.get(wid)
+        # Delete public ip
+        if hasattr(workload, "public_ip") and workload.public_ip:
+            zos.workloads.decomission(workload.public_ip)
+        zos.workloads.decomission(wid)
         return True
 
     @actor_method

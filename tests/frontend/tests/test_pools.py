@@ -18,7 +18,10 @@ class PoolsTests(BaseTest):
         if not cls.wallet_secret:
             raise Exception("Please add WALLET_SECRET as environment variables")
 
-        j.clients.stellar.get(cls.wallet_name, network="STD", secret=cls.wallet_secret)
+        wallet = j.clients.stellar.get(cls.wallet_name)
+        wallet.secret = cls.wallet_secret
+        wallet.network = "STD"
+        wallet.save()
 
     def test01_create_pool(self):
         """Test case for creating a pool.
@@ -37,14 +40,17 @@ class PoolsTests(BaseTest):
         pools.load()
         cu = j.data.idgenerator.random_int(0, 2)
         su = j.data.idgenerator.random_int(1, 2)
+        ips = j.data.idgenerator.random_int(1, 2)
         time_unit = "Day"
         time_to_live = j.data.idgenerator.random_int(1, 2)
+        farm = self.get_farm_name().capitalize()
         pools.create(
             name=pool_name,
             wallet_name=self.wallet_name,
-            farm="Freefarm",
+            farm=farm,
             cu=cu,
             su=su,
+            ips=ips,
             duration_unit=time_unit,
             time_to_live=time_to_live,
         )
@@ -76,7 +82,8 @@ class PoolsTests(BaseTest):
         pool_name = self.random_name().lower()
         pools = PoolsSolution(self.driver)
         pools.load()
-        pools.create(name=pool_name, wallet_name=self.wallet_name, farm="Freefarm")
+        farm = self.get_farm_name()
+        pools.create(name=pool_name, wallet_name=self.wallet_name, farm=farm)
 
         self.info("Extend this pool")
         cu = j.data.idgenerator.random_int(0, 2)
@@ -119,7 +126,8 @@ class PoolsTests(BaseTest):
         pool_name = self.random_name().lower()
         pools = PoolsSolution(self.driver)
         pools.load()
-        pools.create(name=pool_name, wallet_name=self.wallet_name, farm="Freefarm")
+        farm = self.get_farm_name()
+        pools.create(name=pool_name, wallet_name=self.wallet_name, farm=farm)
 
         self.info("Check that the pool has been created in the pools card")
         test_pools = Pools(self.driver)

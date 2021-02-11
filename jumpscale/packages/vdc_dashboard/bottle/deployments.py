@@ -78,7 +78,7 @@ def expose_s3() -> str:
     return j.data.serializers.json.dumps({"data": s3_domain})
 
 
-@app.route("/api/deployments/<solution_type>")
+@app.route("/api/deployments/<solution_type>", method="GET")
 @package_authorized("vdc_dashboard")
 def list_deployments(solution_type: str) -> str:
     deployments = {}
@@ -88,12 +88,14 @@ def list_deployments(solution_type: str) -> str:
     return j.data.serializers.json.dumps({"data": deployments})
 
 
-@app.route("/api/deployments")
+@app.route("/api/deployments", method="POST")
 @package_authorized("vdc_dashboard")
 def list_all_deployments() -> str:
     deployments = []
+    data = j.data.serializers.json.loads(request.body.read())
+    solution_types = data.get("solution_types")
     try:
-        deployments = get_all_deployments()
+        deployments = get_all_deployments(solution_types)
     except Exception as e:
         j.logger.exception(message=str(e), exception=e)
 
@@ -184,8 +186,8 @@ def get_zstor_config():
         "parity_shards": 1,
         "redundant_groups": 0,
         "redundant_nodes": 0,
-        "encryption": {"algorithm": "AES", "key": encryption_key,},
-        "compression": {"algorithm": "snappy",},
+        "encryption": {"algorithm": "AES", "key": encryption_key},
+        "compression": {"algorithm": "snappy"},
         "meta": {
             "type": "etcd",
             "config": {
@@ -199,8 +201,8 @@ def get_zstor_config():
         data["groups"].append(
             {
                 "backends": [
-                    {"address": f"[{zdb.ip_address}]:{zdb.port}", "namespace": zdb.namespace, "password": password},
-                ],
+                    {"address": f"[{zdb.ip_address}]:{zdb.port}", "namespace": zdb.namespace, "password": password}
+                ]
             }
         )
     return j.data.serializers.json.dumps({"data": j.data.serializers.toml.dumps(data)})

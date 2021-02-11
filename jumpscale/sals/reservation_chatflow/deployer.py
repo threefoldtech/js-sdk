@@ -5,7 +5,7 @@ from collections import defaultdict
 from decimal import Decimal
 from textwrap import dedent
 import requests
-
+import random
 import gevent
 import netaddr
 from nacl.public import Box
@@ -1019,7 +1019,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         network_views = network_views or self.list_networks()
         if not network_views:
             raise StopChatFlow(f"You don't have any deployed network.")
-        network_name = bot.single_choice("Please select a network", list(network_views.keys()), required=True)
+        network_name = bot.single_choice("Please select a network to connect your solution to", list(network_views.keys()), required=True)
         return network_views[network_name]
 
     def deploy_volume(
@@ -1189,13 +1189,13 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         )
         return node_messages[node_id]
 
-    def calculate_capacity_units(self, cru=0, mru=0, sru=0, hru=0):
+    def calculate_capacity_units(self, cru=0, mru=0, sru=0, hru=0, ipv4u=0):
         """
-        return cu, su
+        return:
+        CloudUnits(object): contains all the needed resources cu, su and ipv4
         """
 
-        cloud_units = ResourceUnitAmount(cru=cru, mru=mru, sru=sru, hru=hru).cloud_units()
-        return cloud_units.cu, cloud_units.su
+        return ResourceUnitAmount(cru=cru, mru=mru, sru=sru, hru=hru, ipv4u=ipv4u).cloud_units()
 
     def get_network_view(self, network_name, workloads=None, identity_name=None):
         nv = NetworkView(network_name, workloads, identity_name=identity_name)
@@ -1233,7 +1233,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         **metadata,
     ):
         master = j.sals.zos.get(identity_name).kubernetes.add_master(
-            node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id, public_ip_wid,
+            node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id, public_ip_wid
         )
         desc = {"role": "master"}
         if metadata:
@@ -1257,13 +1257,44 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         **metadata,
     ):
         worker = j.sals.zos.get(identity_name).kubernetes.add_worker(
-            node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id, public_ip_wid,
+            node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id, public_ip_wid
         )
         desc = {"role": "worker"}
         if metadata:
             worker.info.metadata = self.encrypt_metadata(metadata, identity_name)
         worker.info.description = description if description else j.data.serializers.json.dumps(desc)
         return j.sals.zos.get(identity_name).workloads.deploy(worker)
+
+    def fetch_available_ips(self, farm):
+        addresses = [address for address in farm.ipaddresses if not address.reservation_id]
+        random.shuffle(addresses)
+        return addresses
+
+    def create_public_ip(self, pool_id, node_id, solution_uuid=None):
+        """
+        try to reserve a public ip on network farm and returns the wid
+        """
+        solution_uuid = solution_uuid or uuid.uuid4().hex
+        zos = j.sals.zos.get()
+        node = zos._explorer.nodes.get(node_id)
+        farm = zos._explorer.farms.get(node.farm_id)
+        identity = j.core.identity.me.instance_name
+        for farmer_address in self.fetch_available_ips(farm):
+            address = farmer_address.address
+            wid = deployer.deploy_public_ip(
+                pool_id, node_id, address, identity_name=identity, solution_uuid=solution_uuid
+            )
+            try:
+                success = deployer.wait_workload(wid, bot=None, expiry=5, cancel_by_uuid=False, identity_name=identity)
+                if not success:
+                    raise DeploymentFailed(f"public ip workload failed. wid: {wid}")
+                return wid, address
+            except DeploymentFailed as e:
+                raise StopChatFlow(f"failed to reserve public ip {address} on node {node_id} due to error {str(e)}")
+                continue
+        raise StopChatFlow(
+            f"all tries to reserve a public ip failed on farm: {farm.name} pool: {pool_id} node: {node_id}"
+        )
 
     def deploy_kubernetes_cluster(
         self,
@@ -1276,10 +1307,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         ip_addresses=None,
         slave_pool_ids=None,
         description="",
+        public_ip=False,
         **metadata,
     ):
         """
-        deplou k8s cluster with the same number of nodes as specifed in node_ids
+        deploy k8s cluster with the same number of nodes as specified in node_ids
 
         Args:
             pool_id: this one is always used for master.
@@ -1317,6 +1349,15 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
         # deploy_master
         master_ip = ip_addresses[0]
+        # Reserve public_Ip on node_id[0]
+        public_id_wid = 0
+        master_public_ip = ""
+        if public_ip:
+            public_id_wid, master_public_ip = self.create_public_ip(
+                pool_id, node_ids[0], solution_uuid=metadata.get("solution_uuid")
+            )
+            master_public_ip = master_public_ip.split("/")[0] if master_public_ip else ""
+
         master_resv_id = self.deploy_kubernetes_master(
             pool_ids[0],
             node_ids[0],
@@ -1326,9 +1367,18 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             master_ip,
             size,
             decription=description,
+            public_ip_wid=public_id_wid,
             **metadata,
         )
-        result.append({"node_id": node_ids[0], "ip_address": master_ip, "reservation_id": master_resv_id})
+
+        result.append(
+            {
+                "node_id": node_ids[0],
+                "ip_address": master_ip,
+                "reservation_id": master_resv_id,
+                "public_ip": master_public_ip,
+            }
+        )
         for i in range(1, len(node_ids)):
             node_id = node_ids[i]
             pool_id = pool_ids[i]
@@ -1381,7 +1431,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         selected_nodes = []
         selected_pool_ids = []
         for i in range(number_of_nodes):
-            cu, su = self.calculate_capacity_units(**resource_query_list[i])
+            cloud_units = self.calculate_capacity_units(**resource_query_list[i])
+            cu, su = cloud_units.cu, cloud_units.su
             pool_choices = {}
             for p in pools:
                 if pools[p][0] < cu or pools[p][1] < su:
@@ -1847,12 +1898,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         secret_env["SHARDS"] = shards
         secret_env["SECRET_KEY"] = sk
         secret_env["ACCESS_KEY"] = ak
-        env = {
-            "DATA": str(data),
-            "PARITY": str(parity),
-            "SSH_KEY": ssh_key,
-            "MINIO_PROMETHEUS_AUTH_TYPE": "public",
-        }
+        env = {"DATA": str(data), "PARITY": str(parity), "SSH_KEY": ssh_key, "MINIO_PROMETHEUS_AUTH_TYPE": "public"}
         result = []
         master_volume_id = self.deploy_volume(
             pool_id,
@@ -2024,15 +2070,16 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
         Args:
             bot: chatflow object
-            resource_query: query dict {"cru": 1, "sru": 2, "mru": 1, "hru": 1}.
+            resource_query: query dict {"cru": 1, "sru": 2, "mru": 1, "hru": 1,"ipv4u": 1}.
             pool_ids: if specfied it will limit the pools shown in the chatflow to only these pools
             workload_name: name shown in the message
+            ip_version: determine ip version for the selected pools
         Returns:
             ([], []): first list contains the selected node objects. second list contains selected pool ids
         """
         resource_query = resource_query or {}
-        cu, su = self.calculate_capacity_units(**resource_query)
-        pools = self.list_pools(cu, su)
+        cloud_units = self.calculate_capacity_units(**resource_query)
+        pools = self.list_pools(cloud_units.cu, cloud_units.su, cloud_units.ipv4u)
         if pool_ids:
             filtered_pools = {}
             for pool_id in pools:

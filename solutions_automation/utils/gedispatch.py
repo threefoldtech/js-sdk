@@ -50,7 +50,7 @@ class GedisChatBotPatch(GedisChatBot):
     def get_wallet(self):
         wallet = j.clients.stellar.find("demos_wallet")
         if not wallet:
-            raise ValueError(f"Couldn't find wallet with name 'demos_wallet'")
+            raise ValueError("Couldn't find wallet with name 'demos_wallet'")
         return wallet
 
     def user_info(self):
@@ -59,6 +59,29 @@ class GedisChatBotPatch(GedisChatBot):
     def md_show_update(self, msg, *args, **kwargs):
         if self.debug:
             j.logger.info(msg)
+        if "Please scan the QR Code" in msg:
+            billing = {"Address": "", "Currency": "TFT", "Memo Text": "", "Amount": 0}
+            try:
+                for info in billing.keys():
+                    location = msg.find(info)
+                    hearder_len = len(": </h4>  ")
+                    message = 0
+                    if info == "Memo Text":
+                        message = msg.find(":", location) - location - len(info)
+                    billing[info] = msg[location + len(info) + hearder_len + message : msg.find(" \n", location)]
+                    if info == "Amount":
+                        billing[info] = float(billing[info].rstrip(billing["Currency"]))
+
+                wallet = self.get_wallet()
+                asset = wallet._get_asset(billing["Currency"])
+                wallet.transfer(
+                    billing["Address"],
+                    billing["Amount"],
+                    asset=f"{asset.code}:{asset.issuer}",
+                    memo_text=billing["Memo Text"],
+                )
+            except Exception as e:
+                j.logger.error(f"Failed to parse or pay due to error: {str(e)}")
 
     def md_show(self, msg, *args, **kwargs):
         if self.debug:
@@ -113,6 +136,9 @@ class GedisChatBotPatch(GedisChatBot):
     def int_ask(self, msg, *args, **kwargs):
         return self.fetch_param(msg, *args, **kwargs)
 
+    def secret_ask(self, msg, *args, **kwargs):
+        return self.fetch_param(msg, *args, **kwargs)
+
     def single_choice(self, msg, *args, **kwargs):
         return self.fetch_param(msg, *args, **kwargs)
 
@@ -139,4 +165,4 @@ class GedisChatBotPatch(GedisChatBot):
         return write_file(filename, data)
 
     def send_error(self, message, **kwargs):
-        pass
+        raise j.exceptions.Runtime(message)

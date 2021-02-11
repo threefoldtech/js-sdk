@@ -50,7 +50,13 @@ class VDCIdentityError(exceptions.Base):
 
 class VDCDeployer:
     def __init__(
-        self, vdc_instance, password: str = None, bot: GedisChatBot = None, proxy_farm_name: str = None, identity=None
+        self,
+        vdc_instance,
+        password: str = None,
+        bot: GedisChatBot = None,
+        proxy_farm_name: str = None,
+        identity=None,
+        deployment_logs=False,
     ):
         self.vdc_instance = vdc_instance
         self.vdc_name = self.vdc_instance.vdc_name
@@ -81,6 +87,7 @@ class VDCDeployer:
         self._monitoring = None
         self._public_ip = None
         self._transaction_hashes = []
+        self.deployment_logs = deployment_logs
 
     def _retry_call(self, func, args=None, kwargs=None, timeout=5):
         args = args or list()
@@ -105,7 +112,7 @@ class VDCDeployer:
 
     @transaction_hashes.setter
     def transaction_hashes(self, value):
-        self.info(f"adding transactions {value}")
+        self.info(f"adding transactions {value}", disable_bot=True)
         if isinstance(value, list):
             self._transaction_hashes += value
         self._transaction_hashes = list((set(self._transaction_hashes)))
@@ -256,15 +263,20 @@ class VDCDeployer:
             cloud_units = ru.cloud_units()
             return cloud_units.cu * 60 * 60 * 24 * duration, cloud_units.su * 60 * 60 * 24 * duration
 
-        if len(ZDB_FARMS.get()) != 2:
-            raise j.exceptions.Validation("incorrect config for ZDB_FARMS in size")
-        for farm_name in ZDB_FARMS.get():
+        def calc_zdb_farm_units():
+            zdb_farms = ZDB_FARMS.get()
+            total_no_nodes = S3_NO_DATA_NODES + S3_NO_PARITY_NODES
+            remainder = total_no_nodes % len(zdb_farms)
+            no_node_per_farm = (total_no_nodes - remainder) / len(zdb_farms)
             zdb = ZdbNamespace()
             zdb.size = ZDB_STARTING_SIZE
             zdb.disk_type = DiskType.HDD
             _, sus = get_cloud_units(zdb)
-            sus = sus * (S3_NO_DATA_NODES + S3_NO_PARITY_NODES) / 2
-            farm_resources[farm_name]["sus"] += sus
+            for farm_name in zdb_farms:
+                farm_resources[farm_name]["sus"] += sus * no_node_per_farm
+            farm_resources[zdb_farms[0]]["sus"] += sus * remainder
+
+        calc_zdb_farm_units()
 
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         k8s = K8s()
@@ -337,9 +349,18 @@ class VDCDeployer:
         1- get pool_id of each farm from ZDB_FARMS
         2- deploy zdbs on it with half of the capacity
         """
+        zdb_farms = ZDB_FARMS.get()
+        total_no_nodes = S3_NO_DATA_NODES + S3_NO_PARITY_NODES
+        remainder = total_no_nodes % len(zdb_farms)
+        no_node_per_farm = (total_no_nodes - remainder) / len(zdb_farms)
+        farm_count = []
+        for farm in zdb_farms:
+            farm_count.append(no_node_per_farm)
+        farm_count[0] += remainder
         gs = scheduler or GlobalScheduler()
         zdb_threads = []
-        for farm in ZDB_FARMS.get():
+        for idx, farm in enumerate(zdb_farms):
+            no_nodes = farm_count[idx]
             pool_id, _ = self.get_pool_id_and_reservation_id(farm)
             zdb_threads.append(
                 gevent.spawn(
@@ -349,7 +370,7 @@ class VDCDeployer:
                     storage_per_zdb=ZDB_STARTING_SIZE,
                     password=self.password,
                     solution_uuid=self.vdc_uuid,
-                    no_nodes=(S3_NO_DATA_NODES + S3_NO_PARITY_NODES) / 2,
+                    no_nodes=no_nodes,
                 )
             )
         return zdb_threads
@@ -414,15 +435,19 @@ class VDCDeployer:
 
         gcc = GlobalCapacityChecker()
         # check zdb capacity
-        if len(ZDB_FARMS.get()) != 2:
-            raise j.exceptions.Validation("incorrect config for ZDB_FARMS in size")
-        zdb_query = {
-            "hru": ZDB_STARTING_SIZE,
-            "no_nodes": (S3_NO_DATA_NODES + S3_NO_PARITY_NODES) / 2,
-            "ip_version": "IPv6",
-        }
-        for farm in ZDB_FARMS.get():
-            if not gcc.add_query(farm, **zdb_query):
+        zdb_farms = ZDB_FARMS.get()
+        total_no_nodes = S3_NO_DATA_NODES + S3_NO_PARITY_NODES
+        remainder = total_no_nodes % len(zdb_farms)
+        no_node_per_farm = (total_no_nodes - remainder) / len(zdb_farms)
+        farm_count = defaultdict(int)
+        farm_queries = []
+        for farm in zdb_farms:
+            farm_queries.append(
+                {"farm_name": farm, "hru": ZDB_STARTING_SIZE, "ip_version": "IPv6", "no_nodes": no_node_per_farm}
+            )
+        farm_queries[0]["no_nodes"] += remainder
+        for zdb_query in farm_queries:
+            if not gcc.add_query(**zdb_query):
                 return False
 
         plan = VDC_SIZE.VDC_FLAVORS[self.flavor]
@@ -499,18 +524,25 @@ class VDCDeployer:
             pub_keys = [self.ssh_key.public_key.strip()]
             # deploy k8s cluster
             self.bot_show_update("Deploying kubernetes cluster")
-            k8s_thread = gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret, pub_keys=pub_keys)
-            deployment_threads.append(k8s_thread)
+            deployment_threads.append(
+                gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret, pub_keys=pub_keys)
+            )
             gevent.joinall(deployment_threads)
-            for thread in deployment_threads:
+
+            if not deployment_threads[-1].value:
+                self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
+                self.rollback_vdc_deployment()
+                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to k8s")
+
+            for thread in deployment_threads[:-1]:
                 if thread.value:
                     continue
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy k8s or zdb")
+                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to zdb")
 
-            zdb_wids = deployment_threads[0].value + deployment_threads[1].value
-            scheduler = Scheduler(farm_name)
+            # zdb_wids = deployment_threads[0].value + deployment_threads[1].value
+            # scheduler = Scheduler(farm_name)
             pool_id, _ = self.get_pool_id_and_reservation_id(farm_name)
 
             # deploy minio container
@@ -623,7 +655,7 @@ class VDCDeployer:
         meta_dict = j.data.serializers.json.loads(metadata)
         cluster_secret = meta_dict["secret"]
         self.info(f"extending kubernetes cluster on farm: {farm_name}, public_ip: {public_ip}, no_nodes: {no_nodes}")
-        master_ip = self.vdc_instance.kubernetes[0].public_ip
+        master_ip = self.vdc_instance.kubernetes[0].ip_address
         farm_name = farm_name if not public_ip else NETWORK_FARM.get()
         public_key = None
         try:
@@ -677,6 +709,7 @@ class VDCDeployer:
             )
 
     def wait_pool_payment(self, reservation_id, exp=5):
+        self.info(f"waiting pool payment for reservation_id: {reservation_id}")
         expiration = j.data.time.now().timestamp + exp * 60
         while j.data.time.get().timestamp < expiration:
             payment_info = self.zos.pools.get_payment_info(reservation_id)
@@ -711,20 +744,22 @@ class VDCDeployer:
 
             self.pay(pool_info)
 
-    def _log(self, msg, loglevel="info"):
+    def _log(self, msg, loglevel="info", disable_bot=False):
         getattr(j.logger, loglevel)(self._log_format.format(msg))
+        if self.deployment_logs and not disable_bot:
+            self.bot_show_update(f"{loglevel.upper()}: {msg}")
 
-    def info(self, msg):
-        self._log(msg, "info")
+    def info(self, msg, disable_bot=False):
+        self._log(msg, "info", disable_bot)
 
-    def error(self, msg):
-        self._log(msg, "error")
+    def error(self, msg, disable_bot=False):
+        self._log(msg, "error", disable_bot)
 
-    def warning(self, msg):
-        self._log(msg, "warning")
+    def warning(self, msg, disable_bot=False):
+        self._log(msg, "warning", disable_bot)
 
-    def critical(self, msg):
-        self._log(msg, "critical")
+    def critical(self, msg, disable_bot=False):
+        self._log(msg, "critical", disable_bot)
 
     def bot_show_update(self, msg):
         if self.bot:

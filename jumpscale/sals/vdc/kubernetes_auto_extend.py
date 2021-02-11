@@ -183,7 +183,7 @@ class KubernetesMonitor:
     def fetch_resource_reservations(self):
         out = self.manager.execute_native_cmd("kubectl get pod -A -o json")
         result = j.data.serializers.json.loads(out)
-        node_reservations = defaultdict(lambda: {"cpu": 0.0, "memory": 0.0})
+        node_reservations = defaultdict(lambda: {"cpu": 0.0, "memory": 0.0, "total_cpu": 0.0, "total_memory": 0.0})
         for pod in result["items"]:
             pod_name = pod["metadata"]["name"]
             pod_ns = pod["metadata"]["namespace"]
@@ -195,7 +195,11 @@ class KubernetesMonitor:
             node = pod_info["spec"]["nodeName"]
             for cont in pod_info["spec"]["containers"]:
                 cont_requests = cont["resources"].get("requests", {})
-                cpu += float(cont_requests.get("cpu", "0m").split("m")[0])
+                cpu_str = cont_requests.get("cpu", "0m")
+                if not cpu_str.endswith("m"):
+                    cpu += float(cpu_str) * 1000
+                else:
+                    cpu += float(cpu_str.split("m")[0])
                 p = re.search(r"^([0-9]*)(.*)$", cont_requests.get("memory", "0Gi"))
                 memory = float(p.group(1))
                 memory_unit = p.group(2)
@@ -204,9 +208,9 @@ class KubernetesMonitor:
             node_reservations[node]["cpu"] += cpu
             node_reservations[node]["memory"] += memory
         for node_name in self.node_stats:
-            if node_name in node_reservations:
-                node_reservations[node_name]["total_cpu"] = self.node_stats[node_name]["cpu"]["total"]
-                node_reservations[node_name]["total_memory"] = self.node_stats[node_name]["memory"]["total"]
+            node_reservations[node_name]["total_cpu"] = self.node_stats[node_name]["cpu"]["total"]
+            node_reservations[node_name]["total_memory"] = self.node_stats[node_name]["memory"]["total"]
+
         result = []
         for node_name, resv in node_reservations.items():
             result.append(
