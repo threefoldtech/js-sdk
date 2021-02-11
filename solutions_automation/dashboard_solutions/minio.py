@@ -16,7 +16,7 @@ class MinioAutomated(GedisChatBotPatch, MinioDeploy):
     PASSWORD_MESSAGE = (
         "Please add the secret to be used for minio when logging in to match the previous key. Make sure not to lose it"
     )
-    NETWORK_MESSAGE = "Please select a network"
+    NETWORK_MESSAGE = "Please select a network to connect your solution to"
     LOG_MESSAGE = "Do you want to push the container logs (stdout and stderr) onto an external redis channel"
     SSH_MESSAGE = "Please add your public ssh key, this will allow you to access the deployed minio container using ssh.\n                Just upload the file with the key. (Optional)"
 

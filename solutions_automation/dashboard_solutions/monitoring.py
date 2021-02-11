@@ -15,7 +15,7 @@ class MonitoringAutomated(GedisChatBotPatch, MonitoringDeploy):
     PROMETHEUS_NODE_SELECT = "Do you want to automatically select a node to deploy Prometheus on?"
     POOL_GRAFANA = "Please select a pool for Grafana"
     GRAFANA_NODE_SELECT = "Do you want to automatically select a node to deploy Grafana on?"
-    NETWORK_MESSAGE = "Please select a network"
+    NETWORK_MESSAGE = "Please select a network to connect your solution to"
     IP_REDIS = "Please choose IP Address for Redis"
     IP_PROMETHEUS = "Please choose IP Address for Prometheus"
     IP_GRAFANA = "Please choose IP Address for Grafana"

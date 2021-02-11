@@ -130,7 +130,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         network_names = [n[len(username) + 1 :] for n in network_views.keys()]
         if not network_views:
             raise StopChatFlow(f"You don't have any deployed network.")
-        network_name = bot.single_choice("Please select a network", network_names, required=True)
+        network_name = bot.single_choice("Please select a network to connect your solution to", network_names, required=True)
         return network_views[f"{username}_{network_name}"]
 
     def _check_pool_factory_owner(self, instance_name, identity_name=None):
