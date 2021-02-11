@@ -354,6 +354,8 @@ class ReservationInfo(Base):
     metadata = fields.String(default="")
     result = fields.Object(ReservationResult)
     workload_type = fields.Enum(WorkloadType)
+    sponsor_tid = fields.Integer()
+    sponsor_signature = fields.String()
 
 
 class GatewayProxy(Base):
