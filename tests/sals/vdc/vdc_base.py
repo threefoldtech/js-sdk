@@ -33,8 +33,8 @@ class VDCBase(BaseTests):
             setattr(cls, var.lower(), value)
 
     @classmethod
-    def _import_wallet(cls):
-        wallet = j.clients.stellar.get("test_wallet")
+    def _import_wallet(cls, wallet_name="test_wallet"):
+        wallet = j.clients.stellar.get(wallet_name)
         wallet.secret = cls.wallet_secret
         wallet.network = "STD"
         wallet.save()
@@ -48,7 +48,7 @@ class VDCBase(BaseTests):
             cls.me = j.core.identity.me
 
         # Configure test identity and start threebot server.
-        cls.explorer_url = "https://explorer.devnet.grid.tf/api/v1"
+        cls.explorer_url = "https://explorer.testnet.grid.tf/api/v1"
         cls.identity_name = j.data.random_names.random_name()
         identity = j.core.identity.new(
             cls.identity_name, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url

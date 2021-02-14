@@ -18,13 +18,13 @@
 <script>
 module.exports = {
   mixins: [dialog],
-  props: ["releasename", "solutionid", "vdcname"],
+  props: ["releasename", "solutionid", "vdcname", "namespace"],
   methods: {
     submit() {
       this.loading = true;
       this.error = null;
       this.$api.solutions
-        .deleteSolution(this.releasename, this.solutionid, this.vdcname)
+        .deleteSolution(this.releasename, this.solutionid, this.vdcname, this.namespace)
         .then((response) => {
           console.log("cancelled");
           this.$router.go(0);

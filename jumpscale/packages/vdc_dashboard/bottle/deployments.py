@@ -151,7 +151,7 @@ def install_deployment():
     k8s_client.install_chart(
         release=data["release"],
         chart_name=data["chart_name"],
-        namespace=data["solution_type"],
+        namespace=f'{data["solution_type"]}-{data["release"]}',
         extra_config=data["config"],
     )
     return j.data.serializers.json.dumps({"result": True})
@@ -164,12 +164,16 @@ def cancel_deployment():
     user_info = j.data.serializers.json.loads(get_user_info())
     username = user_info["username"]
     vdc_name = data.get("vdc_name")
+    namespace = data.get("namespace", "default")
     if not vdc_name:
         abort(400, "Error: Not all required params was passed.")
     config_path = j.sals.fs.expanduser("~/.kube/config")
     k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
     vdc = _get_vdc()
-    k8s_client.delete_deployed_release(release=data["release"], vdc_instance=vdc)
+    if namespace == "default":
+        k8s_client.delete_deployed_release(release=data["release"], vdc_instance=vdc, namespace=namespace)
+    else:
+        k8s_client.execute_native_cmd(f"kubectl delete ns {namespace}")
     j.sals.marketplace.solutions.cancel_solution_by_uuid(data["solution_id"])
     return j.data.serializers.json.dumps({"result": True})
 

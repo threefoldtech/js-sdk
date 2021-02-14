@@ -4,6 +4,8 @@ from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
 from jumpscale.sals.vdc.proxy import VDC_PARENT_DOMAIN
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from textwrap import dedent
+import uuid
+from urllib.parse import urlparse
 
 MINIMUM_ACTIVATION_XLMS = 0
 
@@ -77,8 +79,10 @@ class VDCDeploy(GedisChatBot):
         )
         # self.deployment_logs = form.single_choice("Enable extensive deployment logs?", ["Yes", "No"], default="No")
         form.ask()
+        self.restore = False
         vdc = j.sals.vdc.find(vdc_name=self.vdc_name.value, owner_tname=self.username)
         if vdc:
+            self.restore = True
             j.logger.info(f"deleting empty vdc instance: {vdc.instance_name} with uuid: {vdc.solution_uuid}")
             j.sals.vdc.delete(vdc.instance_name)
 
@@ -94,10 +98,51 @@ class VDCDeploy(GedisChatBot):
         )
         form.ask()
 
+    def _backup_form(self):
+        valid = False
+        while not valid:
+            form = self.new_form()
+            if self.restore:
+                self.s3_url = form.string_ask(
+                    "S3 URL to restore your k8s cluster (eg: http://s3.webg1test.grid.tf/)", required=True
+                )
+            else:
+                self.s3_url = form.string_ask(
+                    "S3 URL to back your k8s cluster to (eg: http://s3.webg1test.grid.tf/)", required=True
+                )
+            self.s3_region = form.string_ask("S3 region name (eg: minio in case you are using minio)", required=True)
+            self.s3_bucket = form.string_ask(
+                "S3 bucket name (make sure the bucket policy is Read/Write)", required=True
+            )
+            self.ak = form.string_ask("S3 access key (S3 credentials)", required=True)
+            self.sk = form.secret_ask("S3 secret key (S3 credentials)", required=True)
+            form.ask()
+            self.backup_config = {
+                "ak": self.ak.value,
+                "sk": self.sk.value,
+                "region": self.s3_region.value,
+                "url": self.s3_url.value,
+                "bucket": self.s3_bucket.value,
+            }
+            valid, msg = self._validate_s3_config()
+            if not valid:
+                self.md_show(f"{msg}. please try again")
+
+    def _validate_s3_config(self):
+        try:
+            res = urlparse(self.backup_config["url"])
+        except Exception as e:
+            return False, f"invalid url. {str(e)}"
+        if res.scheme not in ["http", "https"]:
+            return False, "invalid scheme. can be either http or https"
+        # TODO: validate bucket existence and policy?
+        return True, ""
+
     @chatflow_step(title="VDC Information")
     def vdc_info(self):
         self._init()
         self._vdc_form()
+        self._backup_form()
         # self._k3s_and_minio_form() # TODO: Restore later
 
     @chatflow_step(title="VDC Deployment")
@@ -153,7 +198,7 @@ class VDCDeploy(GedisChatBot):
         initialization_wallet_name = j.core.config.get("VDC_INITIALIZATION_WALLET")
         old_wallet = self.deployer._set_wallet(initialization_wallet_name)
         try:
-            self.config = self.deployer.deploy_vdc(minio_ak=None, minio_sk=None)
+            self.config = self.deployer.deploy_vdc(minio_ak=None, minio_sk=None, s3_backup_config=self.backup_config)
             if not self.config:
                 raise StopChatFlow("Failed to deploy VDC due to invlaid kube config. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip
@@ -187,7 +232,9 @@ class VDCDeploy(GedisChatBot):
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
         threebot_url = f"https://{self.vdc.threebot.domain}/"
-        self.md_show_update(f"Initializing your VDC 3Bot container at {threebot_url} ...")
+        self.md_show_update(
+            f"Initializing your VDC 3Bot container at {threebot_url} ... ip: {self.vdc.threebot.ip_address}. public: {self.vdc.kubernetes[0].public_ip}"
+        )
         if not j.sals.reservation_chatflow.wait_http_test(
             threebot_url, timeout=600, verify=not j.config.get("TEST_CERT")
         ):
