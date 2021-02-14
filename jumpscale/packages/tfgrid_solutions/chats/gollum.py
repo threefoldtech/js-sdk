@@ -71,7 +71,7 @@ class GollumDeploy(GedisChatBot):
     @chatflow_step(title="Access Key")
     def public_key_get(self):
         self.public_key = self.upload_file(
-            """Please upload your public SSH key to be able to access the depolyed container via ssh""", required=True
+            """Please upload your public SSH key to be able to access the deployed container via ssh""", required=True
         ).strip()
 
     @chatflow_step(title="Email")
