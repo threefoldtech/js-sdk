@@ -214,7 +214,15 @@ const BC_SOLUTIONS = {
             helpLink: "https://now.threefold.io/now/docs/digibyte/",
             description: "Safest, fastest, longest, and most decentralized UTXO blockchains in existence."
         },
-        elrond: {
+        presearch: {
+            name: "Presearch",
+            type: "presearch",
+            image: "./assets/presearch.png",
+            disable: false,
+            helpLink: "https://now.threefold.io/now/docs/presearch/",
+            description: "Presearch is a decentralized search engine powered by blockchain technology."
+        },
+	    elrond: {
             name: "Elrond",
             type: "elrond",
             image: "./assets/elrond.png",
