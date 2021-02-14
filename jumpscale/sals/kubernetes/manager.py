@@ -115,7 +115,7 @@ class Manager:
         params = ""
         for key, arg in extra_config.items():
             params += f" --set {key}={quote(arg)}"
-        cmd = f"helm --kubeconfig {self.config_path} --namespace {namespace} install {release} {chart_name} {params}"
+        cmd = f"helm --kubeconfig {self.config_path} --namespace {namespace} --create-namespace install {release} {chart_name} {params}"
         if chart_values_file:
             cmd += f" -f {chart_values_file}"
         rc, out, err = self._execute(cmd)

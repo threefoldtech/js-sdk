@@ -410,6 +410,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self.k8s_client.install_chart(
             release=self.release_name,
             chart_name=f"{self.HELM_REPO_NAME}/{self.chart_name}",
+            namespace=f"{self.chart_name}-{self.release_name}",
             extra_config=self.chart_config,
         )
 

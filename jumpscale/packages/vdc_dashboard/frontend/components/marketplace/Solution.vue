@@ -90,7 +90,7 @@
       </template>
     </base-component>
     <solution-info v-if="selected" v-model="dialogs.info" :data="selected"></solution-info>
-    <cancel-solution v-if="selected" v-model="dialogs.cancelSolution" :releasename="selected.Release" :solutionid="selected['User Supplied Values'].solution_uuid" :vdcname="selected['VDC Name']"></cancel-solution>
+    <cancel-solution v-if="selected" v-model="dialogs.cancelSolution" :namespace="selected.Namespace" :releasename="selected.Release" :solutionid="selected['User Supplied Values'].solution_uuid" :vdcname="selected['VDC Name']"></cancel-solution>
   </div>
 </template>
 
@@ -116,6 +116,7 @@ module.exports = {
         { text: "Release", value: "Release" },
         { text: "URL", value: "domain" },
         { text: "Version", value: "Version" },
+        { text: "Namespace", value: "Namespace" },
         { text: "Status", value: "Status" },
         { text: "Creation Time", value: "Creation" },
         { text: "Actions", value: "actions", sortable: false },

@@ -60,20 +60,21 @@ def get_deployments(solution_type: str = None, username: str = None) -> list:
 
         # get deployments
         kubectl_deployment_info = k8s_client.execute_native_cmd(
-            cmd=f"kubectl get deployments -l app.kubernetes.io/name={solution_type} -o json"
+            cmd=f"kubectl get deployments -A -l app.kubernetes.io/name={solution_type} -o json"
         )
         kubectl_deployment_info = j.data.serializers.json.loads(kubectl_deployment_info)
 
         # get statefulsets if no result from deployments
         if not kubectl_deployment_info["items"]:
             kubectl_deployment_info = k8s_client.execute_native_cmd(
-                cmd=f"kubectl get statefulset -l app.kubernetes.io/name={solution_type} -o json"
+                cmd=f"kubectl get statefulset -A -l app.kubernetes.io/name={solution_type} -o json"
             )
             kubectl_deployment_info = j.data.serializers.json.loads(kubectl_deployment_info)
 
         deployments = kubectl_deployment_info["items"]
         releases = []
         for deployment_info in deployments:
+            namespace = deployment_info["metadata"].get("namespace", "default")
             deployment_info = _filter_data(deployment_info)
             release_name = deployment_info["Release"]
             if release_name in releases:
@@ -87,7 +88,7 @@ def get_deployments(solution_type: str = None, username: str = None) -> list:
             deployment_host = ""
             try:
                 deployment_host = k8s_client.execute_native_cmd(
-                    cmd=f"kubectl get ingress -l app.kubernetes.io/instance={release_name} -o=jsonpath='{{.items[0].spec.rules[0].host}}'"
+                    cmd=f"kubectl get ingress -n {namespace} -l app.kubernetes.io/instance={release_name} -o=jsonpath='{{.items[0].spec.rules[0].host}}'"
                 )
             except:
                 pass
@@ -98,6 +99,7 @@ def get_deployments(solution_type: str = None, username: str = None) -> list:
                     "Domain": deployment_host,
                     "User Supplied Values": j.data.serializers.json.loads(helm_chart_supplied_values),
                     "Chart": solution_type,
+                    "Namespace": namespace,
                 }
             )
             all_deployments.append(deployment_info)
@@ -110,10 +112,10 @@ def get_all_vdc_deployments(vdc_name):
     config_path = j.sals.fs.expanduser("~/.kube/config")
     k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
     # Get all deployments
-    kubectl_deployment_info = k8s_client.execute_native_cmd(cmd=f"kubectl get deployments -o json")
+    kubectl_deployment_info = k8s_client.execute_native_cmd(cmd=f"kubectl get deployments -A -o json")
     deployments = j.data.serializers.json.loads(kubectl_deployment_info)["items"]
 
-    kubectl_statefulset_info = k8s_client.execute_native_cmd(cmd=f"kubectl get statefulset -o json")
+    kubectl_statefulset_info = k8s_client.execute_native_cmd(cmd=f"kubectl get statefulset -A -o json")
     kubectl_statefulset_info = j.data.serializers.json.loads(kubectl_statefulset_info)["items"]
 
     deployments.extend(kubectl_statefulset_info)
@@ -122,6 +124,7 @@ def get_all_vdc_deployments(vdc_name):
         if "app.kubernetes.io/name" not in deployment_info["metadata"]["labels"]:
             continue
 
+        namespace = deployment_info["metadata"].get("namespace", "default")
         solution_type = deployment_info["metadata"]["labels"]["app.kubernetes.io/name"]
         deployment_info = _filter_data(deployment_info)
         release_name = deployment_info["Release"]
@@ -133,7 +136,7 @@ def get_all_vdc_deployments(vdc_name):
         deployment_host = ""
         try:
             deployment_host = k8s_client.execute_native_cmd(
-                cmd=f"kubectl get ingress -l app.kubernetes.io/instance={release_name} -o=jsonpath='{{.items[0].spec.rules[0].host}}'"
+                cmd=f"kubectl get ingress -n {namespace} -l app.kubernetes.io/instance={release_name} -o=jsonpath='{{.items[0].spec.rules[0].host}}'"
             )
         except:
             pass
@@ -144,6 +147,7 @@ def get_all_vdc_deployments(vdc_name):
                 "VDC Name": vdc_name,
                 "Domain": deployment_host,
                 "Chart": solution_type,
+                "Namespace": namespace,
             }
         )
         all_deployments.append(deployment_info)
