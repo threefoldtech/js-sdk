@@ -197,7 +197,10 @@ try:
             if len(backups.get("items", [])) > 0:
                 vdc_backup = ""
                 config_backup = ""
-                for backup in backups["items"]:
+                sorted_backups = sorted(
+                    backups["items"], key=lambda backup: backup.get("metadata", {}).get("name"), reverse=True
+                )
+                for backup in sorted_backups:
                     name = backup.get("metadata", {}).get("name")
                     if "vdc" in name and not vdc_backup:
                         vdc_backup = name
