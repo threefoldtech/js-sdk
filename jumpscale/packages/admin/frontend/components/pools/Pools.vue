@@ -17,8 +17,10 @@
           <template v-slot:item.active_workload_ids="{ item }">{{ item.active_workload_ids.length }}</template>
           <template v-slot:item.cus="{ item }">{{ item.cus.toFixed(0) }} </template>
           <template v-slot:item.sus="{ item }">{{ item.sus.toFixed(0) }} </template>
+          <template v-slot:item.ipv4us="{ item }">{{ item.ipv4us.toFixed(0) }} </template>
           <template v-slot:item.active_cu="{ item }">{{ ( item.active_cu * (30*24*60*60) ).toFixed(1) }} </template>
           <template v-slot:item.active_su="{ item }">{{ ( item.active_su * (30*24*60*60) ).toFixed(1) }} </template>
+          <template v-slot:item.active_ipv4u="{ item }">{{ ( item.active_ipv4 * (30*24*60*60) ).toFixed(1) }} </template>
           <template v-slot:item.empty_at="{ item }">
             <div :class="`${item.class}`">{{ item.empty_at }}</div>
           </template>
@@ -62,8 +64,10 @@ module.exports = {
         { text: "Expiration", value: "empty_at" },
         { text: "Compute Units", value: "cus" },
         { text: "Storage Units", value: "sus" },
+        { text: "IPv4 Units", value: "ipv4us" },
         { text: "Active Compute Units / month", value: "active_cu" },
         { text: "Active Storage Units / month", value: "active_su" },
+        { text: "Active IPv4 Units / month", value: "active_ipv4" },
         { text: "# Nodes", value: "node_ids" },
         { text: "# Active Workloads", value: "active_workload_ids" },
         { text: "Actions", value: "actions" },
