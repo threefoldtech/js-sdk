@@ -27,9 +27,9 @@ class VDCDomainsValidation(BackgroundService):
         except Exception as e:
             j.logger.error(f"failed to fetch all deployed domains due to error {str(e)}")
 
-        self.valdiate_solution_domains(vdc, domains)
+        self.validate_solution_domains(vdc, domains)
 
-    def valdiate_solution_domains(self, vdc, domains):
+    def validate_solution_domains(self, vdc, domains):
         # get all deployed domains
         # make sure they point to ip_address otherwise decomission it
         public_ip = vdc.kubernetes[0].public_ip
