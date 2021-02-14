@@ -194,7 +194,7 @@ try:
         if out:
             backups = j.data.serializers.json.loads(out)
             backup_names = []
-            if backups.get("items", []) > 0:
+            if len(backups.get("items", [])) > 0:
                 vdc_backup = ""
                 config_backup = ""
                 for backup in backups["items"]:
