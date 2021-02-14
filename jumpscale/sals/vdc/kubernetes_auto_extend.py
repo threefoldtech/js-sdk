@@ -195,7 +195,11 @@ class KubernetesMonitor:
             node = pod_info["spec"]["nodeName"]
             for cont in pod_info["spec"]["containers"]:
                 cont_requests = cont["resources"].get("requests", {})
-                cpu += float(cont_requests.get("cpu", "0m").split("m")[0])
+                cpu_str = cont_requests.get("cpu", "0m")
+                if not cpu_str.endswith("m"):
+                    cpu += float(cpu_str) * 1000
+                else:
+                    cpu += float(cpu_str.split("m")[0])
                 p = re.search(r"^([0-9]*)(.*)$", cont_requests.get("memory", "0Gi"))
                 memory = float(p.group(1))
                 memory_unit = p.group(2)

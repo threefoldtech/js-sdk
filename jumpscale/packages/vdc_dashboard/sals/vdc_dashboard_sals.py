@@ -1,5 +1,6 @@
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import get_user_info
+import gevent
 
 
 def _filter_data(deployment):
@@ -22,13 +23,23 @@ def _filter_data(deployment):
     return filtered_deployment
 
 
-def get_all_deployments() -> list:
+def get_all_deployments(solution_types: list = None) -> list:
     """List all deployments from kubectl and corresponding helm list info"""
+    if not solution_types:
+        return []
     all_deployments = []
     username = j.data.serializers.json.loads(get_user_info()).get("username")
-    vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(username)]
-    for vdc_name in vdc_names:
-        all_deployments += get_all_vdc_deployments(vdc_name)
+
+    def get_deployment(solution_type):
+        solution_type_deployments = get_deployments(solution_type, username)
+        all_deployments.extend(solution_type_deployments)
+
+    threads = []
+    for solution_type in solution_types:
+        thread = gevent.spawn(get_deployment, solution_type)
+        threads.append(thread)
+
+    gevent.joinall(threads)
 
     return all_deployments
 
@@ -86,6 +97,7 @@ def get_deployments(solution_type: str = None, username: str = None) -> list:
                     "VDC Name": vdc_name,
                     "Domain": deployment_host,
                     "User Supplied Values": j.data.serializers.json.loads(helm_chart_supplied_values),
+                    "Chart": solution_type,
                 }
             )
             all_deployments.append(deployment_info)

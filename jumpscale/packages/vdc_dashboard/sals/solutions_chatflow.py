@@ -87,7 +87,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         )
         flavor = chosen_flavor.split()[0]
         self.resources_limits = chart_limits[flavor]
-        no_nodes = self.resources_limits.get("no_nodes", 1)
+        no_nodes = int(self.resources_limits.get("no_nodes", 1))
         memory = int(self.resources_limits["memory"][:-2])
         cpu = int(self.resources_limits["cpu"][:-1])
 
