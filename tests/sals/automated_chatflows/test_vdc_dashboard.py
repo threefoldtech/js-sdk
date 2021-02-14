@@ -6,13 +6,16 @@ from jumpscale.sals.vdc.size import VDC_SIZE
 from solutions_automation.vdc import deployer
 from tests.sals.vdc.vdc_base import VDCBase
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
+from parameterized import parameterized_class
 
 
+@parameterized_class(("no_deployment"), [("single",), ("double",)])
 @pytest.mark.integration
 class VDCDashboard(VDCBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        no_deployment = "single"
         cls.flavor = "platinum"
         cls.kube_config = cls.deploy_vdc()
         cls.kube_manager = j.sals.kubernetes.Manager(
@@ -93,9 +96,9 @@ class VDCDashboard(VDCBase):
 
         - Deploy VDC
         - Deploy a Wiki.
-        - Deploy another Wiki.
+        - Deploy another Wiki in double test.
         - Check that the Wiki is reachable and certified.
-        - Check that deploying another Wiki deployed successfully.
+        - Check that deploying another Wiki deployed successfully in double test.
         """
         self.info("Deploy a Wiki.")
         name = self.random_name().lower()
@@ -104,18 +107,20 @@ class VDCDashboard(VDCBase):
         wiki = deployer.deploy_wiki(release_name=name, url=repo, branch=branch)
         self.solutions.append(wiki)
 
-        self.info("Deploy another Wiki")
-        name_second = self.random_name().lower()
-        wiki_second = deployer.deploy_wiki(release_name=name_second, url=repo, branch=branch)
-        self.solutions.append(wiki_second)
+        if self.no_deployment == "double":
+            self.info("Deploy another Wiki")
+            name_second = self.random_name().lower()
+            wiki_second = deployer.deploy_wiki(release_name=name_second, url=repo, branch=branch)
+            self.solutions.append(wiki_second)
 
         self.info("Check that the Wiki is reachable and certified.")
         request = self._get_and_wait_ssl(domain=f"https://{wiki.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second Wiki deployed successfully.")
-        request_second = j.tools.http.get(url=f"https://{wiki_second.domain}", timeout=self.timeout, verify=False)
-        self.assertEqual(request_second.status_code, 200)
+        if self.no_deployment == "double":
+            self.info("Check that second Wiki deployed successfully.")
+            request_second = j.tools.http.get(url=f"https://{wiki_second.domain}", timeout=self.timeout, verify=False)
+            self.assertEqual(request_second.status_code, 200)
 
     def test02_blog(self):
         """Test case for deploying a Blog.
@@ -124,9 +129,9 @@ class VDCDashboard(VDCBase):
 
         - Deploy VDC
         - Deploy a Blog.
-        - Deploy another Blog.
+        - Deploy another Blog in double test.
         - Check that the Blog is reachable and certified.
-        - Check that deploying another Blog deployed successfully.
+        - Check that deploying another Blog deployed successfully in double test.
         """
         self.info("Deploy Blog.")
         name = self.random_name().lower()
@@ -135,18 +140,20 @@ class VDCDashboard(VDCBase):
         blog = deployer.deploy_blog(release_name=name, url=repo, branch=branch)
         self.solutions.append(blog)
 
-        self.info("Deploy another Blog.")
-        name_second = self.random_name().lower()
-        blog_second = deployer.deploy_blog(release_name=name_second, url=repo, branch=branch)
-        self.solutions.append(blog_second)
+        if self.no_deployment == "double":
+            self.info("Deploy another Blog.")
+            name_second = self.random_name().lower()
+            blog_second = deployer.deploy_blog(release_name=name_second, url=repo, branch=branch)
+            self.solutions.append(blog_second)
 
         self.info("Check that the Blog is reachable and certified.")
         request = self._get_and_wait_ssl(domain=f"https://{blog.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second Blog deployed successfully.")
-        request_second = j.tools.http.get(url=f"https://{blog_second.domain}", timeout=self.timeout, verify=False)
-        self.assertEqual(request_second.status_code, 200)
+        if self.no_deployment == "double":
+            self.info("Check that second Blog deployed successfully.")
+            request_second = j.tools.http.get(url=f"https://{blog_second.domain}", timeout=self.timeout, verify=False)
+            self.assertEqual(request_second.status_code, 200)
 
     def test03_website(self):
         """Test case for deploying a Website.
@@ -155,9 +162,9 @@ class VDCDashboard(VDCBase):
 
         - Deploy VDC
         - Deploy a Website.
-        - Deploy another Website.
+        - Deploy another Website in double test.
         - Check that the Website is reachable and certified.
-        - Check that deploying another Website deployed successfully.
+        - Check that deploying another Website deployed successfully in double test.
         """
         self.info("Deploy a Website")
         name = self.random_name().lower()
@@ -166,18 +173,22 @@ class VDCDashboard(VDCBase):
         website = deployer.deploy_website(release_name=name, url=repo, branch=branch)
         self.solutions.append(website)
 
-        self.info("Deploy another Website.")
-        name_second = self.random_name().lower()
-        website_second = deployer.deploy_website(release_name=name_second, url=repo, branch=branch)
-        self.solutions.append(website_second)
+        if self.no_deployment == "double":
+            self.info("Deploy another Website.")
+            name_second = self.random_name().lower()
+            website_second = deployer.deploy_website(release_name=name_second, url=repo, branch=branch)
+            self.solutions.append(website_second)
 
         self.info("Check that the Website is reachable and certified.")
         request = self._get_and_wait_ssl(domain=f"https://{website.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second Website deployed successfully.")
-        request_second = j.tools.http.get(url=f"https://{website_second.domain}", timeout=self.timeout, verify=False)
-        self.assertEqual(request_second.status_code, 200)
+        if self.no_deployment == "double":
+            self.info("Check that second Website deployed successfully.")
+            request_second = j.tools.http.get(
+                url=f"https://{website_second.domain}", timeout=self.timeout, verify=False
+            )
+            self.assertEqual(request_second.status_code, 200)
 
     def test04_cryptpad(self):
         """Test case for deploying Cryptpad.
@@ -186,27 +197,31 @@ class VDCDashboard(VDCBase):
 
         - Deploy VDC
         - Deploy Cryptpad.
-        - Deploy another Cryptpad.
+        - Deploy another Cryptpad in double test.
         - Check that Cryptpad is reachable and certified.
-        - Check that deploying another Cryptpad deployed successfully.
+        - Check that deploying another Cryptpad deployed successfully in double test.
         """
         self.info("Deploy Cryptpad.")
         name = self.random_name().lower()
         cryptpad = deployer.deploy_cryptpad(release_name=name)
         self.solutions.append(cryptpad)
 
-        self.info("Deploy another Cryptpad.")
-        name_second = self.random_name().lower()
-        cryptpad_second = deployer.deploy_cryptpad(release_name=name_second)
-        self.solutions.append(cryptpad_second)
+        if self.no_deployment == "double":
+            self.info("Deploy another Cryptpad.")
+            name_second = self.random_name().lower()
+            cryptpad_second = deployer.deploy_cryptpad(release_name=name_second)
+            self.solutions.append(cryptpad_second)
 
         self.info("Check that Cryptpad is reachable and certified.")
         request = self._get_and_wait_ssl(domain=f"https://{cryptpad.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second Cryptpad deployed successfully.")
-        request_second = j.tools.http.get(url=f"https://{cryptpad_second.domain}", timeout=self.timeout, verify=False)
-        self.assertEqual(request_second.status_code, 200)
+        if self.no_deployment == "double":
+            self.info("Check that second Cryptpad deployed successfully.")
+            request_second = j.tools.http.get(
+                url=f"https://{cryptpad_second.domain}", timeout=self.timeout, verify=False
+            )
+            self.assertEqual(request_second.status_code, 200)
 
     def test05_gitea(self):
         """Test case for deploying Gitea.
@@ -215,27 +230,29 @@ class VDCDashboard(VDCBase):
 
         - Deploy VDC
         - Deploy Gitea.
-        - Deploy another Gitea.
+        - Deploy another Gitea in double test.
         - Check that Gitea is reachable and certified.
-        - Check that deploying another Gitea deployed successfully.
+        - Check that deploying another Gitea deployed successfully in double test.
         """
         self.info("Deploy Gitea")
         name = self.random_name().lower()
         gitea = deployer.deploy_gitea(release_name=name)
         self.solutions.append(gitea)
 
-        self.info("Deploy another Gitea.")
-        name_second = self.random_name().lower()
-        gitea_second = deployer.deploy_gitea(release_name=name_second)
-        self.solutions.append(gitea_second)
+        if self.no_deployment == "double":
+            self.info("Deploy another Gitea.")
+            name_second = self.random_name().lower()
+            gitea_second = deployer.deploy_gitea(release_name=name_second)
+            self.solutions.append(gitea_second)
 
         self.info("Check that Gitea is reachable and certified.")
         request = self._get_and_wait_ssl(domain=f"https://{gitea.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second Gitea deployed successfully.")
-        request_second = j.tools.http.get(url=f"https://{gitea_second.domain}", timeout=self.timeout, verify=False)
-        self.assertEqual(request_second.status_code, 200)
+        if self.no_deployment == "double":
+            self.info("Check that second Gitea deployed successfully.")
+            request_second = j.tools.http.get(url=f"https://{gitea_second.domain}", timeout=self.timeout, verify=False)
+            self.assertEqual(request_second.status_code, 200)
 
     def test06_discourse(self):
         """Test case for deploying Discourse.
@@ -244,9 +261,9 @@ class VDCDashboard(VDCBase):
 
         - Deploy VDC
         - Deploy Discourse.
-        - Deploy another Discourse.
+        - Deploy another Discourse in double test.
         - Check that Discourse is reachable and certified.
-        - Check that deploying another Discourse deployed successfully.
+        - Check that deploying another Discourse deployed successfully in double test.
         """
         self.info("Deploy Discourse")
         name = self.random_name().lower()
@@ -267,26 +284,30 @@ class VDCDashboard(VDCBase):
         )
         self.solutions.append(discourse)
 
-        self.info("Deploy another Discourse.")
-        name_second = self.random_name().lower()
-        discourse_second = deployer.deploy_discourse(
-            release_name=name_second,
-            admin_username=admin_username,
-            admin_password=admin_password,
-            smtp_host=smtp_host,
-            smtp_port=smtp_port,
-            smtp_username=smtp_username,
-            smtp_password=smtp_password,
-        )
-        self.solutions.append(discourse_second)
+        if self.no_deployment == "double":
+            self.info("Deploy another Discourse.")
+            name_second = self.random_name().lower()
+            discourse_second = deployer.deploy_discourse(
+                release_name=name_second,
+                admin_username=admin_username,
+                admin_password=admin_password,
+                smtp_host=smtp_host,
+                smtp_port=smtp_port,
+                smtp_username=smtp_username,
+                smtp_password=smtp_password,
+            )
+            self.solutions.append(discourse_second)
 
         self.info("Check that Discourse is reachable and certified.")
         request = self._get_and_wait_ssl(domain=f"https://{discourse.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second Discourse deployed successfully.")
-        request_second = j.tools.http.get(url=f"https://{discourse_second.domain}", timeout=self.timeout, verify=False)
-        self.assertEqual(request_second.status_code, 200)
+        if self.no_deployment == "double":
+            self.info("Check that second Discourse deployed successfully.")
+            request_second = j.tools.http.get(
+                url=f"https://{discourse_second.domain}", timeout=self.timeout, verify=False
+            )
+            self.assertEqual(request_second.status_code, 200)
 
     def test07_ETCD(self):
         """Test case for deploying ETCD.
@@ -295,19 +316,20 @@ class VDCDashboard(VDCBase):
 
         - Deploy VDC
         - Deploy ETCD.
-        - Deploy another ETCD.
+        - Deploy another ETCD in double test.
         - Check that ETCD add data correctly.
-        - Check that deploying another ETCD solution deployed successfully.
+        - Check that deploying another ETCD solution deployed successfully in double test.
         """
         self.info("Deploy ETCD")
         name = self.random_name().lower()
         etcd = deployer.deploy_etcd(release_name=name)
         self.solutions.append(etcd)
 
-        self.info("Deploy another ETCD")
-        name_second = self.random_name().lower()
-        etcd_second = deployer.deploy_etcd(release_name=name_second)
-        self.solutions.append(etcd_second)
+        if self.no_deployment == "double":
+            self.info("Deploy another ETCD")
+            name_second = self.random_name().lower()
+            etcd_second = deployer.deploy_etcd(release_name=name_second)
+            self.solutions.append(etcd_second)
 
         self.info("Check that two deployed ETCD add data correctly.")
         for sol in self.solutions:
@@ -330,7 +352,7 @@ class VDCDashboard(VDCBase):
         - Deploy VDC
         - Deploy Kubeapps.
         - Check that Kubeapps is reachable and certified.
-        - Check that deploying another Kubeapps will raise error.
+        - Check that deploying another Kubeapps will raise error in double test.
         """
         self.info("Deploy Kubeapps")
         name = self.random_name().lower()
@@ -341,10 +363,11 @@ class VDCDashboard(VDCBase):
         request = self._get_and_wait_ssl(domain=f"https://{kubeapps.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second MonitoringStack raise error.")
-        name_second = self.random_name().lower()
-        with self.assertRaises(j.exceptions.Runtime):
-            deployer.deploy_kubeapps(release_name=name_second)
+        if self.no_deployment == "double":
+            self.info("Check that second MonitoringStack raise error.")
+            name_second = self.random_name().lower()
+            with self.assertRaises(j.exceptions.Runtime):
+                deployer.deploy_kubeapps(release_name=name_second)
 
     def test09_Peertube(self):
         """Test case for deploying Peertube.
@@ -353,27 +376,31 @@ class VDCDashboard(VDCBase):
 
         - Deploy VDC
         - Deploy Peertube.
-        - Deploy another Peertube.
+        - Deploy another Peertube in double test.
         - Check that Peertube is reachable and certified.
-        - Check that deploying another Peertube deployed successfully.
+        - Check that deploying another Peertube deployed successfully in double test.
         """
         self.info("Deploy Peertube")
         name = self.random_name().lower()
         peertube = deployer.deploy_peertube(release_name=name)
         self.solutions.append(peertube)
 
-        self.info("Deploy another Peertube.")
-        name_second = self.random_name().lower()
-        peertube_second = deployer.deploy_peertube(release_name=name_second)
-        self.solutions.append(peertube_second)
+        if self.no_deployment == "double":
+            self.info("Deploy another Peertube.")
+            name_second = self.random_name().lower()
+            peertube_second = deployer.deploy_peertube(release_name=name_second)
+            self.solutions.append(peertube_second)
 
         self.info("Check that Peertube is reachable and certified.")
         request = self._get_and_wait_ssl(domain=f"https://{peertube.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second Peertube deployed successfully.")
-        request_second = j.tools.http.get(url=f"https://{peertube_second.domain}", timeout=self.timeout, verify=False)
-        self.assertEqual(request_second.status_code, 200)
+        if self.no_deployment == "double":
+            self.info("Check that second Peertube deployed successfully.")
+            request_second = j.tools.http.get(
+                url=f"https://{peertube_second.domain}", timeout=self.timeout, verify=False
+            )
+            self.assertEqual(request_second.status_code, 200)
 
     @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2296")
     def test10_Taiga(self):
@@ -383,27 +410,29 @@ class VDCDashboard(VDCBase):
 
         - Deploy VDC
         - Deploy Taiga.
-        - Deploy another Taiga.
+        - Deploy another Taiga in double test.
         - Check that Taiga is reachable and certified.
-        - Check that deploying another taiga solution deployed successfully.
+        - Check that deploying another taiga solution deployed successfully in double test.
         """
         self.info("Deploy Taiga")
         name = self.random_name().lower()
         taiga = deployer.deploy_taiga(release_name=name)
         self.solutions.append(taiga)
 
-        self.info("Deploy another Taiga.")
-        name_second = self.random_name().lower()
-        taiga_second = deployer.deploy_taiga(release_name=name_second)
-        self.solutions.append(taiga_second)
+        if self.no_deployment == "double":
+            self.info("Deploy another Taiga.")
+            name_second = self.random_name().lower()
+            taiga_second = deployer.deploy_taiga(release_name=name_second)
+            self.solutions.append(taiga_second)
 
         self.info("Check that Taiga is reachable and certified.")
         request = self._get_and_wait_ssl(domain=f"https://{taiga.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second Taiga deployed successfully.")
-        request_second = j.tools.http.get(url=f"https://{taiga_second.domain}", timeout=self.timeout, verify=False)
-        self.assertEqual(request_second.status_code, 200)
+        if self.no_deployment == "double":
+            self.info("Check that second Taiga deployed successfully.")
+            request_second = j.tools.http.get(url=f"https://{taiga_second.domain}", timeout=self.timeout, verify=False)
+            self.assertEqual(request_second.status_code, 200)
 
     def test11_Mattermost(self):
         """Test case for deploying Mattermost.
@@ -412,9 +441,9 @@ class VDCDashboard(VDCBase):
 
         - Deploy VDC
         - Deploy Mattermost.
-        - Deploy another Mattermost.
+        - Deploy another Mattermost in double test.
         - Check that Mattermost is reachable and certified.
-        - Check that deploying another Mattermost deployed successfully.
+        - Check that deploying another Mattermost deployed successfully in double test.
         """
         self.info("Deploy Mattermost")
         name = self.random_name().lower()
@@ -429,23 +458,27 @@ class VDCDashboard(VDCBase):
         )
         self.solutions.append(mattermost)
 
-        self.info("Deploy another Mattermost.")
-        name_second = self.random_name().lower()
-        mattermost_second = deployer.deploy_mattermost(
-            release_name=name_second,
-            mysql_username=mysql_username,
-            mysql_password=mysql_password,
-            mysql_root_password=mysql_root_password,
-        )
-        self.solutions.append(mattermost_second)
+        if self.no_deployment == "double":
+            self.info("Deploy another Mattermost.")
+            name_second = self.random_name().lower()
+            mattermost_second = deployer.deploy_mattermost(
+                release_name=name_second,
+                mysql_username=mysql_username,
+                mysql_password=mysql_password,
+                mysql_root_password=mysql_root_password,
+            )
+            self.solutions.append(mattermost_second)
 
         self.info("Check that Mattermost is reachable and certified.")
         request = self._get_and_wait_ssl(domain=f"https://{mattermost.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second Mattermost deployed successfully.")
-        request_second = j.tools.http.get(url=f"https://{mattermost_second.domain}", timeout=self.timeout, verify=False)
-        self.assertEqual(request_second.status_code, 200)
+        if self.no_deployment == "double":
+            self.info("Check that second Mattermost deployed successfully.")
+            request_second = j.tools.http.get(
+                url=f"https://{mattermost_second.domain}", timeout=self.timeout, verify=False
+            )
+            self.assertEqual(request_second.status_code, 200)
 
     def test12_ZeroCI(self):
         """Test case for deploying ZeroCI.
@@ -454,27 +487,29 @@ class VDCDashboard(VDCBase):
 
         - Deploy VDC
         - Deploy ZeroCI.
-        - Deploy another ZeroCI.
+        - Deploy another ZeroCI in double test.
         - Check that ZeroCI is reachable and certified.
-        - Check that deploying another ZeroCI deployed successfully.
+        - Check that deploying another ZeroCI deployed successfully in double test.
         """
         self.info("Deploy ZeroCI")
         name = self.random_name().lower()
         zeroci = deployer.deploy_zeroci(release_name=name)
         self.solutions.append(zeroci)
 
-        self.info("Deploy another ZeroCI.")
-        name_second = self.random_name().lower()
-        zeroci_second = deployer.deploy_zeroci(release_name=name_second)
-        self.solutions.append(zeroci_second)
+        if self.no_deployment == "double":
+            self.info("Deploy another ZeroCI.")
+            name_second = self.random_name().lower()
+            zeroci_second = deployer.deploy_zeroci(release_name=name_second)
+            self.solutions.append(zeroci_second)
 
         self.info("Check that ZeroCI is reachable and certified.")
         request = self._get_and_wait_ssl(domain=f"https://{zeroci.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second ZeroCI deployed successfully.")
-        request_second = j.tools.http.get(url=f"https://{zeroci_second.domain}", timeout=self.timeout, verify=False)
-        self.assertEqual(request_second.status_code, 200)
+        if self.no_deployment == "double":
+            self.info("Check that second ZeroCI deployed successfully.")
+            request_second = j.tools.http.get(url=f"https://{zeroci_second.domain}", timeout=self.timeout, verify=False)
+            self.assertEqual(request_second.status_code, 200)
 
     def test13_MonitoringStack(self):
         """Test case for deploying MonitoringStack.
@@ -484,7 +519,7 @@ class VDCDashboard(VDCBase):
         - Deploy VDC
         - Deploy MonitoringStack.
         - Check that MonitoringStack is reachable and certified.
-        - Check that deploying another MonitoringStack will raise error.
+        - Check that deploying another MonitoringStack will raise error in double test.
         """
         self.info("Deploy MonitoringStack")
         name = self.random_name().lower()
@@ -495,10 +530,11 @@ class VDCDashboard(VDCBase):
         request = self._get_and_wait_ssl(domain=f"https://{monitoring.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second MonitoringStack raise error.")
-        name_second = self.random_name().lower()
-        with self.assertRaises(j.exceptions.Runtime):
-            deployer.deploy_monitoring(release_name=name_second)
+        if self.no_deployment == "double":
+            self.info("Check that second MonitoringStack raise error.")
+            name_second = self.random_name().lower()
+            with self.assertRaises(j.exceptions.Runtime):
+                deployer.deploy_monitoring(release_name=name_second)
 
     def test14_Digibyte(self):
         """Test case for deploying Digibyte.
@@ -508,8 +544,8 @@ class VDCDashboard(VDCBase):
         - Deploy VDC
         - Deploy Digibyte.
         - Check that Digibyte is reachable and certified.
-        - Deploy another Digibyte.
-        - Check that deploying another Digibyte will raise error.
+        - Deploy another Digibyte in double test.
+        - Check that deploying another Digibyte will raise error in double test.
         """
         self.info("Deploy Digibyte")
         name = self.random_name().lower()
@@ -522,12 +558,13 @@ class VDCDashboard(VDCBase):
         request = self._get_and_wait_ssl(domain=f"https://{digibyte.domain}")
         self.assertEqual(request.status_code, 200)
 
-        self.info("Check that second Digibyte raise error.")
-        name_second = self.random_name().lower()
-        with self.assertRaises(j.exceptions.Runtime):
-            deployer.deploy_digibyte(
-                release_name=name_second, rpc_username=rpc_username, rpc_password=rpc_password,
-            )
+        if self.no_deployment == "double":
+            self.info("Check that second Digibyte raise error.")
+            name_second = self.random_name().lower()
+            with self.assertRaises(j.exceptions.Runtime):
+                deployer.deploy_digibyte(
+                    release_name=name_second, rpc_username=rpc_username, rpc_password=rpc_password,
+                )
 
     def test15_ExtendKubernetes(self):
         """Test case for extending Kubernetes cluster.
