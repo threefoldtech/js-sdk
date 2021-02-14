@@ -30,14 +30,13 @@ class VDCDashboard(VDCBase):
 
         cls.info("Check that resources are available and ready in 5 min maximum")
         cls.kube_monitor = cls.vdc.get_kubernetes_monitor()
-        res = cls.kube_monitor.fetch_resource_reservations()
+        has_resource = False
         expiry = j.data.time.now().timestamp + 300
-        for node in res:
-            has_resource = False
-            while j.data.time.now().timestamp < expiry:
-                if not node.has_enough_resources(1000, 1024):
-                    gevent.sleep(10)
-                else:
+        while j.data.time.now().timestamp < expiry and not has_resource:
+            res = cls.kube_monitor.fetch_resource_reservations()
+            for node in res:
+                if node.has_enough_resources(1000, 1024):
+                    cls.info("Cluster is ready")
                     has_resource = True
                     break
 
