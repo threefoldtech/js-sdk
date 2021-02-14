@@ -28,6 +28,19 @@ class VDCDashboard(VDCBase):
         if not cls.kube_config:
             raise RuntimeError("VDC is not deployed")
 
+        cls.info("Check that resources are available and ready in 5 min maximum")
+        cls.kube_monitor = cls.vdc.get_kubernetes_monitor()
+        res = cls.kube_monitor.fetch_resource_reservations()
+        expiry = j.data.time.now().timestamp + 300
+        for node in res:
+            has_resource = False
+            while j.data.time.now().timestamp < expiry:
+                if not node.has_enough_resources(1000, 1024):
+                    gevent.sleep(10)
+                else:
+                    has_resource = True
+                    break
+
         # Add tokens needed in case of extending the cluster automatically.
         kubernetes = K8s()
         kubernetes.size = VDC_SIZE.K8SNodeFlavor.MEDIUM.value
