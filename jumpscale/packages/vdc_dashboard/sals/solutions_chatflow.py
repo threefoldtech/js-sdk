@@ -19,7 +19,7 @@ CHART_LIMITS = {
 }
 RESOURCE_VALUE_TEMPLATE = {"cpu": "CPU {}", "memory": "Memory {}"}
 HELM_REPOS = {
-    "marketplace": {"name": "marketplace", "url": "https://m-motawea.github.io/vdc-solutions-charts/"}
+    "marketplace": {"name": "marketplace", "url": "https://threefoldtech.github.io/vdc-solutions-charts/"}
 }  # TODO: revert to threefoldtech
 VDC_ENDPOINT = "/vdc"
 PREFERRED_FARM = "csfarmer"
