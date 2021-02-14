@@ -193,12 +193,26 @@ try:
         ret, out, _ = j.sals.process.execute("/sbin/velero backup get -o json", showout=True)
         if out:
             backups = j.data.serializers.json.loads(out)
-            backup_name = ""
-            if len(backups.get("items", [])) > 0:
-                backup_name = backups["items"][0].get("metadata", {}).get("name")
+            backup_names = []
+            if backups.get("items", []) > 0:
+                vdc_backup = ""
+                config_backup = ""
+                for backup in backups["items"]:
+                    name = backup.get("metadata", {}).get("name")
+                    if "vdc" in name and not vdc_backup:
+                        vdc_backup = name
+                        backup_names.append(name)
+                    elif "config" in name and not config_backup:
+                        config_backup = name
+                        backup_names.append(name)
+                    if len(backup_names) == 2:
+                        break
             else:
                 backup_name = backups.get("metadata", {}).get("name")
-            if backup_name:
+                if backup_name:
+                    backup_names.append(backup_name)
+
+            for backup_name in backup_names:
                 j.sals.process.execute(
                     f"/sbin/velero restore create restore-{backup_name}-{j.data.time.utcnow().timestamp} --from-backup {backup_name}",
                     showout=True,
@@ -207,6 +221,10 @@ try:
         # create backup schedule for automatic backups
         j.sals.process.execute(
             '/sbin/velero create schedule vdc --schedule="@every 24h" -l "backupType=vdc"', showout=True
+        )
+        j.sals.process.execute(
+            '/sbin/velero create schedule config --schedule="@every 24h" --include-resources secrets,configmaps',
+            showout=True,
         )
 except Exception as e:
     j.logger.error(f"backup config failed due to error {str(e)}")
