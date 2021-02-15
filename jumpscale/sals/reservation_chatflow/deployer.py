@@ -1889,6 +1889,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             else:
                 messages[f"Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}"] = p
 
+        if not messages:
+            raise StopChatFlow(f"no pools available for resources: {resource_query}")
+
         while True:
             pool_choices = bot.multi_list_choice(
                 "Please select the pools you wish to distribute you" f" {workload_name} on",
