@@ -12,7 +12,6 @@ from .pagination import get_all, get_page
 from .prices import Prices
 
 
-
 def _build_query(threebot_id: int = None, name: str = None,) -> dict:
     query = {}
     if threebot_id:
@@ -150,7 +149,6 @@ class Farms(BaseResource):
         default_prices_obj.su = default_prices["su"]
         default_prices_obj.ipv4u = default_prices["ipv4u"]
 
-
         farm.farm_cloudunits_price = default_prices
         self.update(farm)
         return True
@@ -162,17 +160,16 @@ class Farms(BaseResource):
         try:
             return self._session.get(f"{self._url}/{farm_id}/deals/{threebot_id}").json()
         except:
-            return {"farm_id": farm_id, "threebot_id": threebot_id, "custom_cloudunits_price": self.get_explorer_prices()}
+            return {
+                "farm_id": farm_id,
+                "threebot_id": threebot_id,
+                "custom_cloudunits_price": self.get_explorer_prices(),
+            }
 
     def create_or_update_deal_for_threebot(self, farm_id, threebot_id, custom_prices):
-        body = {
-            'farm_id': farm_id,
-            'threebot_id': threebot_id,
-            'custom_cloudunits_price': custom_prices
-        }
+        body = {"farm_id": farm_id, "threebot_id": threebot_id, "custom_cloudunits_price": custom_prices}
         self._session.put(f"{self._url}/{farm_id}/deals", json=body)
         return True
 
-
     def get_explorer_prices(self):
-        return Prices(self._client).get()
+        return Prices(self._client).get_explorer_prices()

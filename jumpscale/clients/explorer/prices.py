@@ -4,28 +4,19 @@ from .base import BaseResource
 class Prices(BaseResource):
     _resource = "prices"
 
-    def _get(self, cus=0, sus=0, ipv4us=0):
-        response = self._session.get(self._url)
-        prices_dict = response.json()
-        price = (
-            cus * prices_dict["CuPriceDollarMonth"]
-            + sus * prices_dict["SuPriceDollarMonth"]
-            + ipv4us * prices_dict["IP4uPriceDollarMonth"]
-        )
-        return price / (30 * 24 * 60 * 60), prices_dict["TftPriceMill"]
+    def calculate(self, cus=0, sus=0, ipv4us=0, farm_prices=None, tft_mill=100):
+        explorer_prices = self.get_explorer_prices()
+        farm_prices = farm_prices or explorer_prices
+        tft_mill = explorer_prices["tft_mill"]
 
-    def calculate(self, cus=0, sus=0, ipv4us=0):
-        price, tft_mill = self._get(cus, sus, ipv4us)
-        return price * 1000 / tft_mill
+        price = cus * farm_prices["cu"] + sus * farm_prices["su"] + ipv4us * farm_prices["ipv4u"]
+        return price / (30 * 24 * 60 * 60) * 1000 / tft_mill
 
-
-    def get(self):
-        response = self._session.get(self._url)
-        prices_dict = response.json()
+    def get_explorer_prices(self):
+        prices = self._session.get(self._url).json()
         return {
-            "cu": prices_dict["CuPriceDollarMonth"],
-            "su": prices_dict["CuPriceDollarMonth"],
-            "ipv4u": prices_dict["CuPriceDollarMonth"]
-        
+            "cu": prices["CuPriceDollarMonth"],
+            "su": prices["SuPriceDollarMonth"],
+            "ipv4u": prices["IP4uPriceDollarMonth"],
+            "tft_mill": prices["TftPriceMill"],
         }
-
