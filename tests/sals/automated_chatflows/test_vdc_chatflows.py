@@ -33,16 +33,15 @@ class VDCChatflows(VDCBase):
 
         self.info("Delete a VDC")
         if self.vdc:
-            j.sals.vdc.delete(self.vdc.vdc.instance_name)
-
-            wallet = j.clients.stellar.get("demos_wallet")
-            self.vdc.vdc.provision_wallet.merge_into_account(wallet.address)
-            self.vdc.vdc.prepaid_wallet.merge_into_account(wallet.address)
+            vdc_instance_name = self.vdc.vdc.instance_name
         else:
-            zos = j.sals.zos.get(self.identity_name)
-            wids = zos.workloads.list(j.core.identity.me.tid)
-            for wid in wids:
-                zos.workloads.decomission(wid.info.workload_id)
+            vdc_instance_name = j.sals.vdc.get(self.vdc_name)
+
+        j.sals.vdc.delete(vdc_instance_name)
+
+        wallet = j.clients.stellar.get("demos_wallet")
+        self.vdc.vdc.provision_wallet.merge_into_account(wallet.address)
+        self.vdc.vdc.prepaid_wallet.merge_into_account(wallet.address)
 
         super().tearDown()
 
@@ -57,9 +56,9 @@ class VDCChatflows(VDCBase):
         """
 
         self.info("Deploy a VDC")
-        vdc_name = self.random_name().lower()
+        self.vdc_name = self.random_name().lower()
         password = self.random_string()
-        self.vdc = deployer.deploy_vdc(vdc_name, password, self.flavor.upper())
+        self.vdc = deployer.deploy_vdc(self.vdc_name, password, self.flavor.upper())
 
         self.info("Check that VDC is reachable")
         request = j.tools.http.get(f"http://{self.vdc.vdc.threebot.domain}", timeout=60)
