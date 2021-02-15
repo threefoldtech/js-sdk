@@ -33,7 +33,13 @@ class VDCChatflows(VDCBase):
 
         self.info("Delete a VDC")
         if self.vdc:
-            j.sals.vdc.delete(self.vdc.vdc.instance_name)
+            try:
+                j.sals.vdc.delete(self.vdc.vdc.instance_name)
+            except:
+                wids = self.vdc.vdc.vdc_workloads
+                zos = j.sals.zos.get(self.identity_name)
+                for wid in wids:
+                    zos.workloads.decomission(wid.wid)
 
             wallet = j.clients.stellar.get("demos_wallet")
             self.vdc.vdc.provision_wallet.merge_into_account(wallet.address)
