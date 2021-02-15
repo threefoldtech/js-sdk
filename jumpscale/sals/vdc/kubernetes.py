@@ -44,7 +44,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
         if not pool_id:
             pool_info = self.vdc_deployer._retry_call(
-                self.zos.pools.create, args=[math.ceil(cus), math.ceil(sus), ipv4us, farm_name]
+                self.zos.pools.create,
+                args=[math.ceil(cus), math.ceil(sus), ipv4us, farm_name, ["TFT"], j.core.identity.me],
             )
             pool_id = pool_info.reservation_id
             self.vdc_deployer.info(f"kubernetes cluster extension: creating a new pool {pool_id}")
