@@ -651,6 +651,7 @@ class Pool(Base):
     last_updated = fields.DateTime()
     active_cu = fields.Float()
     active_su = fields.Float()
+    active_ipv4 = fields.Float()
     empty_at = fields.Integer()  # can't be set to date because of max int64 value
     customer_tid = fields.Integer()
     active_workload_ids = fields.List(fields.Integer())

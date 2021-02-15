@@ -55,12 +55,20 @@
                 <td>{{ pool.sus }}</td>
               </tr>
               <tr>
+                <td>IPv4 Units</td>
+                <td>{{ pool.ipv4us }}</td>
+              </tr>
+              <tr>
                 <td>Active Compute Units</td>
                 <td>{{ pool.active_cu }}</td>
               </tr>
               <tr>
                 <td>Active Storage Units</td>
                 <td>{{ pool.active_su }}</td>
+              </tr>
+              <tr>
+                <td>Active IPv4 Units</td>
+                <td>{{ pool.active_ipv4 }}</td>
               </tr>
               <tr>
                 <td>Nodes</td>
