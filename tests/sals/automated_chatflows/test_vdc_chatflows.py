@@ -57,5 +57,5 @@ class VDCChatflows(VDCBase):
         self.vdc = deployer.deploy_vdc(vdc_name, password, self.flavor.upper())
 
         self.info("Check that VDC is reachable")
-        request = j.tools.http.get(f"http://{vdc.vdc.threebot.domain}", timeout=60)
+        request = j.tools.http.get(f"http://{self.vdc.vdc.threebot.domain}", timeout=60)
         self.assertEqual(request.status_code, 200)
