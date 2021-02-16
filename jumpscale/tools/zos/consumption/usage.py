@@ -146,7 +146,8 @@ def calculate_vdc_price(flavor, farm_name=None):
     all_sus += n_sus
 
     zos = j.sals.zos.get()
-    total_amount = zos._explorer.prices.calculate(cus=all_cus, sus=all_sus, ipv4us=all_ipv4us)
+    farm_prices = zos._explorer.farms.get_deal_for_threebot(1, j.core.identity.me.tid)["custom_cloudunits_price"]
+    total_amount = zos._explorer.prices.calculate(cus=all_cus, sus=all_sus, ipv4us=all_ipv4us, farm_prices=farm_prices)
     total_amount = round(total_amount, 6)
 
     return total_amount

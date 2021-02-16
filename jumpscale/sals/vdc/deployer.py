@@ -241,7 +241,9 @@ class VDCDeployer:
             self.pay(pool_info)
             reservation_id = pool_info.reservation_id
             return pool.pool_id, reservation_id
-        pool_info = self._retry_call(self.zos.pools.create, args=[cus, sus, ipv4us, farm_name])
+        pool_info = self._retry_call(
+            self.zos.pools.create, args=[cus, sus, ipv4us, farm_name, ["TFT"], j.core.identity.me],
+        )
         reservation_id = pool_info.reservation_id
         self.info(
             f"creating new pool {pool_info.reservation_id} on farm: {farm_name}, cus: {cus}, sus: {sus}, ipv4us: {ipv4us}, reservation_info {str(pool_info)}"

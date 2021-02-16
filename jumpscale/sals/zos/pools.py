@@ -16,14 +16,19 @@ class Pools:
         self._nodes = explorer.nodes
         self._gateways = explorer.gateway
 
-    def _reserve(self, pool):
+    def _reserve(self, pool, sponsor_identity=None):
         me = self._identity
         pool.customer_tid = me.tid
         pool.json = j.data.serializers.json.dumps(pool.data_reservation.to_dict())
         pool.customer_signature = me.nacl.sign_hex(pool.json.encode()).decode()
+        if sponsor_identity:
+            pool.sponsor_tid = sponsor_identity.tid
+            pool.sponsor_signature = sponsor_identity.nacl.sign_hex(pool.json.encode()).decode()
         return self._pools.create(pool)
 
-    def create(self, cu: int, su: int, ipv4us: int, farm: str, currencies: List[str] = None) -> PoolCreated:
+    def create(
+        self, cu: int, su: int, ipv4us: int, farm: str, currencies: List[str] = None, sponsor_identity=None
+    ) -> PoolCreated:
         """create a new capacity pool
 
         Args:
@@ -64,7 +69,7 @@ class Pools:
         pool.data_reservation.ipv4us = ipv4us
         pool.data_reservation.node_ids = node_ids
         pool.data_reservation.currencies = currencies
-        return self._reserve(pool)
+        return self._reserve(pool, sponsor_identity)
 
     def extend(
         self, pool_id: int, cu: int, su: int, ipv4us: int, currencies: List[str] = None, node_ids: List[str] = None
