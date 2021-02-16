@@ -25,6 +25,22 @@ const DECENTRALIZED_OFFICE = {
             helpLink: "https://now.threefold.io/now/docs/mattermost/",
             description: "Mattermost is a flexible, open source messaging platform that enables secure team collaboration."
         },
+        documentserver: {
+            name: "Document Server",
+            type: "documentserver",
+            image: "./assets/document_server.jpg",
+            disable: true,
+            helpLink: "https://now.threefold.io/now/docs/documentserver/",
+            description: "Document Server is a free collaborative online office suite comprising viewers and editors for texts, spreadsheets and presentations, fully compatible with Office Open XML formats: .docx, .xlsx, .pptx and enabling collaborative editing in real time"
+        },
+        filebrowser: {
+            name: "File Browser",
+            type: "filebrowser",
+            image: "./assets/file_browser.jpg",
+            disable: true,
+            helpLink: "https://now.threefold.io/now/docs/file-browser/",
+            description: "File browser is an open source solution that provides a file managing interface"
+        },
         crm: {
             name: "CRM",
             type: "crm",
@@ -32,14 +48,6 @@ const DECENTRALIZED_OFFICE = {
             disable: true,
             helpLink: "https://now.threefold.io/now/docs/dmcustomers/",
             description: "Full featured Customer Relationship Management system."
-        },
-        zeroci: {
-            name: "ZeroCI",
-            type: "zeroci",
-            image: "./assets/zero-ci-dark.png",
-            disable: false,
-            helpLink: "https://now.threefold.io/now/docs/zeroci/",
-            description: "Continuous integration system useful for all programming languages."
         },
         commento: {
             name: "Commento",
@@ -90,14 +98,6 @@ const DECENTRALIZED_WE = {
             helpLink: "https://now.threefold.io/now/docs/discourse/",
             description: "Discourse is an open source Internet forum and mailing list management software application built to educate members about civil community engagement."
         },
-        kubeapps: {
-            name: "Kubeapps",
-            type: "kubeapps",
-            image: "./assets/kubeapps.png",
-            disable: false,
-            helpLink: "https://now.threefold.io/now/docs/kubeapps/",
-            description: "Kubeapps is a web-based UI for deploying and managing applications in Kubernetes clusters."
-        },
         peertube: {
             name: "Peertube",
             type: "peertube",
@@ -110,25 +110,9 @@ const DECENTRALIZED_WE = {
             name: "Video Chat",
             type: "meetings",
             image: "./assets/video_chat.png",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/now/docs/video-conf/",
             description: "P2P alternative to centralised video conferencing solution such as Zoom."
-        },
-        documentserver: {
-            name: "Document Server",
-            type: "documentserver",
-            image: "./assets/document_server.jpg",
-            disable: true,
-            helpLink: "https://now.threefold.io/now/docs/documentserver/",
-            description: "Document Server is a free collaborative online office suite comprising viewers and editors for texts, spreadsheets and presentations, fully compatible with Office Open XML formats: .docx, .xlsx, .pptx and enabling collaborative editing in real time"
-        },
-        filebrowser: {
-            name: "File Browser",
-            type: "filebrowser",
-            image: "./assets/file_browser.jpg",
-            disable: true,
-            helpLink: "https://now.threefold.io/now/docs/file-browser/",
-            description: "File browser is an open source solution that provides a file managing interface"
         },
         virtualspaces: {
             name: "Virtual Spaces",
@@ -183,6 +167,22 @@ const DECENTRALIZED_DEV = {
             disable: false,
             helpLink: "",
             description: "Monitoring Stack makes it easy to monitor your VDC using Grafana, Prometheus, Redis"
+        },
+        zeroci: {
+            name: "ZeroCI",
+            type: "zeroci",
+            image: "./assets/zero-ci-dark.png",
+            disable: false,
+            helpLink: "https://now.threefold.io/now/docs/zeroci/",
+            description: "Continuous integration system useful for all programming languages."
+        },
+        kubeapps: {
+            name: "Kubeapps",
+            type: "kubeapps",
+            image: "./assets/kubeapps.png",
+            disable: false,
+            helpLink: "https://now.threefold.io/now/docs/kubeapps/",
+            description: "Kubeapps is a web-based UI for deploying and managing applications in Kubernetes clusters."
         },
         etcd: {
             name: "ETCD",
