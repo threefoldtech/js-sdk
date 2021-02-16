@@ -142,7 +142,8 @@ class VDCDeploy(GedisChatBot):
     def vdc_info(self):
         self._init()
         self._vdc_form()
-        self._backup_form()
+        self.backup_config = None
+        # self._backup_form()
         # self._k3s_and_minio_form() # TODO: Restore later
 
     @chatflow_step(title="VDC Deployment")

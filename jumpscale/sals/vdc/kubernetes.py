@@ -44,7 +44,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
         if not pool_id:
             pool_info = self.vdc_deployer._retry_call(
-                self.zos.pools.create, args=[math.ceil(cus), math.ceil(sus), ipv4us, farm_name]
+                self.zos.pools.create,
+                args=[math.ceil(cus), math.ceil(sus), ipv4us, farm_name, ["TFT"], j.core.identity.me],
             )
             pool_id = pool_info.reservation_id
             self.vdc_deployer.info(f"kubernetes cluster extension: creating a new pool {pool_id}")
@@ -447,7 +448,8 @@ ports:
         """
         Add a new entrypoint to traefik or override an existing one
         """
-
+        if not str(port).isnumeric():
+            raise ValueError("Port must be numeric")
         kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml"
         k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
         k8s_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
@@ -460,5 +462,38 @@ ports:
             "expose": expose,
             "protocol": protocol,
         }
+        config_yaml = j.data.serializers.yaml.dumps(config_json)
+        k8s_client.upgrade_release("traefik", "traefik/traefik", "kube-system", config_yaml)
+
+    def add_traefik_entrypoints(self, entrypoints):
+        """
+        Add a new entrypoint to traefik or override an existing one
+
+        Args:
+            entrypoints (dict): contains a mapping from the entrypoint name to its spec
+                spec:
+                    port (str|int): The entrypoint port
+                    expose (bool): Optional, whether to expose the port to outside the cluster, default: True
+                    protocol (str): Optional, TCP|UDP, default: TCP
+        """
+
+        kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml"
+        k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
+        k8s_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
+        k8s_client.update_repos()
+        config_str = k8s_client.get_helm_chart_user_values("traefik", "kube-system")
+        config_json = j.data.serializers.json.loads(config_str)
+        for entrypoint_name, entrypoint in entrypoints.items():
+            port = entrypoint.get("port")
+            if port is None or not str(port).isnumeric():
+                raise ValueError("Port is required and it must be numeric in the entrypoint definition")
+            expose = entrypoint.get("expose", True)
+            protocol = entrypoint.get("protocol", "TCP")
+            config_json["ports"][entrypoint_name] = {
+                "port": port,
+                "exposedPort": port,
+                "expose": expose,
+                "protocol": protocol,
+            }
         config_yaml = j.data.serializers.yaml.dumps(config_json)
         k8s_client.upgrade_release("traefik", "traefik/traefik", "kube-system", config_yaml)
