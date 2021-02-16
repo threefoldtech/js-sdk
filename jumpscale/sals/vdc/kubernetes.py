@@ -473,7 +473,7 @@ ports:
                 spec:
                     port (str|int): The entrypoint port
                     expose (bool): Optional, whether to expose the port to outside the cluster, default: True
-                    protocol (str): TCP|UDP
+                    protocol (str): Optional, TCP|UDP, default: TCP
         """
 
         kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml"
