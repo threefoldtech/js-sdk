@@ -2018,7 +2018,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             List: List of reservation ids
         """
         etcd_cluster = etcd_cluster.rstrip(",")
-        solution_uuid = metadata["solution_uuid"]
+        solution_uuid = metadata.get("solution_uuid", uuid.uuid4().hex)
         env_cluster = {
             "ETCD_INITIAL_CLUSTER_TOKEN": f"etcd_cluster_{solution_uuid}",
             "ETCD_INITIAL_CLUSTER_STATE": "new",

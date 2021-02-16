@@ -502,6 +502,7 @@ ports:
                 ETCD_CPU,
                 ETCD_MEMORY,
                 ETCD_DISK,
+                solution_uuid=solution_uuid,
                 description=self.vdc_deployer.description,
             )
             try:
