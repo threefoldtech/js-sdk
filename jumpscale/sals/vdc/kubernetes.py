@@ -448,7 +448,8 @@ ports:
         """
         Add a new entrypoint to traefik or override an existing one
         """
-
+        if not str(port).isnumeric():
+            raise ValueError("Port must be numeric")
         kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml"
         k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
         k8s_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
@@ -484,8 +485,8 @@ ports:
         config_json = j.data.serializers.json.loads(config_str)
         for entrypoint_name, entrypoint in entrypoints.items():
             port = entrypoint.get("port")
-            if port is None:
-                raise Exception("Port not specified in the entrypoint definition")
+            if port is None or not str(port).isnumeric():
+                raise ValueError("Port is required and it must be numeric in the entrypoint definition")
             expose = entrypoint.get("expose", True)
             protocol = entrypoint.get("protocol", "TCP")
             config_json["ports"][entrypoint_name] = {
