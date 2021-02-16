@@ -301,6 +301,15 @@ class VDCDeployer:
         farm_resources[selected_farm]["cus"] += cus
         farm_resources[selected_farm]["sus"] += sus
 
+        etcd_cont = Container()
+        etcd_cont.capacity.cpu = ETCD_CPU
+        etcd_cont.capacity.memory = ETCD_MEMORY
+        etcd_cont.capacity.disk_size = ETCD_DISK
+        etcd_cont.capacity.disk_type = DiskType.SSD
+        n_cus, n_sus = get_cloud_units(etcd_cont)
+        cus += n_cus * ETCD_CLUSTER_SIZE
+        sus += n_sus * ETCD_CLUSTER_SIZE
+
         for farm_name, cloud_units in farm_resources.items():
             _, reservation_id = self.get_pool_id_and_reservation_id(farm_name, **cloud_units)
             if reservation_id and not self.wait_pool_payment(reservation_id):
@@ -382,6 +391,10 @@ class VDCDeployer:
         1- deploy master
         2- extend cluster with the flavor no_nodes
         """
+        etcd_ips = self.kubernetes.deploy_external_etcd(farm_name=farm_name, solution_uuid=self.vdc_uuid)
+        if not etcd_ips:
+            self.error("failed to deploy etcd cluster")
+            return
         gs = scheduler or GlobalScheduler()
         master_pool_id, _ = self.get_pool_id_and_reservation_id(NETWORK_FARM.get())
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
@@ -441,7 +454,6 @@ class VDCDeployer:
         total_no_nodes = S3_NO_DATA_NODES + S3_NO_PARITY_NODES
         remainder = total_no_nodes % len(zdb_farms)
         no_node_per_farm = (total_no_nodes - remainder) / len(zdb_farms)
-        farm_count = defaultdict(int)
         farm_queries = []
         for farm in zdb_farms:
             farm_queries.append(

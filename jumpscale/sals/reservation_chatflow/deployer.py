@@ -1024,7 +1024,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         network_views = network_views or self.list_networks()
         if not network_views:
             raise StopChatFlow(f"You don't have any deployed network.")
-        network_name = bot.single_choice("Please select a network to connect your solution to", list(network_views.keys()), required=True)
+        network_name = bot.single_choice(
+            "Please select a network to connect your solution to", list(network_views.keys()), required=True
+        )
         return network_views[network_name]
 
     def deploy_volume(
@@ -1982,7 +1984,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
     def deploy_etcd_containers(
         self,
         pool_id,
-        node_id,
+        node_ids,
         network_name,
         ip_addresses,
         etcd_cluster,
@@ -1993,6 +1995,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         disk_type=DiskType.SSD,
         entrypoint="etcd",
         public_ipv6=False,
+        description="",
         **metadata,
     ):
         """
@@ -2023,6 +2026,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         result = []
         for n, ip_address in enumerate(ip_addresses):
             env = {}
+            node_id = node_ids[n]
             if len(ip_addresses) > 1:
                 env.update(env_cluster)
             env.update(
@@ -2050,6 +2054,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     disk_type,
                     entrypoint=entrypoint,
                     public_ipv6=public_ipv6,
+                    description=description,
                     **metadata,
                 )
             )

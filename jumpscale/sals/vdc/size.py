@@ -15,6 +15,11 @@ THREEBOT_DISK = 2 * 1024  # in MB
 
 INITIAL_RESERVATION_DURATION = 1  # in hours
 
+ETCD_CPU = 1
+ETCD_MEMORY = 2 * 1024  # in MB
+ETCD_DISK = 256
+ETCD_CLUSTER_SIZE = 3
+
 
 class FarmConfigBase:
     _LAST_LOADED = None

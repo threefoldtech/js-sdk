@@ -30,6 +30,7 @@ class UserVDC(Base):
     identity_tid = fields.Integer()
     s3 = fields.Object(S3)
     kubernetes = fields.List(fields.Object(KubernetesNode))
+    etcd = fields.List(fields.Object(ETCDNode))
     threebot = fields.Object(VDCThreebot)
     created = fields.DateTime(default=datetime.datetime.utcnow)
     last_updated = fields.DateTime(default=datetime.datetime.utcnow)
@@ -139,6 +140,7 @@ class UserVDC(Base):
 
     def load_info(self):
         self.kubernetes = []
+        self.etcd = []
         self.s3 = S3()
         self.threebot = VDCThreebot()
         instance_vdc_workloads = self._filter_vdc_workloads()
@@ -215,6 +217,13 @@ class UserVDC(Base):
                 container.wid = workload.id
                 container.ip_address = workload.network_connection[0].ipaddress
                 self.threebot = container
+            elif "etcd" in workload.flist:
+                node = ETCDNode()
+                node.node_id = workload.info.node_id
+                node.pool_id = workload.info.pool_id
+                node.wid = workload.id
+                node.ip_address = workload.network_connection[0].ipaddress
+                self.etcd.append(node)
         elif workload.info.workload_type == WorkloadType.Zdb:
             result_json = j.data.serializers.json.loads(workload.info.result.data_json)
             if "IPs" in result_json:

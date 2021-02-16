@@ -129,7 +129,7 @@ class EtcdDeploy(GedisChatBot):
 
         self.resv_ids = deployer.deploy_etcd_containers(
             self.pool_id,
-            self.selected_node.node_id,
+            [self.selected_node.node_id] * self.no_nodes.value,
             self.network_view.name,
             self.ip_addresses,
             self.etcd_clutser,

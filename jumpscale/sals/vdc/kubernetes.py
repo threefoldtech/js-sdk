@@ -12,6 +12,9 @@ from jumpscale.clients.explorer.models import K8s, NextAction
 import gevent
 
 
+ETCD_FLIST = "https://hub.grid.tf/essam.3bot/bitnami-etcd-latest.flist"
+
+
 class VDCKubernetesDeployer(VDCBaseComponent):
     def __init__(self, *args, **kwrags) -> None:
         super().__init__(*args, **kwrags)
@@ -463,3 +466,54 @@ ports:
         }
         config_yaml = j.data.serializers.yaml.dumps(config_json)
         k8s_client.upgrade_release("traefik", "traefik/traefik", "kube-system", config_yaml)
+
+    def deploy_external_etcd(self, no_nodes=ETCD_CLUSTER_SIZE, farm_name=None, solution_uuid=None):
+        network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
+        farm_name = farm_name or PREFERED_FARM.get()
+        pool_id, _ = self.vdc_deployer.get_pool_id_and_reservation_id(farm_name)
+        scheduler = Scheduler(pool_id=pool_id)
+        nodes_generator = scheduler.nodes_by_capacity(cru=ETCD_CPU, sru=ETCD_DISK / 1024, mru=ETCD_MEMORY / 1024)
+        solution_uuid = solution_uuid or uuid.uuid4().hex
+        while True:
+            deployment_nodes = self._add_nodes_to_network(pool_id, nodes_generator, [], no_nodes, network_view)
+            if not deployment_nodes:
+                self.vdc_deployer.error("no available nodes to deploy etcd cluster")
+                return
+            self.vdc_deployer.info(f"deploying etcd cluster on nodes {[node.node_id for node in deployment_nodes]}")
+
+            network_view = network_view.copy()
+            ip_addresses = []
+            node_ids = []
+            etcd_cluster = ""
+
+            for idx, node in enumerate(deployment_nodes):
+                address = network_view.get_free_ip(node)
+                ip_addresses.append(address)
+                etcd_cluster += f"etcd_{idx+1}=http://{address}:2380,"
+                node_ids.append(node.node_id)
+
+            wids = deployer.deploy_etcd_containers(
+                pool_id,
+                node_ids,
+                network_view.name,
+                ip_addresses,
+                etcd_cluster,
+                ETCD_FLIST,
+                ETCD_CPU,
+                ETCD_MEMORY,
+                ETCD_DISK,
+                description=self.vdc_deployer.description,
+            )
+            try:
+                for wid in wids:
+                    success = deployer.wait_workload(
+                        wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False
+                    )
+                    if not success:
+                        self.vdc_deployer.error(f"etcd cluster workload: {wid} failed to deploy")
+                        raise DeploymentFailed()
+            except DeploymentFailed:
+                for wid in wids:
+                    self.zos.workloads.decomission(wid)
+                continue
+            return ip_addresses
