@@ -18,27 +18,41 @@ class VDCDashboard(VDCBase):
         no_deployment = "single"
         cls.flavor = "platinum"
         cls.kube_config = cls.deploy_vdc()
-        cls.kube_manager = j.sals.kubernetes.Manager(
-            f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml"
-        )
+
+        if not cls.kube_config:
+            raise RuntimeError("VDC is not deployed")
+
         j.sals.fs.copy_file(
             f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml",
             j.sals.fs.expanduser("~/.kube/config"),
         )
-        if not cls.kube_config:
-            raise RuntimeError("VDC is not deployed")
+        cls.kube_manager = j.sals.kubernetes.Manager()
 
         cls.info("Check that resources are available and ready in 5 min maximum")
         cls.kube_monitor = cls.vdc.get_kubernetes_monitor()
         has_resource = False
-        expiry = j.data.time.now().timestamp + 300
-        while j.data.time.now().timestamp < expiry and not has_resource:
+        resources_expiry = j.data.time.now().timestamp + 300
+        while j.data.time.now().timestamp < resources_expiry and not has_resource:
             res = cls.kube_monitor.fetch_resource_reservations()
             for node in res:
                 if node.has_enough_resources(1000, 1024):
-                    cls.info("Cluster is ready")
+                    cls.info("Cluster resources are ready")
                     has_resource = True
                     break
+
+        cls.info("Check that traefik is ready in 5 min maximum")
+        is_traefik_ready = False
+        traefik_expiry = j.data.time.now().timestamp + 300
+        while j.data.time.now().timestamp < traefik_expiry and not is_traefik_ready:
+            rc, system_pods, err = cls.kube_manager._execute(
+                f"kubectl get pods --kubeconfig {cls.kube_manager.config_path} --namespace kube-system | grep traefik"
+            )
+            running = system_pods.count("Running") + system_pods.count("Completed")
+            all = len(system_pods.splitlines())
+            if running == all:
+                cls.info("Traefik is ready")
+                is_traefik_ready = True
+                break
 
         # Add tokens needed in case of extending the cluster automatically.
         kubernetes = K8s()
@@ -68,7 +82,7 @@ class VDCDashboard(VDCBase):
     def tearDown(self):
         for sol in self.solutions:
             self.info(f"Delete {sol.release_name}")
-            sol.k8s_client.delete_deployed_release(sol.release_name)
+            self.kube_manager.execute_native_cmd(f"kubectl delete ns {sol.chart_name}-{sol.release_name}")
         super().tearDown()
 
     @classmethod
@@ -100,6 +114,18 @@ class VDCDashboard(VDCBase):
             request = j.tools.http.get(domain, timeout=self.timeout, verify=False)
 
         return request
+
+    def _check_etcd_ready(self, solution):
+        expiry = j.data.time.now().timestamp + 20
+        put_hello = ""
+        while j.data.time.now().timestamp < expiry:
+            rc, put_hello, err = self.kube_manager._execute(
+                f"kubectl --kubeconfig {self.kube_manager.config_path} --namespace {solution.chart_name}-{solution.release_name} exec -it {solution.release_name}-etcd-0 -- etcdctl put message Hello"
+            )
+            if put_hello:
+                break
+            gevent.sleep(2)
+        self.assertEqual(put_hello.count("OK"), 1)
 
     def test01_wiki(self):
         """Test case for deploying a Wiki.
@@ -181,7 +207,7 @@ class VDCDashboard(VDCBase):
         self.info("Deploy a Website")
         name = self.random_name().lower()
         repo = "https://github.com/threefoldfoundation/website_example"
-        branch = "main"
+        branch = "master"
         website = deployer.deploy_website(release_name=name, url=repo, branch=branch)
         self.solutions.append(website)
 
@@ -336,25 +362,16 @@ class VDCDashboard(VDCBase):
         name = self.random_name().lower()
         etcd = deployer.deploy_etcd(release_name=name)
         self.solutions.append(etcd)
+        self.info("Check that deployed ETCD add data correctly.")
+        self._check_etcd_ready(etcd)
 
         if self.no_deployment == "double":
             self.info("Deploy another ETCD")
             name_second = self.random_name().lower()
             etcd_second = deployer.deploy_etcd(release_name=name_second)
             self.solutions.append(etcd_second)
-
-        self.info("Check that two deployed ETCD add data correctly.")
-        for sol in self.solutions:
-            expiry = j.data.time.now().timestamp + 20
-            put_hello = ""
-            while j.data.time.now().timestamp < expiry:
-                rc, put_hello, err = j.sals.kubernetes.Manager._execute(
-                    f"kubectl --kubeconfig {self.kube_manager.config_path} exec -it {sol.release_name}-etcd-0 -- etcdctl put message Hello"
-                )
-                if put_hello:
-                    break
-                gevent.sleep(2)
-            self.assertEqual(put_hello.count("OK"), 1)
+            self.info("Check that another deployed ETCD add data correctly.")
+            self._check_etcd_ready(etcd_second)
 
     def test08_Kubeapps(self):
         """Test case for deploying Kubeapps.
@@ -414,7 +431,6 @@ class VDCDashboard(VDCBase):
             )
             self.assertEqual(request_second.status_code, 200)
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2296")
     def test10_Taiga(self):
         """Test case for deploying Taiga.
 
@@ -426,6 +442,9 @@ class VDCDashboard(VDCBase):
         - Check that Taiga is reachable and certified.
         - Check that deploying another taiga solution deployed successfully in double test.
         """
+        if self.no_deployment == "double":
+            self.skipTest("https://github.com/threefoldtech/js-sdk/issues/2296")
+
         self.info("Deploy Taiga")
         name = self.random_name().lower()
         taiga = deployer.deploy_taiga(release_name=name)
@@ -523,6 +542,7 @@ class VDCDashboard(VDCBase):
             request_second = j.tools.http.get(url=f"https://{zeroci_second.domain}", timeout=self.timeout, verify=False)
             self.assertEqual(request_second.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2538")
     def test13_MonitoringStack(self):
         """Test case for deploying MonitoringStack.
 
