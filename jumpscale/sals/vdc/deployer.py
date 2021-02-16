@@ -298,8 +298,6 @@ class VDCDeployer:
         n_cus, n_sus = get_cloud_units(cont2)
         cus += n_cus
         sus += n_sus
-        farm_resources[selected_farm]["cus"] += cus
-        farm_resources[selected_farm]["sus"] += sus
 
         etcd_cont = Container()
         etcd_cont.capacity.cpu = ETCD_CPU
@@ -309,6 +307,9 @@ class VDCDeployer:
         n_cus, n_sus = get_cloud_units(etcd_cont)
         cus += n_cus * ETCD_CLUSTER_SIZE
         sus += n_sus * ETCD_CLUSTER_SIZE
+
+        farm_resources[selected_farm]["cus"] += cus
+        farm_resources[selected_farm]["sus"] += sus
 
         for farm_name, cloud_units in farm_resources.items():
             _, reservation_id = self.get_pool_id_and_reservation_id(farm_name, **cloud_units)
@@ -504,6 +505,16 @@ class VDCDeployer:
         # check trc container capacity
         trc_query = {"farm_name": farm_name, "cru": 1, "mru": 1, "sru": 0.25}
         if not gcc.add_query(**trc_query):
+            return False
+
+        etcd_query = {
+            "farm_name": farm_name,
+            "cru": ETCD_CPU,
+            "mru": ETCD_MEMORY / 1024,
+            "sru": ETCD_DISK / 1024,
+            "no_nodes": ETCD_CLUSTER_SIZE,
+        }
+        if not gcc.add_query(**etcd_query):
             return False
 
         return gcc.result
