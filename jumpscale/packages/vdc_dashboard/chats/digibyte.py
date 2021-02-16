@@ -38,8 +38,9 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
     def set_config(self):
         self._enter_credentials()
         self._choose_flavor(self.CHART_LIMITS)
-        self.vdc.get_deployer().kubernetes.add_traefik_entrypoint("digibyte-rpc", "14022")
-        self.vdc.get_deployer().kubernetes.add_traefik_entrypoint("digibyte-p2p", "12024")
+        self.vdc.get_deployer().kubernetes.add_traefik_entrypoints(
+            {"digibyte-p2p": {"port": "12024"}, "digibyte-rpc": {"port": "14022"}}
+        )
 
         self.chart_config.update(
             {
