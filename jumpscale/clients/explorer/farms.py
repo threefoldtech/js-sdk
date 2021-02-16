@@ -160,6 +160,7 @@ class Farms(BaseResource):
         try:
             return self._session.get(f"{self._url}/{farm_id}/deals/{threebot_id}").json()
         except:
+
             return {
                 "farm_id": farm_id,
                 "threebot_id": threebot_id,

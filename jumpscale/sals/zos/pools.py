@@ -26,7 +26,9 @@ class Pools:
             pool.sponsor_signature = sponsor_identity.nacl.sign_hex(pool.json.encode()).decode()
         return self._pools.create(pool)
 
-    def create(self, cu: int, su: int, ipv4us: int, farm: str, currencies: List[str] = None, sponsor_identity=None) -> PoolCreated:
+    def create(
+        self, cu: int, su: int, ipv4us: int, farm: str, currencies: List[str] = None, sponsor_identity=None
+    ) -> PoolCreated:
         """create a new capacity pool
 
         Args:
@@ -70,8 +72,8 @@ class Pools:
         return self._reserve(pool, sponsor_identity)
 
     def extend(
-        self, pool_id: int, cu: int, su: int, ipv4us: int, currencies: List[str] = None, node_ids: List[str] = None,
-                sponsor_identity=None) -> PoolCreated:
+        self, pool_id: int, cu: int, su: int, ipv4us: int, currencies: List[str] = None, node_ids: List[str] = None
+    ) -> PoolCreated:
         """extend an existing capacity pool
 
         Args:
@@ -97,7 +99,7 @@ class Pools:
         pool.data_reservation.ipv4us = ipv4us
         pool.data_reservation.node_ids = list(set(node_ids).union(set(p.node_ids))) if node_ids else p.node_ids
         pool.data_reservation.currencies = currencies
-        return self._reserve(pool, sponsor_identity)
+        return self._reserve(pool)
 
     def get(self, pool_id: int) -> Pool:
         """get the detail about an specific pool

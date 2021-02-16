@@ -26,12 +26,6 @@ module.exports = new Promise(async(resolve, reject) => {
                     { text: "IPv4U", value: "custom_cloudunits_price.ipv4u" },
                     { text: "Actions", value: "action" },
                 ],
-                // csPricesInfo: [
-                //     // { id: "50", name: "samar", cu: 32, su: 43, ip4u: 9 },
-                //     // { id: "57", name: "sara", cu: 87, su: 45, ip4u: 54 },
-                //     // { id: "89", name: "ehab", cu: 23, su: 34, ip4u: 68 },
-                //     // { id: "32", name: "thabet", cu: 12, su: 46, ip4u: 76 },
-                // ],
                 openEditModal: false,
                 openDeleteModal: false,
                 deleteNodeFarmAlert: undefined,
