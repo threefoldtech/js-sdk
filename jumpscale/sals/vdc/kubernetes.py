@@ -502,6 +502,7 @@ ports:
                 ETCD_CPU,
                 ETCD_MEMORY,
                 ETCD_DISK,
+                identity_name=self.identity.instance_name,
                 solution_uuid=solution_uuid,
                 description=self.vdc_deployer.description,
             )

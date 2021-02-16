@@ -1995,6 +1995,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         disk_type=DiskType.SSD,
         entrypoint="etcd",
         public_ipv6=False,
+        identity_name=None,
         description="",
         **metadata,
     ):
@@ -2055,6 +2056,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     entrypoint=entrypoint,
                     public_ipv6=public_ipv6,
                     description=description,
+                    identity_name=identity_name,
                     **metadata,
                 )
             )
