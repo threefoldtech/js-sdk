@@ -463,3 +463,36 @@ ports:
         }
         config_yaml = j.data.serializers.yaml.dumps(config_json)
         k8s_client.upgrade_release("traefik", "traefik/traefik", "kube-system", config_yaml)
+
+    def add_traefik_entrypoints(self, entrypoints):
+        """
+        Add a new entrypoint to traefik or override an existing one
+
+        Args:
+            entrypoints (dict): contains a mapping from the entrypoint name to its spec
+                spec:
+                    port (str|int): The entrypoint port
+                    expose (bool): Optional, whether to expose the port to outside the cluster, default: True
+                    protocol (str): TCP|UDP
+        """
+
+        kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml"
+        k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
+        k8s_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
+        k8s_client.update_repos()
+        config_str = k8s_client.get_helm_chart_user_values("traefik", "kube-system")
+        config_json = j.data.serializers.json.loads(config_str)
+        for entrypoint_name, entrypoint in entrypoints.items():
+            port = entrypoint.get("port")
+            if port is None:
+                raise Exception("Port not specified in the entrypoint definition")
+            expose = entrypoint.get("expose", True)
+            protocol = entrypoint.get("protocol", "TCP")
+            config_json["ports"][entrypoint_name] = {
+                "port": port,
+                "exposedPort": port,
+                "expose": expose,
+                "protocol": protocol,
+            }
+        config_yaml = j.data.serializers.yaml.dumps(config_json)
+        k8s_client.upgrade_release("traefik", "traefik/traefik", "kube-system", config_yaml)
