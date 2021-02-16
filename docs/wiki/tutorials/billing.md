@@ -68,22 +68,39 @@ is_refunded = j.sals.billing.check_refund(payment_id)
 - is_refunded `True` if the refund performed.
 - is_refunded `False` if the refund not performed yet.
 
-## Process Payments
+# Billing Services
+Billing also can be used as background service.
+
+In that case, the only thing to do is to submit a payment or issue a refund if needed.
+
+## Setup Billing Service
+
+```python
+from jumpscale.packages import billing
+
+server = j.servers.threebot.get("default")
+path = j.sals.fs.dirname(billing.__file__)
+server.packages.add(path)
+
+```
+
+## List of Service Functions
+
+### Process Payments
 List all active payments and apply it.
 
 ```python
 j.sals.billing.process_payments()
 ```
 
-## Process Refunds
+### Process Refunds
 List all active refunds and apply it.
 
 ```python
 j.sals.billing.process_refunds()
 ```
 
-
-## Refund Extra
+### Refund Extra
 List all active refund extra payment and apply it.
 
 ```python
