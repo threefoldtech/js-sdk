@@ -391,10 +391,12 @@ class VDCDeployer:
         1- deploy master
         2- extend cluster with the flavor no_nodes
         """
+        self.bot_show_update("Deploying External ETCD Cluster...")
         etcd_ips = self.kubernetes.deploy_external_etcd(farm_name=farm_name, solution_uuid=self.vdc_uuid)
         if not etcd_ips:
             self.error("failed to deploy etcd cluster")
             return
+        self.bot_show_update("Deploying Kubernetes Controller...")
         gs = scheduler or GlobalScheduler()
         master_pool_id, _ = self.get_pool_id_and_reservation_id(NETWORK_FARM.get())
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
@@ -409,6 +411,7 @@ class VDCDeployer:
         no_nodes = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["no_nodes"]
         if no_nodes < 1:
             return [master_ip]
+        self.bot_show_update("Deploying Kubernetes Workers...")
         wids = self.kubernetes.extend_cluster(
             farm_name,
             master_ip,
