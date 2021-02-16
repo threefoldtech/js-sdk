@@ -14,7 +14,6 @@ def test_network():
         wireguard_listen_port=5522,
         peers=[peer],
         endpoint="",
-        works=["abcdef"],
     )
 
     w = Workload(user_id="test",)
