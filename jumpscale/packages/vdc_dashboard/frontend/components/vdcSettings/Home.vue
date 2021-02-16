@@ -49,8 +49,10 @@
           </v-row>
           <b class="font-weight-bold"
             >Your VDC will expire in <ins> {{ expirationTime }} </ins><br />
-            Please fund the wallet with address: {{ wallet.address }}</b
-          >
+            You have a grace period of 14 days. Your workloads will be up but
+            not accessible. To avoid workloads deletion, please fund the wallet
+            with address: {{ wallet.address }}
+          </b>
         </v-card-text>
       </v-card>
     </v-dialog>
