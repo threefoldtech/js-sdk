@@ -28,6 +28,9 @@ class VDCDashboard(VDCBase):
         )
         cls.kube_manager = j.sals.kubernetes.Manager()
 
+        cls.info("Set vdc identity as default identity")
+        cls._set_vdc_identity()
+
         cls.info("Check that resources are available and ready in 5 min maximum")
         cls.kube_monitor = cls.vdc.get_kubernetes_monitor()
         has_resource = False
@@ -93,6 +96,11 @@ class VDCDashboard(VDCBase):
         wallet.network = "STD"
         wallet.save()
         return wallet
+
+    @classmethod
+    def _set_vdc_identity(cls):
+        vdc_ident = j.core.identity.get(f"vdc_ident_{cls.vdc.solution_uuid}")
+        vdc_ident.set_default()
 
     def _get_and_wait_ssl(self, domain, expire_timeout=180):
         expiry = j.data.time.now().timestamp + expire_timeout
@@ -542,7 +550,6 @@ class VDCDashboard(VDCBase):
             request_second = j.tools.http.get(url=f"https://{zeroci_second.domain}", timeout=self.timeout, verify=False)
             self.assertEqual(request_second.status_code, 200)
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2538")
     def test13_MonitoringStack(self):
         """Test case for deploying MonitoringStack.
 
@@ -609,6 +616,9 @@ class VDCDashboard(VDCBase):
         - Get the number of nodes after extending.
         - Check that node has been added.
         """
+        if self.no_deployment == "double":
+            self.skipTest("No need to test it in double deployments")
+
         self.info("Get Number of Nodes before extend")
         self.vdc.load_info()
         number_of_nodes_before = len(self.vdc.kubernetes)
