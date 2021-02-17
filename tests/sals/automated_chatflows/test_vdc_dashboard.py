@@ -54,6 +54,8 @@ class VDCDashboard(VDCBase):
                 is_traefik_ready = True
                 break
 
+        assert is_traefik_ready == True, "Traefik not ready within 5 minutes"
+
         # Add tokens needed in case of extending the cluster automatically.
         kubernetes = K8s()
         kubernetes.size = VDC_SIZE.K8SNodeFlavor.MEDIUM.value
