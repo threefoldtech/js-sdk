@@ -62,7 +62,7 @@ class Settings(Base):
             if input.text in inputs.keys():
                 input.find_element_by_tag_name("input").send_keys(inputs[input.text])
 
-        self.click_button(self.driver, "CLOSE")
+        self.click_button(self.driver, "ADD")
         self.wait(self.driver, "v-card__progress")
 
     def delete_identity(self, name):
