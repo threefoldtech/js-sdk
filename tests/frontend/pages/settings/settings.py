@@ -30,7 +30,10 @@ class Settings(Base):
         deleted_admin = [admins[a] for a in admins.keys() if a == admin][0]
         delete_button = deleted_admin.find_element_by_tag_name("button")
         delete_button.click()
-        self.click_button(self.driver, "CONFIRM")
+        self.wait(self.driver, "progressbar")
+        buttons = self.driver.find_elements_by_class_name("v-btn")
+        next_button = [button for button in buttons if button.text == "CONFIRM"][1]
+        next_button.click()
         self.wait(self.driver, "v-card__progress")
 
     def add_escalation_emails(self, email):
@@ -55,7 +58,6 @@ class Settings(Base):
         form = identity_card.find_element_by_tag_name("form")
         inputs_div = form.find_elements_by_class_name("v-text-field__slot")
         inputs = {"Display name": name, "3Bot name": tname, "Email": email, "Words": words}
-
         for input in inputs_div:
             if input.text in inputs.keys():
                 input.find_element_by_tag_name("input").send_keys(inputs[input.text])
@@ -73,6 +75,7 @@ class Settings(Base):
         buttons[0].click()
 
     def developer_options(self, label):
+        self.wait(self.driver, "progressbar")
         cards = self.driver.find_elements_by_class_name("mt-0")
         developer_card = [card for card in cards if "Developer options" in card.text][0]
         options = developer_card.find_elements_by_class_name("v-input__slot")
@@ -80,6 +83,7 @@ class Settings(Base):
         button.click()
 
     def list(self, name):
+        self.wait(self.driver, "progressbar")
         names = {}
         v_cards = self.driver.find_elements_by_class_name("v-card")
         card = [card for card in v_cards if name in card.text][0]
@@ -89,6 +93,7 @@ class Settings(Base):
         return names
 
     def select_card(self, name):
+        self.wait(self.driver, "progressbar")
         v_cards = self.driver.find_elements_by_class_name("v-card")
         card = [card for card in v_cards if name in card.text][0]
         button = card.find_element_by_tag_name("button")

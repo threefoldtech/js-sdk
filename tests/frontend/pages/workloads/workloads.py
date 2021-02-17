@@ -27,12 +27,12 @@ class workloads(Base):
         click_ID.click()
 
     def create_workload(self, workload_name):
-
         test_network = deployer.create_network(solution_name=workload_name)
         test_network_dict = test_network.config
         return int(test_network_dict.get("ids")[0])
 
     def delete_selected_workloads(self, workload_ID):
+        self.load()
         self.select_workload_by_ID(workload_ID)
 
         # Delete all selected workloads
@@ -42,6 +42,7 @@ class workloads(Base):
         self.click_button(self.driver, "CONFIRM")
 
     def check_selected_workloads_status(self, workload_ID):
+        self.load()
         self.driver.refresh()
         self.wait(self.driver, "v-progress-linear__buffer")
         self.select_workload_by_ID(workload_ID)

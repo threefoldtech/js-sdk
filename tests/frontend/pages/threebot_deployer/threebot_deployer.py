@@ -20,6 +20,13 @@ class ThreebotDeployer(Base):
         view_my_existing_3bot_button.click()
         self.wait(self.driver, "v-data-table__progress")
 
+        # select All ti show all 3bots
+        footer = self.driver.find_element_by_class_name("v-data-footer")
+        select_dev = footer.find_element_by_class_name("v-input__control")
+        select_dev.click()
+        options_list = self.driver.find_elements_by_class_name("v-list-item")
+        options_list[3].click()
+
     def switch_driver_to_iframe(self):
         # switch driver to iframe
         self.wait(self.driver, "v-progress-linear__buffer")
@@ -100,8 +107,8 @@ class ThreebotDeployer(Base):
 
         self.click_button(self.driver, "NEXT")
         # TODO need line wait
+        self.wait(self.driver, "v-card--loading")
         self.wait(self.driver, "v-progress-circular")
-
         self.click_button(self.driver, "NEXT")
         self.wait(self.driver, "v-progress-circular")
 
