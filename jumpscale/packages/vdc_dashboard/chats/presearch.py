@@ -35,7 +35,7 @@ class PresearchDeploy(SolutionsChatflowDeploy):
 
         self.chart_config.update(
             {
-                "REGISTRATION_CODE": self.registration_code,
+                "registration_code": self.registration_code,
                 "global.ingress.host": self.domain,
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
