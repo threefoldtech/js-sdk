@@ -446,8 +446,6 @@ class VDCDashboard(VDCBase):
         - Check that Taiga is reachable and certified.
         - Check that deploying another taiga solution deployed successfully in double test.
         """
-        if self.no_deployment == "double":
-            self.skipTest("https://github.com/threefoldtech/js-sdk/issues/2296")
 
         self.info("Deploy Taiga")
         name = self.random_name().lower()
