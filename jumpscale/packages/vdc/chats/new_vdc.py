@@ -15,7 +15,7 @@ class VDCDeploy(GedisChatBot):
     steps = ["vdc_info", "deploy", "initializing", "success"]
 
     def _init(self):
-        self.md_show_update("Checking payment service...")
+        self.md_show_update("It will take a few seconds to be ready to help you ...")
         # check stellar service
         if not j.clients.stellar.check_stellar_service():
             raise StopChatFlow("Payment service is currently down, try again later")
