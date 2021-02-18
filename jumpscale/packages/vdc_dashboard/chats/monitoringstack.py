@@ -4,6 +4,7 @@ from jumpscale.sals.vdc import VDCFACTORY
 from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
 from jumpscale.sals.marketplace import deployer
 from jumpscale.sals.reservation_chatflow import DeploymentFailed
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
 
 
 class InstallMonitoringStack(SolutionsChatflowDeploy):
@@ -37,14 +38,10 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Checking deployed solutions")
     def check_already_deployed(self):
-        self._get_vdc_info()
-        deployment_info = self.k8s_client.execute_native_cmd(
-            cmd=f"kubectl get deployment -l app.kubernetes.io/name={self.SOLUTION_TYPE} -o=jsonpath='{{.items[*].status.availableReplicas}}'"
-        )
-        if deployment_info and int(deployment_info) > 0:
-            raise StopChatFlow(
-                "You already have monitoring stack deployed. can not deploy two instances on the same vdc"
-            )
+        username = self.user_info()["username"]
+        self.md_show_update("Preparing the chatflow...")
+        if get_deployments(self.SOLUTION_TYPE, username):
+            raise StopChatFlow("You can only have one Monitoring Stack solution per VDC")
 
     @chatflow_step(title="Create Prometheus subdomain")
     def create_prometheus_subdomain(self):
