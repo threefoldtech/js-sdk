@@ -242,7 +242,7 @@ class VDCDeployer:
             reservation_id = pool_info.reservation_id
             return pool.pool_id, reservation_id
         pool_info = self._retry_call(
-            self.zos.pools.create, args=[cus, sus, ipv4us, farm_name, ["TFT"], j.core.identity.me],
+            self.zos.pools.create, args=[cus, sus, ipv4us, farm_name, ["TFT"], j.core.identity.me]
         )
         reservation_id = pool_info.reservation_id
         self.info(
@@ -388,7 +388,7 @@ class VDCDeployer:
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         pub_keys = pub_keys or []
         master_ip = self.kubernetes.deploy_master(
-            master_pool_id, gs, master_size, cluster_secret, pub_keys, self.vdc_uuid, nv,
+            master_pool_id, gs, master_size, cluster_secret, pub_keys, self.vdc_uuid, nv
         )
         if not master_ip:
             self.error("failed to deploy kubernetes master")
@@ -662,15 +662,8 @@ class VDCDeployer:
         self.info(f"extending kubernetes cluster on farm: {farm_name}, public_ip: {public_ip}, no_nodes: {no_nodes}")
         master_ip = self.vdc_instance.kubernetes[0].ip_address
         farm_name = farm_name if not public_ip else NETWORK_FARM.get()
-        public_key = None
-        try:
-            public_key = self.ssh_key.public_key.strip()
-        except Exception as e:
-            self.warning(f"failed to fetch key pair in kubernetes extension due to error: {str(e)}")
-
-        if not public_key:
-            key_path = j.sals.fs.expanduser("~/.ssh/id_rsa.pub")
-            public_key = j.sals.fs.read_file(key_path).strip()
+        key_path = j.sals.fs.expanduser("~/.ssh/id_rsa.pub")
+        public_key = j.sals.fs.read_file(key_path).strip()
         self.bot_show_update(f"Deploying {no_nodes} Kubernetes Nodes")
         wids = self.kubernetes.extend_cluster(
             farm_name,
