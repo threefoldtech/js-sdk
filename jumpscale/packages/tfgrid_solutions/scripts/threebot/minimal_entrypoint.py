@@ -247,7 +247,7 @@ if THREEBOT_PRIVATE_KEY:
     with open("/root/.ssh/id_rsa", "w") as f:
         f.writelines(THREEBOT_PRIVATE_KEY)
     j.sals.fs.chmod("/root/.ssh/id_rsa", 0o600)
-    j.sals.fs.make_path(f"{j.core.dirs.CFGDIR}/vdc/keys/{vdc.owner_tname}/{vdc.vdc_name}")
+    j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/keys/{vdc.owner_tname}/{vdc.vdc_name}")
     with open(f"{j.core.dirs.CFGDIR}/vdc/keys/{vdc.owner_tname}/{vdc.vdc_name}/id_rsa", "w"):
         f.writelines(THREEBOT_PRIVATE_KEY)
     j.sals.fs.chmod(f"{j.core.dirs.CFGDIR}/vdc/keys/{vdc.owner_tname}/{vdc.vdc_name}/id_rsa", 0o600)
