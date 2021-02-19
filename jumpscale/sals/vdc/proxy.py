@@ -669,7 +669,7 @@ class VDCProxy(VDCBaseComponent):
                 break
         if not public_ip:
             raise j.exceptions.Runtime(f"couldn't get a public ip for vdc: {self.vdc_instance.vdc_name}")
-        ssh_client = self.vdc_instance.get_ssh_client(public_ip, "rancher")
+        ssh_client = self.vdc_instance.get_ssh_client(name, public_ip, "rancher")
         rc, out, _ = ssh_client.sshclient.run(f"sudo netstat -tulpn | grep :{src_port}", warn=True)
         if rc == 0:
             raise j.exceptions.Input(f"port: {src_port} is already exposed. details: {out}. choose a different port")
