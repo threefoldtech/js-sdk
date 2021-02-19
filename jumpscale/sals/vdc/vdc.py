@@ -584,3 +584,15 @@ class UserVDC(Base):
             diff = float(vdc_cost) - float(current_balance)
             j.logger.info(f"funding diff: {diff} for vdc {self.vdc_name} from wallet: {funding_wallet_name}")
             self.pay_amount(dst_wallet.address, diff, wallet)
+
+    def get_ssh_client(self, ip_address, user, private_key_path=None):
+        private_key_path = (
+            private_key_path or f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
+        )
+        if not j.sals.fs.exists(private_key_path):
+            raise j.exceptions.Input(f"couldn't find key at path: {private_key_path}")
+        ssh_key = j.clients.sshkey.get(self.vdc_name)
+        ssh_key.private_key_path = private_key_path
+        ssh_key.load_from_file_system()
+        ssh_client = j.clients.sshclient.get(self.vdc_name, user=user, host=ip_address, sshkey=self.vdc_name)
+        return ssh_client
