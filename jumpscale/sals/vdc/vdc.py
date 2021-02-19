@@ -109,7 +109,9 @@ class UserVDC(Base):
         active_pools = [p for p in explorer.pools.list(customer_tid=self.identity_tid) if p.pool_id in my_pool_ids]
         return active_pools
 
-    def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=None, deployment_logs=False):
+    def get_deployer(
+        self, password=None, identity=None, bot=None, proxy_farm_name=None, deployment_logs=False, ssh_key_path=None
+    ):
         proxy_farm_name = proxy_farm_name or PROXY_FARM.get()
         if not password and not identity:
             identity = self._get_identity()
@@ -121,6 +123,7 @@ class UserVDC(Base):
             proxy_farm_name=proxy_farm_name,
             identity=identity,
             deployment_logs=deployment_logs,
+            ssh_key_path=ssh_key_path,
         )
 
     def _get_identity(self):
