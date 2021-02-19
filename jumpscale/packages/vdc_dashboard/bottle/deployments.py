@@ -215,7 +215,7 @@ def get_zstor_config():
         if ip_version == 6:
             zdb_url = f"[{zdb.ip_address}]:{zdb.port}"
         elif ip_version == 4:
-            zdb_url = zdb.proxy_url
+            zdb_url = zdb.proxy_address
         else:
             return HTTPResponse(
                 status=400,
