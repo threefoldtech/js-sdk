@@ -38,6 +38,7 @@ class S3ZDB(VDCHostBase):
     size = fields.Integer()
     port = fields.Integer()
     namespace = fields.String()
+    proxy_address = fields.String()
 
 
 class S3(Base):

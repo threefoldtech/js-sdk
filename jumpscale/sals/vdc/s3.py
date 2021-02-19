@@ -131,3 +131,21 @@ class VDCS3Deployer(VDCBaseComponent):
                 return wids
             deployment_nodes = []
         self.vdc_deployer.error("no nodes available to deploy zdb")
+
+    def expose_zdbs(self):
+        if not self.vdc_instance.s3.zdbs:
+            self.vdc_instance.load_info()
+        port = 9900
+        for zdb in self.vdc_instance.s3.zdbs:
+            if zdb.proxy_address:
+                self.vdc_deployer.info(f"zdb: {zdb.wid} is already exposed at address: {zdb.proxy_address}")
+            else:
+                try:
+                    self.vdc_deployer.info(f"exposing zdb: {zdb.wid} on port: {port}")
+                    public_ip = self.vdc_deployer.proxy.socat_proxy(f"zdb_{zdb.wid}", port, 9900, f"[{zdb.ip_address}]")
+                    zdb.proxy_address = f"{public_ip}:{port}"
+                    self.vdc_instance.save()
+                    self.vdc_deployer.info(f"zdb: {zdb.wid} is exposed successfully on address: {zdb.proxy_address}")
+                except Exception as e:
+                    self.vdc_deployer.error(f"failed to proxy zdb: {zdb.wid} due to error: {str(e)}")
+            port += 1
