@@ -6,9 +6,17 @@
         class="float-right p-4"
         color="primary"
         text
-        @click.stop="(dialogs.downloadInfo = true), (downloadType = 'zstor')"
+        @click.stop="(dialogs.downloadInfo = true), (downloadType = 'zstor6')"
       >
-        <v-icon left>mdi-download</v-icon>Z-STOR Config
+        <v-icon left>mdi-download</v-icon>Z-STOR Config (IPv6)
+      </v-btn>
+      <v-btn
+        class="float-right p-4"
+        color="primary"
+        text
+        @click.stop="(dialogs.downloadInfo = true), (downloadType = 'zstor4')"
+      >
+        <v-icon left>mdi-download</v-icon>Z-STOR Config (IPv4)
       </v-btn>
       <v-btn
         class="float-right p-4"
@@ -126,11 +134,34 @@ module.exports = {
           .finally(() => {
             this.loading = false;
           });
-      } else if (this.downloadType === "zstor") {
+      } else if (this.downloadType === "zstor6") {
         fileType = "toml";
         this.loading = true;
         this.$api.solutions
-          .getZstorConfig()
+          .getZstorConfig(6)
+          .then((response) => {
+            data = response.data.data;
+            const blob = new Blob([data]);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+              "download",
+              `${this.vdc.vdc_name}ZDBsInfo.${fileType}`
+            );
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            this.dialogs.downloadInfo = false;
+          })
+          .finally(() => {
+            this.loading = false;
+          });
+      } else if (this.downloadType === "zstor4") {
+        fileType = "toml";
+        this.loading = true;
+        this.$api.solutions
+          .getZstorConfig(4)
           .then((response) => {
             data = response.data.data;
             const blob = new Blob([data]);

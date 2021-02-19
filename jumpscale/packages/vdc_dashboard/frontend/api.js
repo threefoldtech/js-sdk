@@ -68,11 +68,12 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    getZstorConfig: () => {
+    getZstorConfig: (ip_version) => {
       return axios({
         url: `${baseURL}/zstor/config`,
         method: "post",
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        data: { ip_version: ip_version}
       })
     },
     getZdbSecret: () => {

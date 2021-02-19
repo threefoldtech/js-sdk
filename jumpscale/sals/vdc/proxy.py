@@ -10,6 +10,7 @@ from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 
 from .base_component import VDCBaseComponent
 from .scheduler import Scheduler
+from textwrap import dedent
 
 VDC_PARENT_DOMAIN = j.core.config.get("VDC_PARENT_DOMAIN", "grid.tf")
 
@@ -657,3 +658,41 @@ class VDCProxy(VDCBaseComponent):
             force_https=force_https,
         )
         self.vdc_deployer.vdc_k8s_manager.execute_native_cmd(f"echo -e '{ingress_text}' |  kubectl apply -f -")
+
+    def socat_proxy(self, name, src_port, dst_port, dst_ip):
+        if not self.vdc_instance.kubernetes:
+            self.vdc_instance.load_info()
+        public_ip = None
+        for node in self.vdc_instance.kubernetes:
+            if node.public_ip != "::/128":
+                public_ip = node.public_ip
+                break
+        if not public_ip:
+            raise j.exceptions.Runtime(f"couldn't get a public ip for vdc: {self.vdc_instance.vdc_name}")
+        ssh_client = self.vdc_instance.get_ssh_client(
+            name,
+            public_ip,
+            "rancher",
+            f"{self.vdc_deployer.ssh_key_path}/id_rsa" if self.vdc_deployer.ssh_key_path else None,
+        )
+        rc, out, _ = ssh_client.sshclient.run(f"sudo netstat -tulpn | grep :{src_port}", warn=True)
+        if rc == 0:
+            raise j.exceptions.Input(f"port: {src_port} is already exposed. details: {out}. choose a different port")
+
+        socat = "/var/lib/rancher/k3s/data/current/bin/socat"
+        cmd = f"{socat} tcp-listen:{src_port},reuseaddr,fork tcp:{dst_ip}:{dst_port}"
+        template = f"""#!/sbin/openrc-run
+        name="{name}"
+        command="{cmd}"
+        pidfile="/var/run/{name}.pid"
+        command_background=true
+        """
+        template = dedent(template)
+        file_name = f"socat-{name}"
+        rc, out, err = ssh_client.sshclient.run(
+            f"sudo touch /etc/init.d/{file_name} && sudo chmod 777 /etc/init.d/{file_name} &&  echo '{template}' >> /etc/init.d/{file_name} && sudo rc-service {file_name} start",
+            warn=True,
+        )
+        if rc != 0:
+            j.exceptions.Runtime(f"failed to expose port using socat. rc: {rc}, out: {out}, err: {err}")
+        return public_ip

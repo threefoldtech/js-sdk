@@ -109,7 +109,9 @@ class UserVDC(Base):
         active_pools = [p for p in explorer.pools.list(customer_tid=self.identity_tid) if p.pool_id in my_pool_ids]
         return active_pools
 
-    def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=None, deployment_logs=False):
+    def get_deployer(
+        self, password=None, identity=None, bot=None, proxy_farm_name=None, deployment_logs=False, ssh_key_path=None
+    ):
         proxy_farm_name = proxy_farm_name or PROXY_FARM.get()
         if not password and not identity:
             identity = self._get_identity()
@@ -121,6 +123,7 @@ class UserVDC(Base):
             proxy_farm_name=proxy_farm_name,
             identity=identity,
             deployment_logs=deployment_logs,
+            ssh_key_path=ssh_key_path,
         )
 
     def _get_identity(self):
@@ -584,3 +587,20 @@ class UserVDC(Base):
             diff = float(vdc_cost) - float(current_balance)
             j.logger.info(f"funding diff: {diff} for vdc {self.vdc_name} from wallet: {funding_wallet_name}")
             self.pay_amount(dst_wallet.address, diff, wallet)
+
+    def get_ssh_client(self, name, ip_address, user, private_key_path=None):
+        private_key_path = (
+            private_key_path or f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
+        )
+        if not j.sals.fs.exists(private_key_path):
+            private_key_path = "/root/.ssh/id_rsa"
+        if not j.sals.fs.exists(private_key_path):
+            raise j.exceptions.Input(f"couldn't find key at default locations")
+        j.logger.info(f"getting ssh_client to: {user}@{ip_address} using key: {private_key_path}")
+        j.clients.sshkey.delete(name)
+        ssh_key = j.clients.sshkey.get(name)
+        ssh_key.private_key_path = private_key_path
+        ssh_key.load_from_file_system()
+        j.clients.sshclient.delete(name)
+        ssh_client = j.clients.sshclient.get(name, user=user, host=ip_address, sshkey=self.vdc_name)
+        return ssh_client
