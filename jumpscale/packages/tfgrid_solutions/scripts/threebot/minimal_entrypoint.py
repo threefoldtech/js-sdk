@@ -89,7 +89,7 @@ for key, value in VDC_VARS.items():
     # TODO: bring back when merging to development branch
     # if not value:
     #     raise j.exceptions.Validation(f"MISSING ENVIRONMENT VARIABLES. {key} is not set")
-    j.sals.process.execute(f"""echo "{key}='{value}'" >> /root/.bashrc""")
+    j.sals.process.execute(f"""echo "export {key}='{value}'" >> /root/.bashrc""")
 
 
 username = VDC_IDENTITY_FORMAT.format(vdc_dict["owner_tname"], vdc_dict["vdc_name"], vdc_dict["solution_uuid"])
