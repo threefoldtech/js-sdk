@@ -590,7 +590,10 @@ class UserVDC(Base):
             private_key_path or f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
         )
         if not j.sals.fs.exists(private_key_path):
-            raise j.exceptions.Input(f"couldn't find key at path: {private_key_path}")
+            private_key_path = "/root/.ssh/id_rsa"
+        if not j.sals.fs.exists(private_key_path):
+            raise j.exceptions.Input(f"couldn't find key at default locations")
+        j.logger.info(f"getting ssh_client to: {user}@{ip_address} using key: {private_key_path}")
         ssh_key = j.clients.sshkey.get(self.vdc_name)
         ssh_key.private_key_path = private_key_path
         ssh_key.load_from_file_system()
