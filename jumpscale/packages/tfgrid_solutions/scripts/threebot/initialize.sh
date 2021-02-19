@@ -10,6 +10,7 @@ if [ $MINIMAL == "true" ]; then
   chmod +x velero-v1.5.3-linux-amd64/velero
   mv velero-v1.5.3-linux-amd64/velero /sbin/
   rm -rf velero-v1.5.3-linux-amd64
+  apt install etcd-client
   python3 jumpscale/packages/tfgrid_solutions/scripts/threebot/minimal_entrypoint.py
 else
   echo "INSTANCE_NAME=${INSTANCE_NAME}" >> ~/.bashrc
