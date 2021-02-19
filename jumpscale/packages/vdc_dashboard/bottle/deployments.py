@@ -181,10 +181,16 @@ def cancel_deployment():
 @app.route("/api/zstor/config", method="POST")
 @authenticated
 def get_zstor_config():
+    data = dict()
+    try:
+        data = j.data.serializers.json.loads(request.body.read())
+    except Exception as e:
+        j.logger.error(f"couldn't load body due to error: {str(e)}.")
     vdc = _get_vdc()
     vdc_zdb_monitor = vdc.get_zdb_monitor()
     password = vdc_zdb_monitor.get_password()
     encryption_key = password[:32].encode().zfill(32).hex()
+    ip_version = data.get("ip_version", 6)
     data = {
         "data_shards": 2,
         "parity_shards": 1,
@@ -201,14 +207,22 @@ def get_zstor_config():
         },
         "groups": [],
     }
+    if ip_version == 4:
+        deployer = vdc.get_deployer()
+        deployer.s3.expose_zdbs()
+
     for zdb in vdc.s3.zdbs:
-        data["groups"].append(
-            {
-                "backends": [
-                    {"address": f"[{zdb.ip_address}]:{zdb.port}", "namespace": zdb.namespace, "password": password}
-                ]
-            }
-        )
+        if ip_version == 6:
+            zdb_url = f"[{zdb.ip_address}]:{zdb.port}"
+        elif ip_version == 4:
+            zdb_url = zdb.proxy_url
+        else:
+            return HTTPResponse(
+                status=400,
+                message=f"unsupported ip version: {ip_version}",
+                headers={"Content-Type": "application/json"},
+            )
+        data["groups"].append({"backends": [{"address": zdb_url, "namespace": zdb.namespace, "password": password}]})
     return j.data.serializers.json.dumps({"data": j.data.serializers.toml.dumps(data)})
 
 
