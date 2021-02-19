@@ -160,6 +160,9 @@ server.packages.add(
 server.save()
 
 j.sals.process.execute("cat /root/.ssh/authorized_keys > /root/.ssh/id_rsa.pub")
+j.sals.process.execute(
+    f"cat /root/.ssh/authorized_keys > {j.core.dirs.CFGDIR}/vdc/keys/{vdc.owner_tname}/{vdc.vdc_name}/id_rsa.pub"
+)
 j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/kube/{vdc.owner_tname}")
 j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{vdc.owner_tname}/{vdc.vdc_name}.yaml", KUBE_CONFIG)
 
