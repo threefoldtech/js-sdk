@@ -161,6 +161,7 @@ server.packages.add(
 server.save()
 
 j.sals.process.execute("cat /root/.ssh/authorized_keys > /root/.ssh/id_rsa.pub")
+j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/keys/{vdc.owner_tname}/{vdc.vdc_name}")
 j.sals.process.execute(
     f"cat /root/.ssh/authorized_keys > {j.core.dirs.CFGDIR}/vdc/keys/{vdc.owner_tname}/{vdc.vdc_name}/id_rsa.pub"
 )
@@ -251,7 +252,6 @@ if THREEBOT_PRIVATE_KEY:
     with open("/root/.ssh/id_rsa", "w") as f:
         f.writelines(THREEBOT_PRIVATE_KEY)
     j.sals.fs.chmod("/root/.ssh/id_rsa", 0o600)
-    j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/keys/{vdc.owner_tname}/{vdc.vdc_name}")
     with open(f"{j.core.dirs.CFGDIR}/vdc/keys/{vdc.owner_tname}/{vdc.vdc_name}/id_rsa", "w"):
         f.writelines(THREEBOT_PRIVATE_KEY)
     j.sals.fs.chmod(f"{j.core.dirs.CFGDIR}/vdc/keys/{vdc.owner_tname}/{vdc.vdc_name}/id_rsa", 0o600)
