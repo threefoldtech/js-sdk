@@ -23,6 +23,22 @@ def _filter_data(deployment):
     return filtered_deployment
 
 
+def _get_resource(k8s_client, resource_type, solution_type):
+    resource = k8s_client.execute_native_cmd(
+        cmd=f"kubectl get {resource_type} -A -l app.kubernetes.io/name={solution_type} -o json"
+    )
+    return j.data.serializers.json.loads(resource)["items"]
+
+
+def _get_resource_key(k8s_client, resource_type, namespace, release_name, key):
+    try:
+        return k8s_client.execute_native_cmd(
+            cmd=f"kubectl get {resource_type} -n {namespace} -l app.kubernetes.io/instance={release_name} -o=jsonpath='{{{key}}}'"
+        )
+    except:
+        return None
+
+
 def get_all_deployments(solution_types: list = None) -> list:
     """List all deployments from kubectl and corresponding helm list info"""
     if not solution_types:
@@ -59,21 +75,14 @@ def get_deployments(solution_type: str = None, username: str = None) -> list:
         k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
 
         # get deployments
-        kubectl_deployment_info = k8s_client.execute_native_cmd(
-            cmd=f"kubectl get deployments -A -l app.kubernetes.io/name={solution_type} -o json"
-        )
-        kubectl_deployment_info = j.data.serializers.json.loads(kubectl_deployment_info)
+        resources = _get_resource(k8s_client, "deployments", solution_type)
 
         # get statefulsets if no result from deployments
-        if not kubectl_deployment_info["items"]:
-            kubectl_deployment_info = k8s_client.execute_native_cmd(
-                cmd=f"kubectl get statefulset -A -l app.kubernetes.io/name={solution_type} -o json"
-            )
-            kubectl_deployment_info = j.data.serializers.json.loads(kubectl_deployment_info)
+        if not resources:
+            resources = _get_resource(k8s_client, "statefulset", solution_type)
 
-        deployments = kubectl_deployment_info["items"]
         releases = []
-        for deployment_info in deployments:
+        for deployment_info in resources:
             namespace = deployment_info["metadata"].get("namespace", "default")
             deployment_info = _filter_data(deployment_info)
             release_name = deployment_info["Release"]
@@ -85,18 +94,17 @@ def get_deployments(solution_type: str = None, username: str = None) -> list:
                 helm_chart_supplied_values = k8s_client.get_helm_chart_user_values(release=release_name)
             except:
                 pass
-            deployment_host = ""
-            try:
-                deployment_host = k8s_client.execute_native_cmd(
-                    cmd=f"kubectl get ingress -n {namespace} -l app.kubernetes.io/instance={release_name} -o=jsonpath='{{.items[0].spec.rules[0].host}}'"
+            domain = _get_resource_key(k8s_client, "ingress", namespace, release_name, ".items[0].spec.rules[0].host")
+
+            if not domain:
+                domain = _get_resource_key(
+                    k8s_client, "ingressroutetcps", namespace, release_name, ".items[0].spec.tls.domains[0].main"
                 )
-            except:
-                pass
 
             deployment_info.update(
                 {
                     "VDC Name": vdc_name,
-                    "Domain": deployment_host,
+                    "Domain": domain,
                     "User Supplied Values": j.data.serializers.json.loads(helm_chart_supplied_values),
                     "Chart": solution_type,
                     "Namespace": namespace,
