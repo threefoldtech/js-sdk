@@ -281,7 +281,7 @@ class Stellar(Client):
             j.logger.info(f"activation wallet {self.instance_name}")
             for _ in range(5):
                 try:
-                    j.clients.stellar.activation_wallet.activate_account(self.address, "3.6")
+                    j.clients.stellar.activation_wallet.activate_account(self.address, "2.6")
                     self.add_known_trustline("TFT")
                     j.logger.info(f"activated wallet {self.instance_name}")
                     return
