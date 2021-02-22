@@ -660,13 +660,7 @@ class VDCProxy(VDCBaseComponent):
         self.vdc_deployer.vdc_k8s_manager.execute_native_cmd(f"echo -e '{ingress_text}' |  kubectl apply -f -")
 
     def socat_proxy(self, name, src_port, dst_port, dst_ip):
-        if not self.vdc_instance.kubernetes:
-            self.vdc_instance.load_info()
-        public_ip = None
-        for node in self.vdc_instance.kubernetes:
-            if node.public_ip != "::/128":
-                public_ip = node.public_ip
-                break
+        public_ip = self.vdc_instance.get_public_ip()
         if not public_ip:
             raise j.exceptions.Runtime(f"couldn't get a public ip for vdc: {self.vdc_instance.vdc_name}")
         ssh_client = self.vdc_instance.get_ssh_client(

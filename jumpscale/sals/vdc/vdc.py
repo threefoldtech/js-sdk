@@ -1,3 +1,4 @@
+from collections import defaultdict
 import datetime
 import uuid
 
@@ -140,7 +141,7 @@ class UserVDC(Base):
     def get_kubernetes_monitor(self):
         return KubernetesMonitor(self)
 
-    def load_info(self):
+    def load_info(self, load_proxy=False):
         self.kubernetes = []
         self.s3 = S3()
         self.threebot = VDCThreebot()
@@ -155,6 +156,61 @@ class UserVDC(Base):
                 proxies.append(workload)
         self._get_s3_subdomains(subdomains)
         self._get_threebot_subdomain(proxies)
+        if load_proxy:
+            self._build_zdb_proxies()
+
+    def _build_zdb_proxies(self):
+        proxies = self._list_socat_proxies()
+        for zdb in self.s3.zdbs:
+            zdb_proxies = proxies[zdb.ip_address]
+            if not zdb_proxies:
+                continue
+            proxy = zdb_proxies[0]
+            zdb.proxy_address = f"{proxy['ip_address']}:{proxy['listen_port']}"
+
+    def get_public_ip(self):
+        if not self.kubernetes:
+            self.load_info()
+        public_ip = None
+        for node in self.kubernetes:
+            if node.public_ip != "::/128":
+                public_ip = node.public_ip
+                break
+        return public_ip
+
+    def _list_socat_proxies(self, public_ip=None):
+        public_ip = public_ip or self.get_public_ip()
+        if not public_ip:
+            raise j.exceptions.Runtime(f"couldn't get a public ip for vdc: {self.vdc_name}")
+        ssh_client = self.get_ssh_client("socat_list", public_ip, "rancher",)
+        result = defaultdict(list)
+        rc, out, _ = ssh_client.sshclient.run(f"sudo ps -ef | grep -v grep | grep socat")
+        if rc != 0:
+            return result
+
+        for line in out.splitlines():
+            # root      6659     1  0 Feb19 ?        00:00:00 /var/lib/rancher/k3s/data/current/bin/socat tcp-listen:9900,reuseaddr,fork tcp:[2a02:1802:5e:0:c46:cff:fe32:39ae]:9900
+            splits = line.split("tcp-listen:")
+            if len(splits) != 2:
+                continue
+            splits = splits[1].split(",")
+            if len(splits) < 2:
+                continue
+            listen_port = splits[0]
+            splits = line.split("tcp:")
+            if len(splits) != 2:
+                continue
+            proxy_address = splits[1]
+            splits = proxy_address.split(":")
+            if len(splits) < 2:
+                continue
+
+            port = splits[-1]
+            ip_address = ":".join(splits[:-1])
+            if ip_address[0] == "[" and ip_address[-1] == "]":
+                ip_address = ip_address[1:-1]
+            result[ip_address].append({"dst_port": port, "listen_port": listen_port, "ip_address": public_ip})
+        return result
 
     def _filter_vdc_workloads(self):
         zos = get_zos()
