@@ -58,7 +58,7 @@ const apiClient = {
   wallets: {
     walletQRCodeImage: (address, amount, scale) => {
       return axios({
-        url: `/admin/actors/admin/get_wallet_qrcode_image`,
+        url: `/vdc/api/wallet/qrcode/get`,
         method: "post",
         data: { address: address,amount: amount, scale: scale},
         headers: { 'Content-Type': 'application/json' }

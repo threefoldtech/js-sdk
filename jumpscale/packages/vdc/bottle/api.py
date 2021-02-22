@@ -2,7 +2,7 @@ from jumpscale.sals.vdc import VDCFACTORY
 from beaker.middleware import SessionMiddleware
 from bottle import Bottle, HTTPResponse, request, abort
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, get_user_info, package_authorized
+from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, get_user_info, package_authorized, login_required
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 
@@ -131,6 +131,21 @@ def accept():
         return HTTPResponse(
             j.data.serializers.json.dumps({"allowed": True}), status=201, headers={"Content-Type": "application/json"}
         )
+
+
+@app.route("/api/wallet/qrcode/get", method="POST")
+@login_required
+def get_wallet_qrcode_image():
+    request_data = j.data.serializers.json.loads(request.body.read())
+    address = request_data.get("address")
+    amount = request_data.get("amount")
+    scale = request_data.get("scale", 5)
+    if not all([address, amount, scale]):
+        return HTTPResponse("Not all parameters satisfied", status=400, headers={"Content-Type": "application/json"})
+
+    data = f"TFT:{address}?amount={amount}&message=topup&sender=me"
+    qrcode_image = j.tools.qrcode.base64_get(data, scale=scale)
+    return j.data.serializers.json.dumps({"data": qrcode_image})
 
 
 app = SessionMiddleware(app, SESSION_OPTS)

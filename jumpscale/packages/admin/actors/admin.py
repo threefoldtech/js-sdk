@@ -315,11 +315,5 @@ class Admin(BaseActor):
     def get_notifications_count(self) -> str:
         return j.data.serializers.json.dumps({"data": j.tools.notificationsqueue.count()})
 
-    @actor_method
-    def get_wallet_qrcode_image(self, address: str, amount: int, scale: int = 5) -> str:
-        data = f"TFT:{address}?amount={amount}&message=topup&sender=me"
-        qrcode_image = j.tools.qrcode.base64_get(data, scale=scale)
-        return j.data.serializers.json.dumps({"data": qrcode_image})
-
 
 Actor = Admin
