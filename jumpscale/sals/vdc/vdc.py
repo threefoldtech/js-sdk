@@ -209,7 +209,7 @@ class UserVDC(Base):
             ip_address = ":".join(splits[:-1])
             if ip_address[0] == "[" and ip_address[-1] == "]":
                 ip_address = ip_address[1:-1]
-                result[ip_address].append({"dst_port": port, "listen_port": listen_port, "ip_address": public_ip})
+            result[ip_address].append({"dst_port": port, "listen_port": listen_port, "ip_address": public_ip})
         return result
 
     def _filter_vdc_workloads(self):
