@@ -24,6 +24,8 @@ class KubernetesGenerator:
         ssh_keys: List[str],
         pool_id: int,
         public_ip_wid: int = 0,
+        disable_default_ingress=True,
+        datastore_endpoint="",
     ) -> K8s:
         """create a kubernetes marster workload object
 
@@ -60,6 +62,8 @@ class KubernetesGenerator:
             ssh_keys = [ssh_keys]
         master.ssh_keys = ssh_keys
         master.public_ip = public_ip_wid
+        master.disable_default_ingress = disable_default_ingress
+        master.datastore_endpoint = datastore_endpoint
 
         return master
 
