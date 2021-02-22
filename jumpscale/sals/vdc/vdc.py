@@ -184,7 +184,7 @@ class UserVDC(Base):
             raise j.exceptions.Runtime(f"couldn't get a public ip for vdc: {self.vdc_name}")
         ssh_client = self.get_ssh_client("socat_list", public_ip, "rancher",)
         result = defaultdict(list)
-        rc, out, _ = ssh_client.sshclient.run(f"sudo ps -ef | grep -v grep | grep socat")
+        rc, out, _ = ssh_client.sshclient.run(f"sudo ps -ef | grep -v grep | grep socat", warn=True)
         if rc != 0:
             return result
 
