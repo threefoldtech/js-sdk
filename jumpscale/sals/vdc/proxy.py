@@ -667,6 +667,7 @@ class VDCProxy(VDCBaseComponent):
             if node.public_ip != "::/128":
                 public_ip = node.public_ip
                 break
+        return public_ip
 
     def socat_proxy(self, name, src_port, dst_port, dst_ip):
         public_ip = self._get_public_ip()
