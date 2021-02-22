@@ -209,6 +209,7 @@ def get_zstor_config():
     }
     if ip_version == 4:
         deployer = vdc.get_deployer()
+        vdc.load_info(load_proxy=True)
         deployer.s3.expose_zdbs()
 
     for zdb in vdc.s3.zdbs:
