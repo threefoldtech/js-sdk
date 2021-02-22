@@ -145,7 +145,6 @@ class VDCS3Deployer(VDCBaseComponent):
                         f"zdb_{zdb.wid}", starting_port, 9900, f"[{zdb.ip_address}]"
                     )
                     zdb.proxy_address = f"{public_ip}:{starting_port}"
-                    self.vdc_instance.save()
                     self.vdc_deployer.info(f"zdb: {zdb.wid} is exposed successfully on address: {zdb.proxy_address}")
                 except Exception as e:
                     self.vdc_deployer.error(f"failed to proxy zdb: {zdb.wid} due to error: {str(e)}")
