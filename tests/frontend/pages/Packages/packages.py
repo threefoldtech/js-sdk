@@ -101,6 +101,7 @@ class Packages(Base):
 
         try:
             self.click_button(self.driver, "AGREE")
+            self.wait(self.driver, "progressbar")
         except:
             pass
 
