@@ -718,7 +718,7 @@ class VDCProxy(VDCBaseComponent):
         result = []
         for line in out.splitlines():
             # root      6659     1  0 Feb19 ?        00:00:00 /var/lib/rancher/k3s/data/current/bin/socat tcp-listen:9900,reuseaddr,fork tcp:[2a02:1802:5e:0:c46:cff:fe32:39ae]:9900
-            splits = line.split("tcp-listen")
+            splits = line.split("tcp-listen:")
             if len(splits) != 2:
                 continue
             splits = splits[1].split(",")
