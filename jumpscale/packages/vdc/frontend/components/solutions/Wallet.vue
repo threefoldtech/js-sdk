@@ -40,7 +40,21 @@
                 </v-chip>
               </td>
             </tr>
+            <tr>
+              <td>QRCode</td>
+              <td class="pt-1">
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <div class="text-left ma-4" v-bind="attrs" v-on="on">
+                      <img style="border:1px dashed #85929E" :src="`data:image/png;base64, ${qrcode}`"/>
+                    </div>
+                  </template>
+                  <span>Scan the QRCode to topup wallet using Threefold Connect application</span>
+                </v-tooltip>
+              </td>
+            </tr>
           </tbody>
+
         </template>
       </v-simple-table>
     </template>
@@ -57,7 +71,29 @@ module.exports = {
   data() {
     return {
       showSecret: false,
+      qrcode: "",
+      currentWalletAddress: null
     };
   },
+
+  methods: {
+    getQRCode() {
+      this.$api.wallets
+        .walletQRCodeImage(this.wallet.address,100,3)
+        .then(result => {
+          this.qrcode = JSON.parse(result.data).data;
+          this.currentWalletAddress =  this.wallet.address
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+      },
+    },
+  updated(){
+      if(this.wallet && this.currentWalletAddress !== this.wallet.address){
+        this.getQRCode();
+      }
+  }
 };
+
 </script>
