@@ -659,7 +659,7 @@ class VDCProxy(VDCBaseComponent):
         )
         self.vdc_deployer.vdc_k8s_manager.execute_native_cmd(f"echo -e '{ingress_text}' |  kubectl apply -f -")
 
-    def socat_proxy(self, name, src_port, dst_port, dst_ip):
+    def _get_public_ip(self):
         if not self.vdc_instance.kubernetes:
             self.vdc_instance.load_info()
         public_ip = None
@@ -667,6 +667,9 @@ class VDCProxy(VDCBaseComponent):
             if node.public_ip != "::/128":
                 public_ip = node.public_ip
                 break
+
+    def socat_proxy(self, name, src_port, dst_port, dst_ip):
+        public_ip = self._get_public_ip()
         if not public_ip:
             raise j.exceptions.Runtime(f"couldn't get a public ip for vdc: {self.vdc_instance.vdc_name}")
         ssh_client = self.vdc_instance.get_ssh_client(
@@ -696,3 +699,41 @@ class VDCProxy(VDCBaseComponent):
         if rc != 0:
             j.exceptions.Runtime(f"failed to expose port using socat. rc: {rc}, out: {out}, err: {err}")
         return public_ip
+
+    def _list_socat_proxies(self):
+        public_ip = self._get_public_ip()
+        if not public_ip:
+            raise j.exceptions.Runtime(f"couldn't get a public ip for vdc: {self.vdc_instance.vdc_name}")
+        ssh_client = self.vdc_instance.get_ssh_client(
+            "socat_list",
+            public_ip,
+            "rancher",
+            f"{self.vdc_deployer.ssh_key_path}/id_rsa" if self.vdc_deployer.ssh_key_path else None,
+        )
+        rc, out, _ = ssh_client.sshclient.run(f"sudo ps -ef | grep -v grep | grep socat")
+        if rc != 0:
+            return []
+
+        result = []
+        for line in out.splitlines():
+            # root      6659     1  0 Feb19 ?        00:00:00 /var/lib/rancher/k3s/data/current/bin/socat tcp-listen:9900,reuseaddr,fork tcp:[2a02:1802:5e:0:c46:cff:fe32:39ae]:9900
+            splits = line.split("tcp-listen")
+            if len(splits) != 2:
+                continue
+            splits = splits[1].split(",")
+            if len(splits) < 2:
+                continue
+            listen_port = splits[0]
+            splits = line.split("tcp:")
+            if len(splits) != 2:
+                continue
+            proxy_address = splits[1]
+            splits = proxy_address.split(":")
+            if len(splits) != 2:
+                continue
+            port = splits[1]
+            ip_address = splits[0]
+            if ip_address[0] == "[" and ip_address[-1] == "]":
+                ip_address = ip_address[1:-1]
+                result.append({"ip_address": ip_address, "dst_port": port, "listen_port": listen_port})
+        return result
