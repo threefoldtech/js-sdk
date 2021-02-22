@@ -162,9 +162,10 @@ class UserVDC(Base):
     def _build_zdb_proxies(self):
         proxies = self._list_socat_proxies()
         for zdb in self.s3.zdbs:
-            proxy = proxies[zdb.ip_address]
-            if not proxy:
+            zdb_proxies = proxies[zdb.ip_address]
+            if not zdb_proxies:
                 continue
+            proxy = zdb_proxies[0]
             zdb.proxy_address = f"{proxy['ip_address']}:{proxy['listen_port']}"
 
     def get_public_ip(self):
