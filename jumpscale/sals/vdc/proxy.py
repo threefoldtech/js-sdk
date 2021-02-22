@@ -730,10 +730,11 @@ class VDCProxy(VDCBaseComponent):
                 continue
             proxy_address = splits[1]
             splits = proxy_address.split(":")
-            if len(splits) != 2:
+            if len(splits) < 2:
                 continue
-            port = splits[1]
-            ip_address = splits[0]
+
+            port = splits[-1]
+            ip_address = ":".join(splits[:-1])
             if ip_address[0] == "[" and ip_address[-1] == "]":
                 ip_address = ip_address[1:-1]
                 result.append({"ip_address": ip_address, "dst_port": port, "listen_port": listen_port})
