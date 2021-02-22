@@ -30,8 +30,9 @@ module.exports = new Promise(async(resolve, reject) => {
                 openDeleteModal: false,
                 deleteNodeFarmAlert: undefined,
                 priceToEdit: { custom_cloudunits_price:{ cu: 0, su: 0, ipv4u: 0 }},
-                price: {},
-                priceToDelete: { id: 0 }
+                // price: {},
+                priceToDelete: { id: 0 },
+                incKey:0,
             }
         },
 
@@ -39,10 +40,10 @@ module.exports = new Promise(async(resolve, reject) => {
             this.loadPrices()
         },
         computed: {
-            ...vuex.mapGetters("farmmanagement", ["customPricesList"]),
+            ...vuex.mapGetters("farmmanagement", ["customPricesList", "farm"]),
 
             tableName() {
-                return `${this.farmselected.name} custom prices`
+                return `${this.farm.name} custom prices`
             }
         },
         methods: {
@@ -53,27 +54,33 @@ module.exports = new Promise(async(resolve, reject) => {
             openEditPriceModal(node) {
                 console.log("chose item: ", node)
                 this.openEditModal = true
-                this.priceToEdit = Object.assign(this.priceToEdit, node);
+                this.priceToEdit = JSON.parse(JSON.stringify(node)) //  {...node}; // Object.assign(this.priceToEdit, node);
+                console.log("price to edit; ", this.priceToEdit)
             },
             loadPrices() {
-                this.setCustomPricesList({ farmId: this.farmselected.id }).then(response => {
-                    if (response.status == 200) {
-                        this.csPricesInfo = JSON.parse(response.data).data;
-                        console.log(this.csPricesInfo);
-                    } else {
-                        console.log("error...")
-                    }
-                })
+                this.setCustomPricesList( this.farm.id)
+                this.csPricesInfo = this.customPricesList
+                this.incKey += 1;
+                console.log("now incKey: ", this.incKey)
+
+
+
+
             },
             editPrice(id) {
                 this.createOrUpdateFarmThreebotCustomPrice({farmId:this.priceToEdit.farm_id, threebotName: this.priceToEdit.threebot_name, prices: this.priceToEdit.custom_cloudunits_price})
                 console.log(id)
                 this.openEditModal = false
+                this.loadPrices()
+                this.$forceUpdate();
+                this.$mount()
+
             },
             deleteModal(id) {
                 this.openDeleteModal = true
                 this.priceToDelete = id
             },
+
         }
     });
 });

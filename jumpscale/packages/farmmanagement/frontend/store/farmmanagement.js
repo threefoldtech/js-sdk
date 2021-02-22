@@ -85,17 +85,20 @@ export default {
             let prices = createdealForThreebotInfo.prices
             return tfService.createOrUpdateFarmThreebotCustomPrice(farmId, threebotName, prices)
         },
-        setDefaultCustomPrices(context, farmDefaultCustomPricesInfo) {
+        setDefaultFarmPrices(context, farmDefaultCustomPricesInfo) {
             let farmId = farmDefaultCustomPricesInfo.farmId
             let prices = farmDefaultCustomPricesInfo.prices
-            return tfService.setDefaultCustomPrices(farmId, prices)
+            return tfService.setDefaultFarmPrices(farmId, prices)
         },
         setCustomPricesList(context, farmId) {
-            tfService.getCustomPrices(farmId).then(response => {
+            tfService.getCustomPrices(farmId || this.farm.id).then(response => {
                 let parsed =JSON.parse(response.data).data
                 context.commit("setCustomPricesList", parsed )
             })
         },
+        setFarm(context, farm){
+            context.commit("setFarm", farm)
+        }
     },
 
     mutations: {
@@ -106,6 +109,7 @@ export default {
             state.farms = value;
         },
         setFarm(state, value) {
+            console.log("setting current farm: ", value)
             state.farm = value
         },
         setNodes(state, value) {

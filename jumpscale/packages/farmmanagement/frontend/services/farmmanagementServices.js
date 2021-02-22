@@ -56,11 +56,12 @@ export default {
         })
     },
     getCustomPrices(farmId) {
+        console.log("FRM::" , farmId)
         return axios.post('/farmmanagement/actors/farm_management/get_deals_with_threebot_names', {
             farm_id: farmId
         })
     },
-    setDefaultCustomPrices(farmId, prices) {
+    setDefaultFarmPrices(farmId, prices) {
         return axios.post('/farmmanagement/actors/farm_management/enable_farm_default_prices', {
             farm_id: farmId,
             prices: prices,

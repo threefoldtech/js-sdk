@@ -1,4 +1,6 @@
+
 <section class="cspricestable">
+
     <v-alert :type="deleteNodeFarmAlert.type" v-if="deleteNodeFarmAlert">
         {{deleteNodeFarmAlert.message}}
     </v-alert>
@@ -8,7 +10,7 @@
                 <v-row>
                     <v-col cols="6">
                         <v-icon small color="white" left>fas fa-dollar-sign</v-icon>
-                        <div class="d-inline " v-if="farmselected">{{ tableName }}</div>
+                        <div class="d-inline " v-if="farm">{{ tableName }}</div>
                     </v-col>
                     <v-col></v-col>
                     <v-col cols="3" class="py-0">
@@ -85,7 +87,7 @@
                     >Delete price</v-card-title
                   >
 
-                  <v-card-text>    
+                  <v-card-text>
                     Are you sure you want to delete price with ID: {{ priceToDelete.id }}?</</v-card-text>
                   <v-card-actions>
                     <v-spacer></v-spacer>
