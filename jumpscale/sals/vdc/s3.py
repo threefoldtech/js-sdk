@@ -134,7 +134,7 @@ class VDCS3Deployer(VDCBaseComponent):
 
     def expose_zdbs(self, starting_port=9900):
         if not self.vdc_instance.s3.zdbs:
-            self.vdc_instance.load_info()
+            self.vdc_instance.load_info(load_proxy=True)
         for zdb in self.vdc_instance.s3.zdbs:
             if zdb.proxy_address:
                 self.vdc_deployer.info(f"zdb: {zdb.wid} is already exposed at address: {zdb.proxy_address}")
