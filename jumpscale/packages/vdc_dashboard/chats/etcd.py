@@ -71,10 +71,10 @@ class EtcdDeploy(SolutionsChatflowDeploy):
             self.stop(dedent(stop_message))
 
         self.is_certified = False
-        start_request_time = time()
+        start_request_time = j.data.time.now().timestamp
         request = None
         j.logger.debug("ETCD Check certificate")
-        while time() - start_request_time <= timeout:
+        while j.data.time.now().timestamp - start_request_time <= timeout:
             try:
                 request = j.tools.http.get(f"https://{self.domain}", timeout=timeout, verify=True)
                 self.is_certified = True
