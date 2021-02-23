@@ -65,7 +65,6 @@ module.exports = new Promise(async (resolve, reject) => {
                 this.createOrUpdateFarmThreebotCustomPrice(updatedData).catch( () => {
                     this.loadPrices() // load old prices if failed to update
                 })
-                console.log("edit:   ", x)
                 this.openEditModal = false
             },
             deleteModal(id) {
