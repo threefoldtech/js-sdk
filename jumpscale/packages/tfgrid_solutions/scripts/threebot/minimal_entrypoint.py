@@ -30,6 +30,10 @@ Required env variables:
 - ACME_SERVER_URL -> to use for package certificate
 - THREEBOT_PRIVATE_KEY -> private key to be set on threebot
 - BACKUP_CONFIG -> dict containing url, region, bucket, ak, sk
+- S3_URL
+- S3_BUCKET
+- S3_AK
+- S3_SK
 
 
 Role:
@@ -53,6 +57,10 @@ PREPAID_WALLET_SECRET = os.environ.get("PREPAID_WALLET_SECRET")
 ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
 THREEBOT_PRIVATE_KEY = os.environ.get("THREEBOT_PRIVATE_KEY")
 BACKUP_CONFIG = os.environ.get("BACKUP_CONFIG", "{}")
+S3_URL = os.environ.get("S3_URL", "")
+S3_BUCKET = os.environ.get("S3_BUCKET", "")
+S3_AK = os.environ.get("S3_AK", "")
+S3_SK = os.environ.get("S3_SK", "")
 
 
 vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
@@ -82,6 +90,10 @@ VDC_VARS = {
     "SDK_VERSION": os.environ.get("SDK_VERSION", "development"),
     "BACKUP_CONFIG": BACKUP_CONFIG,
     "THREEBOT_PRIVATE_KEY": THREEBOT_PRIVATE_KEY,
+    "S3_URL": S3_URL,
+    "S3_AK": S3_AK,
+    "S3_SK": S3_SK,
+    "S3_BUCKET": S3_BUCKET,
 }
 
 

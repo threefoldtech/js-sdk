@@ -25,9 +25,9 @@ class ETCDBackupService(BackgroundService):
         snapshot_path = "/tmp/vdc_etcd.db"
         j.logger.info(f"creating a snapshot of etcd cluster on endpoints: {endpoints}")
         snapshot_cmd = f"etcdctl --endpoints={endpoints} snapshot save {snapshot_path}"
-        rc, out = j.sals.process.execute(snapshot_cmd, env=etcd_env)
+        rc, out, err = j.sals.process.execute(snapshot_cmd, env=etcd_env)
         if rc:
-            msg = f"failed to save etcd snapshot. output: {out}"
+            msg = f"failed to save etcd snapshot. output: {out}, error: {err}"
             j.logger.error(msg)
             j.tools.alerthandler.alert_raise("vdc", msg)
             return
