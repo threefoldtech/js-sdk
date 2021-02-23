@@ -93,5 +93,9 @@ class FarmManagemenet(BaseActor):
     def register_farm(self, farm) -> str:
         return j.data.serializers.json.dumps({"data": self._explorer.farms.register_farm_dict(farm)})
 
+    @actor_method
+    def delete_deal(self, farm_id, threebot_id) -> str:
+        return j.data.serializers.json.dumps({"data": self._explorer.farms.delete_deal(farm_id, threebot_id)})
+
 
 Actor = FarmManagemenet
