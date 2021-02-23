@@ -73,7 +73,8 @@ def delete_vdc():
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
 
     try:
-        VDCFACTORY.delete(f"vdc_{vdc.vdc_name}_{vdc.owner_tname}")
+        vdc = VDCFACTORY.find(f"vdc_{vdc.vdc_name}_{vdc.owner_tname}")
+        VDCFACTORY.cleanup_vdc(vdc)
     except Exception as e:
         j.logger.error(f"Error deleting VDC {name} due to {str(e)}")
         return HTTPResponse(f"Error deleteing VDC {name}", status=400, headers={"Content-Type": "application/json"})

@@ -80,13 +80,21 @@ class VDCDeploy(GedisChatBot):
         # self.deployment_logs = form.single_choice("Enable extensive deployment logs?", ["Yes", "No"], default="No")
         form.ask()
         self.restore = False
+        self.vdc_flavor = self.vdc_flavor.value.split(":")[0]
+
+    def _validate_vdc_password(self):
         vdc = j.sals.vdc.find(vdc_name=self.vdc_name.value, owner_tname=self.username)
+        secret = self.vdc_secret.value
         if vdc:
+            while not vdc.validate_password(secret):
+                secret = self.string_ask(
+                    "The VDC secret you entered does not match the currently backed up vdc. Please enter the right secret",
+                    min_length=8,
+                    required=True,
+                )
             self.restore = True
             j.logger.info(f"deleting empty vdc instance: {vdc.instance_name} with uuid: {vdc.solution_uuid}")
             j.sals.vdc.delete(vdc.instance_name)
-
-        self.vdc_flavor = self.vdc_flavor.value.split(":")[0]
 
     def _k3s_and_minio_form(self):
         form = self.new_form()
@@ -142,6 +150,7 @@ class VDCDeploy(GedisChatBot):
     def vdc_info(self):
         self._init()
         self._vdc_form()
+        self._validate_vdc_password()
         self.backup_config = None
         # self._backup_form()
         # self._k3s_and_minio_form() # TODO: Restore later

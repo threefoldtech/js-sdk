@@ -18,7 +18,16 @@ from jumpscale.clients.explorer.models import (
     ZdbNamespace,
 )
 from jumpscale.loader import j
-from jumpscale.sals.vdc.size import THREEBOT_CPU, THREEBOT_DISK, THREEBOT_MEMORY, VDC_SIZE
+from jumpscale.sals.vdc.size import (
+    THREEBOT_CPU,
+    THREEBOT_DISK,
+    THREEBOT_MEMORY,
+    VDC_SIZE,
+    ETCD_CLUSTER_SIZE,
+    ETCD_DISK,
+    ETCD_CPU,
+    ETCD_MEMORY,
+)
 
 
 def cloud_units(
@@ -144,6 +153,17 @@ def calculate_vdc_price(flavor, farm_name=None):
 
     all_cus += n_cus
     all_sus += n_sus
+
+    # etcd containers usage
+    etcd_cont = Container()
+    etcd_cont.capacity.cpu = ETCD_CPU
+    etcd_cont.capacity.memory = ETCD_MEMORY
+    etcd_cont.capacity.disk_size = ETCD_DISK
+    etcd_cont.capacity.disk_type = DiskType.SSD
+    n_cus, n_sus, _ = get_cloud_units(etcd_cont)
+
+    all_cus += n_cus * ETCD_CLUSTER_SIZE
+    all_sus += n_sus * ETCD_CLUSTER_SIZE
 
     zos = j.sals.zos.get()
     farm_prices = zos._explorer.farms.get_deal_for_threebot(1, j.core.identity.me.tid)["custom_cloudunits_price"]

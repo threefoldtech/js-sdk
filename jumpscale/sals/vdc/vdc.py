@@ -13,6 +13,7 @@ from .wallet import VDC_WALLET_FACTORY
 from .zdb_auto_topup import ZDBMonitor
 from .kubernetes_auto_extend import KubernetesMonitor
 import netaddr
+import hashlib
 
 VDC_WORKLOAD_TYPES = [
     WorkloadType.Container,
@@ -124,11 +125,23 @@ class UserVDC(Base):
             deployment_logs=deployment_logs,
         )
 
-    def _get_identity(self):
+    def validate_password(self, password):
+        password_hash = hashlib.md5(password.encode()).hexdigest()
+        identity = self._get_identity(default=False)
+        if not identity:
+            # identity was not generated for this vdc instance
+            return True
+        words = j.data.encryption.key_to_mnemonic(password_hash.encode())
+        if identity.words == words:
+            return True
+        return False
+
+    def _get_identity(self, default=True):
         instance_name = f"vdc_ident_{self.solution_uuid}"
+        identity = None
         if j.core.identity.find(instance_name):
             identity = j.core.identity.find(instance_name)
-        else:
+        elif default:
             identity = j.core.identity.me
         return identity
 
