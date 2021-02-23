@@ -2010,6 +2010,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         description="",
         secret_env=None,
         log_config=None,
+        ssh_key="",
         **metadata,
     ):
         """
@@ -2052,6 +2053,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     "ETCD_ADVERTISE_CLIENT_URLS": f"http://{ip_address}:2379",
                     "ETCD_LISTEN_CLIENT_URLS": "http://0.0.0.0:2379",
                     "ETCD_INITIAL_CLUSTER": etcd_cluster,
+                    "SSH_KEY": ssh_key,
                 }
             )
             result.append(
