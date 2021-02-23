@@ -33,9 +33,9 @@ module.exports = new Promise(async(resolve, reject) => {
                         sortable: false,
                         value: "name"
                     },
-                    { text: "CU ($/mo)", value: "farm_cloudunits_price.cu" },
-                    { text: "SU ($/mo)", value: "farm_cloudunits_price.su" },
-                    { text: "IPv4u ($/mo)", value: "farm_cloudunits_price.ipv4u" },
+                    { text: "CU ($/mo)", value: "cu" },
+                    { text: "SU ($/mo)", value: "su" },
+                    { text: "IPv4u ($/mo)", value: "ipv4u" },
                     { text: "Actions", value: "action", sortable: false }
                 ],
                 prices: [{ node: 3 }, { node: 8 }],

@@ -51,9 +51,19 @@ export default {
             return tfService.setNodeFree(node_id, free)
         },
         getFarms: context => {
-            tfService.getFarms(context.getters.user.id).then(response => {
-                context.commit("setFarms", JSON.parse(response.data));
-            });
+             tfService.getExplorerPrices().then(response => {
+                let prices = JSON.parse(response.data).data;
+                tfService.getFarms(context.getters.user.id).then(response => {
+                    let farms = JSON.parse(response.data)
+                    for (let f of farms){
+                        f.explorer_default_prices = prices
+                    }
+
+                    console.log(farms)
+                    context.commit("setFarms", farms);
+                });
+            })
+
         },
         getFarm(context, farm_id) {
             tfService.getFarm(farm_id).then(response => {

@@ -65,7 +65,7 @@ class FarmManagemenet(BaseActor):
         return j.data.serializers.json.dumps({"data": custom_prices})
 
     @actor_method
-    def get_explorer_prices(self, farm_id) -> str:
+    def get_explorer_prices(self) -> str:
         return j.data.serializers.json.dumps({"data": self._explorer.farms.get_explorer_prices()})
 
     @actor_method
