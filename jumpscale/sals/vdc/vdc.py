@@ -113,7 +113,14 @@ class UserVDC(Base):
         return active_pools
 
     def get_deployer(
-        self, password=None, identity=None, bot=None, proxy_farm_name=None, deployment_logs=False, ssh_key_path=None
+        self,
+        password=None,
+        identity=None,
+        bot=None,
+        proxy_farm_name=None,
+        deployment_logs=False,
+        ssh_key_path=None,
+        restore=False,
     ):
         proxy_farm_name = proxy_farm_name or PROXY_FARM.get()
         if not password and not identity:
@@ -127,6 +134,7 @@ class UserVDC(Base):
             identity=identity,
             deployment_logs=deployment_logs,
             ssh_key_path=ssh_key_path,
+            restore=restore,
         )
 
     def validate_password(self, password):

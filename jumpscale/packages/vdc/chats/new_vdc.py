@@ -169,7 +169,7 @@ class VDCDeploy(GedisChatBot):
             self.stop(f"failed to initialize VDC wallets. please try again later")
 
         try:
-            self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self)
+            self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self, restore=self.restore)
         except Exception as e:
             j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
             j.sals.vdc.delete(self.vdc.instance_name)

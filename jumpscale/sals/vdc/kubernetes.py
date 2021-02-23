@@ -513,7 +513,7 @@ ports:
             restic_bucket = (etcd_backup_config.get("S3_BUCKET", ""),)
             restic_ak = (etcd_backup_config.get("S3_AK", ""),)
             restic_sk = (etcd_backup_config.get("S3_SK", ""),)
-            if all([restic_url, restic_bucket, restic_ak, restic_sk]):
+            if all([self.vdc_deployer.restore, restic_url, restic_bucket, restic_ak, restic_sk]):
                 secret_env = {
                     "RESTIC_REPOSITORY": f"s3:{restic_url}/{restic_bucket}/{self.vdc_instance.owner_tname}/{self.vdc_instance.vdc_name}",
                     "AWS_ACCESS_KEY_ID": restic_ak,

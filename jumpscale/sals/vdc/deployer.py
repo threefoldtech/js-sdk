@@ -58,7 +58,9 @@ class VDCDeployer:
         identity=None,
         deployment_logs=False,
         ssh_key_path=None,
+        restore=False,
     ):
+        self.restore = restore
         self.vdc_instance = vdc_instance
         self.vdc_name = self.vdc_instance.vdc_name
         self.flavor = self.vdc_instance.flavor
