@@ -1,6 +1,6 @@
-module.exports = new Promise(async(resolve, reject) => {
+module.exports = new Promise(async (resolve, reject) => {
     const vuex = await
-    import ("/weblibs/vuex/vuex.esm.browser.js");
+        import("/weblibs/vuex/vuex.esm.browser.js");
     resolve({
         name: "cspricestable",
         props: ['farmselected'],
@@ -29,10 +29,9 @@ module.exports = new Promise(async(resolve, reject) => {
                 openEditModal: false,
                 openDeleteModal: false,
                 deleteNodeFarmAlert: undefined,
-                priceToEdit: { custom_cloudunits_price:{ cu: 0, su: 0, ipv4u: 0 }},
+                priceToEdit: { custom_cloudunits_price: { cu: 0, su: 0, ipv4u: 0 } },
                 // price: {},
                 priceToDelete: { id: 0 },
-                incKey:0,
             }
         },
 
@@ -54,31 +53,28 @@ module.exports = new Promise(async(resolve, reject) => {
             openEditPriceModal(node) {
                 console.log("chose item: ", node)
                 this.openEditModal = true
-                this.priceToEdit = JSON.parse(JSON.stringify(node)) //  {...node}; // Object.assign(this.priceToEdit, node);
+                this.priceToEdit = node //  {...node}; // Object.assign(this.priceToEdit, node); custom_cloudunits_price
                 console.log("price to edit; ", this.priceToEdit)
             },
             loadPrices() {
-                this.setCustomPricesList( this.farm.id)
+                this.setCustomPricesList(this.farm.id)
                 this.csPricesInfo = this.customPricesList
-                this.incKey += 1;
-                console.log("now incKey: ", this.incKey)
-
-
-
-
             },
             editPrice(id) {
-                this.createOrUpdateFarmThreebotCustomPrice({farmId:this.priceToEdit.farm_id, threebotName: this.priceToEdit.threebot_name, prices: this.priceToEdit.custom_cloudunits_price})
-                console.log(id)
+                const updatedData = { farmId: this.priceToEdit.farm_id, threebotName: this.priceToEdit.threebot_name, prices: this.priceToEdit.custom_cloudunits_price }
+                this.createOrUpdateFarmThreebotCustomPrice(updatedData).catch( () => {
+                    this.loadPrices() // load old prices if failed to update
+                })
+                console.log("edit:   ", x)
                 this.openEditModal = false
-                this.loadPrices()
-                this.$forceUpdate();
-                this.$mount()
-
             },
             deleteModal(id) {
                 this.openDeleteModal = true
                 this.priceToDelete = id
+            },
+            closeEditModal() { this.openEditModal = false; this.loadPrices() },
+            deleteprice() {
+                // TODO: to be implemented
             },
 
         }
