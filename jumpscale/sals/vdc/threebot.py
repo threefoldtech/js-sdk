@@ -20,6 +20,11 @@ import random
 THREEBOT_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
 THREEBOT_TRC_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
 
+# etcd backup config can be set using
+"""JS-NG> j.core.config.set("VDC_S3_CONFIG", s3_config)
+JS-NG> s3_config = {"S3_URL": "https://s3.grid.tf", "S3_BUCKET": "vdc-devnet", "S3_AK": "", "S3_SK": ""}
+JS-NG> """
+
 
 class VDCThreebotDeployer(VDCBaseComponent):
     def deploy_threebot(self, minio_wid, pool_id, kube_config, embed_trc=True, backup_config=None):
