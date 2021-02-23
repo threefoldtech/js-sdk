@@ -2009,6 +2009,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         identity_name=None,
         description="",
         secret_env=None,
+        log_config=None,
         **metadata,
     ):
         """
@@ -2070,6 +2071,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     public_ipv6=public_ipv6,
                     description=description,
                     identity_name=identity_name,
+                    log_config=log_config,
                     **metadata,
                 )
             )

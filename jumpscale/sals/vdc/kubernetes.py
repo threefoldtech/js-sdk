@@ -521,6 +521,17 @@ ports:
                     "RESTIC_PASSWORD": self.vdc_deployer.password,
                 }
 
+            explorer = None
+            if "test" in j.core.identity.me.explorer_url:
+                explorer = "test"
+            elif "dev" in j.core.identity.me.explorer_url:
+                explorer = "dev"
+            else:
+                explorer = "main"
+            log_config = j.core.config.get("VDC_LOG_CONFIG", {})
+            if log_config:
+                log_config["channel_name"] = f"{self.vdc_instance.instance_name}_{explorer}"
+
             wids = deployer.deploy_etcd_containers(
                 pool_id,
                 node_ids,
@@ -535,6 +546,7 @@ ports:
                 solution_uuid=solution_uuid,
                 description=self.vdc_deployer.description,
                 secret_env=secret_env,
+                log_config=log_config,
             )
             try:
                 for wid in wids:
