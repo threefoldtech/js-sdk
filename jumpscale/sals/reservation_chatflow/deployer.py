@@ -2008,6 +2008,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         public_ipv6=False,
         identity_name=None,
         description="",
+        secret_env=None,
         **metadata,
     ):
         """
@@ -2065,6 +2066,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     disk_size,
                     disk_type,
                     entrypoint=entrypoint,
+                    secret_env=secret_env,
                     public_ipv6=public_ipv6,
                     description=description,
                     identity_name=identity_name,
