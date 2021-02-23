@@ -316,4 +316,19 @@ def update():
     )
 
 
+@app.route("/api/wallet/qrcode/get", method="POST")
+@login_required
+def get_wallet_qrcode_image():
+    request_data = j.data.serializers.json.loads(request.body.read())
+    address = request_data.get("address")
+    amount = request_data.get("amount")
+    scale = request_data.get("scale", 5)
+    if not all([address, amount, scale]):
+        return HTTPResponse("Not all parameters satisfied", status=400, headers={"Content-Type": "application/json"})
+
+    data = f"TFT:{address}?amount={amount}&message=topup&sender=me"
+    qrcode_image = j.tools.qrcode.base64_get(data, scale=scale)
+    return j.data.serializers.json.dumps({"data": qrcode_image})
+
+
 app = SessionMiddleware(app, SESSION_OPTS)
