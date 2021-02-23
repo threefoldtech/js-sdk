@@ -38,7 +38,7 @@ class ETCDBackupService(BackgroundService):
             "AWS_ACCESS_KEY_ID": ak,
             "AWS_SECRET_ACCESS_KEY": sk,
         }
-        restic.repo = f"s3:https://{url}/{bucket}/{vdc.owner_tname}/{vdc.vdc_name}"
+        restic.repo = f"s3:{url}/{bucket}/{vdc.owner_tname}/{vdc.vdc_name}"
         restic.password = "mypassword"
         if not j.core.config.get("RESTIC_INITIALIZED"):
             restic.init_repo()
