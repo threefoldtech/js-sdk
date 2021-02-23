@@ -38,8 +38,10 @@ class ETCDBackupService(BackgroundService):
             "AWS_ACCESS_KEY_ID": ak,
             "AWS_SECRET_ACCESS_KEY": sk,
         }
+        vdc_zdb_monitor = vdc.get_zdb_monitor()
+        password = vdc_zdb_monitor.get_password()
         restic.repo = f"s3:{url}/{bucket}/{vdc.owner_tname}/{vdc.vdc_name}"
-        restic.password = "mypassword"
+        restic.password = password
         if not j.core.config.get("RESTIC_INITIALIZED"):
             restic.init_repo()
             j.core.config.set("RESTIC_INITIALIZED", True)
