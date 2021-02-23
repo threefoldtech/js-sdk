@@ -1,11 +1,17 @@
 from jumpscale.core.base import Base, fields
 
-from . import Data, Result
+from . import Capacity, Data, Result
 
 
 class PublicIP(Data):
+    NAME = "ipv4"
+
     ip = fields.IPAddress(required=True)
+
+    @property
+    def capacity(self):
+        return Capacity(ipv4u=1)
 
 
 class PublicIPResult(Result):
-    pass
+    ip = fields.IPAddress(required=True)

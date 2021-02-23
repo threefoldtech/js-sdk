@@ -56,10 +56,6 @@ class Challengeable(Base):
             io.write(self.get_value_challenge(raw_value))
 
 
-class Data(Challengeable):
-    pass
-
-
 class Result(Base):
     pass
 
@@ -69,6 +65,14 @@ class DeviceType(Enum):
     SSD = "ssd"
 
 
+class Capacity(Base):
+    cru = fields.Integer()
+    sru = fields.Integer()
+    hru = fields.Integer()
+    mru = fields.Integer()
+    ipv4u = fields.Integer()
+
+
 class WorkloadType(Enum):
     Container = "container"
     Volume = "volume"
@@ -76,6 +80,12 @@ class WorkloadType(Enum):
     ZDB = "zdb"
     Kubernetes = "kubernetes"
     PublicIP = "ipv4"
+
+
+class Data(Challengeable):
+    @property
+    def capacity(self):
+        return Capacity()
 
 
 class Workload(Challengeable):
@@ -89,12 +99,16 @@ class Workload(Challengeable):
         # sk => identity secret
         return challenge
 
+    def data_updated(self, value):
+        # update type according to workload
+        self.type = WorkloadType[type(value).__name__].value
+
     version = fields.Integer()
     user_id = fields.String(required=True, allow_empty=False)
     type = fields.Enum(WorkloadType)
     metadata = fields.String()
     description = fields.String()
-    data = fields.Object(Data)
+    data = fields.Object(Data, on_update=data_updated)
 
     id = fields.String()
     created = fields.DateTime()

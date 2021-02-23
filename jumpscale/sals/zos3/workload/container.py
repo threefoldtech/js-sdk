@@ -1,6 +1,6 @@
 from jumpscale.core.base import fields
 
-from . import Data, DeviceType, Result
+from . import Capacity, Data, DeviceType, Result
 
 
 class Member(Data):
@@ -35,7 +35,7 @@ class Stats(Data):
 
 
 class Capacity(Data):
-    cpu = fields.Intger()
+    cpu = fields.Integer()
     memory = fields.Integer()
     disk_type = fields.Enum(DeviceType)
     disk_size = fields.Integer()
@@ -56,6 +56,23 @@ class Container(Data):
 
     logs = fields.List(fields.Object(Logs), default=[])
     stats = fields.List(fields.Object(Stats), default=[])
+
+    @property
+    def capacity(self):
+        # round mru to 4 digits precision
+        c = Capacity()
+
+        c.cru = self.capacity.cpu
+        c.mru = round(self.capacity.memory / 1024 * 10000) / 10000
+        storage_size = round(self.capacity.disk_size / 1024 * 10000) / 10000
+        storage_size = max(0, storage_size - 50)
+
+        if self.capacity.disk_type == DeviceType.HDD:
+            c.hru = storage_size
+        else:
+            c.sru = storage_size
+
+        return c
 
 
 class ContainerResult(Result):
