@@ -4,7 +4,6 @@ from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy, POD_INITIALIZING_TIMEOUT
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
-from time import time
 
 CHART_LIMITS = {
     "Silver": {"cpu": "100m", "memory": "128Mi", "no_nodes": "1", "volume_size": "2Gi"},
