@@ -58,8 +58,6 @@ export default {
                     for (let f of farms){
                         f.explorer_default_prices = prices
                     }
-
-                    console.log(farms)
                     context.commit("setFarms", farms);
                 });
             })
