@@ -21,10 +21,10 @@ class ETCDBackupService(BackgroundService):
         endpoints = ""
         for etcd in vdc.etcd:
             endpoints += f"http://{etcd.ip_address}:2379,"
-        etcd_env = {"ETCDCTL_API": 3}
+        etcd_env = {"ETCDCTL_API": "3"}
         snapshot_path = "/tmp/vdc_etcd.db"
         j.logger.info(f"creating a snapshot of etcd cluster on endpoints: {endpoints}")
-        snapshot_cmd = f"etcdctl endpoints={endpoints} snapshot save {snapshot_path}"
+        snapshot_cmd = f"etcdctl --endpoints={endpoints} snapshot save {snapshot_path}"
         rc, out = j.sals.process.execute(snapshot_cmd, env=etcd_env)
         if rc:
             msg = f"failed to save etcd snapshot. output: {out}"

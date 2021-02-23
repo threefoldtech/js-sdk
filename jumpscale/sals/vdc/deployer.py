@@ -399,6 +399,7 @@ class VDCDeployer:
         if not etcd_ips:
             self.error("failed to deploy etcd cluster")
             return
+        endpoint = ",".join([f"http:{ip_address}:2379" for ip_address in etcd_ips])
         self.bot_show_update("Deploying Kubernetes Controller...")
         gs = scheduler or GlobalScheduler()
         master_pool_id, _ = self.get_pool_id_and_reservation_id(NETWORK_FARM.get())
@@ -406,7 +407,7 @@ class VDCDeployer:
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         pub_keys = pub_keys or []
         master_ip = self.kubernetes.deploy_master(
-            master_pool_id, gs, master_size, cluster_secret, pub_keys, self.vdc_uuid, nv,
+            master_pool_id, gs, master_size, cluster_secret, pub_keys, self.vdc_uuid, nv, endpoint,
         )
         if not master_ip:
             self.error("failed to deploy kubernetes master")

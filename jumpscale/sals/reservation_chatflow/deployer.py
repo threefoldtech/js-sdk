@@ -1237,10 +1237,21 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         identity_name=None,
         description="",
         public_ip_wid=0,
+        datastore_endpoint="",
+        disable_default_ingress=False,
         **metadata,
     ):
         master = j.sals.zos.get(identity_name).kubernetes.add_master(
-            node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id, public_ip_wid
+            node_id,
+            network_name,
+            cluster_secret,
+            ip_address,
+            size,
+            ssh_keys,
+            pool_id,
+            public_ip_wid,
+            disable_default_ingress,
+            datastore_endpoint,
         )
         desc = {"role": "master"}
         if metadata:

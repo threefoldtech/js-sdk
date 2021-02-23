@@ -133,7 +133,17 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             )
         return wids
 
-    def deploy_master(self, pool_id, scheduler, k8s_flavor, cluster_secret, ssh_keys, solution_uuid, network_view):
+    def deploy_master(
+        self,
+        pool_id,
+        scheduler,
+        k8s_flavor,
+        cluster_secret,
+        ssh_keys,
+        solution_uuid,
+        network_view,
+        datastore_endpoint="",
+    ):
         master_ip = None
         # deploy_master
         k8s_resources_dict = VDC_SIZE.K8S_SIZES[k8s_flavor]
@@ -144,7 +154,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     master_node = next(nodes_generator)
                 except StopIteration:
                     return
-                self.vdc_deployer.info(f"deploying kubernetes master on node {master_node.node_id}")
+                self.vdc_deployer.info(
+                    f"deploying kubernetes master on node {master_node.node_id} with datastore: {datastore_endpoint}"
+                )
                 # add node to network
                 try:
                     result = deployer.add_network_node(
@@ -194,6 +206,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 solution_uuid=solution_uuid,
                 description=self.vdc_deployer.description,
                 public_ip_wid=public_ip_wid,
+                datastore_endpoint=datastore_endpoint,
+                disable_default_ingress=True,
             )
             self.vdc_deployer.info(f"kubernetes master wid: {wid}")
             try:
