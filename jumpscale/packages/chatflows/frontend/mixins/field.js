@@ -1,7 +1,7 @@
 validators = {
     common: {
         required: (field) => {
-            return field.val !== undefined ? true : 'Field is required'
+            return field.val ? true : 'Field is required'
         },
         min_length: (field, length) => {
             if (field.val !== undefined) {

@@ -1,3 +1,4 @@
+from collections import defaultdict
 import datetime
 import uuid
 
@@ -111,7 +112,9 @@ class UserVDC(Base):
         active_pools = [p for p in explorer.pools.list(customer_tid=self.identity_tid) if p.pool_id in my_pool_ids]
         return active_pools
 
-    def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=None, deployment_logs=False):
+    def get_deployer(
+        self, password=None, identity=None, bot=None, proxy_farm_name=None, deployment_logs=False, ssh_key_path=None
+    ):
         proxy_farm_name = proxy_farm_name or PROXY_FARM.get()
         if not password and not identity:
             identity = self._get_identity()
@@ -123,6 +126,7 @@ class UserVDC(Base):
             proxy_farm_name=proxy_farm_name,
             identity=identity,
             deployment_logs=deployment_logs,
+            ssh_key_path=ssh_key_path,
         )
 
     def validate_password(self, password):
@@ -151,7 +155,7 @@ class UserVDC(Base):
     def get_kubernetes_monitor(self):
         return KubernetesMonitor(self)
 
-    def load_info(self):
+    def load_info(self, load_proxy=False):
         self.kubernetes = []
         self.etcd = []
         self.s3 = S3()
@@ -167,6 +171,61 @@ class UserVDC(Base):
                 proxies.append(workload)
         self._get_s3_subdomains(subdomains)
         self._get_threebot_subdomain(proxies)
+        if load_proxy:
+            self._build_zdb_proxies()
+
+    def _build_zdb_proxies(self):
+        proxies = self._list_socat_proxies()
+        for zdb in self.s3.zdbs:
+            zdb_proxies = proxies[zdb.ip_address]
+            if not zdb_proxies:
+                continue
+            proxy = zdb_proxies[0]
+            zdb.proxy_address = f"{proxy['ip_address']}:{proxy['listen_port']}"
+
+    def get_public_ip(self):
+        if not self.kubernetes:
+            self.load_info()
+        public_ip = None
+        for node in self.kubernetes:
+            if node.public_ip != "::/128":
+                public_ip = node.public_ip
+                break
+        return public_ip
+
+    def _list_socat_proxies(self, public_ip=None):
+        public_ip = public_ip or self.get_public_ip()
+        if not public_ip:
+            raise j.exceptions.Runtime(f"couldn't get a public ip for vdc: {self.vdc_name}")
+        ssh_client = self.get_ssh_client("socat_list", public_ip, "rancher",)
+        result = defaultdict(list)
+        rc, out, _ = ssh_client.sshclient.run(f"sudo ps -ef | grep -v grep | grep socat", warn=True)
+        if rc != 0:
+            return result
+
+        for line in out.splitlines():
+            # root      6659     1  0 Feb19 ?        00:00:00 /var/lib/rancher/k3s/data/current/bin/socat tcp-listen:9900,reuseaddr,fork tcp:[2a02:1802:5e:0:c46:cff:fe32:39ae]:9900
+            splits = line.split("tcp-listen:")
+            if len(splits) != 2:
+                continue
+            splits = splits[1].split(",")
+            if len(splits) < 2:
+                continue
+            listen_port = splits[0]
+            splits = line.split("tcp:")
+            if len(splits) != 2:
+                continue
+            proxy_address = splits[1]
+            splits = proxy_address.split(":")
+            if len(splits) < 2:
+                continue
+
+            port = splits[-1]
+            ip_address = ":".join(splits[:-1])
+            if ip_address[0] == "[" and ip_address[-1] == "]":
+                ip_address = ip_address[1:-1]
+            result[ip_address].append({"dst_port": port, "listen_port": listen_port, "ip_address": public_ip})
+        return result
 
     def _filter_vdc_workloads(self):
         zos = get_zos()
@@ -606,3 +665,20 @@ class UserVDC(Base):
             diff = float(vdc_cost) - float(current_balance)
             j.logger.info(f"funding diff: {diff} for vdc {self.vdc_name} from wallet: {funding_wallet_name}")
             self.pay_amount(dst_wallet.address, diff, wallet)
+
+    def get_ssh_client(self, name, ip_address, user, private_key_path=None):
+        private_key_path = (
+            private_key_path or f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
+        )
+        if not j.sals.fs.exists(private_key_path):
+            private_key_path = "/root/.ssh/id_rsa"
+        if not j.sals.fs.exists(private_key_path):
+            raise j.exceptions.Input(f"couldn't find key at default locations")
+        j.logger.info(f"getting ssh_client to: {user}@{ip_address} using key: {private_key_path}")
+        j.clients.sshkey.delete(name)
+        ssh_key = j.clients.sshkey.get(name)
+        ssh_key.private_key_path = private_key_path
+        ssh_key.load_from_file_system()
+        j.clients.sshclient.delete(name)
+        ssh_client = j.clients.sshclient.get(name, user=user, host=ip_address, sshkey=self.vdc_name)
+        return ssh_client

@@ -57,6 +57,7 @@ class VDCDeployer:
         proxy_farm_name: str = None,
         identity=None,
         deployment_logs=False,
+        ssh_key_path=None,
     ):
         self.vdc_instance = vdc_instance
         self.vdc_name = self.vdc_instance.vdc_name
@@ -81,6 +82,7 @@ class VDCDeployer:
         self._kubernetes = None
         self._s3 = None
         self._proxy = None
+        self.ssh_key_path = ssh_key_path
         self._ssh_key = None
         self._vdc_k8s_manager = None
         self._threebot = None
@@ -183,7 +185,7 @@ class VDCDeployer:
     def ssh_key(self):
         if not self._ssh_key:
             self._ssh_key = j.clients.sshkey.get(self.vdc_name)
-            KEYS_DIR_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.tname}/{self.vdc_name}"
+            KEYS_DIR_PATH = self.ssh_key_path or f"{j.core.dirs.CFGDIR}/vdc/keys/{self.tname}/{self.vdc_name}"
             self._ssh_key.private_key_path = f"{KEYS_DIR_PATH}/id_rsa"
             if not j.sals.fs.exists(f"{KEYS_DIR_PATH}/id_rsa"):
                 j.sals.fs.mkdirs(KEYS_DIR_PATH)
