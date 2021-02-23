@@ -93,6 +93,12 @@ export default {
             let prices = createdealForThreebotInfo.prices
             return tfService.createOrUpdateFarmThreebotCustomPrice(farmId, threebotName, prices)
         },
+
+        deleteDeal(context, deleteDealInfo) {
+            let farmId = deleteDealInfo.farmId
+            let threebotId = deleteDealInfo.threebotId
+            return tfService.deleteDeal(farmId, threebotId)
+        },
         setDefaultFarmPrices(context, farmDefaultCustomPricesInfo) {
             let farmId = farmDefaultCustomPricesInfo.farmId
             let prices = farmDefaultCustomPricesInfo.prices

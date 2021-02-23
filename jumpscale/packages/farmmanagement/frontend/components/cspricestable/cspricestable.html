@@ -28,7 +28,7 @@
                 <v-icon small> fa-edit </v-icon>
               </v-btn>
 
-              <v-btn fab small text @click="deleteModal(item)">
+              <v-btn fab small text @click="showDeletePriceModal(item)">
                 <v-icon small> fa-trash </v-icon>
               </v-btn>
 
@@ -88,7 +88,7 @@
                   >
 
                   <v-card-text>
-                    Are you sure you want to delete price with ID: {{ priceToDelete.id }}?</</v-card-text>
+                    Are you sure you want to delete this deal for {{  item.threebot_name }}?</</v-card-text>
                   <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn
@@ -97,7 +97,7 @@
                       @click="openDeleteModal = false"
                       >Cancel</v-btn
                     >
-                    <v-btn color="red darken-1" text @click="deleteprice"
+                    <v-btn color="red darken-1" text @click="deletePrice(item.farm_id, item.threebot_id)"
                       >Delete</v-btn
                     >
                   </v-card-actions>

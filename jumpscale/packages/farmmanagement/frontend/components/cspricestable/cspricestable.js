@@ -49,6 +49,7 @@ module.exports = new Promise(async (resolve, reject) => {
             ...vuex.mapActions("farmmanagement", [
                 "setCustomPricesList",
                 "createOrUpdateFarmThreebotCustomPrice",
+                "deleteDeal",
             ]),
             openEditPriceModal(node) {
                 console.log("chose item: ", node)
@@ -67,14 +68,21 @@ module.exports = new Promise(async (resolve, reject) => {
                 })
                 this.openEditModal = false
             },
-            deleteModal(id) {
+            showDeletePriceModal(item) {
+                console.log("del: ", item)
                 this.openDeleteModal = true
-                this.priceToDelete = id
+                this.priceToDelete = item
+
+            },
+            deletePrice(farmId, threebotId){
+                console.log("item to del is :", farmId, threebotId)
+
+                    this.deleteDeal({farmId, threebotId})
+                    this.openDeleteModal = false
+                    this.loadPrices()
             },
             closeEditModal() { this.openEditModal = false; this.loadPrices() },
-            deleteprice() {
-                // TODO: to be implemented
-            },
+
 
         }
     });

@@ -76,7 +76,12 @@ export default {
         })
 
     },
-
+    deleteDeal(farmId, threebotId) {
+        return axios.post('/farmmanagement/actors/farm_management/delete_deal', {
+            farm_id: farmId,
+            threebot_id: threebotId,
+        })
+    },
     getExplorerPrices() {
         return axios.post('/farmmanagement/actors/farm_management/get_explorer_prices')
     },
