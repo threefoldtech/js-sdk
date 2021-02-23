@@ -87,7 +87,7 @@ class VDCDeploy(GedisChatBot):
         secret = self.vdc_secret.value
         if vdc:
             while not vdc.validate_password(secret):
-                secret = self.string_ask(
+                secret = self.secret_ask(
                     "The VDC secret you entered does not match the currently backed up vdc. Please enter the right secret",
                     min_length=8,
                     required=True,
