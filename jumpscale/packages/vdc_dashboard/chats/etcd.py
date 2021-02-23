@@ -56,8 +56,8 @@ class EtcdDeploy(SolutionsChatflowDeploy):
                 Farm name: {self.vdc_info["farm_name"]}
                 Reason: {{reason}}
                 """
-        start_time = time()
-        while time() - start_time <= POD_INITIALIZING_TIMEOUT:
+        start_time = j.data.time.now().timestamp
+        while j.data.time.now().timestamp - start_time <= POD_INITIALIZING_TIMEOUT:
             if self.chart_pods_started():
                 break
             gevent.sleep(1)
