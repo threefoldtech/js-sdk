@@ -267,3 +267,10 @@ if THREEBOT_PRIVATE_KEY:
     j.sals.process.execute(
         f"cp /root/.ssh/id_rsa {j.core.dirs.CFGDIR}/vdc/keys/{vdc.owner_tname}/{vdc.vdc_name}/id_rsa"
     )
+
+try:
+    from jumpscale.packages.vdc_dashboard.services.etcd_backup import service
+
+    service.job()
+except Exception as e:
+    j.logger.critical(f"failed to do initial vdc controller backup due to error: {str(e)}")
