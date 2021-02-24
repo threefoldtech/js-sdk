@@ -12,8 +12,10 @@ from jumpscale.packages.auth.bottle.auth import (
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 from jumpscale.sals.vdc import VDCFACTORY
+from jumpscale.sals.vdc.size import VDC_SIZE
 
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
+from jumpscale.packages.vdc.billing import get_addons
 import os
 
 app = Bottle()
@@ -25,6 +27,15 @@ def _get_vdc():
     vdc_full_name = list(j.sals.vdc.list_all())[0]
     vdc_instance = j.sals.vdc.get(vdc_full_name)
     return VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+
+
+def _total_capacity(vdc):
+    vdc.load_info()
+    addons = get_addons(vdc.flavor, vdc.kubernetes)
+    plan = VDC_SIZE.VDC_FLAVORS.get(vdc.flavor)
+    plan_nodes_count = plan.get("k8s").get("no_nodes")
+    # total capacity = worker plan nodes + added nodes + master node
+    return plan_nodes_count + len(addons) + 1
 
 
 @app.route("/api/kube/get")
@@ -121,7 +132,7 @@ def threebot_vdc():
             balances_data.append(
                 {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
             )
-
+    vdc_dict["total_capacity"] = _total_capacity(vdc)
     vdc_dict["wallet"] = {
         "address": wallet.address,
         "network": wallet.network.value,
