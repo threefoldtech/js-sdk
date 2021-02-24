@@ -7,7 +7,6 @@ from parameterized import parameterized_class
 from .vdc_base import VDCBase
 
 
-@parameterized_class(("flavor"), [("silver",), ("gold",), ("platinum",), ("diamond",)])
 @pytest.mark.integration
 class TestVDC(VDCBase):
     flavor = "silver"
@@ -248,3 +247,10 @@ class TestVDC(VDCBase):
         self.vdc.load_info()
         zdb_monitor = self.vdc.get_zdb_monitor()
         self.assertEqual(zdb_monitor.zdb_total_size, old_zdb_total_size + 10)
+
+
+@parameterized_class(("flavor"), [("gold",), ("platinum",), ("diamond",)])
+@pytest.mark.integration
+@pytest.mark.extend
+class TestVDCExtend(TestVDC):
+    pass
