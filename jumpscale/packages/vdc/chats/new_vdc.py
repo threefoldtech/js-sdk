@@ -85,15 +85,15 @@ class VDCDeploy(GedisChatBot):
         )
         # self.deployment_logs = form.single_choice("Enable extensive deployment logs?", ["Yes", "No"], default="No")
         form.ask()
+        self.vdc_secret = self.vdc_secret.value
         self.restore = False
         self.vdc_flavor = self.vdc_flavor.value.split(":")[0]
 
     def _validate_vdc_password(self):
         vdc = j.sals.vdc.find(vdc_name=self.vdc_name.value, owner_tname=self.username)
-        secret = self.vdc_secret.value
         if vdc:
-            while not vdc.validate_password(secret):
-                secret = self.secret_ask(
+            while not vdc.validate_password(self.vdc_secret):
+                self.vdc_secret = self.secret_ask(
                     "The VDC secret you entered does not match the currently backed up vdc. Please enter the right secret",
                     min_length=8,
                     required=True,
@@ -175,7 +175,7 @@ class VDCDeploy(GedisChatBot):
             self.stop(f"failed to initialize VDC wallets. please try again later")
 
         try:
-            self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self, restore=self.restore)
+            self.deployer = self.vdc.get_deployer(password=self.vdc_secret, bot=self, restore=self.restore)
         except Exception as e:
             j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
             self._rollback()
