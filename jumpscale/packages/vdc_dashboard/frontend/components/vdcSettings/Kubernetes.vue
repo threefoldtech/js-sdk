@@ -75,6 +75,9 @@
         </v-tooltip>
       </template>
     </v-data-table>
+    <template v-if="this.vdc && (this.vdc.kubernetes.length < this.vdc.total_capacity)">
+      <p>The VDC will autoscale to the plan limit.</p>
+    </template>
     <solution-info
       v-if="selected"
       v-model="dialogs.info"
