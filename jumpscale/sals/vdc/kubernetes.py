@@ -408,26 +408,33 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         Upgrades traefik chart installed on k3s to v2.3.3 to support different CAs
         """
 
-        def is_traefik_installed(manager):
-            releases = manager.list_deployed_releases("kube-system")
+        def is_traefik_installed(manager, namespace="kube-system"):
+            releases = manager.list_deployed_releases(namespace)
             # TODO: List only using names
             for release in releases:
                 if release.get("name") == "traefik":
                     return True
             return False
 
+        def clean_traefik(manager, ns):
+            # wait until traefik chart is installed on the cluster then uninstall it
+            checks = 12
+            while checks > 0 and not is_traefik_installed(manager):
+                gevent.sleep(5)
+                checks -= 1
+            if is_traefik_installed(manager):
+                manager.delete_deployed_release("traefik", ns)
+
         kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml"
         k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
         k8s_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
         k8s_client.update_repos()
 
-        # wait until traefik chart is installed on the cluster then uninstall it
-        checks = 12
-        while checks > 0 and not is_traefik_installed(k8s_client):
-            gevent.sleep(5)
-            checks -= 1
-        if is_traefik_installed(k8s_client):
-            k8s_client.delete_deployed_release("traefik", "kube-system")
+        namespaces = ["kube-system", "k3os-system"]
+        threads = []
+        for ns in namespaces:
+            threads.append(gevent.spawn(clean_traefik, k8s_client, ns))
+        gevent.joinall(threads)
 
         # install traefik v2.3.3 chart
         # TODO: better code for the values
