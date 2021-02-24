@@ -1,6 +1,6 @@
 from jumpscale.sals.vdc import VDCFACTORY
 from beaker.middleware import SessionMiddleware
-from bottle import Bottle, HTTPResponse, request, abort
+from bottle import Bottle, HTTPResponse, request, abort, redirect
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, get_user_info, package_authorized, login_required
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
@@ -9,9 +9,7 @@ from jumpscale.core.base import StoredFactory
 app = Bottle()
 
 
-@app.route("/api/vdcs", method="GET")
-@package_authorized("vdc")
-def list_vdcs():
+def _list_vdcs():
     user_info = j.data.serializers.json.loads(get_user_info())
     username = user_info["username"]
     result = []
@@ -42,7 +40,25 @@ def list_vdcs():
             "balances": balances_data,
         }
         result.append(vdc_dict)
-    return HTTPResponse(j.data.serializers.json.dumps(result), status=200, headers={"Content-Type": "application/json"})
+    return result
+
+
+@app.route("/api/vdcs", method="GET")
+@package_authorized("vdc")
+def list_vdcs():
+    return HTTPResponse(
+        j.data.serializers.json.dumps(_list_vdcs()), status=200, headers={"Content-Type": "application/json"}
+    )
+
+
+@app.route("/api/vdc_refer/<solution>", method="GET")
+@package_authorized("vdc")
+def redirect_refer(solution):
+    vdcs = _list_vdcs()
+    if not vdcs:
+        return redirect("/vdc/#/chats/new_vdc/create")
+    else:
+        return redirect(f"http://{vdcs[0]['threebot']['domain']}/vdc_dashboard/#/{solution}")
 
 
 @app.route("/api/vdcs/<name>", method="GET")
