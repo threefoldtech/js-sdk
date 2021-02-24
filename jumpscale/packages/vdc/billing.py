@@ -103,6 +103,16 @@ def calculate_addons_hourly_rate():
     return total_price
 
 
+def _calculate_discount():
+    explorer_url = j.core.identity.me.explorer_url
+    if "dev" in explorer_url:
+        return 0.01
+    elif "test" in explorer_url:
+        return 0.1
+    else:
+        return 1
+
+
 def calculate_hourly_rate():
     """Calculate the total hourly rate of the user used plan and the addons.
 
@@ -114,7 +124,7 @@ def calculate_hourly_rate():
     hourly_amount = user_plan_price / (24 * 30)
     j.logger.info(f"base plan price {user_plan_price} with hourly amount {hourly_amount}")
     hourly_amount += calculate_addons_hourly_rate()
-    return hourly_amount
+    return hourly_amount * _calculate_discount()
 
 
 def tranfer_prepaid_to_provision_wallet():
