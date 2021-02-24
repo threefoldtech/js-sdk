@@ -185,15 +185,11 @@ class KubernetesMonitor:
         result = j.data.serializers.json.loads(out)
         node_reservations = defaultdict(lambda: {"cpu": 0.0, "memory": 0.0, "total_cpu": 0.0, "total_memory": 0.0})
         for pod in result["items"]:
-            pod_name = pod["metadata"]["name"]
-            pod_ns = pod["metadata"]["namespace"]
-            pod_out = self.manager.execute_native_cmd(f"kubectl get pod -n {pod_ns} {pod_name} -o json")
-            pod_info = j.data.serializers.json.loads(pod_out)
             cpu = memory = 0
-            if not "nodeName" in pod_info["spec"]:
+            if not "nodeName" in pod["spec"]:
                 continue
-            node = pod_info["spec"]["nodeName"]
-            for cont in pod_info["spec"]["containers"]:
+            node = pod["spec"]["nodeName"]
+            for cont in pod["spec"]["containers"]:
                 cont_requests = cont["resources"].get("requests", {})
                 cpu_str = cont_requests.get("cpu", "0m")
                 if not cpu_str.endswith("m"):
