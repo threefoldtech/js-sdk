@@ -207,7 +207,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 description=self.vdc_deployer.description,
                 public_ip_wid=public_ip_wid,
                 datastore_endpoint=datastore_endpoint,
-                disable_default_ingress=False,
+                disable_default_ingress=not self.vdc_deployer.restore,
             )
             self.vdc_deployer.info(f"kubernetes master wid: {wid}")
             try:
