@@ -316,4 +316,16 @@ def update():
     )
 
 
+@app.route("/api/backup", method="GET")
+@package_authorized("vdc_dashboard")
+def backup(solution_type: str) -> str:
+    from jumpscale.packages.vdc_dashboard.services.etcd_backup import service
+
+    service.job()
+
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"success": True}), status=200, headers={"Content-Type": "application/json"}
+    )
+
+
 app = SessionMiddleware(app, SESSION_OPTS)
