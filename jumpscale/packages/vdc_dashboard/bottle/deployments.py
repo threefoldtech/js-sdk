@@ -318,7 +318,7 @@ def update():
 
 @app.route("/api/backup", method="GET")
 @package_authorized("vdc_dashboard")
-def backup(solution_type: str) -> str:
+def backup() -> str:
     from jumpscale.packages.vdc_dashboard.services.etcd_backup import service
 
     service.job()
