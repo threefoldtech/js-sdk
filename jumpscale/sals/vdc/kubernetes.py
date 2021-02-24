@@ -542,6 +542,7 @@ ports:
                 ETCD_CPU,
                 ETCD_MEMORY,
                 ETCD_DISK,
+                entrypoint="",
                 ssh_key=self.vdc_deployer.ssh_key.public_key.strip(),
                 identity_name=self.identity.instance_name,
                 solution_uuid=solution_uuid,
