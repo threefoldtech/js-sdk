@@ -637,8 +637,9 @@ class VDCDeployer:
                     # TODO: rollback
                     self.error(f"failed to deploy monitoring stack on VDC cluster due to error {str(e)}")
 
-            self.bot_show_update("Updating Traefik")
-            self.kubernetes.upgrade_traefik()
+            if not self.restore:
+                self.bot_show_update("Updating Traefik")
+                self.kubernetes.upgrade_traefik()
             self.vdc_instance.load_info()
             j.clients.sshkey.delete(f"{self.vdc_name}_threebot")
             return kube_config
