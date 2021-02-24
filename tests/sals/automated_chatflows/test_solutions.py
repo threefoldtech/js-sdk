@@ -286,3 +286,21 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.info("Check that the container coreX is reachable through the subdomain.")
         request = j.tools.http.get(f"http://{exposed.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
+
+    def test07_4to6gw(self):
+        """Test case for deploying a 4to6 GW.
+
+        **Test Scenario**
+
+        - Deploy a 4to6 GW.
+        - Check that the 4to6 GW is reachable.
+        """
+        self.info("Deploy a 4to6 GW")
+        four_to6_gw = deployer.deploy_4to6gw()
+        self.solution_uuid = four_to6_gw.solution_id
+
+        self.info("Check that the 4to6 GW is reachable")
+        ip_address = four_to6_gw.wgconf.split()[-1]
+        endpoint = ip_address.split(":")[0]
+        res, out, err = j.core.executors.run_local(f"ping -c 1 {endpoint}")
+        self.assertFalse(res)
