@@ -47,6 +47,12 @@ class VDCDeploy(GedisChatBot):
         self.user_info_data = self.user_info()
         self.username = self.user_info_data["username"]
 
+    def _rollback(self):
+        if self.restore:
+            j.sals.vdc.cleanup(self.vdc)
+        else:
+            j.sals.vdc.delete(self.vdc.instance_name)
+
     def _vdc_form(self):
         vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username, load_info=True) if not vdc.is_empty()]
         vdc_flavors = [flavor for flavor in VDC_SIZE.VDC_FLAVORS]
@@ -164,7 +170,7 @@ class VDCDeploy(GedisChatBot):
             self.vdc.prepaid_wallet
             self.vdc.provision_wallet
         except Exception as e:
-            j.sals.vdc.delete(self.vdc.instance_name)
+            self._rollback()
             j.logger.error(f"failed to initialize wallets for VDC {self.vdc_name.value} due to error {str(e)}")
             self.stop(f"failed to initialize VDC wallets. please try again later")
 
@@ -172,7 +178,7 @@ class VDCDeploy(GedisChatBot):
             self.deployer = self.vdc.get_deployer(password=self.vdc_secret.value, bot=self, restore=self.restore)
         except Exception as e:
             j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
-            j.sals.vdc.delete(self.vdc.instance_name)
+            self._rollback()
             self.stop("failed to initialize VDC deployer. please contact support")
 
         farm_name = PREFERED_FARM.get()  # TODO: use the selected farm name when users are allowed to select farms
@@ -200,7 +206,7 @@ class VDCDeploy(GedisChatBot):
 
         success, amount, payment_id = self.vdc.show_vdc_payment(self)
         if not success:
-            j.sals.vdc.delete(self.vdc.instance_name)  # delete it?
+            self._rollback()  # delete it?
             self.stop(f"payment timedout")
         self.md_show_update("Payment successful")
 
@@ -216,7 +222,7 @@ class VDCDeploy(GedisChatBot):
             j.logger.error(str(err))
             self.deployer.rollback_vdc_deployment()
             j.sals.billing.issue_refund(payment_id)
-            j.sals.vdc.delete(self.vdc.vdc_name)
+            self._rollback()
             self.stop(str(err))
         self.md_show_update("Adding funds to provisioning wallet...")
         initial_transaction_hashes = self.deployer.transaction_hashes
@@ -224,7 +230,7 @@ class VDCDeploy(GedisChatBot):
             self.vdc.transfer_to_provisioning_wallet(amount / 2)
         except Exception as e:
             j.sals.billing.issue_refund(payment_id)
-            j.sals.vdc.delete(self.vdc.instance_name)
+            self._rollback()
             j.logger.error(f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}.")
             raise StopChatFlow(f"failed to fund provisioning wallet due to error {str(e)}")
 
