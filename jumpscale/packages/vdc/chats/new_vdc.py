@@ -49,7 +49,7 @@ class VDCDeploy(GedisChatBot):
 
     def _rollback(self):
         if self.restore:
-            j.sals.vdc.cleanup(self.vdc)
+            j.sals.vdc.cleanup_vdc(self.vdc)
         else:
             j.sals.vdc.delete(self.vdc.instance_name)
 
