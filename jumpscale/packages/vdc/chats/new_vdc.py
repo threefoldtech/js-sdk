@@ -152,12 +152,22 @@ class VDCDeploy(GedisChatBot):
         # TODO: validate bucket existence and policy?
         return True, ""
 
+    def get_backup_config(self):
+        backup_config = j.core.config.get("VDC_S3_CONFIG", {})
+        self.backup_config = {
+            "ak": backup_config.get("S3_AK", ""),
+            "sk": backup_config.get("S3_SK", ""),
+            "region": "minio",
+            "url": backup_config.get("S3_URL", ""),
+            "bucket": backup_config.get("S3_BUCKET", ""),
+        }
+
     @chatflow_step(title="VDC Information")
     def vdc_info(self):
         self._init()
         self._vdc_form()
         self._validate_vdc_password()
-        self.backup_config = None
+        self.get_backup_config()
         # self._backup_form()
         # self._k3s_and_minio_form() # TODO: Restore later
 
