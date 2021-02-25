@@ -4,17 +4,28 @@ from jumpscale.core.base import Base, fields
 
 
 class Snapshot(Base):
-    snapshot_name = fields.String(default=lambda: f"snapshot-{j.data.time.utcnow().timestamp}")
-    creation_time = fields.DateTime()
+    snapshot_name = fields.String(required=True)
 
-    def __init__(self, manager, *args, **kwargs):
+    def __init__(self, manager, path=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.manager = manager
         self.vdc = self.manager.vdc
+        self._snapshot_path = path
+        self._creation_time = None
 
     @property
     def snapshot_path(self):
-        return f"{self.manager.snapshots_dir}/{self.snapshot_name}"
+        if not self._snapshot_path:
+            self._snapshot_path = f"{self.manager.snapshots_dir}/{self.snapshot_name}-{j.data.time.utcnow().timestamp}"
+        return self._snapshot_path
+
+    @property
+    def creation_time(self):
+        if not self._creation_time:
+            filename = j.sals.fs.basename(self.snapshot_path)
+            date = filename.lstrip(f"{self.snapshot_name}-")
+            self._creation_time = j.data.time.get(float(date))
+        return self._creation_time
 
     def restore(self):
         pass
@@ -36,7 +47,6 @@ class Snapshot(Base):
             j.logger.error(msg)
             j.tools.alerthandler.alert_raise("vdc", msg)
             raise j.exceptions.Runtime(msg)
-        self.creation_time = j.sals.fs.get_creation_time(self.snapshot_path)
 
 
 class SnapshotManager:
@@ -50,8 +60,7 @@ class SnapshotManager:
             j.sals.fs.mkdirs(self._snapshots_dir)
         return self._snapshots_dir
 
-    def create_snapshot(self, name=None):
-        # use etcdctl to get a snapshot of etcd and back it up using restic
+    def create_snapshot(self, name):
         snapshot = Snapshot(self, snapshot_name=name)
         snapshot.create()
         return snapshot
@@ -59,6 +68,5 @@ class SnapshotManager:
     def list_snapshots(self):
         for path in j.sals.fs.walk_files(self.snapshots_dir):
             snapshot_name = j.sals.fs.basename(path)
-            creation_time = j.sals.fs.get_creation_time(path)
-            snapshot = Snapshot(self, snapshot_name=snapshot_name, creation_time=creation_time)
+            snapshot = Snapshot(self, snapshot_name=snapshot_name)
             yield snapshot
