@@ -112,7 +112,7 @@ def calculate_vdc_price(flavor, farm_name=None):
     zdb.size = VDC_SIZE.S3_ZDB_SIZES[VDC_SIZE.VDC_FLAVORS[flavor]["s3"]["size"]]["sru"]
     zdb.disk_type = DiskType.HDD
     _, sus, _ = get_cloud_units(zdb)
-    all_cus += sus
+    all_sus += sus
 
     # get kubernetes controller usage
     master_size = VDC_SIZE.VDC_FLAVORS[flavor]["k8s"]["controller_size"]
@@ -122,7 +122,7 @@ def calculate_vdc_price(flavor, farm_name=None):
 
     all_cus += cus
     all_sus += sus
-    all_ipv4us += ipv4us
+    all_ipv4us += 60 * 60 * 24 * 30  # hardcoded since not calculated in the explorer client
 
     # get kubernetes workers usage
     no_nodes = VDC_SIZE.VDC_FLAVORS[flavor]["k8s"]["no_nodes"]
@@ -131,8 +131,8 @@ def calculate_vdc_price(flavor, farm_name=None):
     k8s.size = worker_size.value
     cus, sus, ipv4us = get_cloud_units(k8s)
 
-    all_cus += cus * (no_nodes + 1)
-    all_sus += sus * (no_nodes + 1)
+    all_cus += cus * (no_nodes)
+    all_sus += sus * (no_nodes)
 
     # get 3bot container usage
     cont2 = Container()
@@ -149,5 +149,4 @@ def calculate_vdc_price(flavor, farm_name=None):
     farm_prices = zos._explorer.farms.get_deal_for_threebot(1, j.core.identity.me.tid)["custom_cloudunits_price"]
     total_amount = zos._explorer.prices.calculate(cus=all_cus, sus=all_sus, ipv4us=all_ipv4us, farm_prices=farm_prices)
     total_amount = round(total_amount, 6)
-
     return total_amount
