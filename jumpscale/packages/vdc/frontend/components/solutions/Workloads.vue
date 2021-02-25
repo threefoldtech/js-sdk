@@ -47,7 +47,7 @@
                   v-bind="attrs"
                   v-on="on"
                   class="px-4"
-                  @click="openWalletInfo(item.wallet)"
+                  @click="openWalletInfo(item.wallet, item.price)"
                   color="primary"
                   >mdi-wallet</v-icon
                 >
@@ -68,7 +68,11 @@
         </v-data-table>
       </div>
     </base-component>
-    <wallet-info v-model="dialogs.wallet" :wallet="selected"></wallet-info>
+    <wallet-info
+      v-model="dialogs.wallet"
+      :wallet="selected"
+      :price="price"
+    ></wallet-info>
     <delete-vdc
       v-if="selectedvdc"
       v-model="dialogs.delete"
@@ -100,6 +104,7 @@ module.exports = {
       },
       selected: null,
       selectedvdc: null,
+      price: null,
     };
   },
   methods: {
@@ -109,8 +114,9 @@ module.exports = {
         params: { topic: topic, tname: tname },
       });
     },
-    openWalletInfo(wallet) {
+    openWalletInfo(wallet, price) {
       this.selected = wallet;
+      this.price = price;
       this.dialogs.wallet = true;
     },
     getDeployedSolutions() {
@@ -118,6 +124,7 @@ module.exports = {
       let today = new Date();
       let alert_time = new Date();
       alert_time.setDate(today.getDate() + 2);
+
       this.$api.solutions
         .listVdcs()
         .then((response) => {
