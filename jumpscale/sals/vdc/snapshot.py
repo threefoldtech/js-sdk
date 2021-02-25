@@ -42,7 +42,13 @@ class Snapshot(Base):
 class SnapshotManager:
     def __init__(self, vdc_instance, snapshots_dir=None):
         self.vdc = vdc_instance
-        self.snapshots_dir = snapshots_dir or f"{j.core.dirs.CFGDIR}/vdc/snapshots"
+        self._snapshots_dir = snapshots_dir or f"{j.core.dirs.CFGDIR}/vdc/snapshots"
+
+    @property
+    def snapshots_dir(self):
+        if not j.sals.fs.exists(self._snapshots_dir):
+            j.sals.fs.mkdirs(self._snapshots_dir)
+        return self._snapshots_dir
 
     def create_snapshot(self, name=None):
         # use etcdctl to get a snapshot of etcd and back it up using restic
