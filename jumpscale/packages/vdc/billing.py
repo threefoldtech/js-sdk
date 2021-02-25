@@ -1,8 +1,6 @@
 import os
 import requests
 from jumpscale.loader import j
-from jumpscale.sals.vdc.size import VDC_SIZE
-from jumpscale.sals.vdc.models import KubernetesRole
 
 
 BASE_CAPACITY = int(os.getenv("BASE_CAPACITY", 14))
@@ -48,7 +46,7 @@ def auto_extend_billing():
     vdc_instance.load_info()
 
     # Calculating the duration to extend the pool
-    remaining_days = (vdc_instance.expiration_date - j.data.time.now()).days
+    remaining_days = (j.data.time.get(vdc_instance.get_pools_expiration()).datetime - j.data.time.now()).days
     days_to_extend = BASE_CAPACITY - remaining_days
     j.logger.info(f"The days to extend {days_to_extend} compared to the base capacity{BASE_CAPACITY}")
     if days_to_extend >= BASE_CAPACITY / 2:
