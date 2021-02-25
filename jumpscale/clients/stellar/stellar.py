@@ -275,7 +275,14 @@ class Stellar(Client):
                 j.logger.error(f"failed to activate using the activation service {e}")
                 ## Try activating with `activation_wallet` j.clients.stellar.activation_wallet if exists
                 ## this activator should be imported on the system.
+        else:
+            raise RuntimeError(
+                "could not activate wallet. tried activation service and there's no activation_wallet configured on the system"
+            )
 
+    def activate_through_activation_wallet(self):
+        """Activate your wallet through activation wallet.
+        """
         if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
             j.logger.info(f"trying to fund the wallet ourselves with the activation wallet")
             j.logger.info(f"activation wallet {self.instance_name}")
@@ -288,9 +295,7 @@ class Stellar(Client):
                 except Exception as e:
                     j.logger.error(f"failed to activate wallet {self.instance_name} using activation_wallet")
         else:
-            raise RuntimeError(
-                "could not activate wallet. tried activation service and there's no activation_wallet configured on the system"
-            )
+            raise RuntimeError("could not find the activation wallet")
 
     def activate_account(self, destination_address, starting_balance="3.6"):
         """Activates another account
