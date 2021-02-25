@@ -201,8 +201,10 @@ try:
         aws_secret_access_key={sk}
         """,
         )
+        mon = vdc.get_zdb_monitor()
+        password = mon.get_password()
         j.sals.process.execute(
-            f"/sbin/velero install --provider aws --use-restic --plugins velero/velero-plugin-for-aws:v1.1.0 --bucket {bucket} --secret-file /root/credentials --backup-location-config region={region},s3ForcePathStyle=true,s3Url={url}",
+            f"/sbin/velero install --provider aws --use-restic --plugins velero/velero-plugin-for-aws:v1.1.0 --bucket {bucket} --secret-file /root/credentials --backup-location-config region={region},s3ForcePathStyle=true,s3Url={url},serverSideEncryption=AES256,serverSideEncryptionKey={password},prefix={vdc.owner_tname}/{vdc.vdc_name}",
             showout=True,
         )
 
