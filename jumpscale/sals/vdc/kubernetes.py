@@ -515,18 +515,18 @@ ports:
                 node_ids.append(node.node_id)
 
             secret_env = None
-            etcd_backup_config = j.core.config.get("VDC_S3_CONFIG", {})
-            restic_url = etcd_backup_config.get("S3_URL", "")
-            restic_bucket = etcd_backup_config.get("S3_BUCKET", "")
-            restic_ak = etcd_backup_config.get("S3_AK", "")
-            restic_sk = etcd_backup_config.get("S3_SK", "")
-            if all([self.vdc_deployer.restore, restic_url, restic_bucket, restic_ak, restic_sk]):
-                secret_env = {
-                    "RESTIC_REPOSITORY": f"s3:{restic_url}/{restic_bucket}/{self.vdc_instance.owner_tname}/{self.vdc_instance.vdc_name}",
-                    "AWS_ACCESS_KEY_ID": restic_ak,
-                    "AWS_SECRET_ACCESS_KEY": restic_sk,
-                    "RESTIC_PASSWORD": self.vdc_deployer.password,
-                }
+            # etcd_backup_config = j.core.config.get("VDC_S3_CONFIG", {})
+            # restic_url = etcd_backup_config.get("S3_URL", "")
+            # restic_bucket = etcd_backup_config.get("S3_BUCKET", "")
+            # restic_ak = etcd_backup_config.get("S3_AK", "")
+            # restic_sk = etcd_backup_config.get("S3_SK", "")
+            # if all([self.vdc_deployer.restore, restic_url, restic_bucket, restic_ak, restic_sk]):
+            #     secret_env = {
+            #         "RESTIC_REPOSITORY": f"s3:{restic_url}/{restic_bucket}/{self.vdc_instance.owner_tname}/{self.vdc_instance.vdc_name}",
+            #         "AWS_ACCESS_KEY_ID": restic_ak,
+            #         "AWS_SECRET_ACCESS_KEY": restic_sk,
+            #         "RESTIC_PASSWORD": self.vdc_deployer.password,
+            #     }
 
             explorer = None
             if "test" in j.core.identity.me.explorer_url:
