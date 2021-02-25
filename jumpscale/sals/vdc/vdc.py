@@ -634,7 +634,7 @@ class UserVDC(Base):
             cus += pool.active_cu
             sus += pool.active_su
             ipv4us += pool.active_ipv4
-        return self.explorer.prices.calculate(cus, sus, ipv4us)  # TFTs per second
+        return self._get_identity().explorer.prices.calculate(cus, sus, ipv4us)  # TFTs per second
 
     def calculate_expiration_value(self, load_info=True):
         funded_period = self.calculate_funded_period(load_info)
