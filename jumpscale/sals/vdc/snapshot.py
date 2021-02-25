@@ -102,6 +102,9 @@ class SnapshotManager:
         return self._snapshots_dir
 
     def create_snapshot(self, name):
+        current_snapshot_names = [snap.snapshot_name for snap in self.list_snapshots()]
+        if name in current_snapshot_names:
+            raise j.exceptions.Input(f"a snapshot with the same name: {name} already exists")
         snapshot = Snapshot(self, snapshot_name=name)
         snapshot.create()
         return snapshot
