@@ -243,6 +243,7 @@ class VDCDeploy(GedisChatBot):
 
     @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
+        solution = self.kwargs.get("sol")
         msg = dedent(
             f"""\
         # Your VDC {self.vdc.vdc_name} has been deployed successfully.
@@ -250,9 +251,15 @@ class VDCDeploy(GedisChatBot):
         You can download the kubeconfig file from the dashboard to ~/.kube/config to start using your cluster with kubectl
 
         Kubernetes controller public IP: {self.public_ip}
-        <br />\n
         """
         )
+        if solution is not None:
+            msg += dedent(
+                f"""\
+            <br />\n
+            Visit https://omar0-volumes.vdcdev.grid.tf/vdc_dashboard/#/{solution} to deploy a new instance of {solution.capitalize()}.
+            """
+            )
         self.md_show(dedent(msg), md=True)
 
 
