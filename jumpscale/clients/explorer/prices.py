@@ -18,7 +18,7 @@ class Prices(BaseResource):
         ipv4u_stropes = int(farm_prices["ipv4u"] * 10_000_000_000 / tft_mill / (30 * 24 * 60 * 60))
         price = cus * cu_stropes + sus * su_stropes + ipv4us * ipv4u_stropes
         # reapply the discount
-        return int(price / 100) / 1e7
+        return (price / 100) / 1e7
 
     def get_explorer_prices(self):
         prices = self._session.get(self._url).json()
