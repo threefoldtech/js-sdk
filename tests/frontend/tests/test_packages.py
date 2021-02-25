@@ -1,6 +1,6 @@
 import pytest
 from jumpscale.loader import j
-from jumpscale.packages import polls
+from jumpscale.packages import marketplace
 from tests.frontend.pages.Packages.packages import Packages
 from tests.frontend.tests.base_tests import BaseTest
 
@@ -63,20 +63,20 @@ class PackagesTests(BaseTest):
         self.assertNotIn("notebooks", installed_packages.keys())
 
         self.info("Add a package using path")
-        path = j.sals.fs.dirname(polls.__file__)
+        path = j.sals.fs.dirname(marketplace.__file__)
         self.packages.add_package(path=path)
 
         self.info("Check that the package has been Added correctly")
         installed_packages, available_packages = self.packages.get_installed_and_available_packages()
-        self.assertNotIn("polls", available_packages.keys())
-        self.assertIn("polls", installed_packages.keys())
+        self.assertNotIn("marketplace", available_packages.keys())
+        self.assertIn("marketplace", installed_packages.keys())
 
         self.info("Delete the package")
-        self.packages.delete_package("polls")
+        self.packages.delete_package("marketplace")
 
         self.info("Check that the packages has been deleted successfully")
         installed_packages, available_packages = self.packages.get_installed_and_available_packages()
-        self.assertNotIn("polls", installed_packages.keys())
+        self.assertNotIn("marketplace", installed_packages.keys())
 
         self.info("Install another package")
         installed_package = self.packages.install_random_package()
