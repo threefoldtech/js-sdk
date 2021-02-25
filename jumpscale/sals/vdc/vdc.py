@@ -65,7 +65,7 @@ class UserVDC(Base):
 
     @property
     def expiration_date(self):
-        expiration = self.get_pools_expiration()
+        expiration = self.calculate_expiration_value()
         return j.data.time.get(expiration).datetime
 
     @property
@@ -621,10 +621,20 @@ class UserVDC(Base):
         """
         if load_info:
             self.load_info()
-        total_funds = self.get_total_funds()
-        spec_price = self.calculate_spec_price() or 1
-        spec_price += 30 * 24 * 0.1  # one month price + hourly transaction fees
-        return (total_funds / spec_price) * 30
+        prepaid_wallet_balance = self._get_wallet_balance(self.prepaid_wallet)
+        provision_wallet_balance = self._get_wallet_balance(self.provision_wallet)
+
+        days_prepaid_can_fund = (prepaid_wallet_balance / self.calculate_spec_price()) * 30
+        days_provisioning_can_fund = provision_wallet_balance / (self.calculate_active_units_price() * 60 * 60 * 24)
+        return days_prepaid_can_fund + days_provisioning_can_fund
+
+    def calculate_active_units_price(self):
+        cus = sus = ipv4us = 0
+        for pool in self.active_pools:
+            cus += pool.active_cu
+            sus += pool.active_su
+            ipv4us += pool.active_ipv4
+        return self.explorer.prices.calculate(cus, sus, ipv4us)  # TFTs per second
 
     def calculate_expiration_value(self, load_info=True):
         funded_period = self.calculate_funded_period(load_info)

@@ -22,109 +22,14 @@ def get_vdc_instance():
     return vdc_instance
 
 
-def get_addons(flavor, kubernetes_addons):
-    """Get all the addons on the basic user plan
-
-    Args:
-        flavor(str): user flavor for the plan
-        kubernetes_addons(list): all kubernetes nodes
-
-    Returns:
-        addons(list): list of addons used by the user over the basic chosen plan
-
-    """
-    plan = VDC_SIZE.VDC_FLAVORS.get(flavor)
-    plan_nodes_count = plan.get("k8s").get("no_nodes")
-    plan_nodes_size = plan.get("k8s").get("size")
-    addons = list()
-    for addon in kubernetes_addons:
-        if addon.role != KubernetesRole.MASTER:
-            if addon.size == plan_nodes_size:
-                plan_nodes_count -= 1
-                if plan_nodes_count < 0:
-                    addons.append(addon)
-            else:
-                addons.append(addon)
-    return addons
-
-
-def get_prices():
-    """Get the prices of the addons and plans from github
-    Returns:
-        VDC_PRICES(dict): return VDC_prices dictionary form out config
-    """
-    # Store prices from github
-    if not j.config.get("VDC_PRICES"):
-        prices = requests.get(
-            "https://raw.githubusercontent.com/threefoldfoundation/vdc_pricing/master/prices.json"
-        ).json()
-        j.config.set("VDC_PRICES", prices)
-    return j.config.get("VDC_PRICES")
-
-
-def calculate_addon_price(addon):
-    """Calculate the price of a single addon
-    Args:
-        addon(obj): addon object
-    Returns:
-       price(float): addon price
-    """
-    prices = get_prices()
-    size = addon.size.name.lower()
-    return prices["nodes"][size]
-
-
-def calculate_plan_base_price():
-    """Get user plan price
-    Returns:
-       price(float): the price of user plan
-    """
-    vdc_instance = get_vdc_instance()
-    prices = get_prices()
-    return prices["plans"][vdc_instance.flavor.value]
-
-
-def calculate_addons_hourly_rate():
-    """Calcutlate the addons on hourly rate for all the addons by the user
-
-    Returns:
-        total_price (float): the total price for all addons
-    """
-
-    vdc_instance = get_vdc_instance()
-    total_price = 0
-    # Calculate all the hourly late for all addons
-    addons = []
-    addons = get_addons(vdc_instance.flavor, vdc_instance.kubernetes)
-    for addon in addons:
-        addon_price = calculate_addon_price(addon)
-        j.logger.info(f"addon size {addon.size} with price {addon_price}")
-        total_price += addon_price / (24 * 30)
-    return total_price
-
-
-def calculate_hourly_rate():
-    """Calculate the total hourly rate of the user used plan and the addons.
-
-    Returns
-        hourly_amount(float): the total price for each hour,
-                              including the price of the user plan and addons
-    """
-    user_plan_price = calculate_plan_base_price()
-    hourly_amount = user_plan_price / (24 * 30)
-    j.logger.info(f"base plan price {user_plan_price} with hourly amount {hourly_amount}")
-    hourly_amount += calculate_addons_hourly_rate()
-    return hourly_amount
-
-
-def tranfer_prepaid_to_provision_wallet():
+def transfer_prepaid_to_provision_wallet():
     """Used to transfer the funds from prepaid wallet to provisioning wallet on an hourly basis
     """
     vdc_instance = get_vdc_instance()
     prepaid_wallet = vdc_instance.prepaid_wallet
     provision_wallet = vdc_instance.provision_wallet
     tft = prepaid_wallet._get_asset("TFT")
-    hourly_amount = calculate_hourly_rate()
+    hourly_amount = vdc_instance.calculate_spec_price() * 60 * 60
     j.logger.info(
         f"starting the hourly transaction from prepaid wallet to provision wallet with total hourly amount {hourly_amount}"
     )
