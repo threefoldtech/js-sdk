@@ -31,6 +31,7 @@
             :wallet="wallet"
             :expirationdays="vdc.expiration_days"
             :expirationdate="vdc.expiration_date"
+            :price="vdc.price"
           ></wallet>
         </v-card>
       </v-tab-item>

@@ -1,10 +1,13 @@
-from jumpscale.sals.vdc import VDCFACTORY
+import math
+
 from beaker.middleware import SessionMiddleware
-from bottle import Bottle, HTTPResponse, request, abort, redirect
-from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, get_user_info, package_authorized, login_required
-from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
+from jumpscale.loader import j
+from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, get_user_info, login_required, package_authorized
+from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
+from jumpscale.sals.vdc import VDCFACTORY
+
+from bottle import Bottle, HTTPResponse, abort, redirect, request
 
 app = Bottle()
 
@@ -22,6 +25,7 @@ def _list_vdcs():
         vdc_dict.pop("s3")
         vdc_dict.pop("kubernetes")
         vdc_dict["expiration"] = vdc.calculate_expiration_value(False)
+        vdc_dict["price"] = math.ceil(vdc.calculate_spec_price())
         # Add wallet address
         wallet = vdc.prepaid_wallet
         balances = wallet.get_balance()
