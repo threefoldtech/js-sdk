@@ -647,7 +647,7 @@ class UserVDC(Base):
         dst_wallet = j.clients.stellar.find(destination_wallet_name)
         current_balance = self._get_wallet_balance(dst_wallet)
         j.logger.info(f"current balance in {destination_wallet_name} is {current_balance}")
-        vdc_cost = float(j.tools.zos.consumption.calculate_vdc_price(self.flavor.value)) / 2 + 0.5
+        vdc_cost = float(j.tools.zos.consumption.calculate_vdc_price(self.flavor.value)) / 2
         j.logger.info(f"vdc_cost: {vdc_cost}")
         if vdc_cost > current_balance:
             diff = float(vdc_cost) - float(current_balance)

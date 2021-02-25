@@ -44,9 +44,7 @@ class ExtendKubernetesCluster(GedisChatBot):
                 f"Couldn't verify VDC secret. please make sure you are using the correct secret for VDC {self.vdc_name}"
             )
 
-        success, amount, payment_id = self.vdc.show_external_node_payment(
-            self, self.node_flavor, public_ip=self.public_ip
-        )
+        success, _, payment_id = self.vdc.show_external_node_payment(self, self.node_flavor, public_ip=self.public_ip)
         if not success:
             self.stop(f"payment timedout")
 
@@ -59,16 +57,7 @@ class ExtendKubernetesCluster(GedisChatBot):
             self.stop(f"failed to add nodes to your cluster. due to error {str(e)}")
 
         self.md_show_update("Processing transaction...")
-        try:
-            self.vdc.transfer_to_provisioning_wallet(amount / 2)
-        except Exception as e:
-            j.logger.error(
-                f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}. please contact support"
-            )
-            raise StopChatFlow(f"failed to fund provisioning wallet due to error {str(e)}")
         deployer._set_wallet(old_wallet)
-        self.md_show_update(f"updating pool expiration...")
-        deployer.extend_k8s_workloads(14 - (INITIAL_RESERVATION_DURATION / 24), *wids)
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
