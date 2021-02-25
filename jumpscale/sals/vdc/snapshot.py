@@ -74,5 +74,6 @@ class SnapshotManager:
     def list_snapshots(self):
         for path in j.sals.fs.walk_files(self.snapshots_dir):
             snapshot_name = j.sals.fs.basename(path)
+            snapshot_name = "-".join(snapshot_name.split("-")[:-1])
             snapshot = Snapshot(self, snapshot_name=snapshot_name)
             yield snapshot
