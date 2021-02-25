@@ -55,7 +55,7 @@ class Snapshot(Base):
                 rc, out, err = client.sshclient.run("mv /bitnami/etcd /tmp/")
                 # restore etcd using etcdctl
                 rc, out, err = client.sshclient.run(
-                    f"etcdctl snapshot restore /tmp/{self.snapshot_name} --data-dir=/bitnami/etcd/data --skip-hash-check=true",
+                    f"/opt/bitnami/etcd/bin/etcdctl snapshot restore /tmp/{self.snapshot_name} --data-dir=/bitnami/etcd/data --skip-hash-check=true",
                     warn=True,
                 )
                 if rc:
