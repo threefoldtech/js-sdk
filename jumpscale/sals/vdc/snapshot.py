@@ -52,6 +52,7 @@ class Snapshot(Base):
 
             for client in etcd_ssh_clients:
                 # move old data file
+                client.sshclient.run("rm -rf /tmp/etcd", warn=True)
                 rc, out, err = client.sshclient.run("mv /bitnami/etcd /tmp/")
                 # restore etcd using etcdctl
                 rc, out, err = client.sshclient.run(
