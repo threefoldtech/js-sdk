@@ -67,7 +67,7 @@ class Snapshot(Base):
             for client in etcd_ssh_clients:
                 rc, out, err = client.sshclient.run("zinit start etcd", warn=True)
                 if rc:
-                    j.logger.critical(f"failed to restart etcd for client: {client}")
+                    j.logger.critical(f"failed to restart etcd for client: {client}. rc: {rc}, out: {out}, err: {err}")
             raise e
 
     def delete(self):
