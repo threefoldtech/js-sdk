@@ -26,20 +26,25 @@ class FundPricesDifference(BackgroundService):
             # check if vdc in grace period
             if vdc_instance.is_blocked or vdc_instance.is_empty():
                 j.logger.info(f"FUND PRICES DIFF: VDC {vdc_instance.instance_name} is empty or in grace period")
-                return
+                continue
             # check if prepaid have enough money
             prepaid_balance = vdc_instance._get_wallet_balance(vdc_instance.prepaid_wallet)
             if prepaid_balance < vdc_spec_price + TRANSACTION_FEES:
                 j.logger.info(
                     f"FUND PRICES DIFF: VDC {vdc_instance.instance_name} hove not enough money for renew plan"
                 )
-                return
+                continue
             elif prepaid_balance > vdc_spec_price:
-                # TODO: transfer TRANSACTION FEES to the prepaid wallet
+                # transfer TRANSACTION FEES to the prepaid wallet
                 j.logger.info(
                     f"FUND PRICES DIFF: VDC {vdc_instance.instance_name} prepaid wallet have the hour cost but don't have the transaction fees {TRANSACTION_FEES} TFT"
                 )
-                return
+                initialization_wallet.transfer(
+                    vdc_instance.prepaid_wallet.address, TRANSACTION_FEES, asset=f"{tft.code}:{tft.issuer}"
+                )
+                j.logger.info(
+                    f"FUND PRICES DIFF: VDC {vdc_instance.instance_name}, funded the transaction fees {TRANSACTION_FEES} TFT to the prepaid wallet"
+                )
             vdc_real_price = vdc_instance.calculate_active_units_price() * 60 * 60  # explorer price
             # calculate difference
             diff = vdc_real_price - vdc_spec_price + TRANSACTION_FEES
