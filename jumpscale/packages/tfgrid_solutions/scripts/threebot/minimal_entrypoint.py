@@ -210,6 +210,8 @@ try:
             showout=True,
         )
 
+        j.sals.process.execute(f"/sbin/kubectl rollout status -w deployments velero -n velero", warn=True)
+
         # get and restore latest backup
         ret, out, _ = j.sals.process.execute("/sbin/velero backup get -o json", showout=True)
         if out:
