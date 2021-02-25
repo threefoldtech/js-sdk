@@ -280,10 +280,10 @@ class Stellar(Client):
                 "could not activate wallet. tried activation service and there's no activation_wallet configured on the system"
             )
 
-    def activate_through_activation_wallet(self):
+    def activate_through_activation_wallet(self, wallet_name="activation_wallet"):
         """Activate your wallet through activation wallet.
         """
-        if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
+        if wallet_name in j.clients.stellar.list_all() and self.instance_name != wallet_name:
             j.logger.info(f"trying to fund the wallet ourselves with the activation wallet")
             j.logger.info(f"activation wallet {self.instance_name}")
             for _ in range(5):
