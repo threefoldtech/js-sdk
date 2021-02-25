@@ -13,9 +13,9 @@ from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 from jumpscale.sals.vdc import VDCFACTORY
 from jumpscale.sals.vdc.size import VDC_SIZE
+from jumpscale.sals.vdc.models import KubernetesRole
 
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
-from jumpscale.packages.vdc.billing import get_addons
 import os
 
 app = Bottle()
@@ -29,9 +29,32 @@ def _get_vdc():
     return VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
 
 
+def _get_addons(flavor, kubernetes_addons):
+    """Get all the addons on the basic user plan
+    Args:
+        flavor(str): user flavor for the plan
+        kubernetes_addons(list): all kubernetes nodes
+    Returns:
+        addons(list): list of addons used by the user over the basic chosen plan
+    """
+    plan = VDC_SIZE.VDC_FLAVORS.get(flavor)
+    plan_nodes_count = plan.get("k8s").get("no_nodes")
+    plan_nodes_size = plan.get("k8s").get("size")
+    addons = list()
+    for addon in kubernetes_addons:
+        if addon.role != KubernetesRole.MASTER:
+            if addon.size == plan_nodes_size:
+                plan_nodes_count -= 1
+                if plan_nodes_count < 0:
+                    addons.append(addon)
+            else:
+                addons.append(addon)
+    return addons
+
+
 def _total_capacity(vdc):
     vdc.load_info()
-    addons = get_addons(vdc.flavor, vdc.kubernetes)
+    addons = _get_addons(vdc.flavor, vdc.kubernetes)
     plan = VDC_SIZE.VDC_FLAVORS.get(vdc.flavor)
     plan_nodes_count = plan.get("k8s").get("no_nodes")
     # total capacity = worker plan nodes + added nodes + master node
