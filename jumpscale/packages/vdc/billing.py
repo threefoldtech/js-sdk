@@ -1,7 +1,7 @@
 import os
 import requests
 from jumpscale.loader import j
-from jumpscale.sals.vdc.size import VDC_SIZE
+from jumpscale.sals.vdc.size import VDC_SIZE, FARM_DISCOUNT
 from jumpscale.sals.vdc.models import KubernetesRole
 
 
@@ -103,16 +103,6 @@ def calculate_addons_hourly_rate():
     return total_price
 
 
-def _calculate_discount():
-    explorer_url = j.core.identity.me.explorer_url
-    if "dev" in explorer_url:
-        return 0.01
-    elif "test" in explorer_url:
-        return 0.1
-    else:
-        return 1
-
-
 def calculate_hourly_rate():
     """Calculate the total hourly rate of the user used plan and the addons.
 
@@ -120,11 +110,12 @@ def calculate_hourly_rate():
         hourly_amount(float): the total price for each hour,
                               including the price of the user plan and addons
     """
+    discount = FARM_DISCOUNT.get()
     user_plan_price = calculate_plan_base_price()
     hourly_amount = user_plan_price / (24 * 30)
     j.logger.info(f"base plan price {user_plan_price} with hourly amount {hourly_amount}")
     hourly_amount += calculate_addons_hourly_rate()
-    return hourly_amount * _calculate_discount()
+    return hourly_amount * (1 - discount)
 
 
 def tranfer_prepaid_to_provision_wallet():
