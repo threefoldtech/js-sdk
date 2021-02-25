@@ -268,16 +268,18 @@ if THREEBOT_PRIVATE_KEY:
         f"cp /root/.ssh/id_rsa {j.core.dirs.CFGDIR}/vdc/keys/{vdc.owner_tname}/{vdc.vdc_name}/id_rsa"
     )
 
-try:
-    from jumpscale.packages.vdc_dashboard.services.etcd_backup import service
 
-    service.job()
-except Exception as e:
-    j.logger.critical(f"failed to do initial vdc controller backup due to error: {str(e)}")
+# no restore for now
+# try:
+#     from jumpscale.packages.vdc_dashboard.services.etcd_backup import service
 
-try:
-    from jumpscale.packages.vdc_dashboard.services.domain import service
+#     service.job()
+# except Exception as e:
+#     j.logger.critical(f"failed to do initial vdc controller backup due to error: {str(e)}")
 
-    service.job()
-except Exception as e:
-    j.logger.critical(f"failed to do initial restore of domains due to error: {str(e)}")
+# try:
+#     from jumpscale.packages.vdc_dashboard.services.domain import service
+
+#     service.job()
+# except Exception as e:
+#     j.logger.critical(f"failed to do initial restore of domains due to error: {str(e)}")

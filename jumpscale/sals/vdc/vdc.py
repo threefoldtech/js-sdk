@@ -15,6 +15,7 @@ from .zdb_auto_topup import ZDBMonitor
 from .kubernetes_auto_extend import KubernetesMonitor
 import netaddr
 import hashlib
+from .snapshot import SnapshotManager
 
 VDC_WORKLOAD_TYPES = [
     WorkloadType.Container,
@@ -162,6 +163,9 @@ class UserVDC(Base):
 
     def get_kubernetes_monitor(self):
         return KubernetesMonitor(self)
+
+    def get_snapshot_manager(self, snapshots_dir=None):
+        return SnapshotManager(self, snapshots_dir)
 
     def load_info(self, load_proxy=False):
         self.kubernetes = []

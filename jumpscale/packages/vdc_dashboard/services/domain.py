@@ -8,6 +8,8 @@ class VDCDomainsValidation(BackgroundService):
         super().__init__(interval, *args, **kwargs)
 
     def job(self):
+        # not needed anymore since there is not restore. only snapshots
+        return
         # redeploy subdomain
         vdc = j.sals.vdc.get(list(j.sals.vdc.list_all())[0])
         vdc.load_info()
