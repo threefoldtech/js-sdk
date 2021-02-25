@@ -46,7 +46,7 @@ class Snapshot(Base):
                 # stop all etcd processes running and copy the snap shot there
                 rc, out, err = client.sshclient.run("zinit stop etcd")
                 # copy snapshot to each node
-                client.sshclient.put(self.snapshot_path, f"/tmp/{self.snapshot_name}")
+                client.sshclient.connection.put(self.snapshot_path, f"/tmp/{self.snapshot_name}")
             # wait until etcd process is stopped
             gevent.sleep(3)
 
@@ -66,6 +66,8 @@ class Snapshot(Base):
         except Exception as e:
             for client in etcd_ssh_clients:
                 rc, out, err = client.sshclient.run("zinit start etcd", warn=True)
+                if rc:
+                    j.logger.critical(f"failed to restart etcd for client: {client}")
             raise e
 
     def delete(self):
