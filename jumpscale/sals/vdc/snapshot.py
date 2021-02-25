@@ -28,9 +28,9 @@ class Snapshot(Base):
                 if date:
                     self._creation_time = j.data.time.get(float(date))
             except Exception as e:
-                j.logger.warning(f"failed to get creation time from file name due to error e")
+                j.logger.warning(f"failed to get creation time from file name due to error: {str(e)}")
         if not self._creation_time:
-            self._creation_time = j.sals.fs.get_creation_time(self.snapshot_path)
+            self._creation_time = j.data.time.get(j.sals.fs.get_creation_time(self.snapshot_path))
         return self._creation_time
 
     def restore(self):
