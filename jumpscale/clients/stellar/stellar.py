@@ -295,7 +295,7 @@ class Stellar(Client):
                 except Exception as e:
                     j.logger.error(f"failed to activate wallet {self.instance_name} using activation_wallet")
         else:
-            raise RuntimeError("could not find the activation wallet")
+            raise RuntimeError(f"could not find the activation wallet: {wallet_name}")
 
     def activate_account(self, destination_address, starting_balance="3.6"):
         """Activates another account
