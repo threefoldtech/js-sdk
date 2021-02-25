@@ -11,17 +11,17 @@ class threebot_deployer:
             channel_port (int, optional): remote redis port
         """
         # Configure wallet
-        WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
-        if WALLET_NAME not in j.clients.stellar.list_all():
-            wallet_secret = kwargs.get("wallet_secret", None)
-            wallet = j.clients.stellar.new(WALLET_NAME, secret=wallet_secret)
+        # WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
+        # if WALLET_NAME not in j.clients.stellar.list_all():
+        #     wallet_secret = kwargs.get("wallet_secret", None)
+        #     wallet = j.clients.stellar.new(WALLET_NAME, secret=wallet_secret)
 
-            if not wallet_secret:
-                # mainnet, activate and add trustlines to an empty wallet
-                wallet.activate_through_threefold_service()
-                wallet.add_known_trustline("TFT")
-                wallet.save()
-            j.logger.info(f"Created wallet {WALLET_NAME} successfully and ready to use.")
+        #     if not wallet_secret:
+        #         # mainnet, activate and add trustlines to an empty wallet
+        #         wallet.activate_through_threefold_service()
+        #         wallet.add_known_trustline("TFT")
+        #         wallet.save()
+        #     j.logger.info(f"Created wallet {WALLET_NAME} successfully and ready to use.")
 
         # Configure Redis logs
         log_config = {}
