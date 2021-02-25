@@ -1,5 +1,5 @@
 from jumpscale.loader import j
-import os
+import gevent
 from jumpscale.core.base import Base, fields
 
 
@@ -34,7 +34,39 @@ class Snapshot(Base):
         return self._creation_time
 
     def restore(self):
-        pass
+        self.vdc.load_info()
+        # open ssh connection to all etcds
+        etcd_ssh_clients = []
+
+        try:
+            for etcd in self.vdc.etcd:
+                etcd_ssh_clients.append(self.vdc.get_ssh_client(f"etcd_{etcd.wid}", etcd.ip_address, "root"))
+
+            for client in etcd_ssh_clients:
+                # stop all etcd processes running and copy the snap shot there
+                rc, out, err = client.sshclient.run("zinit stop etcd")
+                # copy snapshot to each node
+                client.sshclient.put(self.snapshot_path, f"/tmp/{self.snapshot_name}")
+            # wait until etcd process is stopped
+            gevent.sleep(3)
+
+            for client in etcd_ssh_clients:
+                # move old data file
+                rc, out, err = client.sshclient.run("mv /bitnami/etcd /tmp/")
+                # restore etcd using etcdctl
+                rc, out, err = client.sshclient.run(
+                    f"etcdctl snapshot restore /tmp/{self.snapshot_name} --data-dir=/bitnami/etcd/data --skip-hash-check=true",
+                    warn=True,
+                )
+                if rc:
+                    j.logger.error(f"failed to restore snapshot. rc: {rc}, out: {out}, err: {err}")
+                    rc, out, err = client.sshclient.run("rm -rf /bitnami/etcd/; mv /tmp/etcd /bitnami/etcd")
+                # start etcd process
+                rc, out, err = client.sshclient.run("zinit start etcd")
+        except Exception as e:
+            for client in etcd_ssh_clients:
+                rc, out, err = client.sshclient.run("zinit start etcd", warn=True)
+            raise e
 
     def delete(self):
         return j.sals.fs.rmtree(self.snapshot_path)
