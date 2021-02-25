@@ -17,6 +17,7 @@ from jumpscale.sals.vdc.size import VDC_SIZE
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
 from jumpscale.packages.vdc.billing import get_addons
 import os
+import math
 
 app = Bottle()
 
@@ -139,6 +140,7 @@ def threebot_vdc():
         "secret": wallet.secret,
         "balances": balances_data,
     }
+    vdc_dict["price"] = math.ceil(vdc.calculate_spec_price())
 
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
