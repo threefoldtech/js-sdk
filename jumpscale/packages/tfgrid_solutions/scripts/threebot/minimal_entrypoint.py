@@ -7,6 +7,7 @@ from jumpscale.loader import j
 from jumpscale.sals.vdc.deployer import VDC_IDENTITY_FORMAT
 import gevent
 import toml
+import hashlib
 
 """
 minimal entrypoint for a 3bot container to run as part of VDC deployments on k8s
@@ -203,8 +204,9 @@ try:
         )
         mon = vdc.get_zdb_monitor()
         password = mon.get_password()
+        password_hash = hashlib.md5(password.encode()).hexdigest()
         j.sals.process.execute(
-            f"/sbin/velero install --provider aws --use-restic --plugins velero/velero-plugin-for-aws:v1.1.0 --bucket {bucket} --secret-file /root/credentials --backup-location-config region={region},s3ForcePathStyle=true,s3Url={url},serverSideEncryption=AES256 --prefix {vdc.owner_tname}/{vdc.vdc_name}",
+            f"/sbin/velero install --provider aws --use-restic --plugins magedmotawea/velero-plugin-for-aws-amd64:main--bucket {bucket} --secret-file /root/credentials --backup-location-config region={region},s3ForcePathStyle=true,s3Url={url},encryptionSecret={password_hash} --prefix {vdc.owner_tname}/{vdc.vdc_name}",
             showout=True,
         )
 
