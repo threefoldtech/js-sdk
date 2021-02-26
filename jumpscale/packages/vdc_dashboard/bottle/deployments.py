@@ -1,5 +1,5 @@
 from beaker.middleware import SessionMiddleware
-from bottle import Bottle, request, HTTPResponse, abort
+from bottle import Bottle, request, HTTPResponse, abort, redirect
 
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import (
@@ -342,6 +342,12 @@ def get_wallet_qrcode_image():
     data = f"TFT:{address}?amount={amount}&message=topup&sender=me"
     qrcode_image = j.tools.qrcode.base64_get(data, scale=scale)
     return j.data.serializers.json.dumps({"data": qrcode_image})
+
+
+@app.route("/api/refer/<solution>", method="GET")
+@login_required
+def redir(solution):
+    return redirect(f"/vdc_dashboard/#{solution}")
 
 
 app = SessionMiddleware(app, SESSION_OPTS)

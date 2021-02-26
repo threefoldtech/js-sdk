@@ -60,9 +60,9 @@ def list_vdcs():
 def redirect_refer(solution):
     vdcs = _list_vdcs()
     if not vdcs:
-        return redirect("/vdc/#/chats/new_vdc/create")
+        return redirect(f"/vdc/?sol={solution}#/chats/new_vdc/create")
     else:
-        return redirect(f"http://{vdcs[0]['threebot']['domain']}/vdc_dashboard/#/{solution}")
+        return redirect(f"https://{vdcs[0]['threebot']['domain']}/vdc_dashboard/api/refer/{solution}")
 
 
 @app.route("/api/vdcs/<name>", method="GET")
