@@ -1,5 +1,5 @@
 from jumpscale.loader import j
-from jumpscale.packages.vdc.billing import tranfer_prepaid_to_provision_wallet
+from jumpscale.packages.vdc.billing import transfer_prepaid_to_provision_wallet
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 
@@ -11,7 +11,7 @@ class TransferPrepaidToProvisionWallet(BackgroundService):
         super().__init__(interval, *args, **kwargs)
 
     def job(self):
-        tranfer_prepaid_to_provision_wallet()
+        transfer_prepaid_to_provision_wallet()
         j.logger.info("Auto transfer funds from prepad to provision wallet")
 
 
