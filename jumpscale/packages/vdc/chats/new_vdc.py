@@ -257,7 +257,7 @@ class VDCDeploy(GedisChatBot):
             msg += dedent(
                 f"""\
             <br />\n
-            Visit https://omar0-volumes.vdcdev.grid.tf/vdc_dashboard/#/{solution} to deploy a new instance of {solution.capitalize()}.
+            Visit https://{self.vdc.threebot.domain}/vdc_dashboard/api/refer/{solution} to deploy a new instance of {solution.capitalize()}.
             """
             )
         self.md_show(dedent(msg), md=True)
