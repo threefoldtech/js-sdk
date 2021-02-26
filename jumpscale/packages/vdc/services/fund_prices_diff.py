@@ -27,7 +27,7 @@ class FundPricesDifference(BackgroundService):
             if vdc_instance.is_blocked or vdc_instance.is_empty():
                 j.logger.info(f"FUND PRICES DIFF: VDC {vdc_instance.instance_name} is empty or in grace period")
                 continue
-            # check if prepaid have enough money
+            # check if prepaid has enough money
             prepaid_balance = vdc_instance._get_wallet_balance(vdc_instance.prepaid_wallet)
             if prepaid_balance < vdc_spec_price + TRANSACTION_FEES:
                 j.logger.info(
@@ -37,7 +37,7 @@ class FundPricesDifference(BackgroundService):
             elif prepaid_balance > vdc_spec_price:
                 # transfer TRANSACTION FEES to the prepaid wallet
                 j.logger.info(
-                    f"FUND PRICES DIFF: VDC {vdc_instance.instance_name} prepaid wallet have the hour cost but don't have the transaction fees {TRANSACTION_FEES} TFT"
+                    f"FUND PRICES DIFF: VDC {vdc_instance.instance_name} prepaid wallet has the hour cost but don't have the transaction fees {TRANSACTION_FEES} TFT"
                 )
                 initialization_wallet.transfer(
                     vdc_instance.prepaid_wallet.address, TRANSACTION_FEES, asset=f"{tft.code}:{tft.issuer}"
