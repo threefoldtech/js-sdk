@@ -4,6 +4,7 @@ from jumpscale.loader import j
 
 
 BASE_CAPACITY = int(os.getenv("BASE_CAPACITY", 14))
+TRANSACTION_FEES = 0.1
 
 
 def get_vdc_instance():
@@ -51,4 +52,21 @@ def auto_extend_billing():
     j.logger.info(f"The days to extend {days_to_extend} compared to the base capacity{BASE_CAPACITY}")
     if days_to_extend >= BASE_CAPACITY / 2:
         j.logger.info("starting extending the VDC pools")
-        deployer.renew_plan(duration=days_to_extend)
+        # check if provisioning has enough balance to renew plane
+        provision_wallet_balance = vdc_instance._get_wallet_balance(vdc_instance.provision_wallet) - TRANSACTION_FEES
+        if provision_wallet_balance <= 0:
+            j.logger.critical(f"AUTO_EXTEND_BILLING: VDC {vdc_instance.instance_name}, provisioning wallet is empty")
+            return
+        days_provisioning_can_fund = provision_wallet_balance / (
+            vdc_instance.calculate_active_units_price() * 60 * 60 * 24
+        )
+        if days_provisioning_can_fund > days_to_extend:
+            deployer.renew_plan(duration=days_to_extend)
+            j.logger.info(
+                f"AUTO_EXTEND_BILLING: VDC {vdc_instance.instance_name} renewed the plan with {days_to_extend} days"
+            )
+        else:
+            deployer.renew_plan(duration=days_provisioning_can_fund)
+            j.logger.info(
+                f"AUTO_EXTEND_BILLING: VDC {vdc_instance.instance_name} renewed the plan with {days_provisioning_can_fund} days"
+            )
