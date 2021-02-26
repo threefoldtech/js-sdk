@@ -255,10 +255,10 @@ try:
 
         # create backup schedule for automatic backups
         j.sals.process.execute(
-            '/sbin/velero create schedule vdc --schedule="@every 24h" -l "backupType=vdc"', showout=True
+            '/sbin/velero create schedule vdc --schedule="@every 1h" -l "backupType=vdc"', showout=True
         )
         j.sals.process.execute(
-            '/sbin/velero create schedule config --schedule="@every 24h" --include-resources secrets,configmaps',
+            '/sbin/velero create schedule config --schedule="@every 1h" --include-resources secrets,configmaps',
             showout=True,
         )
 except Exception as e:
