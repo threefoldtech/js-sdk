@@ -160,6 +160,8 @@ def _k8s_challenge(k8s):
     for key in k8s.ssh_keys:
         b.write(key)
     b.write(str(k8s.public_ip))
+    b.write(k8s.datastore_endpoint)
+    b.write(str(k8s.disable_default_ingress).lower())
     return b.getvalue()
 
 

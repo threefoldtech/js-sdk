@@ -58,7 +58,9 @@ class VDCDeployer:
         identity=None,
         deployment_logs=False,
         ssh_key_path=None,
+        restore=False,
     ):
+        self.restore = restore
         self.vdc_instance = vdc_instance
         self.vdc_name = self.vdc_instance.vdc_name
         self.flavor = self.vdc_instance.flavor
@@ -300,6 +302,16 @@ class VDCDeployer:
         n_cus, n_sus = get_cloud_units(cont2)
         cus += n_cus
         sus += n_sus
+
+        etcd_cont = Container()
+        etcd_cont.capacity.cpu = ETCD_CPU
+        etcd_cont.capacity.memory = ETCD_MEMORY
+        etcd_cont.capacity.disk_size = ETCD_DISK
+        etcd_cont.capacity.disk_type = DiskType.SSD
+        n_cus, n_sus = get_cloud_units(etcd_cont)
+        cus += n_cus * ETCD_CLUSTER_SIZE
+        sus += n_sus * ETCD_CLUSTER_SIZE
+
         farm_resources[selected_farm]["cus"] += cus
         farm_resources[selected_farm]["sus"] += sus
 
@@ -384,13 +396,20 @@ class VDCDeployer:
         1- deploy master
         2- extend cluster with the flavor no_nodes
         """
+        self.bot_show_update("Deploying External ETCD Cluster...")
+        etcd_ips = self.kubernetes.deploy_external_etcd(farm_name=farm_name, solution_uuid=self.vdc_uuid)
+        if not etcd_ips:
+            self.error("failed to deploy etcd cluster")
+            return
+        endpoint = ",".join([f"http://{ip_address}:2379" for ip_address in etcd_ips])
+        self.bot_show_update("Deploying Kubernetes Controller...")
         gs = scheduler or GlobalScheduler()
         master_pool_id, _ = self.get_pool_id_and_reservation_id(NETWORK_FARM.get())
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         pub_keys = pub_keys or []
         master_ip = self.kubernetes.deploy_master(
-            master_pool_id, gs, master_size, cluster_secret, pub_keys, self.vdc_uuid, nv,
+            master_pool_id, gs, master_size, cluster_secret, pub_keys, self.vdc_uuid, nv, endpoint,
         )
         if not master_ip:
             self.error("failed to deploy kubernetes master")
@@ -398,6 +417,7 @@ class VDCDeployer:
         no_nodes = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["no_nodes"]
         if no_nodes < 1:
             return [master_ip]
+        self.bot_show_update("Deploying Kubernetes Workers...")
         wids = self.kubernetes.extend_cluster(
             farm_name,
             master_ip,
@@ -443,7 +463,6 @@ class VDCDeployer:
         total_no_nodes = S3_NO_DATA_NODES + S3_NO_PARITY_NODES
         remainder = total_no_nodes % len(zdb_farms)
         no_node_per_farm = (total_no_nodes - remainder) / len(zdb_farms)
-        farm_count = defaultdict(int)
         farm_queries = []
         for farm in zdb_farms:
             farm_queries.append(
@@ -491,6 +510,16 @@ class VDCDeployer:
         # check trc container capacity
         trc_query = {"farm_name": farm_name, "cru": 1, "mru": 1, "sru": 0.25}
         if not gcc.add_query(**trc_query):
+            return False
+
+        etcd_query = {
+            "farm_name": farm_name,
+            "cru": ETCD_CPU,
+            "mru": ETCD_MEMORY / 1024,
+            "sru": ETCD_DISK / 1024,
+            "no_nodes": ETCD_CLUSTER_SIZE,
+        }
+        if not gcc.add_query(**etcd_query):
             return False
 
         return gcc.result
@@ -608,8 +637,9 @@ class VDCDeployer:
                     # TODO: rollback
                     self.error(f"failed to deploy monitoring stack on VDC cluster due to error {str(e)}")
 
-            self.bot_show_update("Updating Traefik")
-            self.kubernetes.upgrade_traefik()
+            if not self.restore:
+                self.bot_show_update("Updating Traefik")
+                self.kubernetes.upgrade_traefik()
             self.vdc_instance.load_info()
             j.clients.sshkey.delete(f"{self.vdc_name}_threebot")
             return kube_config

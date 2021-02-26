@@ -48,8 +48,12 @@ class S3(Base):
     domain_wid = fields.Integer()
 
 
+class ETCDNode(VDCHostBase):
+    pass
+
+
 class VDCThreebot(VDCHostBase):
     domain = fields.String()
 
 
-__all__ = ["VDCThreebot", "S3", "S3ZDB", "S3Container", "KubernetesNode", "KubernetesRole"]
+__all__ = ["VDCThreebot", "S3", "S3ZDB", "S3Container", "KubernetesNode", "KubernetesRole", "ETCDNode"]

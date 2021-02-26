@@ -14,17 +14,22 @@ from .scheduler import Scheduler
 from jumpscale.sals.reservation_chatflow import deployer
 from .proxy import VDC_PARENT_DOMAIN
 from .namemanager import NameManager
-import os
 import uuid
 import random
 
 THREEBOT_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
 THREEBOT_TRC_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
 
+# etcd backup config can be set using
+"""JS-NG> j.core.config.set("VDC_S3_CONFIG", s3_config)
+JS-NG> s3_config = {"S3_URL": "https://s3.grid.tf", "S3_BUCKET": "vdc-devnet", "S3_AK": "", "S3_SK": ""}
+JS-NG> """
+
 
 class VDCThreebotDeployer(VDCBaseComponent):
     def deploy_threebot(self, minio_wid, pool_id, kube_config, embed_trc=True, backup_config=None):
         backup_config = backup_config or {}
+        etcd_backup_config = j.core.config.get("VDC_S3_CONFIG", {})
         flist = THREEBOT_TRC_FLIST if embed_trc else THREEBOT_FLIST
         # workload = self.zos.workloads.get(minio_wid)
         # if workload.info.workload_type != WorkloadType.Container:
@@ -44,6 +49,10 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "PREPAID_WALLET_SECRET": self.vdc_deployer.vdc_instance.prepaid_wallet.secret,
             "VDC_INSTANCE": j.data.serializers.json.dumps(vdc_dict),
             "THREEBOT_PRIVATE_KEY": self.vdc_deployer.ssh_key.private_key.strip(),
+            "S3_URL": etcd_backup_config.get("S3_URL", ""),
+            "S3_BUCKET": etcd_backup_config.get("S3_BUCKET", ""),
+            "S3_AK": etcd_backup_config.get("S3_AK", ""),
+            "S3_SK": etcd_backup_config.get("S3_SK", ""),
         }
         env = {
             "VDC_NAME": self.vdc_name,

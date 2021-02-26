@@ -14,6 +14,8 @@ from .wallet import VDC_WALLET_FACTORY
 from .zdb_auto_topup import ZDBMonitor
 from .kubernetes_auto_extend import KubernetesMonitor
 import netaddr
+import hashlib
+from .snapshot import SnapshotManager
 
 VDC_WORKLOAD_TYPES = [
     WorkloadType.Container,
@@ -31,6 +33,7 @@ class UserVDC(Base):
     identity_tid = fields.Integer()
     s3 = fields.Object(S3)
     kubernetes = fields.List(fields.Object(KubernetesNode))
+    etcd = fields.List(fields.Object(ETCDNode))
     threebot = fields.Object(VDCThreebot)
     created = fields.DateTime(default=datetime.datetime.utcnow)
     last_updated = fields.DateTime(default=datetime.datetime.utcnow)
@@ -111,7 +114,14 @@ class UserVDC(Base):
         return active_pools
 
     def get_deployer(
-        self, password=None, identity=None, bot=None, proxy_farm_name=None, deployment_logs=False, ssh_key_path=None
+        self,
+        password=None,
+        identity=None,
+        bot=None,
+        proxy_farm_name=None,
+        deployment_logs=False,
+        ssh_key_path=None,
+        restore=False,
     ):
         proxy_farm_name = proxy_farm_name or PROXY_FARM.get()
         if not password and not identity:
@@ -125,13 +135,26 @@ class UserVDC(Base):
             identity=identity,
             deployment_logs=deployment_logs,
             ssh_key_path=ssh_key_path,
+            restore=restore,
         )
 
-    def _get_identity(self):
+    def validate_password(self, password):
+        password_hash = hashlib.md5(password.encode()).hexdigest()
+        identity = self._get_identity(default=False)
+        if not identity:
+            # identity was not generated for this vdc instance
+            return True
+        words = j.data.encryption.key_to_mnemonic(password_hash.encode())
+        if identity.words == words:
+            return True
+        return False
+
+    def _get_identity(self, default=True):
         instance_name = f"vdc_ident_{self.solution_uuid}"
+        identity = None
         if j.core.identity.find(instance_name):
             identity = j.core.identity.find(instance_name)
-        else:
+        elif default:
             identity = j.core.identity.me
         return identity
 
@@ -141,8 +164,12 @@ class UserVDC(Base):
     def get_kubernetes_monitor(self):
         return KubernetesMonitor(self)
 
+    def get_snapshot_manager(self, snapshots_dir=None):
+        return SnapshotManager(self, snapshots_dir)
+
     def load_info(self, load_proxy=False):
         self.kubernetes = []
+        self.etcd = []
         self.s3 = S3()
         self.threebot = VDCThreebot()
         instance_vdc_workloads = self._filter_vdc_workloads()
@@ -274,6 +301,13 @@ class UserVDC(Base):
                 container.wid = workload.id
                 container.ip_address = workload.network_connection[0].ipaddress
                 self.threebot = container
+            elif "etcd" in workload.flist:
+                node = ETCDNode()
+                node.node_id = workload.info.node_id
+                node.pool_id = workload.info.pool_id
+                node.wid = workload.id
+                node.ip_address = workload.network_connection[0].ipaddress
+                self.etcd.append(node)
         elif workload.info.workload_type == WorkloadType.Zdb:
             result_json = j.data.serializers.json.loads(workload.info.result.data_json)
             if "IPs" in result_json:

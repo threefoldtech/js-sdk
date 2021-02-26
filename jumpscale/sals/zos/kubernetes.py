@@ -107,6 +107,7 @@ class KubernetesGenerator:
             ssh_keys=ssh_keys,
             pool_id=pool_id,
             public_ip_wid=public_ip_wid,
+            disable_default_ingress=False,
         )
         worker.master_ips = [master_ip]
         return worker

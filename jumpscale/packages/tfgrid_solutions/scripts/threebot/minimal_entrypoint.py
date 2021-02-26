@@ -7,6 +7,7 @@ from jumpscale.loader import j
 from jumpscale.sals.vdc.deployer import VDC_IDENTITY_FORMAT
 import gevent
 import toml
+import hashlib
 
 """
 minimal entrypoint for a 3bot container to run as part of VDC deployments on k8s
@@ -30,6 +31,10 @@ Required env variables:
 - ACME_SERVER_URL -> to use for package certificate
 - THREEBOT_PRIVATE_KEY -> private key to be set on threebot
 - BACKUP_CONFIG -> dict containing url, region, bucket, ak, sk
+- S3_URL
+- S3_BUCKET
+- S3_AK
+- S3_SK
 
 
 Role:
@@ -53,6 +58,10 @@ PREPAID_WALLET_SECRET = os.environ.get("PREPAID_WALLET_SECRET")
 ACME_SERVER_URL = os.environ.get("ACME_SERVER_URL")
 THREEBOT_PRIVATE_KEY = os.environ.get("THREEBOT_PRIVATE_KEY")
 BACKUP_CONFIG = os.environ.get("BACKUP_CONFIG", "{}")
+S3_URL = os.environ.get("S3_URL", "")
+S3_BUCKET = os.environ.get("S3_BUCKET", "")
+S3_AK = os.environ.get("S3_AK", "")
+S3_SK = os.environ.get("S3_SK", "")
 
 
 vdc_dict = j.data.serializers.json.loads(VDC_INSTANCE)
@@ -82,6 +91,10 @@ VDC_VARS = {
     "SDK_VERSION": os.environ.get("SDK_VERSION", "development"),
     "BACKUP_CONFIG": BACKUP_CONFIG,
     "THREEBOT_PRIVATE_KEY": THREEBOT_PRIVATE_KEY,
+    "S3_URL": S3_URL,
+    "S3_AK": S3_AK,
+    "S3_SK": S3_SK,
+    "S3_BUCKET": S3_BUCKET,
 }
 
 
@@ -189,10 +202,24 @@ try:
         aws_secret_access_key={sk}
         """,
         )
+        mon = vdc.get_zdb_monitor()
+        password = mon.get_password()
+        password_hash = hashlib.md5(password.encode()).hexdigest()
         j.sals.process.execute(
-            f"/sbin/velero install --provider aws --use-restic --plugins velero/velero-plugin-for-aws:v1.1.0 --bucket {bucket} --secret-file /root/credentials --backup-location-config region={region},s3ForcePathStyle=true,s3Url={url}",
+            f"/sbin/velero install --provider aws --use-restic --plugins magedmotawea/velero-plugin-for-aws-amd64:main --bucket {bucket} --secret-file /root/credentials --backup-location-config region={region},s3ForcePathStyle=true,s3Url={url},encryptionSecret={password_hash} --prefix {vdc.owner_tname}/{vdc.vdc_name}",
             showout=True,
         )
+
+        j.sals.process.execute(f"/sbin/kubectl rollout status -w deployments velero -n velero", showout=True)
+
+        # wait for backup location to be ready
+        now = j.data.time.utcnow().timestamp
+        while j.data.time.utcnow().timestamp < now + 200:
+            rc, out, _ = j.sals.process.execute("/sbin/velero backup-location get", showout=True)
+            if "Available" in out:
+                break
+            else:
+                gevent.sleep(3)
 
         # get and restore latest backup
         ret, out, _ = j.sals.process.execute("/sbin/velero backup get -o json", showout=True)
@@ -228,10 +255,10 @@ try:
 
         # create backup schedule for automatic backups
         j.sals.process.execute(
-            '/sbin/velero create schedule vdc --schedule="@every 24h" -l "backupType=vdc"', showout=True
+            '/sbin/velero create schedule vdc --schedule="@every 1h" -l "backupType=vdc"', showout=True
         )
         j.sals.process.execute(
-            '/sbin/velero create schedule config --schedule="@every 24h" --include-resources secrets,configmaps',
+            '/sbin/velero create schedule config --schedule="@every 1h" --include-resources secrets,configmaps',
             showout=True,
         )
 except Exception as e:
@@ -255,3 +282,19 @@ if THREEBOT_PRIVATE_KEY:
     j.sals.process.execute(
         f"cp /root/.ssh/id_rsa {j.core.dirs.CFGDIR}/vdc/keys/{vdc.owner_tname}/{vdc.vdc_name}/id_rsa"
     )
+
+
+# no restore for now
+# try:
+#     from jumpscale.packages.vdc_dashboard.services.etcd_backup import service
+
+#     service.job()
+# except Exception as e:
+#     j.logger.critical(f"failed to do initial vdc controller backup due to error: {str(e)}")
+
+# try:
+#     from jumpscale.packages.vdc_dashboard.services.domain import service
+
+#     service.job()
+# except Exception as e:
+#     j.logger.critical(f"failed to do initial restore of domains due to error: {str(e)}")

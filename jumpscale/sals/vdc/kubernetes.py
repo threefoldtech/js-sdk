@@ -12,6 +12,9 @@ from jumpscale.clients.explorer.models import K8s, NextAction
 import gevent
 
 
+ETCD_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-etcd-latest.flist"
+
+
 class VDCKubernetesDeployer(VDCBaseComponent):
     def __init__(self, *args, **kwrags) -> None:
         super().__init__(*args, **kwrags)
@@ -130,7 +133,17 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             )
         return wids
 
-    def deploy_master(self, pool_id, scheduler, k8s_flavor, cluster_secret, ssh_keys, solution_uuid, network_view):
+    def deploy_master(
+        self,
+        pool_id,
+        scheduler,
+        k8s_flavor,
+        cluster_secret,
+        ssh_keys,
+        solution_uuid,
+        network_view,
+        datastore_endpoint="",
+    ):
         master_ip = None
         # deploy_master
         k8s_resources_dict = VDC_SIZE.K8S_SIZES[k8s_flavor]
@@ -141,7 +154,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     master_node = next(nodes_generator)
                 except StopIteration:
                     return
-                self.vdc_deployer.info(f"deploying kubernetes master on node {master_node.node_id}")
+                self.vdc_deployer.info(
+                    f"deploying kubernetes master on node {master_node.node_id} with datastore: {datastore_endpoint}"
+                )
                 # add node to network
                 try:
                     result = deployer.add_network_node(
@@ -191,6 +206,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 solution_uuid=solution_uuid,
                 description=self.vdc_deployer.description,
                 public_ip_wid=public_ip_wid,
+                datastore_endpoint=datastore_endpoint,
+                disable_default_ingress=not self.vdc_deployer.restore,
             )
             self.vdc_deployer.info(f"kubernetes master wid: {wid}")
             try:
@@ -391,26 +408,33 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         Upgrades traefik chart installed on k3s to v2.3.3 to support different CAs
         """
 
-        def is_traefik_installed(manager):
-            releases = manager.list_deployed_releases("kube-system")
+        def is_traefik_installed(manager, namespace="kube-system"):
+            releases = manager.list_deployed_releases(namespace)
             # TODO: List only using names
             for release in releases:
                 if release.get("name") == "traefik":
                     return True
             return False
 
+        def clean_traefik(manager, ns):
+            # wait until traefik chart is installed on the cluster then uninstall it
+            checks = 12
+            while checks > 0 and not is_traefik_installed(manager):
+                gevent.sleep(5)
+                checks -= 1
+            if is_traefik_installed(manager):
+                manager.delete_deployed_release("traefik", ns)
+
         kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml"
         k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
         k8s_client.add_helm_repo("traefik", "https://helm.traefik.io/traefik")
         k8s_client.update_repos()
 
-        # wait until traefik chart is installed on the cluster then uninstall it
-        checks = 12
-        while checks > 0 and not is_traefik_installed(k8s_client):
-            gevent.sleep(5)
-            checks -= 1
-        if is_traefik_installed(k8s_client):
-            k8s_client.delete_deployed_release("traefik", "kube-system")
+        namespaces = ["kube-system", "k3os-system"]
+        threads = []
+        for ns in namespaces:
+            threads.append(gevent.spawn(clean_traefik, k8s_client, ns))
+        gevent.joinall(threads)
 
         # install traefik v2.3.3 chart
         # TODO: better code for the values
@@ -464,6 +488,88 @@ ports:
         }
         config_yaml = j.data.serializers.yaml.dumps(config_json)
         k8s_client.upgrade_release("traefik", "traefik/traefik", "kube-system", config_yaml)
+
+    def deploy_external_etcd(self, no_nodes=ETCD_CLUSTER_SIZE, farm_name=None, solution_uuid=None):
+        network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
+        farm_name = farm_name or PREFERED_FARM.get()
+        pool_id, _ = self.vdc_deployer.get_pool_id_and_reservation_id(farm_name)
+        scheduler = Scheduler(pool_id=pool_id)
+        nodes_generator = scheduler.nodes_by_capacity(cru=ETCD_CPU, sru=ETCD_DISK / 1024, mru=ETCD_MEMORY / 1024)
+        solution_uuid = solution_uuid or uuid.uuid4().hex
+        while True:
+            deployment_nodes = self._add_nodes_to_network(pool_id, nodes_generator, [], no_nodes, network_view)
+            if not deployment_nodes:
+                self.vdc_deployer.error("no available nodes to deploy etcd cluster")
+                return
+            self.vdc_deployer.info(f"deploying etcd cluster on nodes {[node.node_id for node in deployment_nodes]}")
+
+            network_view = network_view.copy()
+            ip_addresses = []
+            node_ids = []
+            etcd_cluster = ""
+
+            for idx, node in enumerate(deployment_nodes):
+                address = network_view.get_free_ip(node)
+                ip_addresses.append(address)
+                etcd_cluster += f"etcd_{idx+1}=http://{address}:2380,"
+                node_ids.append(node.node_id)
+
+            secret_env = None
+            # etcd_backup_config = j.core.config.get("VDC_S3_CONFIG", {})
+            # restic_url = etcd_backup_config.get("S3_URL", "")
+            # restic_bucket = etcd_backup_config.get("S3_BUCKET", "")
+            # restic_ak = etcd_backup_config.get("S3_AK", "")
+            # restic_sk = etcd_backup_config.get("S3_SK", "")
+            # if all([self.vdc_deployer.restore, restic_url, restic_bucket, restic_ak, restic_sk]):
+            #     secret_env = {
+            #         "RESTIC_REPOSITORY": f"s3:{restic_url}/{restic_bucket}/{self.vdc_instance.owner_tname}/{self.vdc_instance.vdc_name}",
+            #         "AWS_ACCESS_KEY_ID": restic_ak,
+            #         "AWS_SECRET_ACCESS_KEY": restic_sk,
+            #         "RESTIC_PASSWORD": self.vdc_deployer.password,
+            #     }
+
+            explorer = None
+            if "test" in j.core.identity.me.explorer_url:
+                explorer = "test"
+            elif "dev" in j.core.identity.me.explorer_url:
+                explorer = "dev"
+            else:
+                explorer = "main"
+            log_config = j.core.config.get("VDC_LOG_CONFIG", {})
+            if log_config:
+                log_config["channel_name"] = f"{self.vdc_instance.instance_name}_{explorer}"
+
+            wids = deployer.deploy_etcd_containers(
+                pool_id,
+                node_ids,
+                network_view.name,
+                ip_addresses,
+                etcd_cluster,
+                ETCD_FLIST,
+                ETCD_CPU,
+                ETCD_MEMORY,
+                ETCD_DISK,
+                entrypoint="",
+                ssh_key=self.vdc_deployer.ssh_key.public_key.strip(),
+                identity_name=self.identity.instance_name,
+                solution_uuid=solution_uuid,
+                description=self.vdc_deployer.description,
+                secret_env=secret_env,
+                log_config=log_config,
+            )
+            try:
+                for wid in wids:
+                    success = deployer.wait_workload(
+                        wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False
+                    )
+                    if not success:
+                        self.vdc_deployer.error(f"etcd cluster workload: {wid} failed to deploy")
+                        raise DeploymentFailed()
+            except DeploymentFailed:
+                for wid in wids:
+                    self.zos.workloads.decomission(wid)
+                continue
+            return ip_addresses
 
     def add_traefik_entrypoints(self, entrypoints):
         """
