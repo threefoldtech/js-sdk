@@ -212,6 +212,15 @@ try:
 
         j.sals.process.execute(f"/sbin/kubectl rollout status -w deployments velero -n velero", showout=True)
 
+        # wait for backup location to be ready
+        now = j.data.time.utcnow().timestamp
+        while j.data.time.utcnow().timestamp < now + 200:
+            rc, out, _ = j.sals.process.execute("/sbin/velero backup-location get", showout=True)
+            if "Available" in out:
+                break
+            else:
+                gevent.sleep(3)
+
         # get and restore latest backup
         ret, out, _ = j.sals.process.execute("/sbin/velero backup get -o json", showout=True)
         if out:
