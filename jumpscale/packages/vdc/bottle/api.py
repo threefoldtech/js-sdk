@@ -62,7 +62,7 @@ def redirect_refer(solution):
     if not vdcs:
         return redirect(f"/vdc/?sol={solution}#/chats/new_vdc/create")
     else:
-        return redirect(f"http://{vdcs[0]['threebot']['domain']}/vdc_dashboard/#/{solution}")
+        return redirect(f"http://{vdcs[0]['threebot']['domain']}/vdc_dashboard/api/refer/{solution}")
 
 
 @app.route("/api/vdcs/<name>", method="GET")
