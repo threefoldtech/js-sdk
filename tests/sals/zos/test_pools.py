@@ -9,7 +9,6 @@ from tests.base_tests import BaseTests
 WALLET_NAME = os.environ.get("WALLET_NAME")
 WALLET_SECRET = os.environ.get("WALLET_SECRET")
 TRANSACTION_FEES = 0.1
-zos = j.sals.zos.get()
 
 
 def info(msg):
@@ -71,6 +70,7 @@ def test01_create_pool_with_funded_wallet():
 
     info("Create a pool")
     farm = BaseTests.get_farm_name()
+    zos = j.sals.zos.get()
     pool = zos.pools.create(cu=1, su=1, ipv4us=0, farm=farm, currencies=["TFT"])
 
     info("Pay for the pool")
@@ -106,6 +106,7 @@ def test02_extend_pool_with_funded_wallet():
     user_tft_amount = get_wallet_balance(wallet)
 
     info("Extend an existing pool")
+    zos = j.sals.zos.get()
     pools = zos.pools.list()
     assert pools, "There is no existing pools to be extend"
 
@@ -142,6 +143,7 @@ def test03_create_pool_with_empty_wallet(new_wallet):
     - Check that the pool has been created with empty units.
     """
     info("Create a pool")
+    zos = j.sals.zos.get()
     farm = BaseTests.get_farm_name()
     pool = zos.pools.create(cu=1, su=1, ipv4us=0, farm=farm, currencies=["TFT"])
 
@@ -172,6 +174,7 @@ def test04_extend_pool_with_empty_wallet(new_wallet):
     - Check that the pool has not been extended.
     """
     info("Extend an existing pool")
+    zos = j.sals.zos.get()
     pools = zos.pools.list()
     assert pools, "There is no existing pools to be extended"
 
