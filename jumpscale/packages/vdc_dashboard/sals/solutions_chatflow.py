@@ -416,9 +416,9 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     def chart_pods_started(self):
         pods_status_info = self.k8s_client.execute_native_cmd(
-            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.phase}}'"
+            cmd=f"kubectl --namespace {self.chart_name}-{self.release_name} get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.containerStatuses[*].ready}}'"
         )
-        if "Pending" in pods_status_info:
+        if "false" in pods_status_info or pods_status_info == "":
             return False
         return True
 
@@ -427,7 +427,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     def chart_resource_failure(self):
         pods_info = self.k8s_client.execute_native_cmd(
-            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[*].message}}'"
+            cmd=f"kubectl --namespace {self.chart_name}-{self.release_name} get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[*].message}}'"
         )  # Gets the last event message
         if "Insufficient" in pods_info:
             return True

@@ -10,9 +10,9 @@ class KubernetesDeploy(GedisChatBot):
     steps = [
         "kubernetes_name",
         "choose_flavor",
+        "add_public_ip",
         "nodes_selection",
         "network_selection",
-        "add_public_ip",
         "public_key_get",
         "ip_selection",
         "reservation",
@@ -58,6 +58,16 @@ class KubernetesDeploy(GedisChatBot):
         self.cluster_size = sizes.index(cluster_size_string.value) + 1
         self.master_query = self.worker_query = self.KUBERNETES_SIZES.get(self.cluster_size)
 
+    @chatflow_step(title="Public IP")
+    def add_public_ip(self):
+        choices = ["No", "Yes"]
+        choice = self.single_choice("Do you want to enable public IP", choices, default="No", required=True)
+        self.enable_public_ip = False
+        self.master_query.update({"ipv4u": 0})
+        if choice == "Yes":
+            self.enable_public_ip = True
+            self.master_query.update({"ipv4u": 1})
+
     @chatflow_step(title="Select Pools")
     def nodes_selection(self):
         no_nodes = self.workernodes.value + 1
@@ -69,14 +79,6 @@ class KubernetesDeploy(GedisChatBot):
     @chatflow_step(title="Network")
     def network_selection(self):
         self.network_view = deployer.select_network(self, self.all_network_viewes)
-
-    @chatflow_step(title="Public IP")
-    def add_public_ip(self):
-        choices = ["No", "Yes"]
-        choice = self.single_choice("Do you want to enable public IP", choices, default="No", required=True)
-        self.enable_public_ip = False
-        if choice == "Yes":
-            self.enable_public_ip = True
 
     @chatflow_step(title="Access keys and secret")
     def public_key_get(self):

@@ -172,5 +172,9 @@ class Farms(BaseResource):
         self._session.put(f"{self._url}/{farm_id}/deals", json=body)
         return True
 
+    def delete_deal(self, farm_id, threebot_id):
+        self._session.delete(f"{self._url}/{farm_id}/deals/{threebot_id}")
+        return True
+
     def get_explorer_prices(self):
         return Prices(self._client).get_explorer_prices()

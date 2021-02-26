@@ -91,7 +91,9 @@ def get_deployments(solution_type: str = None, username: str = None) -> list:
             releases.append(release_name)
             helm_chart_supplied_values = "{}"
             try:
-                helm_chart_supplied_values = k8s_client.get_helm_chart_user_values(release=release_name)
+                helm_chart_supplied_values = k8s_client.get_helm_chart_user_values(
+                    namespace=namespace, release=release_name
+                )
             except:
                 pass
             domain = _get_resource_key(k8s_client, "ingress", namespace, release_name, ".items[0].spec.rules[0].host")

@@ -298,6 +298,7 @@ class VDCDashboard(VDCBase):
             request_second = j.tools.http.get(url=f"https://{gitea_second.domain}", timeout=self.timeout, verify=False)
             self.assertEqual(request_second.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2630")
     def test06_discourse(self):
         """Test case for deploying Discourse.
 
@@ -437,6 +438,7 @@ class VDCDashboard(VDCBase):
             )
             self.assertEqual(request_second.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2630")
     def test10_Taiga(self):
         """Test case for deploying Taiga.
 

@@ -7,7 +7,6 @@ from tests.sals.vdc.vdc_base import VDCBase
 from parameterized import parameterized_class
 
 
-@parameterized_class(("flavor"), [("silver",), ("gold",), ("platinum",), ("diamond",)])
 @pytest.mark.integration
 class VDCChatflows(VDCBase):
     flavor = "silver"
@@ -62,3 +61,10 @@ class VDCChatflows(VDCBase):
         self.info("Check that VDC is reachable")
         request = j.tools.http.get(f"http://{self.vdc.vdc.threebot.domain}", timeout=60)
         self.assertEqual(request.status_code, 200)
+
+
+@parameterized_class(("flavor"), [("gold",), ("platinum",), ("diamond",)])
+@pytest.mark.integration
+@pytest.mark.extend
+class TestVDCExtend(VDCChatflows):
+    pass

@@ -31,6 +31,7 @@
             :wallet="wallet"
             :expirationdays="vdc.expiration_days"
             :expirationdate="vdc.expiration_date"
+            :price="vdc.price"
           ></wallet>
         </v-card>
       </v-tab-item>
@@ -51,7 +52,12 @@
             >Your VDC will expire in <ins> {{ expirationTime }} </ins><br />
             You have a grace period of 14 days. Your workloads will be up but
             not accessible. To avoid workloads deletion, please fund the wallet
-            with address: {{ wallet.address }}
+            with address: <ins> {{ wallet.address }} </ins> with
+            {{ flavor }} plan's price of <ins> {{ price }} TFT </ins>. You can
+            go to "Wallet Information" section in the left side to pay using
+            QRCode.<br /><br />
+            Please note: Funding the wallet with less than {{ price }} TFT will
+            keep the workloads alive but will stay in grace period.
           </b>
         </v-card-text>
       </v-card>
@@ -67,6 +73,8 @@ module.exports = {
       vdc: null,
       name: null,
       wallet: null,
+      price: null,
+      flavor: null,
       expirationTime: null,
       raiseExpirationAlert: true,
       dialog: {
@@ -83,6 +91,8 @@ module.exports = {
           this.vdc = response.data;
           this.name = this.vdc.vdc_name;
           this.wallet = this.vdc.wallet;
+          this.flavor = this.vdc.flavor;
+          this.price = this.vdc.price;
           this.expirationTime =
             this.vdc.expiration_days > 1
               ? `${this.vdc.expiration_days.toFixed(0)} days and ${(

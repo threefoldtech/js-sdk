@@ -5,7 +5,7 @@ const DECENTRALIZED_OFFICE = {
             name: "Taiga",
             type: "taiga",
             image: "./assets/taiga.png",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/docs/dmcircles/",
             description: "Taiga is a P2P alternative to centralized project management tool for multi-functional agile teams."
         },
@@ -94,7 +94,7 @@ const DECENTRALIZED_WE = {
             name: "Discourse",
             type: "discourse",
             image: "./assets/discourse.png",
-            disable: false,
+            disable: true,
             helpLink: "https://now.threefold.io/now/docs/discourse/",
             description: "Discourse is an open source Internet forum and mailing list management software application built to educate members about civil community engagement."
         },

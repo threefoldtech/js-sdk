@@ -1,6 +1,6 @@
-module.exports = new Promise(async(resolve, reject) => {
+module.exports = new Promise(async (resolve, reject) => {
     const vuex = await
-    import ("/weblibs/vuex/vuex.esm.browser.js");
+        import("/weblibs/vuex/vuex.esm.browser.js");
     resolve({
         name: "cspricestable",
         props: ['farmselected'],
@@ -29,9 +29,9 @@ module.exports = new Promise(async(resolve, reject) => {
                 openEditModal: false,
                 openDeleteModal: false,
                 deleteNodeFarmAlert: undefined,
-                priceToEdit: { custom_cloudunits_price:{ cu: 0, su: 0, ipv4u: 0 }},
-                price: {},
-                priceToDelete: { id: 0 }
+                priceToEdit: { custom_cloudunits_price: { cu: 0, su: 0, ipv4u: 0 } },
+                // price: {},
+                priceToDelete: { id: 0 },
             }
         },
 
@@ -39,41 +39,51 @@ module.exports = new Promise(async(resolve, reject) => {
             this.loadPrices()
         },
         computed: {
-            ...vuex.mapGetters("farmmanagement", ["customPricesList"]),
+            ...vuex.mapGetters("farmmanagement", ["customPricesList", "farm"]),
 
             tableName() {
-                return `${this.farmselected.name} custom prices`
+                return `${this.farm.name} custom prices`
             }
         },
         methods: {
             ...vuex.mapActions("farmmanagement", [
                 "setCustomPricesList",
                 "createOrUpdateFarmThreebotCustomPrice",
+                "deleteDeal",
             ]),
             openEditPriceModal(node) {
                 console.log("chose item: ", node)
                 this.openEditModal = true
-                this.priceToEdit = Object.assign(this.priceToEdit, node);
+                this.priceToEdit = node //  {...node}; // Object.assign(this.priceToEdit, node); custom_cloudunits_price
+                console.log("price to edit; ", this.priceToEdit)
             },
             loadPrices() {
-                this.setCustomPricesList({ farmId: this.farmselected.id }).then(response => {
-                    if (response.status == 200) {
-                        this.csPricesInfo = JSON.parse(response.data).data;
-                        console.log(this.csPricesInfo);
-                    } else {
-                        console.log("error...")
-                    }
-                })
+                this.setCustomPricesList(this.farm.id)
+                this.csPricesInfo = this.customPricesList
             },
             editPrice(id) {
-                this.createOrUpdateFarmThreebotCustomPrice({farmId:this.priceToEdit.farm_id, threebotName: this.priceToEdit.threebot_name, prices: this.priceToEdit.custom_cloudunits_price})
-                console.log(id)
+                const updatedData = { farmId: this.priceToEdit.farm_id, threebotName: this.priceToEdit.threebot_name, prices: this.priceToEdit.custom_cloudunits_price }
+                this.createOrUpdateFarmThreebotCustomPrice(updatedData).catch( () => {
+                    this.loadPrices() // load old prices if failed to update
+                })
                 this.openEditModal = false
             },
-            deleteModal(id) {
+            showDeletePriceModal(item) {
+                console.log("del: ", item)
                 this.openDeleteModal = true
-                this.priceToDelete = id
+                this.priceToDelete = item
+
             },
+            deletePrice(farmId, threebotId){
+                console.log("item to del is :", farmId, threebotId)
+
+                    this.deleteDeal({farmId, threebotId})
+                    this.openDeleteModal = false
+                    this.loadPrices()
+            },
+            closeEditModal() { this.openEditModal = false; this.loadPrices() },
+
+
         }
     });
 });

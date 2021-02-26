@@ -25,7 +25,6 @@ class ChatFlows(BaseActor):
 
         if query_params is None:
             query_params = {}
-
         obj = chatflow(**query_params)
         self.sessions[obj.session_id] = obj
         return {"sessionId": obj.session_id, "title": obj.title}

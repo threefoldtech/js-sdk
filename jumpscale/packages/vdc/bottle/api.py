@@ -1,17 +1,18 @@
-from jumpscale.sals.vdc import VDCFACTORY
+import math
+
 from beaker.middleware import SessionMiddleware
-from bottle import Bottle, HTTPResponse, request, abort
-from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, get_user_info, package_authorized
-from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
+from jumpscale.loader import j
+from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, get_user_info, login_required, package_authorized
+from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
+from jumpscale.sals.vdc import VDCFACTORY
+
+from bottle import Bottle, HTTPResponse, abort, redirect, request
 
 app = Bottle()
 
 
-@app.route("/api/vdcs", method="GET")
-@package_authorized("vdc")
-def list_vdcs():
+def _list_vdcs():
     user_info = j.data.serializers.json.loads(get_user_info())
     username = user_info["username"]
     result = []
@@ -24,6 +25,7 @@ def list_vdcs():
         vdc_dict.pop("s3")
         vdc_dict.pop("kubernetes")
         vdc_dict["expiration"] = vdc.calculate_expiration_value(False)
+        vdc_dict["price"] = math.ceil(vdc.calculate_spec_price())
         # Add wallet address
         wallet = vdc.prepaid_wallet
         balances = wallet.get_balance()
@@ -42,7 +44,25 @@ def list_vdcs():
             "balances": balances_data,
         }
         result.append(vdc_dict)
-    return HTTPResponse(j.data.serializers.json.dumps(result), status=200, headers={"Content-Type": "application/json"})
+    return result
+
+
+@app.route("/api/vdcs", method="GET")
+@package_authorized("vdc")
+def list_vdcs():
+    return HTTPResponse(
+        j.data.serializers.json.dumps(_list_vdcs()), status=200, headers={"Content-Type": "application/json"}
+    )
+
+
+@app.route("/api/vdc_refer/<solution>", method="GET")
+@package_authorized("vdc")
+def redirect_refer(solution):
+    vdcs = _list_vdcs()
+    if not vdcs:
+        return redirect(f"/vdc/?sol={solution}#/chats/new_vdc/create")
+    else:
+        return redirect(f"https://{vdcs[0]['threebot']['domain']}/vdc_dashboard/api/refer/{solution}")
 
 
 @app.route("/api/vdcs/<name>", method="GET")
@@ -132,6 +152,21 @@ def accept():
         return HTTPResponse(
             j.data.serializers.json.dumps({"allowed": True}), status=201, headers={"Content-Type": "application/json"}
         )
+
+
+@app.route("/api/wallet/qrcode/get", method="POST")
+@login_required
+def get_wallet_qrcode_image():
+    request_data = j.data.serializers.json.loads(request.body.read())
+    address = request_data.get("address")
+    amount = request_data.get("amount")
+    scale = request_data.get("scale", 5)
+    if not all([address, amount, scale]):
+        return HTTPResponse("Not all parameters satisfied", status=400, headers={"Content-Type": "application/json"})
+
+    data = f"TFT:{address}?amount={amount}&message=topup&sender=me"
+    qrcode_image = j.tools.qrcode.base64_get(data, scale=scale)
+    return j.data.serializers.json.dumps({"data": qrcode_image})
 
 
 app = SessionMiddleware(app, SESSION_OPTS)

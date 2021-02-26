@@ -1,5 +1,5 @@
 from beaker.middleware import SessionMiddleware
-from bottle import Bottle, request, HTTPResponse, abort
+from bottle import Bottle, request, HTTPResponse, abort, redirect
 
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import (
@@ -12,9 +12,12 @@ from jumpscale.packages.auth.bottle.auth import (
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 from jumpscale.sals.vdc import VDCFACTORY
+from jumpscale.sals.vdc.size import VDC_SIZE
 
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
+from jumpscale.packages.vdc.billing import get_addons
 import os
+import math
 
 app = Bottle()
 
@@ -25,6 +28,15 @@ def _get_vdc():
     vdc_full_name = list(j.sals.vdc.list_all())[0]
     vdc_instance = j.sals.vdc.get(vdc_full_name)
     return VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+
+
+def _total_capacity(vdc):
+    vdc.load_info()
+    addons = get_addons(vdc.flavor, vdc.kubernetes)
+    plan = VDC_SIZE.VDC_FLAVORS.get(vdc.flavor)
+    plan_nodes_count = plan.get("k8s").get("no_nodes")
+    # total capacity = worker plan nodes + added nodes + master node
+    return plan_nodes_count + len(addons) + 1
 
 
 @app.route("/api/kube/get")
@@ -121,13 +133,14 @@ def threebot_vdc():
             balances_data.append(
                 {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
             )
-
+    vdc_dict["total_capacity"] = _total_capacity(vdc)
     vdc_dict["wallet"] = {
         "address": wallet.address,
         "network": wallet.network.value,
         "secret": wallet.secret,
         "balances": balances_data,
     }
+    vdc_dict["price"] = math.ceil(vdc.calculate_spec_price())
 
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
@@ -326,6 +339,27 @@ def backup() -> str:
     return HTTPResponse(
         j.data.serializers.json.dumps({"success": True}), status=200, headers={"Content-Type": "application/json"}
     )
+
+
+@app.route("/api/wallet/qrcode/get", method="POST")
+@login_required
+def get_wallet_qrcode_image():
+    request_data = j.data.serializers.json.loads(request.body.read())
+    address = request_data.get("address")
+    amount = request_data.get("amount")
+    scale = request_data.get("scale", 5)
+    if not all([address, amount, scale]):
+        return HTTPResponse("Not all parameters satisfied", status=400, headers={"Content-Type": "application/json"})
+
+    data = f"TFT:{address}?amount={amount}&message=topup&sender=me"
+    qrcode_image = j.tools.qrcode.base64_get(data, scale=scale)
+    return j.data.serializers.json.dumps({"data": qrcode_image})
+
+
+@app.route("/api/refer/<solution>", method="GET")
+@login_required
+def redir(solution):
+    return redirect(f"/vdc_dashboard/#{solution}")
 
 
 app = SessionMiddleware(app, SESSION_OPTS)

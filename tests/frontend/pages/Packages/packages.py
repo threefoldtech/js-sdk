@@ -68,7 +68,7 @@ class Packages(Base):
             installed_package_card_name = installed_card.find_element_by_class_name("v-card__title")
             installed_package_name = installed_package_card_name.text
             installed_packages[installed_package_name] = installed_card
-
+        self.wait(self.driver, "progressbar")
         for available_card in available_packages_cards:
             available_package_card_name = available_card.find_element_by_class_name("v-card__title")
             available_package_name = available_package_card_name.text
@@ -101,6 +101,7 @@ class Packages(Base):
 
         try:
             self.click_button(self.driver, "AGREE")
+            self.wait(self.driver, "progressbar")
         except:
             pass
 

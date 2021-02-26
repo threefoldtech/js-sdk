@@ -9,7 +9,7 @@ from tests.base_tests import BaseTests
 WALLET_NAME = os.environ.get("WALLET_NAME")
 WALLET_SECRET = os.environ.get("WALLET_SECRET")
 TRANSACTION_FEES = 0.1
-zos = j.sals.zos
+zos = j.sals.zos.get()
 
 
 def info(msg):
@@ -32,11 +32,11 @@ def new_wallet():
     info("Create empty wallet")
     wallet_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
     wallet = j.clients.stellar.new(wallet_name, network="STD")
-    wallet.activate_through_threefold_service()
+    wallet.activate_through_activation_wallet()
     wallet.add_known_trustline("TFT")
     yield wallet
     info("Returning XLMs to the activation wallet")
-    wallet.return_xlms_to_activation()
+    wallet.merge_into_account(get_funded_wallet().address)
 
 
 def get_wallet_balance(wallet):

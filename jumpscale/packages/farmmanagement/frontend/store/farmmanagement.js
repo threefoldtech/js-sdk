@@ -51,9 +51,17 @@ export default {
             return tfService.setNodeFree(node_id, free)
         },
         getFarms: context => {
-            tfService.getFarms(context.getters.user.id).then(response => {
-                context.commit("setFarms", JSON.parse(response.data));
-            });
+             tfService.getExplorerPrices().then(response => {
+                let prices = JSON.parse(response.data).data;
+                tfService.getFarms(context.getters.user.id).then(response => {
+                    let farms = JSON.parse(response.data)
+                    for (let f of farms){
+                        f.explorer_default_prices = prices
+                    }
+                    context.commit("setFarms", farms);
+                });
+            })
+
         },
         getFarm(context, farm_id) {
             tfService.getFarm(farm_id).then(response => {
@@ -85,17 +93,26 @@ export default {
             let prices = createdealForThreebotInfo.prices
             return tfService.createOrUpdateFarmThreebotCustomPrice(farmId, threebotName, prices)
         },
-        setDefaultCustomPrices(context, farmDefaultCustomPricesInfo) {
+
+        deleteDeal(context, deleteDealInfo) {
+            let farmId = deleteDealInfo.farmId
+            let threebotId = deleteDealInfo.threebotId
+            return tfService.deleteDeal(farmId, threebotId)
+        },
+        setDefaultFarmPrices(context, farmDefaultCustomPricesInfo) {
             let farmId = farmDefaultCustomPricesInfo.farmId
             let prices = farmDefaultCustomPricesInfo.prices
-            return tfService.setDefaultCustomPrices(farmId, prices)
+            return tfService.setDefaultFarmPrices(farmId, prices)
         },
         setCustomPricesList(context, farmId) {
-            tfService.getCustomPrices(farmId).then(response => {
+            tfService.getCustomPrices(farmId || this.farm.id).then(response => {
                 let parsed =JSON.parse(response.data).data
                 context.commit("setCustomPricesList", parsed )
             })
         },
+        setFarm(context, farm){
+            context.commit("setFarm", farm)
+        }
     },
 
     mutations: {
@@ -106,6 +123,7 @@ export default {
             state.farms = value;
         },
         setFarm(state, value) {
+            console.log("setting current farm: ", value)
             state.farm = value
         },
         setNodes(state, value) {

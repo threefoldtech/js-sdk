@@ -13,11 +13,16 @@ module.exports = {
   },
   computed: {
     url() {
+      let res = ""
       if (this.tname != "") {
-        return `/vdc/chats/${this.topic}#/?noheader=yes&tname=${this.tname}`;
+        res = `/vdc/chats/${this.topic}#/?noheader=yes&tname=${this.tname}`;
       } else {
-        return `/vdc/chats/${this.topic}#/?noheader=yes`;
+        res = `/vdc/chats/${this.topic}#/?noheader=yes`;
       }
+      if (location.search){
+        res += "&" + location.search.slice(1)
+      }
+      return res
     },
   },
   mounted() {

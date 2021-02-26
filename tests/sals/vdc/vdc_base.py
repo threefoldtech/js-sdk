@@ -10,6 +10,7 @@ class VDCBase(BaseTests):
     def setUpClass(cls):
         cls._get_env_vars()
         cls._import_wallet()
+        cls._import_wallet("activation_wallet")
         cls._prepare_identity()
         cls._start_threebot_server()
 
