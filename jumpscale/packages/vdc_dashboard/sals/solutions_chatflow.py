@@ -491,7 +491,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             kind = resource.get("kind", "").lower()
             name = resource.get("name", "")
             if not all([name, kind]):
-                j.logger.warning(f"can't retrieve pod name of {resource}")
+                j.logger.warning(f"can't retrieve resource info of {resource}")
                 continue
             for key, val in kwargs.items():
                 self.k8s_client.execute_native_cmd(
