@@ -21,7 +21,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="green darken-4" text @click="showConfirmation = false">No</v-btn>
-          <v-btn color="red darken-4" text href="/auth/logout">Yes</v-btn>
+          <v-btn color="red darken-4" text @click.stop="logout">Yes</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -37,6 +37,12 @@ module.exports = {
         this.$router.push({ path: "/" });
       });
     },
+    logout() {
+      // clear cache on logout
+      var backlen = history.length;
+      history.go(-backlen);
+      window.location.href = "/auth/logout";
+    }
   },
   data() {
     return { showConfirmation: false };
