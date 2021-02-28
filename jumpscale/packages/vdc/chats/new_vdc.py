@@ -165,7 +165,7 @@ class VDCDeploy(GedisChatBot):
         alias.allow_user_to_bucket(
             f"{self.username}-{self.vdc_name.value}",
             backup_config["S3_BUCKET"],
-            prefix=f"{self.username}/{self.vdc_name.value}",
+            prefix=f"{self.username.rstrip('.3bot')}/{self.vdc_name.value}",
         )
         self.backup_config = {
             "ak": f"{self.username}-{self.vdc_name.value}",

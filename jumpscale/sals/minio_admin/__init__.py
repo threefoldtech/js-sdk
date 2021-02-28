@@ -48,12 +48,18 @@ class MCAlias:
         policy = {
             "Version": "2012-10-17",
             "Statement": [
-                {"Effect": "Allow", "Action": ["s3:*"], "Resource": [f"arn:aws:s3:::{bucket_name}/{prefix}*"]},
                 {
                     "Effect": "Allow",
-                    "Action": ["s3:GetBucketLocation", "s3:ListBucket", "s3:ListBucketMultipartUploads",],
-                    "Resource": [f"arn:aws:s3:::{bucket_name}"],
+                    "Action": [
+                        "s3:GetObject",
+                        "s3:DeleteObject",
+                        "s3:PutObject",
+                        "s3:AbortMultipartUpload",
+                        "s3:ListMultipartUploadParts",
+                    ],
+                    "Resource": [f"arn:aws:s3:::{bucket_name}/{prefix}*"],
                 },
+                {"Effect": "Allow", "Action": ["s3:ListBucket"], "Resource": [f"arn:aws:s3:::{bucket_name}"]},
             ],
         }
         self.add_policy(policy_name, j.data.serializers.json.dumps(policy))
