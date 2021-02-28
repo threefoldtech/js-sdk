@@ -465,6 +465,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         ):
             stop_message = error_message_template.format(reason="Couldn't reach the website after deployment")
             self.stop(dedent(stop_message))
+        self._label_resources(backupType="vdc")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self, extra_info=""):
@@ -478,3 +479,18 @@ class SolutionsChatflowDeploy(GedisChatBot):
         {extra_info}
         """
         self.md_show(dedent(message), md=True)
+
+    def _label_resources(self, resources=None, **kwargs):
+        if not kwargs:
+            return
+        resources = resources or "all,cm,secret,ing,pv,pvc,sc"
+        namespace = f"{self.chart_name}-{self.release_name}"
+        all_resources_json = self.k8s_client.execute_native_cmd(f"kubectl get {resources} -n {namespace} -o json")
+        all_resources = j.data.serializers.json.loads(all_resources_json)
+        for resource in all_resources.get("items", []):
+            kind = resource.get("kind", "").lower()
+            name = resource.get("name", "")
+            for key, val in kwargs.items():
+                self.k8s_client.execute_native_cmd(
+                    f"kubectl label -n {namespace} {kind} {name} {key}={val} --overwrite"
+                )
