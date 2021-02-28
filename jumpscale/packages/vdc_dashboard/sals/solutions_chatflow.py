@@ -457,7 +457,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             stop_message = error_message_template.format(
                 reason="Couldn't find resources in the cluster for the solution"
             )
-            self.k8s_client.delete_deployed_release(self.release_name)
+            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.release_name}")
             self.stop(dedent(stop_message))
 
         if self._has_domain() and not j.sals.reservation_chatflow.wait_http_test(
