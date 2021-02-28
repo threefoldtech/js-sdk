@@ -490,6 +490,8 @@ class SolutionsChatflowDeploy(GedisChatBot):
         for resource in all_resources.get("items", []):
             kind = resource.get("kind", "").lower()
             name = resource.get("name", "")
+            if not name:
+                name = resource.get("metadata", {}).get("name", "")
             if not all([name, kind]):
                 j.logger.warning(f"can't retrieve resource info of {list(resource.keys())}")
                 continue
