@@ -27,6 +27,27 @@ JS-NG> """
 
 
 class VDCThreebotDeployer(VDCBaseComponent):
+    def __init__(self, *args, **kwargs):
+        self._branch = None
+        super().__init__(*args, **kwargs)
+
+    @property
+    def branch(self):
+        if not self._branch:
+            try:
+                path = j.packages.vdc.__file__
+                git_client = j.clients.git.get("default_vdc")
+                git_client.path = j.tools.git.find_git_path(path)
+                git_client.save()
+                self._branch = git_client.branch_name
+            except Exception as e:
+                # won't fail unless we move the vdc deployer package
+                j.logger.critical(
+                    f"Using development as default branch. VDC package location is changed/courrpted, Please fix me, Error: {str(e)}"
+                )
+                self._branch = "development"
+        return self._branch
+
     def deploy_threebot(self, minio_wid, pool_id, kube_config, embed_trc=True, backup_config=None):
         backup_config = backup_config or {}
         etcd_backup_config = j.core.config.get("VDC_S3_CONFIG", {})
@@ -67,7 +88,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             ),
             "S3_AUTO_TOPUP_FARMS": ",".join(S3_AUTO_TOPUP_FARMS.get()),
             # "VDC_MINIO_ADDRESS": minio_ip_address,
-            "SDK_VERSION": "development_vdc",  # TODO: change when merged
+            "SDK_VERSION": self.branch,
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),
             "MINIMAL": "true",
             "TEST_CERT": "true" if j.core.config.get("TEST_CERT") else "false",
