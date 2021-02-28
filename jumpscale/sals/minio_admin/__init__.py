@@ -30,8 +30,6 @@ class MCAlias:
 
     def add_user(self, username, password):
         self._execute(f"mc admin user add {self.alias} {username} {password}")
-        out = self._execute(f"mc admin user info {self.alias} {username} --json")
-        return j.data.serializers.json.loads(out)
 
     def remove_user(self, username):
         self._execute(f"mc admin user remove {self.alias} {username}")
