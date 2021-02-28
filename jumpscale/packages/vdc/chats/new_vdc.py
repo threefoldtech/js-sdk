@@ -4,7 +4,7 @@ from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
 from jumpscale.sals.vdc.proxy import VDC_PARENT_DOMAIN
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from textwrap import dedent
-import uuid
+from minio import Minio
 from urllib.parse import urlparse
 
 MINIMUM_ACTIVATION_XLMS = 0
@@ -154,9 +154,20 @@ class VDCDeploy(GedisChatBot):
 
     def get_backup_config(self):
         backup_config = j.core.config.get("VDC_S3_CONFIG", {})
+        if not backup_config:
+            self.backup_config = {}
+            return
+
+        alias = j.sals.minio_admin.get_alias(
+            "vdc", backup_config["S3_URL"], backup_config["S3_AK"], backup_config["S3_SK"]
+        )
+        alias.add_user(self.vdc.owner_tname, self.vdc_secret)
+        alias.allow_user_to_bucket(
+            self.vdc.owner_tname, backup_config["S3_BUCKET"], prefix=f"{self.vdc.owner_tname}/{self.vdc.vdc_name}"
+        )
         self.backup_config = {
-            "ak": backup_config.get("S3_AK", ""),
-            "sk": backup_config.get("S3_SK", ""),
+            "ak": self.vdc.owner_tname,
+            "sk": self.vdc_secret,
             "region": "minio",
             "url": backup_config.get("S3_URL", ""),
             "bucket": backup_config.get("S3_BUCKET", ""),
