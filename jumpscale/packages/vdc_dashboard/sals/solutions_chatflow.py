@@ -483,7 +483,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def _label_resources(self, resources=None, **kwargs):
         if not kwargs:
             return
-        resources = resources or "all,cm,secret,ing,pv,pvc,sc"
+        resources = resources or "deployment,svc,sts,ds,cm,secret,ing,pv,pvc,sc"
         namespace = f"{self.chart_name}-{self.release_name}"
         all_resources_json = self.k8s_client.execute_native_cmd(f"kubectl get {resources} -n {namespace} -o json")
         all_resources = j.data.serializers.json.loads(all_resources_json)
