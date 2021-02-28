@@ -34,7 +34,6 @@ class PeertubeDeploy(SolutionsChatflowDeploy):
         self.chart_config.update(
             {
                 "webserver.hostname": self.domain,
-                "adminEmail": self.user_email,
                 "postgresql.fullnameOverride": f"peertube-postgresql-{self.release_name}",
                 "redis.fullnameOverride": f"peertube-redis-{self.release_name}",
                 "deps.smtp.hostname": None,
@@ -45,6 +44,11 @@ class PeertubeDeploy(SolutionsChatflowDeploy):
                 "resources.limits.memory": self.resources_limits["memory"],
             }
         )
+
+    @chatflow_step(title="Success", disable_previous=True, final_step=True)
+    def success(self):
+        extra_info = f"Admin user credentials for peertube is: <br/> Email: adminemail@gmail.com <br/> Password: adminPassword <br/> Please consider changing them after login"
+        super().success(extra_info=extra_info)
 
 
 chat = PeertubeDeploy
