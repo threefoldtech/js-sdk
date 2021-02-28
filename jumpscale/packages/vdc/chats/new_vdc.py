@@ -161,12 +161,14 @@ class VDCDeploy(GedisChatBot):
         alias = j.sals.minio_admin.get_alias(
             "vdc", backup_config["S3_URL"], backup_config["S3_AK"], backup_config["S3_SK"]
         )
-        alias.add_user(self.username, self.vdc_secret)
+        alias.add_user(f"{self.username}-{self.vdc_name.value}", self.vdc_secret)
         alias.allow_user_to_bucket(
-            self.username, backup_config["S3_BUCKET"], prefix=f"{self.username}/{self.vdc_name.value}"
+            f"{self.username}-{self.vdc_name.value}",
+            backup_config["S3_BUCKET"],
+            prefix=f"{self.username}/{self.vdc_name.value}",
         )
         self.backup_config = {
-            "ak": self.username,
+            "ak": f"{self.username}-{self.vdc_name.value}",
             "sk": self.vdc_secret,
             "region": "minio",
             "url": backup_config.get("S3_URL", ""),
