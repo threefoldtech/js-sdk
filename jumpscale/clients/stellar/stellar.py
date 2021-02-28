@@ -452,6 +452,10 @@ class Stellar(Client):
         Returns:
             [type]: [description]
         """
+        horizon_server = self._get_horizon_server()
+        base_fee = horizon_server.fetch_base_fee()
+
+        base_fee = horizon_server.fetch_base_fee()
         while retries > 0:
             try:
                 return self._transfer(
@@ -466,9 +470,12 @@ class Stellar(Client):
                     timeout=timeout,
                     sequence_number=sequence_number,
                     sign=sign,
+                    base_fee=base_fee,
                 )
             except Exception as e:
                 retries -= 1
+                if retries <= 2:
+                    base_fee *= 2
                 j.logger.warning(str(e))
 
         raise j.exceptions.Runtime(f"Failed to make transaction for {retries} times, Please try again later")
@@ -486,6 +493,7 @@ class Stellar(Client):
         timeout=30,
         sequence_number: int = None,
         sign: bool = True,
+        base_fee: int = 100,
     ):
         issuer = None
         j.logger.info(f"Sending {amount} {asset} to {destination_address}")
