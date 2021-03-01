@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: development_vdc
+          ref: development
       - uses: nanasess/setup-chromedriver@master
       - name: Gathering dependencies
         run: |
