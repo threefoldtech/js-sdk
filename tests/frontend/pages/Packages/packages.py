@@ -69,11 +69,11 @@ class Packages(Base):
             installed_package_name = installed_package_card_name.text
             installed_packages[installed_package_name] = installed_card
         self.wait(self.driver, "progressbar")
-        if available_packages_cards:
-            for available_card in available_packages_cards:
-                available_package_card_name = available_card.find_element_by_class_name("v-card__title")
-                available_package_name = available_package_card_name.text
-                available_packages[available_package_name] = available_card
+
+        for available_card in available_packages_cards:
+            available_package_card_name = available_card.find_element_by_class_name("v-card__title")
+            available_package_name = available_package_card_name.text
+            available_packages[available_package_name] = available_card
 
         return installed_packages, available_packages
 
