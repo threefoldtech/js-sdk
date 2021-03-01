@@ -94,27 +94,29 @@
 
               <v-dialog v-model="openAddCustomModel" persistent max-width="700px"
                 @keydown.esc="openAddCustomModel = false">
+                <v-form ref="customPriceForm">
                 <v-card>
                   <v-card-title primary-title class="primary py-3 mb-5 white--text">
                     <span class="headline">Add custom price</span>
                   </v-card-title>
                   <v-card-text>
+                    <v-alert v-if="addCustomModelError" dense outlined type="error" class="mb-5">{{ addCustomModelError }}</v-alert>
                     <v-container>
                       <v-row>
                         <span>Add custom prices for a 3Bot</span>
                       </v-row>
                       <v-row>
                         <v-col cols="12">
-                          <v-text-field v-model="customPrice.threebotName" label="3Bot Name*" required></v-text-field>
+                          <v-text-field v-model="customPrice.threebotName" label="3Bot Name*" :rules="[v => !!v || '3Bot name is required']"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6" md="4">
-                          <v-text-field v-model="customPrice.cu" label="CU*"></v-text-field>
+                          <v-text-field v-model="customPrice.cu" label="CU*" :rules="[v => !!v || 'field is required']"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6" md="4">
-                          <v-text-field v-model="customPrice.su" label="SU*"></v-text-field>
+                          <v-text-field v-model="customPrice.su" label="SU*" :rules="[v => !!v || 'field is required']"></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6" md="4">
-                          <v-text-field v-model="customPrice.ipv4u" label="IPv4U*" required></v-text-field>
+                          <v-text-field v-model="customPrice.ipv4u" label="IPv4U*" :rules="[v => !!v || 'field is required']"></v-text-field>
                         </v-col>
                       </v-row>
                     </v-container>
@@ -131,6 +133,7 @@
                     </v-btn>
                   </v-card-actions>
                 </v-card>
+              </v-form>
               </v-dialog>
             </template>
           </v-data-table>
