@@ -64,6 +64,7 @@
     </v-dialog>
     <v-dialog v-if="release" v-model="dialog.release" width="400">
       <v-card
+        class="pt-4 pb-2"
         color="info"
         dark
       >
@@ -74,7 +75,7 @@
             >
           </v-row>
           <b class="font-weight-bold">
-            New release {{ this.release }} is available
+            New release {{ this.release }} is available. You can update it later from the user menu in the topbar.
           </b>
         </v-card-text>
         <v-card-actions>
