@@ -172,8 +172,16 @@ class Test3BotServer(BaseTests):
 
         farm_management = j.servers.threebot.default.packages.add(path)
         farm_management_dir = {
-            "farmmanagement": {"name": "farmmanagement", "path": path, "giturl": None, "kwargs": {}, "admins": [], "ui_name": "farmmanagement"}
+            "farmmanagement": {
+                "name": "farmmanagement",
+                "path": path,
+                "giturl": None,
+                "kwargs": {},
+                "admins": [],
+                "ui_name": "farmmanagement",
+            }
         }
+
         self.assertEqual(farm_management, farm_management_dir)
 
         self.info("Check that the package has been added")
