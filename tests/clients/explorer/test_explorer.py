@@ -51,7 +51,7 @@ class Explorer(BaseTests):
 
         self.assertIn("node_id", str(node))
         self.assertIn("farm_id", str(node))
-        self.asserIn("total_resources", str(node))
+        self.assertIn("total_resources", str(node))
 
     def test02_check_explorer_url(self):
         """Check the explorer URL.
@@ -79,7 +79,6 @@ class Explorer(BaseTests):
         farm = choice(farms)
 
         self.info("Check that farm list contains the wallet_addresses, id, location")
-
-        self.assertIn("wallet_addresses", str(farm))
-        self.assertIn("id", str(farm))
-        self.assertIn("location", str(farm))
+        self.assertTrue(hasattr(farm, "wallet_addresses"))
+        self.assertTrue(hasattr(farm, "id"))
+        self.assertTrue(hasattr(farm, "location"))
