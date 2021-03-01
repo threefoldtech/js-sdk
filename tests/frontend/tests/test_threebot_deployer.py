@@ -4,7 +4,6 @@ import os
 from jumpscale.loader import j
 from random import randint
 from tests.frontend.tests.base_tests import BaseTest
-from tests.frontend.pages.wallets.wallets import Wallets
 from tests.frontend.pages.threebot_deployer.threebot_deployer import ThreebotDeployer
 
 
@@ -21,6 +20,10 @@ class ThreebotDeployerTests(BaseTest):
             raise Exception("Please add WALLET_SECRET as environment variables")
 
         j.clients.stellar.get(cls.wallet_name, network="STD", secret=cls.wallet_secret)
+        wallet = j.clients.stellar.get(cls.wallet_name)
+        wallet.secret = cls.wallet_secret
+        wallet.network = "STD"
+        wallet.save()
 
     def setUp(self):
         super().setUp()
