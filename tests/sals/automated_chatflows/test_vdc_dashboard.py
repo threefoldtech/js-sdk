@@ -15,6 +15,7 @@ class VDCDashboard(VDCBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls._import_wallet("demos_wallet")
         no_deployment = "single"
         cls.flavor = "platinum"
         cls.kube_config = cls.deploy_vdc()
@@ -86,15 +87,6 @@ class VDCDashboard(VDCBase):
             self.info(f"Delete {sol.release_name}")
             self.kube_manager.execute_native_cmd(f"kubectl delete ns {sol.chart_name}-{sol.release_name}")
         super().tearDown()
-
-    @classmethod
-    def _import_wallet(cls):
-        super()._import_wallet()
-        wallet = j.clients.stellar.get("demos_wallet")
-        wallet.secret = cls.wallet_secret
-        wallet.network = "STD"
-        wallet.save()
-        return wallet
 
     def _set_vdc_identity(self):
         vdc_ident = j.core.identity.get(f"vdc_ident_{self.vdc.solution_uuid}")
