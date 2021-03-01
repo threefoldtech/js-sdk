@@ -7,8 +7,9 @@ from jumpscale.core.exceptions import Input, NotFound
 
 from .auth import HTTPSignatureAuth
 from .base import BaseResource
-from .models import Farm, FarmerIP
+from .models import Farm, FarmerIP, CloudUnitMonthPrice
 from .pagination import get_all, get_page
+from .prices import Prices
 
 
 def _build_query(threebot_id: int = None, name: str = None,) -> dict:
@@ -77,6 +78,18 @@ class Farms(BaseResource):
         resp = self._session.post(self._url, json=farm.to_dict())
         return resp.json()["id"]
 
+    def register_farm_dict(self, farm_dict) -> int:
+        """
+        register a farm on the explorer
+
+        :param farm: farm object created by the "new" method
+        :type farm: Farm
+        :return: the created farm ID
+        :rtype: integer
+        """
+        resp = self._session.post(self._url, json=farm_dict)
+        return resp.json()["id"]
+
     def get(self, farm_id: int = None, farm_name: str = None) -> Farm:
         """
         get the detail of a farm
@@ -125,3 +138,43 @@ class Farms(BaseResource):
 
     def remove_public_ips(self, farm_id, public_ips):
         self._session.delete(f"{self._url}/{farm_id}/ip", json=public_ips)
+
+    def enable_custom_farm_prices(self, farm_id, default_prices):
+        # field enable_custom_pricing
+        farm = self.get(farm_id)
+        farm.enable_custom_pricing = True
+        ## set default to the grid default
+        default_prices_obj = CloudUnitMonthPrice()
+        default_prices_obj.cu = default_prices["cu"]
+        default_prices_obj.su = default_prices["su"]
+        default_prices_obj.ipv4u = default_prices["ipv4u"]
+
+        farm.farm_cloudunits_price = default_prices
+        self.update(farm)
+        return True
+
+    def get_deals(self, farm_id):
+        return self._session.get(f"{self._url}/{farm_id}/deals").json()
+
+    def get_deal_for_threebot(self, farm_id, threebot_id):
+        try:
+            return self._session.get(f"{self._url}/{farm_id}/deals/{threebot_id}").json()
+        except:
+
+            return {
+                "farm_id": farm_id,
+                "threebot_id": threebot_id,
+                "custom_cloudunits_price": self.get_explorer_prices(),
+            }
+
+    def create_or_update_deal_for_threebot(self, farm_id, threebot_id, custom_prices):
+        body = {"farm_id": farm_id, "threebot_id": threebot_id, "custom_cloudunits_price": custom_prices}
+        self._session.put(f"{self._url}/{farm_id}/deals", json=body)
+        return True
+
+    def delete_deal(self, farm_id, threebot_id):
+        self._session.delete(f"{self._url}/{farm_id}/deals/{threebot_id}")
+        return True
+
+    def get_explorer_prices(self):
+        return Prices(self._client).get_explorer_prices()

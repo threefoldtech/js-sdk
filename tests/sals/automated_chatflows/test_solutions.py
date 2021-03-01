@@ -41,8 +41,15 @@ class TFGridSolutionChatflows(ChatflowsBase):
 
         # create a pool
         cls.pool_name = cls.random_name()
+        farm = cls.get_farm_name().capitalize()
         pool = deployer.create_pool(
-            solution_name=cls.pool_name, cu=1, su=1, time_unit="Day", time_to_live=1, wallet_name="demos_wallet",
+            solution_name=cls.pool_name,
+            farm=farm,
+            cu=1,
+            su=1,
+            time_unit="Day",
+            time_to_live=1,
+            wallet_name="demos_wallet",
         )
         cls.pool_id = pool.pool_data.reservation_id
 
@@ -142,11 +149,14 @@ class TFGridSolutionChatflows(ChatflowsBase):
         localclient.host = kubernetes.ip_addresses[0]
         localclient.user = "rancher"
         localclient.save()
-        _, res, _ = localclient.sshclient.run("kubectl get nodes")
-
-        res = res.splitlines()
-        res = res[2:]  # Remove master node and table's head.
-        self.assertEqual(workernodes, len(res))
+        out = ""
+        now = j.data.time.now().timestamp
+        while j.data.time.now().timestamp - now < self.timeout:
+            _, out, _ = localclient.sshclient.run("kubectl get nodes")
+            if out.count("Ready") - 1 == workernodes:
+                break
+            sleep(2)
+        self.assertEqual(workernodes, out.count("Ready") - 1)
 
     def test03_minio(self):
         """Test case for deploying Minio.
@@ -199,21 +209,29 @@ class TFGridSolutionChatflows(ChatflowsBase):
             grafana_pool=self.pool_id,
         )
         self.solution_uuid = monitoring.solution_id
-        self.info("Check that Prometheus UI is reachable. ")
+        self.info("Check that Prometheus UI is reachable.")
+        self.assertTrue(
+            self.wait(monitoring.ip_addresses[1], port=9090, timeout=self.timeout),
+            f"Prometheus is not reached after {self.timeout} second",
+        )
         request = j.tools.http.get(
             f"http://{monitoring.ip_addresses[1]}:9090/graph", verify=False, timeout=self.timeout
         )
         self.assertEqual(request.status_code, 200)
 
         self.info("Check that Grafana UI is reachable.")
+        self.assertTrue(
+            self.wait(monitoring.ip_addresses[2], port=3000, timeout=self.timeout),
+            f"Grafana is not reached after {self.timeout} second",
+        )
         request = j.tools.http.get(f"http://{monitoring.ip_addresses[2]}:3000", verify=False, timeout=self.timeout)
-        self.assertEqual(request.status_code, 403)
+        self.assertEqual(request.status_code, 200)
         self.assertIn("login", request.content.decode())
 
         self.info("Check that Redis is reachable.")
         self.assertTrue(
             self.wait(monitoring.ip_addresses[0], port=6379, timeout=self.timeout),
-            f"redis is not reached after {self.timeout} second",
+            f"Redis is not reached after {self.timeout} second",
         )
         redis = Redis(host=monitoring.ip_addresses[0])
         self.assertEqual(redis.ping(), True)

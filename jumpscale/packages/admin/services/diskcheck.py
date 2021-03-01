@@ -4,11 +4,11 @@ from jumpscale.tools.notificationsqueue.queue import LEVEL
 
 
 class DiskCheckService(BackgroundService):
-    def __init__(self, name="admin_diskcheck", interval="* * * * *", *args, **kwargs):
+    def __init__(self, interval="* * * * *", *args, **kwargs):
         """
             Check disk space every 1 minute
         """
-        super().__init__(name, interval, *args, **kwargs)
+        super().__init__(interval, *args, **kwargs)
 
     def job(self):
         disk_obj = j.sals.fs.shutil.disk_usage("/")

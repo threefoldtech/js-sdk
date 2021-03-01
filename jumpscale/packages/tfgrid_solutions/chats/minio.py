@@ -222,14 +222,9 @@ class MinioDeploy(GedisChatBot):
     @chatflow_step(title="Reserve zdb", disable_previous=True)
     @deployment_context()
     def zdb_reservation(self):
-        self.metadata = {
-            "Solution Name": self.solution_name,
-            "Solution Type": "minio",
-            "Setup Type": self.mode,
-            "Master IP": self.ip_addresses[0],
-        }
-        self.solution_metadata.update(self.metadata)
         self.password = uuid.uuid4().hex
+        self.metadata = {"Solution Name": self.solution_name, "Solution Type": "minio", "zdb_password": self.password}
+        self.solution_metadata.update(self.metadata)
         self.zdb_result = deployer.deploy_minio_zdb(
             pool_id=self.zdb_pool_ids[0],
             password=self.password,
@@ -257,7 +252,7 @@ class MinioDeploy(GedisChatBot):
 
         metadata = {
             "name": self.solution_name,
-            "form_info": {"chatflow": "minio", "Solution name": self.solution_name, "Master IP": self.ip_addresses[0]},
+            "form_info": {"chatflow": "minio", "Solution name": self.solution_name, "zdb_password": self.password},
         }
         self.solution_metadata.update(metadata)
 

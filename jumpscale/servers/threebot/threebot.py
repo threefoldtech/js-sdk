@@ -11,6 +11,8 @@ from urllib.parse import urlparse
 from gevent.pywsgi import WSGIServer
 from jumpscale.core.base import Base, fields
 from jumpscale import packages as pkgnamespace
+from jumpscale.sals.nginx.nginx import LocationType, PORTS
+from jumpscale.packages.tfgrid_solutions.scripts.threebot.monitoring_alert_handler import send_alert
 from jumpscale.sals.nginx.nginx import LocationType, PORTS, AcmeServer
 
 
@@ -51,12 +53,14 @@ class NginxPackageConfig:
 
         is_auth = self.package.config.get("is_auth", True)
         is_admin = self.package.config.get("is_admin", True)
+        is_package_authorized = self.package.config.get("is_package_authorized", False)
 
         for static_dir in self.package.static_dirs:
             default_server["locations"].append(
                 {
                     "is_auth": is_auth,
                     "is_admin": is_admin,
+                    "is_package_authorized": is_package_authorized,
                     "type": "static",
                     "name": static_dir.get("name"),
                     "spa": static_dir.get("spa"),
@@ -72,6 +76,7 @@ class NginxPackageConfig:
                 {
                     "is_auth": is_auth,
                     "is_admin": is_admin,
+                    "is_package_authorized": is_package_authorized,
                     "type": "proxy",
                     "name": bottle_server.get("name"),
                     "host": bottle_server.get("host"),
@@ -88,6 +93,7 @@ class NginxPackageConfig:
                 {
                     "is_auth": is_auth,
                     "is_admin": is_admin,
+                    "is_package_authorized": is_package_authorized,
                     "type": "proxy",
                     "name": "actors",
                     "host": GEDIS_HTTP_HOST,
@@ -103,6 +109,7 @@ class NginxPackageConfig:
                 {
                     "is_auth": is_auth,
                     "is_admin": is_admin,
+                    "is_package_authorized": is_package_authorized,
                     "type": "proxy",
                     "name": "chats",
                     "host": CHATFLOW_SERVER_HOST,
@@ -183,6 +190,8 @@ class NginxPackageConfig:
                         loc.force_https = location.get("force_https")
                         loc.is_auth = location.get("is_auth", False)
                         loc.is_admin = location.get("is_admin", False)
+                        loc.is_package_authorized = location.get("is_package_authorized", False)
+                        loc.package_name = self.package.name
 
                 website.save()
                 website.configure()
@@ -210,6 +219,7 @@ class Package:
         default_email,
         giturl="",
         kwargs=None,
+        admins=None,
         default_acme_server_type=AcmeServer.LETSENCRYPT,
         default_acme_server_url=None,
     ):
@@ -224,6 +234,7 @@ class Package:
         self.default_acme_server_type = default_acme_server_type
         self.default_acme_server_url = default_acme_server_url
         self.kwargs = kwargs or {}
+        self.admins = admins or []
 
     def _load_files(self, dir_path):
         for file_path in j.sals.fs.walk_files(dir_path, recursive=False):
@@ -264,6 +275,10 @@ class Package:
         if not self._config:
             self._config = self.load_config()
         return self._config
+
+    @property
+    def ui_name(self):
+        return self.config.get("ui_name", self.name)
 
     @property
     def actors_dir(self):
@@ -373,6 +388,7 @@ class PackageManager(Base):
             package_path = self.packages[package_name]["path"]
             package_giturl = self.packages[package_name]["giturl"]
             package_kwargs = self.packages[package_name].get("kwargs", {})
+            package_admins = self.packages[package_name].get("admins", [])
             return Package(
                 path=package_path,
                 default_domain=self.threebot.domain,
@@ -381,6 +397,7 @@ class PackageManager(Base):
                 default_acme_server_url=self.threebot.acme_server_url,
                 giturl=package_giturl,
                 kwargs=package_kwargs,
+                admins=package_admins,
             )
 
     def get_packages(self):
@@ -401,6 +418,7 @@ class PackageManager(Base):
                             "installed": True,
                             "frontend": package.config.get("frontend", False),
                             "chatflows": chatflows,
+                            "ui_name": package.ui_name,
                         }
                     )
                 else:
@@ -413,6 +431,10 @@ class PackageManager(Base):
             for pkg in os.listdir(path):
                 pkg_path = j.sals.fs.join_paths(path, pkg)
                 pkgtoml_path = j.sals.fs.join_paths(pkg_path, "package.toml")
+                ui_name = pkg
+                with open(pkgtoml_path) as f:
+                    conf = j.data.serializers.toml.loads(f.read())
+                    ui_name = conf.get("ui_name", pkg)
                 if pkg not in self.packages and j.sals.fs.exists(pkgtoml_path):
                     all_packages.append(
                         {
@@ -421,6 +443,7 @@ class PackageManager(Base):
                             "giturl": "",
                             "system_package": pkg in DEFAULT_PACKAGES.keys(),
                             "installed": False,
+                            "ui_name": ui_name,
                         }
                     )
 
@@ -475,12 +498,15 @@ class PackageManager(Base):
             package_path = j.sals.fs.parent(path_for_package_toml)
             path = package_path
 
+        admins = kwargs.pop("admins", [])
+
         package = Package(
             path=path,
             default_domain=self.threebot.domain,
             default_email=self.threebot.email,
             giturl=giturl,
             kwargs=kwargs,
+            admins=admins,
         )
 
         # TODO: adding under the same name if same path and same giturl should be fine, no?
@@ -499,6 +525,8 @@ class PackageManager(Base):
             "path": package.path,
             "giturl": package.giturl,
             "kwargs": package.kwargs,
+            "admins": package.admins,
+            "ui_name": package.ui_name,
         }
 
         self.save()
@@ -584,7 +612,7 @@ class PackageManager(Base):
         # start background services
         if package.services_dir:
             for service in package.services:
-                self.threebot.services.add_service(service["path"])
+                self.threebot.services.add_service(service["name"], service["path"])
 
         # start servers
         self.threebot.rack.start()
@@ -791,6 +819,8 @@ class ThreebotServer(Base):
         self.nginx.start()
         self.rack.start()
         j.logger.register(f"threebot_{self.instance_name}")
+        if j.config.get("SEND_REMOTE_ALERTS", False):
+            j.tools.alerthandler.register_handler(send_alert)
 
         # add default packages
         for package_name in DEFAULT_PACKAGES:
@@ -822,6 +852,6 @@ class ThreebotServer(Base):
         self.nginx.stop()
         # mark app as stopped, do this before stopping redis
         j.logger.unregister()
-        self.redis.stop()
         self.rack.stop()
+        self.redis.stop()
         self._started = False

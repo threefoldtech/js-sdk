@@ -25,7 +25,7 @@ env = j.tools.jinja2.get_env(templates_path)
 
 @app.route("/login")
 def login():
-    """List available providers for login and redirect to the selected provider (TF Connect)
+    """List available providers for login and redirect to the selected provider (ThreeFold Connect)
 
     Returns:
         Renders the template of login page
@@ -319,6 +319,40 @@ def is_authorized():
     return get_user_info()
 
 
+@app.route("/package_authorized/<package_name>")
+@authenticated
+def is_package_authorized(package_name):
+    """
+    get user information if it is authorized user in the package config
+
+    Returns:
+        [JSON string]: [user information session]
+    """
+    authorized_users = get_package_admins(package_name)
+    user_info = get_user_info()
+    user_dict = j.data.serializers.json.loads(user_info)
+    username = user_dict["username"]
+    # if the package doesn't include admins then allow any authenticated user
+    if authorized_users and not any([username in authorized_users, username in j.core.identity.me.admins]):
+        return abort(403)
+    return user_info
+
+
+def package_authorized(package_name):
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            authorized_users = get_package_admins(package_name)
+            session = request.environ.get("beaker.session")
+            username = session.get("username")
+            if authorized_users and not any([username in authorized_users, username in j.core.identity.me.admins]):
+                return abort(403)
+            return function(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 def login_required(func):
     """Decorator for the methods we want to secure
 
@@ -336,6 +370,21 @@ def login_required(func):
         return func(*args, **kwargs)
 
     return decorator
+
+
+def add_package_user(package_name, username):
+    package = j.servers.threebot.default.packages.get(package_name)
+    if not package:
+        raise j.exceptions.Validation(f"can't add admin to non installed package {package_name}")
+    package.admins.append(username)
+    j.servers.threebot.default.packages.save()
+
+
+def get_package_admins(package_name):
+    package = j.servers.threebot.default.packages.get(package_name)
+    if not package:
+        raise j.exceptions.Validation(f"package {package_name} is not installed")
+    return package.admins
 
 
 app = SessionMiddleware(app, SESSION_OPTS)

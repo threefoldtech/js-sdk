@@ -749,6 +749,22 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
+name = "namecom"
+version = "0.5.0"
+description = "Python SDK for name.com"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+click = "*"
+requests = "*"
+
+[package.extras]
+dev = ["check-manifest"]
+test = ["coverage"]
+
+[[package]]
 name = "netaddr"
 version = "0.7.20"
 description = "A network address manipulation library for Python"
@@ -1892,6 +1908,9 @@ multidict = [
     {file = "multidict-4.7.6-cp38-cp38-win32.whl", hash = "sha256:5cf311a0f5ef80fe73e4f4c0f0998ec08f954a6ec72b746f3c179e37de1d210d"},
     {file = "multidict-4.7.6-cp38-cp38-win_amd64.whl", hash = "sha256:7388d2ef3c55a8ba80da62ecfafa06a1c097c18032a501ffd4cabbc52d7f2b19"},
     {file = "multidict-4.7.6.tar.gz", hash = "sha256:fbb77a75e529021e7c4a8d4e823d88ef4d23674a202be4f5addffc72cbb91430"},
+]
+namecom = [
+    {file = "namecom-0.5.0.tar.gz", hash = "sha256:58e5d52ecae02b764687477f402fe905071de10668754675173528b88f28baec"},
 ]
 netaddr = [
     {file = "netaddr-0.7.20-py2.py3-none-any.whl", hash = "sha256:7a9c8f58d048b820df1882439bb04fb2de13c03ec8af3112a1099822b0a2a4b8"},

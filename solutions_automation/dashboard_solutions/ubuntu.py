@@ -9,9 +9,9 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
     MEM_MESSAGE = "Please specify how much memory (in MB)"
     DISK_SIZE_MESSAGE = "Please specify the size of root filesystem (in MB)"
     DISK_TYPE_MESSAGE = "Please choose the root filesystem disktype"
-    NETWORK_MESSAGE = "Please select a network"
+    NETWORK_MESSAGE = "Please select a network to connect your solution to"
     LOG_MESSAGE = "Do you want to push the container logs (stdout and stderr) onto an external redis channel"
-    SSH_MESSAGE = "Please upload your public SSH key to be able to access the depolyed container via ssh"
+    SSH_MESSAGE = "Please upload your public SSH key to be able to access the deployed container via ssh"
     IPV4_MESSAGE = "Please choose IP Address for your solution"
     IPV6_MESSAGE = r"^Do you want to assign a global IPv6 address to (.*)\?$"
     NODE_ID_MESSAGE = r"^Do you want to automatically select a node to deploy (.*)\?$"
@@ -40,7 +40,6 @@ class UbuntuAutomated(GedisChatBotPatch, UbuntuDeploy):
 
     def single_choice(self, msg, *args, **kwargs):
         selected = self.fetch_param(msg, *args, **kwargs)
-        print(args)
         if args:
             for m in args[0]:
                 if str(selected) in m:

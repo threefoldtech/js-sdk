@@ -1,0 +1,113 @@
+
+<section class="cspricestable">
+
+    <v-alert :type="deleteNodeFarmAlert.type" v-if="deleteNodeFarmAlert">
+        {{deleteNodeFarmAlert.message}}
+    </v-alert>
+    <v-row class="my-3 mx-1">
+        <v-card style="width: 100%; height: 100%">
+            <v-card-title primary-title class="primary py-3 mb-5 white--text">
+                <v-row>
+                    <v-col cols="6">
+                        <v-icon small color="white" left>fas fa-dollar-sign</v-icon>
+                        <div class="d-inline " v-if="farm">{{ tableName }}</div>
+                    </v-col>
+                    <v-col></v-col>
+                    <v-col cols="3" class="py-0">
+                        <v-text-field dark class="pt-0" v-model="searchNodes" append-icon="fa-search" label="Search" single-line hide-details>
+                        </v-text-field>
+                    </v-col>
+                </v-row>
+            </v-card-title>
+            <v-card-text>
+                <v-flex class="ml-3">
+                    <v-layout column justify-space-around>
+                        <v-data-table item-key="name" :search="searchNodes" :headers="headers" :items="customPricesList" :items-per-page="10" single-line>
+                            <template v-slot:item.action="{ item }">
+              <v-btn fab small text @click="openEditPriceModal(item)">
+                <v-icon small> fa-edit </v-icon>
+              </v-btn>
+
+              <v-btn fab small text @click="showDeletePriceModal(item)">
+                <v-icon small> fa-trash </v-icon>
+              </v-btn>
+
+              <v-dialog v-model="openEditModal" persistent max-width="800" @keydown.esc="openEditModal = false">
+                <v-card>
+                  <v-card-title
+                    primary-title
+                    class="primary py-3 mb-5 white--text"
+                  >
+                    Edit price
+                    <v-spacer />
+                  </v-card-title>
+                  <v-card-text>
+                    <v-container>
+                      <v-row>
+                        <v-col cols="12" sm="4">
+                          <v-text-field
+                            v-model.number="priceToEdit.custom_cloudunits_price.cu"
+                            label="CU"
+                          ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="4">
+                          <v-text-field
+                            v-model.number="priceToEdit.custom_cloudunits_price.su"
+                            label="SU"
+                          ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="4">
+                          <v-text-field
+                            v-model.number="priceToEdit.custom_cloudunits_price.ipv4u"
+                            label="IPv4U"
+                          ></v-text-field>
+                        </v-col>
+                      </v-row>
+                    </v-container>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      color="black darken-1"
+                      text
+                      @click="closeEditModal"
+                      >Cancel</v-btn
+                    >
+                    <v-btn color="yellow darken-1" text @click="editPrice"
+                      >Edit</v-btn
+                    >
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+              <v-dialog v-model="openDeleteModal" persistent max-width="800" @keydown.esc="openDeleteModal = false">
+                <v-card>
+                  <v-card-title
+                    primary-title
+                    class="primary py-3 mb-5 white--text"
+                    >Delete price</v-card-title
+                  >
+
+                  <v-card-text>
+                    Are you sure you want to delete this deal for {{  item.threebot_name }}?</</v-card-text>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      color="black darken-1"
+                      text
+                      @click="openDeleteModal = false"
+                      >Cancel</v-btn
+                    >
+                    <v-btn color="red darken-1" text @click="deletePrice(item.farm_id, item.threebot_id)"
+                      >Delete</v-btn
+                    >
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+            </template>
+                        </v-data-table>
+                    </v-layout>
+                </v-flex>
+            </v-card-text>
+        </v-card>
+    </v-row>
+</section>

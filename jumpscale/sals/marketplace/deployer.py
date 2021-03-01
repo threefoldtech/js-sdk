@@ -130,7 +130,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
         network_names = [n[len(username) + 1 :] for n in network_views.keys()]
         if not network_views:
             raise StopChatFlow(f"You don't have any deployed network.")
-        network_name = bot.single_choice("Please select a network", network_names, required=True)
+        network_name = bot.single_choice("Please select a network to connect your solution to", network_names, required=True)
         return network_views[f"{username}_{network_name}"]
 
     def _check_pool_factory_owner(self, instance_name, identity_name=None):
@@ -239,7 +239,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
         selected_nodes = []
         selected_pool_ids = []
         for i in range(number_of_nodes):
-            cu, su = self.calculate_capacity_units(**resource_query_list[i])
+            cloud_units = self.calculate_capacity_units(**resource_query_list[i])
+            cu, su = cloud_units.cu, cloud_units.su
             pool_choices = {}
             for p in pools:
                 if pools[p][0] < cu or pools[p][1] < su:
@@ -273,7 +274,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
             ([], []): first list contains the selected node objects. second list contains selected pool ids
         """
         resource_query = resource_query or {}
-        cu, su = self.calculate_capacity_units(**resource_query)
+        cloud_units = self.calculate_capacity_units(**resource_query)
+        cu, su = cloud_units.cu, cloud_units.su
         pools = self.list_pools(username, cu, su)
         if pool_ids:
             filtered_pools = {}
@@ -333,8 +335,10 @@ class MarketPlaceDeployer(ChatflowDeployer):
             return None, None
 
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
-        cu, su = self.calculate_capacity_units(**resources)
-        pool_info = j.sals.zos.get().pools.create(int(cu * expiration), int(su * expiration), 0, farm_name, [currency])
+        cloud_units = self.calculate_capacity_units(**resources)
+        pool_info = j.sals.zos.get().pools.create(
+            int(cloud_units.cu * expiration), int(cloud_units.su * expiration), 0, farm_name, [currency]
+        )
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
@@ -403,7 +407,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             valid = True
             try:
                 j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-                    1, cru=cru, mru=mru, sru=sru, hru=hru, ip_version=ip_version, pool_ids=[pool.pool_id],
+                    1, cru=cru, mru=mru, sru=sru, hru=hru, ip_version=ip_version, pool_ids=[pool.pool_id]
                 )
             except StopChatFlow as e:
                 j.logger.warning(
@@ -433,7 +437,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return self.get_farm_name(self.get_pool_farm_id(pool_id=pool_id))
 
     def get_best_fit_pool(self, pools, expiration, cru=0, mru=0, sru=0, hru=0, farm_name=None, node_id=None):
-        cu, su = self.calculate_capacity_units(cru, mru, sru, hru)
+        cloud_units = self.calculate_capacity_units(cru, mru, sru, hru)
+        cu, su = cloud_units.cu, cloud_units.su
         required_cu = cu * expiration
         required_su = su * expiration
         exact_fit_pools = []  # contains pools that are exact match of the required resources

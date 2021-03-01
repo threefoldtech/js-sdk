@@ -2,6 +2,7 @@ from random import choice
 from urllib.parse import urljoin
 from tests.frontend.pages.base import Base
 from selenium.webdriver.common.keys import Keys
+from gevent import sleep
 
 
 class Packages(Base):
@@ -44,6 +45,7 @@ class Packages(Base):
             git_url_input.send_keys(git_url)
             self.click_button(self.driver, "SUBMIT")
             self.wait(self.driver, "v-dialog")
+            self.wait(self.driver, "v-card__progress")
         else:
             # Clear git_url_input box
             git_url_input.send_keys(Keys.CONTROL + "a")
@@ -51,8 +53,12 @@ class Packages(Base):
             path_input.send_keys(path)
             self.click_button(self.driver, "SUBMIT")
             self.wait(self.driver, "v-dialog")
+            self.wait(self.driver, "v-card__progress")
 
     def get_installed_and_available_packages(self):
+        self.wait(self.driver, "progressbar")
+        # TODO search for better solution to wait till the packages loaded
+        sleep(20)
         installed_packages = {}
         available_packages = {}
         packages_category = self.driver.find_elements_by_class_name("row")
@@ -62,7 +68,7 @@ class Packages(Base):
             installed_package_card_name = installed_card.find_element_by_class_name("v-card__title")
             installed_package_name = installed_package_card_name.text
             installed_packages[installed_package_name] = installed_card
-
+        self.wait(self.driver, "progressbar")
         for available_card in available_packages_cards:
             available_package_card_name = available_card.find_element_by_class_name("v-card__title")
             available_package_name = available_package_card_name.text
@@ -77,6 +83,7 @@ class Packages(Base):
             delete_icon = package_card.find_element_by_class_name("v-btn")
             delete_icon.click()
             self.click_button(self.driver, "SUBMIT")
+            self.wait(self.driver, "v-card__progress")
 
     def install_random_package(self):
         installed_packages, available_packages = self.get_installed_and_available_packages()
@@ -91,6 +98,13 @@ class Packages(Base):
         package_card = self.add_package_if_not_added(package, git_url)
         open_in_browser = package_card.find_elements_by_class_name("v-btn__content")[1]
         open_in_browser.click()
+
+        try:
+            self.click_button(self.driver, "AGREE")
+            self.wait(self.driver, "progressbar")
+        except:
+            pass
+
         return self.driver.current_url
 
     def chatflows(self, package, git_url):

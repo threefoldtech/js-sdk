@@ -7,12 +7,7 @@ from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
-from jumpscale.sals.reservation_chatflow import (
-    DeploymentFailed,
-    deployer,
-    solutions,
-    deployment_context,
-)
+from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, solutions, deployment_context
 
 
 class EtcdDeploy(GedisChatBot):
@@ -69,8 +64,8 @@ class EtcdDeploy(GedisChatBot):
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
-        cu, su = deployer.calculate_capacity_units(**query)
-        self.pool_id = deployer.select_pool(self, cu=cu, su=su, **query)
+        cloud_units = deployer.calculate_capacity_units(**query)
+        self.pool_id = deployer.select_pool(self, cu=cloud_units.cu, su=cloud_units.su, **query)
 
     @chatflow_step(title="Global IPv6 Address")
     def ipv6_config(self):
@@ -119,7 +114,7 @@ class EtcdDeploy(GedisChatBot):
         for n in range(self.no_nodes.value):
             free_ips = self.network_view.get_node_free_ips(self.selected_node)
             ip = self.drop_down_choice(
-                f"Please choose IP Address for ETCD Node {n+1}", free_ips, default=free_ips[0], required=True,
+                f"Please choose IP Address for ETCD Node {n+1}", free_ips, default=free_ips[0], required=True
             )
             self.network_view.used_ips.append(ip)
             self.ip_addresses.append(ip)
@@ -129,15 +124,12 @@ class EtcdDeploy(GedisChatBot):
     @deployment_context()
     def reservation(self):
         self.etcd_flist = "https://hub.grid.tf/essam.3bot/bitnami-etcd-latest.flist"
-        metadata = {
-            "name": self.solution_name,
-            "form_info": {"chatflow": "etcd", "Solution name": self.solution_name},
-        }
+        metadata = {"name": self.solution_name, "form_info": {"chatflow": "etcd", "Solution name": self.solution_name}}
         self.solution_metadata.update(metadata)
 
         self.resv_ids = deployer.deploy_etcd_containers(
             self.pool_id,
-            self.selected_node.node_id,
+            [self.selected_node.node_id] * self.no_nodes.value,
             self.network_view.name,
             self.ip_addresses,
             self.etcd_clutser,

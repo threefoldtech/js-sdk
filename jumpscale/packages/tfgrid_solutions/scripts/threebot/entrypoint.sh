@@ -9,8 +9,6 @@ chmod -R 500 /etc/ssh
 service ssh restart
 echo $SSHKEY > /root/.ssh/authorized_keys
 
-
-
 echo "[*] Switching to the correct version (${SDK_VERSION}) ..."
 cd ${SDK_PATH}
 
@@ -24,6 +22,7 @@ fi
 
 
 git reset --hard origin/${SDK_VERSION}
+git checkout $SDK_VERSION
 
 if $poetry_install; then
   poetry install

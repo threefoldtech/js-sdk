@@ -31,7 +31,36 @@
                 close-icon="mdi-close-circle-outline"
                 >{{ admin }}</v-chip
               >
+
             </base-section>
+
+            <base-section
+              class="mt-3"
+              title="SSH keys"
+              icon="mdi-key"
+              :loading="loading.sshkeys"
+            >
+              <template #actions>
+                <v-btn text @click.stop="dialogs.addSshkey = true">
+                  <v-icon left>mdi-plus</v-icon>Add
+                </v-btn>
+              </template>
+
+              <v-chip
+                class="ma-2"
+                color="primary"
+                v-for="(sshkey, id) in sshkeys"
+                :key="id"
+                outlined
+                label
+                close
+                close-icon="mdi-close-circle-outline"
+                @click="viewSshkey(id, sshkey)"
+                @click:close="deleteSshkey(id)"
+                >{{ id }}</v-chip
+              >
+            </base-section>
+
             <!-- List-Escalation-Emails -->
             <base-section
               class="mt-3"
@@ -230,6 +259,7 @@
     </base-component>
 
     <add-admin v-model="dialogs.addAdmin" @done="listAdmins"></add-admin>
+    <add-sshkey v-model="dialogs.addSshkey" @done="listSshkeys"></add-sshkey>
     <add-escaltion-email
       v-model="dialogs.escalationEmail"
       @done="listEscaltionEmails"
@@ -246,6 +276,11 @@
       :name="selectedAdmin"
       @done="listAdmins"
     ></remove-admin>
+    <sshkey-info
+      v-if="selectedSshkey"
+      v-model="dialogs.sshkeyInfo"
+      :data="selectedSshkey">
+    </sshkey-info>
     <identity-info
       v-model="dialogs.identityInfo"
       :name="selectedIdentity"
@@ -281,9 +316,11 @@
 module.exports = {
   components: {
     "add-admin": httpVueLoader("./AddAdmin.vue"),
+    "add-sshkey": httpVueLoader("./AddSshkey.vue"),
     "add-escaltion-email": httpVueLoader("./AddEscalationEmail.vue"),
     "set-email-server-config": httpVueLoader("./EmailServerConfig.vue"),
     "remove-admin": httpVueLoader("./RemoveAdmin.vue"),
+    "sshkey-info": httpVueLoader("./SshkeyInfo.vue"),
     "identity-info": httpVueLoader("./IdentityInfo.vue"),
     "add-identity": httpVueLoader("./AddIdentity.vue"),
     "config-view": httpVueLoader("./ConfigurationsInfo.vue"),
@@ -292,6 +329,7 @@ module.exports = {
     return {
       loading: {
         admins: false,
+        sshkeys: false,
         identities: false,
         developerOptions: false,
         escalationEmails: false,
@@ -300,7 +338,9 @@ module.exports = {
       selectedAdmin: null,
       dialogs: {
         addAdmin: false,
+        addSshkey: false,
         removeAdmin: false,
+        sshkeyInfo: false,
         identityInfo: false,
         addIdentity: false,
         escalationEmail: false,
@@ -308,6 +348,8 @@ module.exports = {
         configurations: false,
       },
       admins: [],
+      sshkeys: [],
+      selectedSshkey: null,
       escalationEmails: [],
       emailServerConfig: {},
       identity: null,
@@ -333,6 +375,36 @@ module.exports = {
         .finally(() => {
           this.loading.admins = false;
         });
+    },
+    listSshkeys() {
+      this.loading.sshkeys = true;
+      this.$api.sshkeys
+      .list()
+      .then((response) => {
+        this.sshkeys = JSON.parse(response.data).data;
+      })
+      .finally(() => {
+        this.loading.sshkeys = false;
+      });
+    },
+    viewSshkey (id, sshkey) {
+      this.selectedSshkey = {id: id, sshkey: sshkey};
+      this.dialogs.sshkeyInfo = true;
+    },
+    deleteSshkey(id) {
+      this.loading.sshkeys = true;
+      this.$api.sshkeys
+      .delete(id)
+      .then((response) => {
+        this.alert("SSH key removed", "success");
+        this.sshkeys = JSON.parse(response.data).data;
+      })
+      .catch(() => {
+        this.alert("Failed to remove SSH key", "error");
+      })
+      .finally(() => {
+        this.loading.sshkeys = false;
+      });
     },
     listEscaltionEmails() {
       this.loading.escalationEmails = true;
@@ -495,6 +567,7 @@ module.exports = {
     this.listAdmins();
     this.getEmailServerConfig();
     this.getCurrentIdentity();
+    this.listSshkeys();
     this.listIdentities();
     this.getDeveloperOptions();
     this.listEscaltionEmails();

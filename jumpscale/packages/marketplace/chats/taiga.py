@@ -105,7 +105,7 @@ class TaigaDeploy(MarketPlaceAppsChatflow):
             )
 
         # expose taiga container
-        _id = deployer.expose_and_create_certificate(
+        _id, _ = deployer.expose_and_create_certificate(
             pool_id=self.pool_id,
             gateway_id=self.gateway.node_id,
             network_name=self.network_view.name,

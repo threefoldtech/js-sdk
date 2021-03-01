@@ -262,8 +262,6 @@ class Stellar(Client):
         """
         Activate your wallet through threefold services
         """
-        ## Try activating with `activation_wallet` j.clients.stellar.activation_wallet if exists
-        ## this activator should be imported on the system.
         for _ in range(5):
             j.logger.info(f"trying to activate : {self.instance_name}")
             try:
@@ -271,16 +269,33 @@ class Stellar(Client):
                 loaded_json = j.data.serializers.json.loads(resp)
                 xdr = loaded_json["activation_transaction"]
                 self.sign(xdr, submit=True)
+                j.logger.info(f"{self.instance_name} is activated using the activation service.")
                 return
-
             except Exception as e:
                 j.logger.error(f"failed to activate using the activation service {e}")
-                j.logger.info(f"trying to fund the wallet ourselves with the activation wallet")
-                if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
-                    j.logger.info(f"activation wallet {self.instance_name}")
-                    j.clients.stellar.activation_wallet.activate_account(self.address, "3.6")
+                ## Try activating with `activation_wallet` j.clients.stellar.activation_wallet if exists
+                ## this activator should be imported on the system.
+        else:
+            raise RuntimeError(
+                "could not activate wallet. tried activation service and there's no activation_wallet configured on the system"
+            )
+
+    def activate_through_activation_wallet(self, wallet_name="activation_wallet"):
+        """Activate your wallet through activation wallet.
+        """
+        if wallet_name in j.clients.stellar.list_all() and self.instance_name != wallet_name:
+            j.logger.info(f"trying to fund the wallet ourselves with the activation wallet")
+            j.logger.info(f"activation wallet {self.instance_name}")
+            for _ in range(5):
+                try:
+                    j.clients.stellar.activation_wallet.activate_account(self.address, "2.6")
                     self.add_known_trustline("TFT")
+                    j.logger.info(f"activated wallet {self.instance_name}")
                     return
+                except Exception as e:
+                    j.logger.error(f"failed to activate wallet {self.instance_name} using activation_wallet")
+        else:
+            raise RuntimeError(f"could not find the activation wallet: {wallet_name}")
 
     def activate_account(self, destination_address, starting_balance="3.6"):
         """Activates another account
@@ -328,6 +343,7 @@ class Stellar(Client):
         Args:
             asset_code (str): code of the asset. For example: 'BTC', 'TFT', ...
         """
+        j.logger.info(f"adding trustline {asset_code} to account {self.address}")
         balances = self.get_balance()
         for b in balances.balances:
             if b.asset_code == asset_code:
@@ -1106,3 +1122,10 @@ class Stellar(Client):
             j.logger.info("Transaction hash: {}".format(response["hash"]))
         except stellar_sdk.exceptions.BadRequestError as e:
             j.logger.debug(e)
+
+    def get_balance_by_asset(self, asset="TFT") -> float:
+        balances = self.get_balance()
+        for balance in balances.balances:
+            if balance.asset_code == asset:
+                return float(balance.balance)
+        return 0

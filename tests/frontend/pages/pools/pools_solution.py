@@ -3,6 +3,7 @@ from urllib.parse import urljoin
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from gevent import sleep
+from tests.frontend.pages.pools.pools import Pools
 
 
 class PoolsSolution(Base):
@@ -16,10 +17,13 @@ class PoolsSolution(Base):
         url = urljoin(self.base_url, self.endpoint)
         self.driver.get(url)
 
-    def create(self, wallet_name, name, farm, cu=1, su=1, duration_unit="Day", time_to_live=1):
-        # switch driver to ifram and choose create option
+    def create(self, wallet_name, name, farm, cu=1, su=1, ips=1, duration_unit="Day", time_to_live=1):
+        # switch driver to ifram
         self.wait(self.driver, "v-progress-linear__buffer")
-        self._select_create_extend("create")
+
+        iframe = self.driver.find_elements_by_tag_name("iframe")[0]
+        self.driver.switch_to_frame(iframe)
+        self.wait(self.driver, "progressbar")
 
         # set pool name in input element
         chat_box = self.driver.find_element_by_class_name("chat")
@@ -29,7 +33,7 @@ class PoolsSolution(Base):
         self.click_button(self.driver, "NEXT")
 
         # set cu, su and time to live to input elements
-        self._set_pool_details(cu=cu, su=su, duration_unit=duration_unit, time_to_live=time_to_live)
+        self._set_pool_details(cu=cu, su=su, ips=ips, duration_unit=duration_unit, time_to_live=time_to_live)
 
         # select the Freefarm
         farm_box = self.driver.find_element_by_class_name("v-select__selections")
@@ -45,31 +49,25 @@ class PoolsSolution(Base):
         self.wait(self.driver, "progressbar")
         self.click_button(self.driver, "FINISH")
 
-    def extend(self, wallet_name, name, cu=1, su=1, duration_unit="Day", time_to_live=1):
-        # switch driver to ifram and choose extend option
+    def extend(self, wallet_name, name, cu=1, su=1, ips=1, duration_unit="Day", time_to_live=1):
         self.wait(self.driver, "v-progress-linear__buffer")
-        self._select_create_extend("extend")
 
-        # open the pools list
-        chat_box = self.driver.find_element_by_class_name("chat")
-        form = chat_box.find_element_by_class_name("v-form")
-        open_list = form.find_element_by_tag_name("i")
-        open_list.click()
-        pools_menu = self.driver.find_element_by_class_name("v-menu__content")
-        pools_list = pools_menu.find_element_by_class_name("v-list")
-        # load all pools and select the pool would to be extended
-        for _ in range(30):
-            pools_list.send_keys(Keys.END)
-            sleep(0.5)
-        pools = pools_list.find_elements_by_class_name("v-list-item__content")
-        for pool in pools:
-            if name in pool.text:
-                pool.click()
-                break
-        self.click_button(self.driver, "NEXT")
+        # select the pool and click extend
+        test_pools = Pools(self.driver)
+        test_pools.load()
+        row = test_pools.select_pool(name)
+        extend_button = row.find_element_by_tag_name("button")
+        extend_button.click()
+
+        self.wait(self.driver, "v-progress-circular")
+        self.wait(self.driver, "progressbar")
+
+        # switch driver to ifram
+        iframe = self.driver.find_elements_by_tag_name("iframe")[0]
+        self.driver.switch_to_frame(iframe)
 
         # set cu, su and time to live to input elements
-        self._set_pool_details(cu=cu, su=su, duration_unit=duration_unit, time_to_live=time_to_live)
+        self._set_pool_details(cu=cu, su=su, ips=ips, duration_unit=duration_unit, time_to_live=time_to_live)
 
         # select the wallet
         self._select_wallet(wallet_name)
@@ -92,10 +90,11 @@ class PoolsSolution(Base):
 
         self.wait(self.driver, "v-progress-circular")
 
-    def _set_pool_details(self, cu=1, su=1, duration_unit="Day", time_to_live=1):
+    def _set_pool_details(self, cu=1, su=1, ips=1, duration_unit="Day", time_to_live=1):
         pool_details = {
             "Required Amount of Compute Unit (CU)": cu,
             "Required Amount of Storage Unit (SU)": su,
+            "Required Amount of Public IP Unit (IPv4U)": ips,
             "Please choose the duration unit": duration_unit,
             "Please specify the pools time-to-live": time_to_live,
         }

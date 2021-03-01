@@ -1,84 +1,104 @@
 <section class="nodestable">
-  <v-alert :type="deleteNodeFarmAlert.type" v-if=deleteNodeFarmAlert>
-    {{deleteNodeFarmAlert.message}}
-  </v-alert>
-  <v-card style="width: 100%; height: 100%;">
-    <v-card-title primary-title class="primary py-3 mb-5 white--text">
-      <v-icon small color="white" left>fas fa-server</v-icon>
-      <div v-if="farmselected">
-        {{ farmselected.name }}
-      </div>
-      <v-spacer></v-spacer>
-      <v-text-field dark class="pt-0" v-model="searchNodes" append-icon="fa-search" label="Search" single-line
-        hide-details>
-      </v-text-field>
+    <v-alert :type="deleteNodeFarmAlert.type" v-if="deleteNodeFarmAlert">
+        {{deleteNodeFarmAlert.message}}
+    </v-alert>
+    <v-row class="my-3 mx-1">
+        <v-card style="width: 100%; height: 100%">
+            <v-card-title primary-title class="primary py-3 mb-5 white--text">
+                <v-row>
+                    <v-col cols="6">
+                        <v-icon small color="white" left>fas fa-server</v-icon>
+                        <div class="d-inline" v-if="farmselected">
+                            {{ farmselected.name }}
+                        </div>
+                    </v-col>
+                    <v-col></v-col>
+                    <v-col cols="3" class="py-0">
+                        <v-text-field dark class="pt-0" v-model="searchNodes" append-icon="fa-search" label="Search" single-line hide-details>
+                        </v-text-field>
+                    </v-col>
+                </v-row>
+            </v-card-title>
+            <v-card-text>
+                <v-flex class="ml-3">
+                    <v-layout column justify-space-around>
+                        <v-data-table show-expand item-key="name" :search="searchNodes" :headers="headers" :items="parsedNodesList" :items-per-page="10" single-expand :expanded.sync="expanded" @click:row="openNodeDetails">
+                            <template v-slot:item.version="{ item }">
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <span v-on="on">{{ item.version }}</span>
+                  </template>
+                            <span>{{ item.version }}</span>
+                            </v-tooltip>
+                            </template>
 
-    </v-card-title>
-    <v-card-text>
-      <v-flex class="ml-3">
-        <v-layout column justify-space-around>
-          <v-data-table show-expand item-key="name" :search="searchNodes" :headers="headers" :items="parsedNodesList"
-            :items-per-page="10" single-expand :expanded.sync="expanded" @click:row="openNodeDetails">
-            <template v-slot:item.version="{ item }">
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <span v-on="on">{{ item.version }}</span>
-                </template>
-                <span>{{ item.version }}</span>
-              </v-tooltip>
-            </template>
+                            <template v-slot:item.uptime="{ item }">
+                <v-tooltip top>
+                  <template v-slot:activator="{ on }">
+                    <span v-on="on">{{ item.uptime }}</span>
+                  </template>
+                            <span>{{ item.uptime }}</span>
+                            </v-tooltip>
+                            </template>
 
-            <template v-slot:item.uptime="{ item }">
-              <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <span v-on="on">{{ item.uptime }}</span>
-                </template>
-                <span>{{ item.uptime }}</span>
-              </v-tooltip>
-            </template>
+                            <template v-slot:item.status="{ item }">
+                <p class="text-center mt-1 mb-0">
+                  <v-chip :color="item.status.color" dark
+                    >{{ item.status.status }}</v-chip
+                  >
+                </p>
+              </template>
 
-            <template v-slot:item.status="{ item }">
-              <p class="text-center mt-1 mb-0 ">
-                <v-chip :color="item.status.color" dark>{{ item.status.status }}</v-chip>
-              </p>
-            </template>
+                            <template v-slot:item.healthy="{ item }">
+                <p class="text-center mt-1 mb-0">
+                  <v-icon :color="'green'" v-if="item.healthy"
+                    >{{"fa-check"}}</v-icon
+                  >
+                  <v-icon :color="'red'" v-else>{{"fa-times"}}</v-icon>
+                </p>
+              </template>
 
-            <template v-slot:item.healthy="{ item }">
-              <p class="text-center mt-1 mb-0 ">
-                <v-icon :color="'green'" v-if="item.healthy">{{"fa-check"}}</v-icon>
-                <v-icon :color="'red'" v-else>{{"fa-times"}}</v-icon>
-              </p>
-            </template>
+                            <template v-slot:item.action="{ item }">
+                <v-btn fab small text @click="openDeleteNodeModal(item)">
+                  <v-icon small> fa-trash </v-icon>
+                </v-btn>
 
-            <template v-slot:item.action="{ item }">
+                <v-dialog v-model="openDeleteModal" persistent max-width="800">
+                  <v-card>
+                    <v-card-title class="headline"
+                      >Are you sure you want to delete node: {{ nodeToDelete.id
+                      }}?</v-card-title
+                    >
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn
+                        x-small
+                        color="black darken-1"
+                        text
+                        @click="openDeleteModal = false"
+                        >Cancel</v-btn
+                      >
+                      <v-btn
+                        x-small
+                        color="red darken-1"
+                        text
+                        @click="deleteNode()"
+                        >Delete</v-btn
+                      >
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+              </template>
 
-              <v-btn fab small text @click="openDeleteNodeModal(item)">
-                <v-icon small>
-                  fa-trash
-                </v-icon>
-              </v-btn>
-
-              <v-dialog v-model="openDeleteModal" persistent max-width="800">
-                <v-card>
-                  <v-card-title class="headline">Are you sure you want to delete node: {{ nodeToDelete.id }}?</v-card-title>
-                  <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn x-small color="black darken-1" text @click="openDeleteModal = false">Cancel</v-btn>
-                    <v-btn x-small color="red darken-1" text @click="deleteNode()">Delete</v-btn>
-                  </v-card-actions>
-                </v-card>
-              </v-dialog>
-
-            </template>
-
-            <template v-slot:expanded-item="{ headers, item }">
-              <td :colspan="headers.length">
-                <nodeInfo :key="item.id" :node="item" />
-              </td>
-            </template>
-          </v-data-table>
-        </v-layout>
-      </v-flex>
-    </v-card-text>
-  </v-card>
+                            <template v-slot:expanded-item="{ headers, item }">
+                <td :colspan="headers.length">
+                  <nodeInfo :key="item.id" :node="item" />
+                </td>
+              </template>
+                        </v-data-table>
+                    </v-layout>
+                </v-flex>
+            </v-card-text>
+        </v-card>
+    </v-row>
 </section>

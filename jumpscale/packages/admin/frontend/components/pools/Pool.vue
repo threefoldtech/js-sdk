@@ -1,6 +1,6 @@
 <template>
   <div>
-    <base-dialog title="Pool details" v-model="dialog" :loading="loading">
+    <base-dialog title="Pool details" v-model="dialog" :loading="loading" :error="error">
       <template #default>
         <v-simple-table>
           <template v-slot:default>
@@ -110,6 +110,7 @@ module.exports = {
       },
       editing: false,
       name: "",
+      error: null
     };
   },
   props: { pool: Object},
@@ -123,10 +124,13 @@ module.exports = {
       this.editing = false;
     },
     rename(poolId, name) {
+      this.error = null;
       this.$api.solutions.renamePool(poolId, name).then(() => {
         this.pool.name = name;
         this.name = "";
         this.editing = false;
+      }).catch((error) => {
+            this.error = error.response.data.error;
       });
     },
     cancel() {

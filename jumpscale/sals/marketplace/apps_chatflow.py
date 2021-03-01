@@ -23,11 +23,11 @@ RESOURCE_VALUE_KEYS = {"cru": "CPU {}", "mru": "Memory {} GB", "sru": "Disk {} G
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self._branch = None
+        super().__init__(*args, **kwargs)
 
     def _init_solution(self):
-        self.md_show_update("Checking payment service...")
+        self.md_show_update("It will take a few seconds to be ready to help you ...")
         # check stellar service
         if not j.clients.stellar.check_stellar_service():
             raise StopChatFlow("Payment service is currently down, try again later")
@@ -161,7 +161,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
                 )
             deployer.pay_for_pool(self.pool_info)
-            result = deployer.wait_pool_reservation(self.pool_info.reservation_id, self)
+            result = deployer.wait_pool_reservation(self.pool_info.reservation_id, bot=self)
             if not result:
                 raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
             self.wgcfg = deployer.init_new_user_network(
@@ -405,7 +405,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
         else:
             raise StopChatFlow(
-                "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
+                "No active gateways were found.Please contact support. The resources you paid for will be re-used in your upcoming deployments."
             )
 
     def _config_logs(self):

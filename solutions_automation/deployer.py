@@ -6,6 +6,7 @@ from solutions_automation.dashboard_solutions.minio import MinioAutomated
 from solutions_automation.dashboard_solutions.monitoring import MonitoringAutomated
 from solutions_automation.dashboard_solutions.network import NetworkDeployAutomated
 from solutions_automation.dashboard_solutions.pools import PoolAutomated
+from solutions_automation.dashboard_solutions.extend_pools import PoolExtendAutomated
 from solutions_automation.dashboard_solutions.ubuntu import UbuntuAutomated
 from solutions_automation.marketplace.blog import BlogAutomated
 from solutions_automation.marketplace.cryptpad import CryptpadAutomated
@@ -123,9 +124,10 @@ def deploy_ubuntu(
 def deploy_kubernetes(
     solution_name,
     secret,
-    size="1 vCPU 2 GiB ram 50GiB disk space",
+    size="vCPU: 1, RAM: 2 GiB, Disk Space: 25 GiB",
     workernodes=1,
     network="choose_random",
+    public_ip="No",
     pools="multi_choice",
     ssh="~/.ssh/id_rsa.pub",
     debug=True,
@@ -136,6 +138,7 @@ def deploy_kubernetes(
         size=size,
         workernodes=workernodes,
         network=network,
+        public_ip=public_ip,
         pools=pools,
         ssh=ssh,
         debug=debug,
@@ -147,7 +150,7 @@ def deploy_minio(
     username,
     password,
     setup="single",
-    zdb_disk_type="SSD",
+    zdb_disk_type="HDD",
     zdb_size=10,
     cpu=1,
     memory=1024,
@@ -333,28 +336,29 @@ def deploy_exposed(
     )
 
 
-def create_pool(solution_name, wallet_name, farm="Freefarm", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True):
+def create_pool(
+    solution_name, wallet_name, farm="Freefarm", cu=1, su=1, ipv4u=0, time_unit="Day", time_to_live=1, debug=True
+):
     return PoolAutomated(
-        type="create",
         solution_name=solution_name,
         wallet_name=wallet_name,
         farm=farm,
         cu=cu,
         su=su,
+        ipv4u=ipv4u,
         time_unit=time_unit,
         time_to_live=time_to_live,
         debug=debug,
     )
 
 
-def extend_pool(pool_name, wallet_name, farm="Freefarm", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True):
-    return PoolAutomated(
-        type="extend",
-        pool_name=pool_name,
+def extend_pool(pool_id, wallet_name, cu=1, su=1, ipv4u=0, time_unit="Day", time_to_live=1, debug=True):
+    return PoolExtendAutomated(
+        pool_id=pool_id,
         wallet_name=wallet_name,
-        farm=farm,
         cu=cu,
         su=su,
+        ipv4u=ipv4u,
         time_unit=time_unit,
         time_to_live=time_to_live,
         debug=debug,

@@ -1,4 +1,5 @@
 name = "marketplace"
+ui_name = "3bot_apps"
 is_auth = false
 is_admin = false
 frontend = "/marketplace"
