@@ -237,6 +237,7 @@ module.exports = new Promise(async(resolve, reject) => {
                                 threebotId: null
                             };
                             this.addCustomModelError = null;
+                            this.$refs.customPriceForm.resetValidation();
                         }).catch(err => {
                             console.log("Error: ",err.response.data.error)
                             this.addCustomModelError = err.response.data.error
