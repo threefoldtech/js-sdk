@@ -360,7 +360,7 @@ def check_update():
         json_response = j.data.serializers.json.loads(response.text)
         latest_remote_tag = json_response[0]["tag_name"]
     except Exception as e:
-        j.exceptions.RunTime(f"Failed to fetch remote releases. ${str(e)}")
+        raise j.exceptions.Runtime(f"Failed to fetch remote releases. {str(e)}")
 
     _, latest_local_tag, _ = j.sals.process.execute("git describe --tags --abbrev=0")
 
