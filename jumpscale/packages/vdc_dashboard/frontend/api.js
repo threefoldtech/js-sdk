@@ -98,7 +98,13 @@ const apiClient = {
         url: `${baseURL}/update`,
         method: "get"
       })
-    }
+    },
+    checkForUpdate: () => {
+      return axios({
+        url: `${baseURL}/check_update`,
+        method: "get"
+      })
+    },
   },
   wallets: {
     walletQRCodeImage: (address, amount, scale) => {

@@ -352,6 +352,30 @@ def update():
     )
 
 
+@app.route("/api/check_update", method="GET")
+@package_authorized("vdc_dashboard")
+def check_update():
+    try:
+        response = j.tools.http.get("https://api.github.com/repos/threefoldtech/js-sdk/releases")
+        json_response = j.data.serializers.json.loads(response.text)
+        latest_remote_tag = json_response[0]["tag_name"]
+    except Exception as e:
+        raise j.exceptions.Runtime(f"Failed to fetch remote releases. {str(e)}")
+
+    _, latest_local_tag, _ = j.sals.process.execute("git describe --tags --abbrev=0")
+
+    if latest_remote_tag != latest_local_tag.rstrip("\n"):
+        return HTTPResponse(
+            j.data.serializers.json.dumps({"new_release": latest_remote_tag}),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        )
+
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"new_release": ""}), status=200, headers={"Content-Type": "application/json"}
+    )
+
+
 @app.route("/api/backup", method="GET")
 @package_authorized("vdc_dashboard")
 def backup() -> str:

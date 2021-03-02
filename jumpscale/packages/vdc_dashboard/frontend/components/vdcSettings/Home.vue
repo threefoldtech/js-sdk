@@ -62,6 +62,42 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <v-dialog v-if="release" v-model="dialog.release" width="400">
+      <v-card
+        class="pt-4 pb-2"
+        color="info"
+        dark
+      >
+        <v-card-text>
+          <v-row align="center" justify="center">
+            <v-icon class="my-4" align="center" x-large justify="center" center
+              >mdi-comment-alert-outline</v-icon
+            >
+          </v-row>
+          <b class="font-weight-bold">
+            New release {{ this.release }} is available. You can update it later from the user menu in the topbar.
+          </b>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            class="text--lighten-2"
+            color="grey"
+            text
+            @click="dialog.release=false"
+          >
+            Later
+          </v-btn>
+          <v-btn
+            color="white"
+            outlined
+            @click="$emit('update-dashboard')"
+          >
+            Update now
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -79,7 +115,9 @@ module.exports = {
       raiseExpirationAlert: true,
       dialog: {
         expiration: false,
+        release: false,
       },
+      release: null,
     };
   },
   methods: {
@@ -105,9 +143,21 @@ module.exports = {
           this.loading = false;
         });
     },
+    checkDashboardUpdates() {
+      this.$api.version
+        .checkForUpdate()
+        .then((response) => {
+          let new_release = response.data.new_release;
+          if (new_release) {
+            this.release = new_release;
+            this.dialog.release = true;
+          }
+        })
+    },
   },
   mounted() {
     this.vdcInfo();
+    this.checkDashboardUpdates();
   },
   updated() {
     if (this.raiseExpirationAlert && this.vdc) {

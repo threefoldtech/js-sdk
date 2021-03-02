@@ -92,7 +92,7 @@
     </v-app-bar>
 
     <v-main>
-      <router-view></router-view>
+      <router-view @update-dashboard="updateDashboard"></router-view>
       <popup></popup>
     </v-main>
   </v-app>
