@@ -7,6 +7,7 @@ class ThreebotState(Enum):
     RUNNING = "RUNNING"  # the workloads are deployed and running
     DELETED = "DELETED"  # workloads and backups deleted
     STOPPED = "STOPPED"  # expired or manually stoped (delete workloads only)
+    ERROR = "ERROR"  # workloads are deployed but can't reach the threebot
 
 
 class UserThreebot(Base):
