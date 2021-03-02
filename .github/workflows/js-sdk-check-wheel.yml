@@ -21,11 +21,11 @@ jobs:
         os: [ubuntu-18.04, ubuntu-20.04]
         python-version: [3.6, 3.7, 3.8]
         experimental: [false]
-        include:
-          - python-version: 3.9
-            os: ubuntu-20.04
-            experimental: true
-            name: Experimental build - latest Python
+        #include:
+        #  - python-version: 3.9
+        #    os: ubuntu-20.04
+        #    experimental: true
+        #    name: Experimental build - latest Python
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -36,7 +36,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y redis-server tmux nginx
-          python3 -m pip install --upgrade setuptools wheel
+          python3 -m pip install --upgrade pip setuptools wheel
           python3 -m pip install check-wheel-contents poetry
       - name: Validates pyproject.toml
         run: poetry check
