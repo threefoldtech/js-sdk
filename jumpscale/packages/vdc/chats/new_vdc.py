@@ -239,7 +239,7 @@ class VDCDeploy(GedisChatBot):
         try:
             self.config = self.deployer.deploy_vdc(minio_ak=None, minio_sk=None, s3_backup_config=self.backup_config)
             if not self.config:
-                raise StopChatFlow("Failed to deploy VDC due to invlaid kube config. please try again later")
+                raise StopChatFlow("Failed to deploy VDC due to invalid kube config. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip
         except Exception as err:
             j.logger.error(str(err))
