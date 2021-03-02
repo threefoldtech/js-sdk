@@ -68,15 +68,15 @@ class PackagesTests(BaseTest):
 
         self.info("Check that the package has been Added correctly")
         installed_packages, available_packages = self.packages.get_installed_and_available_packages()
-        self.assertNotIn("marketplace", available_packages.keys())
-        self.assertIn("marketplace", installed_packages.keys())
+        self.assertNotIn("3bot_apps", available_packages.keys())
+        self.assertIn("3bot_apps", installed_packages.keys())
 
         self.info("Delete the package")
-        self.packages.delete_package("marketplace")
+        self.packages.delete_package("3bot_apps")
 
         self.info("Check that the packages has been deleted successfully")
         installed_packages, available_packages = self.packages.get_installed_and_available_packages()
-        self.assertNotIn("marketplace", installed_packages.keys())
+        self.assertNotIn("3bot_apps", installed_packages.keys())
 
         self.info("Install another package")
         installed_package = self.packages.install_random_package()
