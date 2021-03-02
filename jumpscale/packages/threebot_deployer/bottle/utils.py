@@ -136,6 +136,10 @@ def list_threebot_solutions(owner):
             solution_info["state"] = ThreebotState.ERROR.value
             threebot.state = ThreebotState.ERROR
             threebot.save()
+        elif j.sals.reservation_chatflow.wait_http_test(domain, timeout=10, verify=not j.config.get("TEST_CERT")):
+            solution_info["state"] = ThreebotState.RUNNING.value
+            threebot.state = ThreebotState.RUNNING
+            threebot.save()
 
         result.append(solution_info)
 
