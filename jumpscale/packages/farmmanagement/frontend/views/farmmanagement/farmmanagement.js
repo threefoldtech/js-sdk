@@ -26,6 +26,7 @@ module.exports = new Promise(async(resolve, reject) => {
                 showResult: false,
                 itemsPerPage: 4,
                 expanded: [],
+                addCustomModelError: null,
                 headers: [
                     { text: "Id", value: "id" },
                     {
@@ -221,15 +222,27 @@ module.exports = new Promise(async(resolve, reject) => {
                     })
             },
             addCustomPrice(threebotName, cu, su, ipv4u) {
-                let prices = { cu: +cu, su: +su, ipv4u: +ipv4u }
-                let farmCustomPricesInfo = { farmId: this.farmSelected.id, prices: prices, threebotName: threebotName }
-                this.createOrUpdateFarmThreebotCustomPrice(farmCustomPricesInfo)
-                    .then(response => {
-                        this.openAddCustomModel = false;
-                        this.setCustomPricesList(farmCustomPricesInfo.farmId);
-                    }).catch(err => {
-                        console.log(err)
-                    })
+                if (this.$refs.customPriceForm.validate()) {
+                    let prices = { cu: +cu, su: +su, ipv4u: +ipv4u }
+                    let farmCustomPricesInfo = { farmId: this.farmSelected.id, prices: prices, threebotName: threebotName }
+                    this.createOrUpdateFarmThreebotCustomPrice(farmCustomPricesInfo)
+                        .then(response => {
+                            this.openAddCustomModel = false;
+                            this.setCustomPricesList(farmCustomPricesInfo.farmId);
+                            this.customPrice = {
+                                threebotName: '',
+                                cu: null,
+                                su: null,
+                                ipv4u: null,
+                                threebotId: null
+                            };
+                            this.addCustomModelError = null;
+                            this.$refs.customPriceForm.resetValidation();
+                        }).catch(err => {
+                            console.log("Error: ",err.response.data.error)
+                            this.addCustomModelError = err.response.data.error
+                        })
+                }
             },
         }
     });
