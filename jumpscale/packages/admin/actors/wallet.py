@@ -43,11 +43,16 @@ class Wallet(BaseActor):
                     {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
                 )
 
+            qrcode_amount = 100  # user can modify it after scanning QR code
+            qrcode_data = f"TFT:{wallet.address}?amount={qrcode_amount}&message=topup&sender=me"
+            qrcode_image = j.tools.qrcode.base64_get(qrcode_data, scale=2)
+
             ret = {
                 "address": wallet.address,
                 "network": wallet.network.value,
                 "secret": wallet.secret,
                 "balances": balances_data,
+                "qrcode": qrcode_image,
             }
         except Exception as e:
             error = str(e)

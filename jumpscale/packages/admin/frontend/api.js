@@ -91,7 +91,6 @@ const apiClient = {
                 data: { name: name }
             })
         },
-
     },
     packages: {
         list: () => {
