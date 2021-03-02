@@ -62,7 +62,7 @@ def delete_backup():
 
     try:
         client.execute_native_cmd(f"velero delete backup {name} --confirm")
-        return HTTPResponse("Backup deleted successfully.", status=204, headers={"Content-Type": "application/json"})
+        return HTTPResponse("Backup deleted successfully.", status=200, headers={"Content-Type": "application/json"})
     except Exception as e:
         j.logger.warning(f"Failed to delete backup due to {str(e)}")
         return HTTPResponse("Failed to delete backup.", status=500, headers={"Content-Type": "application/json"})
