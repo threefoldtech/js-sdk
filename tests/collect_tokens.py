@@ -10,7 +10,7 @@ def get_excluded_wallets():
         list: excluded wallets addresses.
     """
     excluded_wallets = []
-    wallets_secrets_env = ["WALLET_SECRET", "SOURCE_WALLET_SECRET", "DESTINATION_WALLET_SECRET"]
+    wallets_secrets_env = ["WALLET_SECRET", "DESTINATION_WALLET_SECRET"]
     for env in wallets_secrets_env:
         wallet_secret = os.environ.get(env)
         if wallet_secret:
