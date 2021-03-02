@@ -73,7 +73,7 @@ const apiClient = {
         url: `${baseURL}/zstor/config`,
         method: "post",
         headers: { 'Content-Type': 'application/json' },
-        data: { ip_version: ip_version}
+        data: { ip_version: ip_version }
       })
     },
     getZdbSecret: () => {
@@ -111,7 +111,38 @@ const apiClient = {
       return axios({
         url: `${baseURL}/wallet/qrcode/get`,
         method: "post",
-        data: { address: address,amount: amount, scale: scale},
+        data: { address: address, amount: amount, scale: scale },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
+  },
+  backup: {
+    list: () => {
+      return axios({
+        url: `${baseURL}/backup/list`,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
+    create: () => {
+      return axios({
+        url: `${baseURL}/backup/create`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
+    delete: (name) => {
+      return axios({
+        url: `${baseURL}/backup/delete`,
+        method: "post",
+        data: { name: name },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
+    restore: (name) => {
+      return axios({
+        url: `${baseURL}/backup/restore`,
+        method: "post",
+        data: { name: name },
         headers: { 'Content-Type': 'application/json' }
       })
     },
