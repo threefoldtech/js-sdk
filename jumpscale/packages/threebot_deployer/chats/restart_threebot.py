@@ -32,7 +32,9 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         self._init_solution()
         all_3bot_solutions = list_threebot_solutions(self.threebot_name)
         self.non_running_3bots = [
-            threebot for threebot in all_3bot_solutions if threebot["state"] != ThreebotState.RUNNING.value
+            threebot
+            for threebot in all_3bot_solutions
+            if threebot["state"] not in [ThreebotState.RUNNING.value, ThreebotState.ERROR.value]
         ]
         self.non_running_names = {threebot["name"]: threebot for threebot in self.non_running_3bots}
         self.name = self.kwargs["tname"]
