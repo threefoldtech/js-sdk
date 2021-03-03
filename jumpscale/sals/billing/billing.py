@@ -2,8 +2,7 @@ from .models import PAYMENT_FACTORY, REFUND_FACTORY
 import uuid, datetime
 import gevent
 from jumpscale.loader import j
-
-TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 
 class BillingManager:

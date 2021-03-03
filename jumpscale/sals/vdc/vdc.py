@@ -6,6 +6,7 @@ from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 from jumpscale.sals.zos import get as get_zos
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 from .deployer import VDCDeployer
 from .models import *
@@ -17,7 +18,6 @@ import netaddr
 import hashlib
 from .snapshot import SnapshotManager
 
-TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
 VDC_WORKLOAD_TYPES = [
     WorkloadType.Container,
     WorkloadType.Zdb,

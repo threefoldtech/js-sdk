@@ -7,9 +7,16 @@ from .exceptions import *
 from .stellar import Stellar
 
 ACTIVATION_WALLET_ADDRESS = "GCKLGWHEYT2V63HC2VDJRDWEY3G54YSHHPOA6Q3HAPQUGA5OZDWZL7KW"
+TRANSACTION_FEES = 0.01
 
 
 class StellarFactory(StoredFactory):
+    @property
+    def TRANSACTION_FEES(self):
+        """Get the TRANSACTION FEES
+        """
+        return TRANSACTION_FEES
+
     def new(self, name, secret=None, *args, **kwargs):
         instance = super().new(name, *args, **kwargs)
 

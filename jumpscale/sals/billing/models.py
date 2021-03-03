@@ -1,10 +1,9 @@
 from jumpscale.core.base import Base, fields, StoredFactory
 import datetime
 from jumpscale.loader import j
+from jumpscale.clients.stellar import TRANSACTION_FEES
 from decimal import Decimal
 import datetime
-
-TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
 
 
 class PaymentTransactionRefund(Base):
@@ -195,7 +194,6 @@ class PaymentFactory(StoredFactory):
 
 PAYMENT_FACTORY = PaymentFactory(Payment)
 PAYMENT_FACTORY.always_reload = True
-TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
 
 
 class RefundRequest(Base):

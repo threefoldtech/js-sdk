@@ -3,10 +3,9 @@ from jumpscale.clients.explorer.models import K8s, ZdbNamespace
 from jumpscale.loader import j
 from jumpscale.sals.vdc.size import VDC_SIZE
 from parameterized import parameterized_class
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 from .vdc_base import VDCBase
-
-TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
 
 
 @pytest.mark.integration

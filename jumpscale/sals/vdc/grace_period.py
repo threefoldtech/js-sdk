@@ -2,10 +2,10 @@ from datetime import datetime
 
 from jumpscale.core.base import Base, StoredFactory, fields
 from jumpscale.loader import j
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 
 GP_WALLET_NAME = j.config.get("GRACE_PERIOD_WALLET", "grace_period")
-TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
 
 
 class VDCGracePeriodFactory(StoredFactory):

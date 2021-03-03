@@ -1,10 +1,9 @@
 import os
 import requests
 from jumpscale.loader import j
-
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 BASE_CAPACITY = int(os.getenv("BASE_CAPACITY", 14))
-TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
 
 
 def get_vdc_instance():

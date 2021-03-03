@@ -7,8 +7,7 @@ from solutions_automation.vdc import deployer
 from tests.sals.vdc.vdc_base import VDCBase
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
 from parameterized import parameterized_class
-
-TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 
 @parameterized_class(("no_deployment"), [("single",), ("double",)])

@@ -561,8 +561,9 @@ class ReservationChatflow:
         Returns:
             [jumpscale.clients.explorer.models.TfgridSolutionsPayment1]: payment object
         """
+        from jumpscale.clients.stellar import TRANSACTION_FEES
+
         explorer_name = self._explorer.url.split(".")[1]
-        TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
         payment_obj = self.payments.get(f"{explorer_name}_{rid}")
         payment_obj.explorer = self._explorer.url
         payment_obj.rid = rid

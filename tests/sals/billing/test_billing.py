@@ -2,11 +2,10 @@ import os
 import pytest
 import time
 from jumpscale.loader import j
+from jumpscale.clients.stellar import TRANSACTION_FEES
 from tests.base_tests import BaseTests
 from jumpscale.sals.billing.models import PAYMENT_FACTORY, REFUND_FACTORY
 from random import randint
-
-TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
 
 
 @pytest.mark.integration
