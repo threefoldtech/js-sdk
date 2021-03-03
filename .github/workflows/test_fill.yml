@@ -1,0 +1,52 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: js-sdk-full
+
+# on:
+#   schedule:
+#     - cron:  '0 0 * * *'
+#   workflow_dispatch:
+
+on:
+  push:
+    branches: [ frontend_tests_fix ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: frontend_tests_fix
+      - uses: nanasess/setup-chromedriver@master
+      - name: Gathering dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip python3-venv python3-setuptools git tmux redis restic nginx cron wireguard unzip
+          sudo service redis stop
+          sudo service nginx stop
+          sudo pip3 install poetry
+          sudo poetry run pip3 install pytest parameterized selenium pytest-cov
+      - name: Install
+        run: |
+          sudo poetry install
+      - name: Run tests
+        env:
+          TNAME: ${{ secrets.TNAME }}
+          EMAIL: ${{ secrets.EMAIL }}
+          WORDS: ${{ secrets.WORDS }}
+          WALLET_SECRET: ${{ secrets.WALLET_SECRET }}
+          SOURCE_WALLET_SECRET: ${{ secrets.WALLET_SECRET }}
+          DESTINATION_WALLET_SECRET: ${{ secrets.DESTINATION_WALLET_SECRET }}
+          FAKE_EMAIL: ${{ secrets.FAKE_EMAIL }}
+          FAKE_GITHUB_TOKEN: ${{ secrets.FAKE_GITHUB_TOKEN }}
+        run: |
+          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=WALLET_SECRET --preserve-env=SOURCE_WALLET_SECRET \
+          --preserve-env=DESTINATION_WALLET_SECRET --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN \
+          poetry run pytest tests/sals/automated_chatflows/test_threebot_deployer.py -sv --cov=jumpscale --cov-report=xml --ignore=tests/clients/digitalocean --ignore=tests/clients/sendgrid
+      - name: Upload coverage to Codecov
+        if: success()
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
