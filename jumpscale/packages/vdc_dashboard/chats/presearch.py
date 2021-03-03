@@ -10,8 +10,8 @@ class PresearchDeploy(SolutionsChatflowDeploy):
     steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
 
     CHART_LIMITS = {
-        "Silver": {"cpu": "2000m", "memory": "2024Mi"},
-        "Gold": {"cpu": "3000m", "memory": "3072Mi"},
+        "Silver": {"cpu": "1000m", "memory": "1024Mi"},
+        "Gold": {"cpu": "2000m", "memory": "2048Mi"},
         "Platinum": {"cpu": "4000m", "memory": "4096Mi"},
     }
 
