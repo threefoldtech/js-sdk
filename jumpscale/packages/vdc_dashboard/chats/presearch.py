@@ -10,9 +10,9 @@ class PresearchDeploy(SolutionsChatflowDeploy):
     steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
 
     CHART_LIMITS = {
-        "Silver": {"cpu": "1000m", "memory": "1024Mi"},
-        "Gold": {"cpu": "2000m", "memory": "2048Mi"},
-        "Platinum": {"cpu": "4000m", "memory": "4096Mi"},
+        "Silver": {"cpu": "500m", "memory": "300Mi"},
+        "Gold": {"cpu": "700m", "memory": "500Mi"},
+        "Platinum": {"cpu": "900m", "memory": "700Mi"},
     }
 
     def _check_uniqueness(self):
