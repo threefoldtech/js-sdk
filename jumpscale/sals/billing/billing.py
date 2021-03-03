@@ -3,6 +3,8 @@ import uuid, datetime
 import gevent
 from jumpscale.loader import j
 
+TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
+
 
 class BillingManager:
     def submit_payment(self, amount, wallet_name, refund_extra=True, expiry=5, description=""):
@@ -73,7 +75,7 @@ class BillingManager:
         <h4> Memo Text (Message): </h4>  {payment_obj.memo_text} \n
         <h4> Total Amount: </h4>  {payment_obj.amount} TFT \n
         {notes_text}
-        <h5>When using manual payment please note that inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 TFT will automatically occur per transaction.</h5>
+        <h5>When using manual payment please note that inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of {TRANSACTION_FEES} TFT will automatically occur per transaction.</h5>
         """
         bot.md_show_update(msg_text, html=True)
 

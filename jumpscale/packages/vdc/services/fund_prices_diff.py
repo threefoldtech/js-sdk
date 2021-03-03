@@ -2,7 +2,7 @@ from jumpscale.loader import j
 from jumpscale.sals.vdc import VDCFACTORY
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
-TRANSACTION_FEES = 0.1
+TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
 
 
 class FundPricesDifference(BackgroundService):

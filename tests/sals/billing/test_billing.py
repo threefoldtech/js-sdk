@@ -6,6 +6,8 @@ from tests.base_tests import BaseTests
 from jumpscale.sals.billing.models import PAYMENT_FACTORY, REFUND_FACTORY
 from random import randint
 
+TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
+
 
 @pytest.mark.integration
 class TestBilling(BaseTests):
@@ -20,7 +22,7 @@ class TestBilling(BaseTests):
     @classmethod
     def tearDownClass(cls):
         cls.info("Clean-up and teardown")
-        destination_wallet_balance = round(cls.test_destination_wallet.get_balance_by_asset() - 0.1, 6)
+        destination_wallet_balance = round(cls.test_destination_wallet.get_balance_by_asset() - TRANSACTION_FEES, 6)
         if destination_wallet_balance > 0:
             cls.info(f"Transfer all TFT from destination wallet")
             transaction_hash = cls.test_destination_wallet.transfer(
@@ -148,7 +150,7 @@ class TestBilling(BaseTests):
         self.info("Check if the source wallet refunded correctly")
         # Get balance after refund
         balance_after_refund = self.test_source_wallet.get_balance_by_asset()
-        # Check if the difference between two balances is 0.2, as 0.1 will used as transaction fees for every single transcation
+        # Check if the difference between two balances is 0.2, as 0.01 will used as transaction fees for every single transcation
         self.assertAlmostEqual(balance_before_transfer - balance_after_refund, 0.2)
 
     def test_04_issue_refund(self):
@@ -193,7 +195,7 @@ class TestBilling(BaseTests):
         self.info("Check if the source wallet refunded correctly")
         # Get balance after refund
         balance_after_refund = self.test_source_wallet.get_balance_by_asset()
-        # Check if the difference between two balances is 0.2, as 0.1 will used as transaction fees for every single transcation
+        # Check if the difference between two balances is 0.2, as 0.01 will used as transaction fees for every single transcation
         self.assertAlmostEqual(balance_before_transfer - balance_after_refund, 0.2)
 
     def test_05_issue_refund_with_specific_amount(self):
@@ -239,7 +241,7 @@ class TestBilling(BaseTests):
         self.info("Check if the source wallet refunded correctly")
         # Get balance after refund
         balance_after_refund = self.test_source_wallet.get_balance_by_asset()
-        # Check if the difference between two balances is 0.2, as 0.1 will used as transaction fees for every single transcation
+        # Check if the difference between two balances is 0.2, as 0.01 will used as transaction fees for every single transcation
         self.assertAlmostEqual(balance_before_transfer - balance_after_refund, refund_amount + 0.2)
 
     def test_06_check_refund(self):

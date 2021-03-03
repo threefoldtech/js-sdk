@@ -8,7 +8,7 @@ from tests.base_tests import BaseTests
 
 WALLET_NAME = os.environ.get("WALLET_NAME")
 WALLET_SECRET = os.environ.get("WALLET_SECRET")
-TRANSACTION_FEES = 0.1
+TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
 
 
 def info(msg):

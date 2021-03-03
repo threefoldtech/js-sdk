@@ -17,6 +17,7 @@ import netaddr
 import hashlib
 from .snapshot import SnapshotManager
 
+TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
 VDC_WORKLOAD_TYPES = [
     WorkloadType.Container,
     WorkloadType.Zdb,
@@ -530,7 +531,7 @@ class UserVDC(Base):
         for t_hash in transaction_hashes:
             effects = initial_wallet.get_transaction_effects(t_hash)
             for effect in effects:
-                amount += effect.amount + 0.1  # transaction fees to not drain the initialization wallet
+                amount += effect.amount + TRANSACTION_FEES  # transaction fees to not drain the initialization wallet
         amount = round(abs(amount), 6)
         if not amount:
             return True
@@ -556,7 +557,7 @@ class UserVDC(Base):
                     for b in balances:
                         if b.asset_code != "TFT":
                             continue
-                        if amount <= float(b.balance) + 0.1:
+                        if amount <= float(b.balance) + TRANSACTION_FEES:
                             has_funds = True
                             break
                         else:

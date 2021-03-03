@@ -4,7 +4,7 @@ from jumpscale.loader import j
 
 
 BASE_CAPACITY = int(os.getenv("BASE_CAPACITY", 14))
-TRANSACTION_FEES = 0.1
+TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
 
 
 def get_vdc_instance():

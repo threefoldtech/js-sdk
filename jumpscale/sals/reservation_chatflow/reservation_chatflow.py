@@ -562,6 +562,7 @@ class ReservationChatflow:
             [jumpscale.clients.explorer.models.TfgridSolutionsPayment1]: payment object
         """
         explorer_name = self._explorer.url.split(".")[1]
+        TRANSACTION_FEES = j.core.config.get("TRANSACTION_FEES", 0.01)
         payment_obj = self.payments.get(f"{explorer_name}_{rid}")
         payment_obj.explorer = self._explorer.url
         payment_obj.rid = rid
@@ -569,7 +570,7 @@ class ReservationChatflow:
         payment_obj.escrow_address = escrow_address
         payment_obj.escrow_asset = escrow_asset
         payment_obj.total_amount = str(total_amount)
-        payment_obj.transaction_fees = f"0.1 {currency}"
+        payment_obj.transaction_fees = f"{TRANSACTION_FEES} {currency}"
         payment_obj.payment_source = payment_source
         for farmer in farmer_payments:
             farmer_name = self._explorer.farms.get(farm_id=farmer["farmer_id"]).name
