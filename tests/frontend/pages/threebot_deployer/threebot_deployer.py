@@ -109,11 +109,13 @@ class ThreebotDeployer(Base):
         # TODO need line wait
         self.wait(self.driver, "v-card--loading")
         self.wait(self.driver, "v-progress-circular")
+        # wait for "Initializing your 3Bot ..."
+        self.wait(self.driver, "v-progress-circular")
         self.click_button(self.driver, "NEXT")
         self.wait(self.driver, "v-progress-circular")
 
         # Payment process
-
+        self.wait(self.driver, "v-progress-linear__indeterminate")
         self.payment_process(wallet_name=wallet_name)
         self.click_button(self.driver, "NEXT")
         self.wait(self.driver, "v-progress-circular")
