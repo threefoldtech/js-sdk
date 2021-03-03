@@ -302,7 +302,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         - Deploy a 4to6 GW.
         - Get and up wireguard.
         - Check that the 4to6 GW is reachable.
-        - Check that the ip6 GW is reachable.
+        - Check that the ipv6 GW is reachable.
         """
         self.info("Deploy a 4to6 GW")
         four_to6_gw = deployer.deploy_4to6gw()
@@ -320,7 +320,6 @@ class TFGridSolutionChatflows(ChatflowsBase):
         res, out, err = j.core.executors.run_local(f"ping -c 1 {endpoint}")
         self.assertFalse(res)
 
-        self.info("Check that the ip6 GW is reachable")
-        ip6 = four_to6_gw.wgconf.split()[3]
-        res, out, err = j.core.executors.run_local(f"ping6 -c 1 {ip6}")
+        self.info("Check that the ipv6 GW is reachable")
+        res, out, err = j.core.executors.run_local(f"ping6 -c 1 google.com")
         self.assertFalse(res)
