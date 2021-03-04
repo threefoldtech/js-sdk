@@ -7,14 +7,14 @@ from textwrap import dedent
 
 import netaddr
 import requests
-from nacl.public import Box
-
 from jumpscale.clients.explorer.models import DeployedReservation, NextAction
+from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.clients.stellar.stellar import Network as StellarNetwork
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType, TfgridSolution1, TfgridSolutionsPayment1
+from nacl.public import Box
 
 NODES_DISALLOW_PREFIX = "ZOS:NODES:DISALLOWED"
 NODES_DISALLOW_EXPIRATION = 60 * 60 * 4  # 4 hours
@@ -561,8 +561,6 @@ class ReservationChatflow:
         Returns:
             [jumpscale.clients.explorer.models.TfgridSolutionsPayment1]: payment object
         """
-        from jumpscale.clients.stellar import TRANSACTION_FEES
-
         explorer_name = self._explorer.url.split(".")[1]
         payment_obj = self.payments.get(f"{explorer_name}_{rid}")
         payment_obj.explorer = self._explorer.url
@@ -599,8 +597,10 @@ class ReservationChatflow:
             payment_details += (
                 f"<tr><td>Farmer {farmer_name}</td><td>{format(farmer['total_amount'],'.7f')} {currency}</td></tr>"
             )
-        payment_details += f"<tr><td>Transaction Fees</td><td>{0.1} {currency}</td></tr>"
-        payment_details += f"<tr><td>Total amount</td><td>{format(total_amount + 0.1,'.7f')} {currency}</td></tr>"
+        payment_details += f"<tr><td>Transaction Fees</td><td>{TRANSACTION_FEES} {currency}</td></tr>"
+        payment_details += (
+            f"<tr><td>Total amount</td><td>{format(total_amount + TRANSACTION_FEES,'.7f')} {currency}</td></tr>"
+        )
         payment_details += "</table>"
 
         return payment_details
