@@ -86,7 +86,7 @@ class VDCDeploy(GedisChatBot):
         )
         self.storage_selection = form.single_choice(
             "Do you wish to select farms for storage manually?",
-            ["Choose Farms", "Automatically Select Farms"],
+            ["Automatically Select Farms", "Manually Select Farms"],
             required=True,
             default="Automatically Select Farms",
         )
@@ -195,7 +195,7 @@ class VDCDeploy(GedisChatBot):
     def storage_farms_selection(self):
         self.zdb_farms = None
         available_farms = []
-        if self.storage_selection.value == "Choose Farms":
+        if self.storage_selection.value == "Manually Select Farms":
             while True:
                 self.no_farms = self.int_ask(
                     "How many farms you want to deploy your storage on?", max=10, min=1, required=True, default=2
