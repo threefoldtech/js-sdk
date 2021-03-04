@@ -46,7 +46,7 @@ class EtcdDeploy(SolutionsChatflowDeploy):
         )
 
     @chatflow_step(title="Initializing", disable_previous=True)
-    def initializing(self, timeout=300):
+    def initializing(self, timeout=180):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
         error_message_template = f"""\
                 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
