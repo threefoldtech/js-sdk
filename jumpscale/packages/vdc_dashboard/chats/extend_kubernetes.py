@@ -17,7 +17,7 @@ class ExtendKubernetesCluster(GedisChatBot):
         self.vdc_name = list(j.sals.vdc.list_all())[0]
         self.user_info_data = self.user_info()
         self.username = self.user_info_data["username"]
-        self.vdc = j.sals.vdc.find(name=self.vdc_name, owner_tname=self.username)
+        self.vdc = j.sals.vdc.get(name=self.vdc_name)
         if not self.vdc:
             self.stop(f"VDC {self.vdc_name} doesn't exist")
 
