@@ -207,9 +207,8 @@ class VDCDeploy(GedisChatBot):
                 )
                 if len(available_farms) < self.no_farms:
                     self.md_show(
-                        f"There are not enough farms to deploy {no_nodes} ZDBs. number of available farms is {len(available_farms)}. Click next to try again"
+                        f"There are not enough farms to deploy {no_nodes} ZDBs each. Click next to try again with smaller number of farms."
                     )
-                    gcc.refresh()
                     continue
                 else:
                     while True:
