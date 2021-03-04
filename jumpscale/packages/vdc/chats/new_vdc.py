@@ -196,7 +196,7 @@ class VDCDeploy(GedisChatBot):
         self.zdb_farms = None
         available_farms = []
         if self.storage_selection.value == "Choose Farms":
-            while not available_farms:
+            while True:
                 self.no_farms = self.int_ask(
                     "How many farms you want to deploy your storage on?", max=10, min=1, required=True, default=2
                 )
@@ -209,17 +209,17 @@ class VDCDeploy(GedisChatBot):
                     self.md_show(
                         f"There are not enough farms to deploy {no_nodes} ZDBs each. Click next to try again with smaller number of farms."
                     )
-                    continue
                 else:
-                    while True:
-                        self.zdb_farms = self.multi_list_choice(
-                            f"Please select {self.no_farms} farms", available_farms, required=True
-                        )
-                        if len(self.zdb_farms) == self.no_farms:
-                            break
-                        self.md_show(
-                            f"Invalid number of farms {len(self.zdb_farms)}. you must select exactly {self.no_farms}. click next to try again"
-                        )
+                    break
+            while True:
+                self.zdb_farms = self.multi_list_choice(
+                    f"Please select {self.no_farms} farms", available_farms, required=True
+                )
+                if len(self.zdb_farms) == self.no_farms:
+                    break
+                self.md_show(
+                    f"Invalid number of farms {len(self.zdb_farms)}. you must select exactly {self.no_farms}. click next to try again"
+                )
 
     @chatflow_step(title="VDC Deployment")
     def deploy(self):
