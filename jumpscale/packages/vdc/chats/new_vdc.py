@@ -85,7 +85,7 @@ class VDCDeploy(GedisChatBot):
             "Choose the VDC plan", options=vdc_flavor_messages, default=vdc_flavor_messages[0], required=True,
         )
         self.storage_selection = form.single_choice(
-            "Do you wish to select farms for storage manually?",
+            "Do you wish to select farms for storage automatically?",
             ["Automatically Select Farms", "Manually Select Farms"],
             required=True,
             default="Automatically Select Farms",
