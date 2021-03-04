@@ -14,6 +14,11 @@
         Wallet Information
       </v-tab>
 
+      <v-tab>
+        <v-icon left> mdi-backup-restore </v-icon>
+        Backup&amp;Restore
+      </v-tab>
+
       <v-tab-item class="ml-2">
         <v-card flat>
           <kubernetes :vdc="vdc" :loading="loading"></kubernetes>
@@ -33,6 +38,12 @@
             :expirationdate="vdc.expiration_date"
             :price="vdc.price"
           ></wallet>
+        </v-card>
+      </v-tab-item>
+
+      <v-tab-item class="ml-2">
+        <v-card flat>
+          <backups :vdc="vdc"></backups>
         </v-card>
       </v-tab-item>
     </v-tabs>
@@ -63,11 +74,7 @@
       </v-card>
     </v-dialog>
     <v-dialog v-if="release" v-model="dialog.release" width="400">
-      <v-card
-        class="pt-4 pb-2"
-        color="info"
-        dark
-      >
+      <v-card class="pt-4 pb-2" color="info" dark>
         <v-card-text>
           <v-row align="center" justify="center">
             <v-icon class="my-4" align="center" x-large justify="center" center
@@ -75,7 +82,8 @@
             >
           </v-row>
           <b class="font-weight-bold">
-            New release {{ this.release }} is available. You can update it later from the user menu in the topbar.
+            New release {{ this.release }} is available. You can update it later
+            from the user menu in the topbar.
           </b>
         </v-card-text>
         <v-card-actions>
@@ -84,15 +92,11 @@
             class="text--lighten-2"
             color="grey"
             text
-            @click="dialog.release=false"
+            @click="dialog.release = false"
           >
             Later
           </v-btn>
-          <v-btn
-            color="white"
-            outlined
-            @click="$emit('update-dashboard')"
-          >
+          <v-btn color="white" outlined @click="$emit('update-dashboard')">
             Update now
           </v-btn>
         </v-card-actions>
@@ -144,15 +148,13 @@ module.exports = {
         });
     },
     checkDashboardUpdates() {
-      this.$api.version
-        .checkForUpdate()
-        .then((response) => {
-          let new_release = response.data.new_release;
-          if (new_release) {
-            this.release = new_release;
-            this.dialog.release = true;
-          }
-        })
+      this.$api.version.checkForUpdate().then((response) => {
+        let new_release = response.data.new_release;
+        if (new_release) {
+          this.release = new_release;
+          this.dialog.release = true;
+        }
+      });
     },
   },
   mounted() {
