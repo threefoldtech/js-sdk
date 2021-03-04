@@ -5,10 +5,10 @@ import time
 import pytest
 from jumpscale.loader import j
 from tests.base_tests import BaseTests
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 WALLET_NAME = os.environ.get("WALLET_NAME")
 WALLET_SECRET = os.environ.get("WALLET_SECRET")
-TRANSACTION_FEES = 0.1
 
 
 def info(msg):

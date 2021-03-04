@@ -6,6 +6,7 @@ from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 from jumpscale.sals.zos import get as get_zos
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 from .deployer import VDCDeployer
 from .models import *
@@ -530,7 +531,7 @@ class UserVDC(Base):
         for t_hash in transaction_hashes:
             effects = initial_wallet.get_transaction_effects(t_hash)
             for effect in effects:
-                amount += effect.amount + 0.1  # transaction fees to not drain the initialization wallet
+                amount += effect.amount + TRANSACTION_FEES  # transaction fees to not drain the initialization wallet
         amount = round(abs(amount), 6)
         if not amount:
             return True
@@ -556,7 +557,7 @@ class UserVDC(Base):
                     for b in balances:
                         if b.asset_code != "TFT":
                             continue
-                        if amount <= float(b.balance) + 0.1:
+                        if amount <= float(b.balance) + TRANSACTION_FEES:
                             has_funds = True
                             break
                         else:
