@@ -223,7 +223,7 @@ class VDCDeploy(GedisChatBot):
 
     @chatflow_step(title="VDC Deployment")
     def deploy(self):
-        self.md_show_update(f"Initializing Deployer....")
+        self.md_show_update(f"Initializing Deployer (This may take a few moments)....")
         self.vdc = j.sals.vdc.new(
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDC_SIZE.VDCFlavor[self.vdc_flavor],
         )
