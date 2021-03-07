@@ -11,9 +11,12 @@
         <v-icon left>mdi-plus</v-icon>Create backup
       </v-btn>
     </div>
-    <!-- :loading="loading" -->
-
-    <v-data-table :headers="headers" :items="backups" class="elevation-1">
+    <v-data-table
+      :loading="loading"
+      :headers="headers"
+      :items="backups"
+      class="elevation-1"
+    >
       <template slot="no-data">No VDC instances available</template>
       <template v-slot:item.name="{ item }">
         <div>{{ item.name }}</div>
@@ -71,31 +74,30 @@
       v-model="dialogs.info"
       :data="selected"
     ></solution-info>
-    <cancel-workload
-      v-if="selectedworker"
-      v-model="dialogs.cancelWorkload"
-      :wid="selectedworker"
-    ></cancel-workload>
-    <download-kubeconfig v-model="dialogs.downloadKube"></download-kubeconfig>
+    <cancel-backup
+      v-if="selectedBackup"
+      v-model="dialogs.cancelBackup"
+      :name="selectedBackup"
+    ></cancel-backup>
+
+    <popup v-if="show" :msg="msg"></popup>
   </div>
 </template>
 <script>
 module.exports = {
   components: {
     "solution-info": httpVueLoader("../base/Info.vue"),
-    "cancel-workload": httpVueLoader("./Delete.vue"),
-    "download-kubeconfig": httpVueLoader("./DownloadKubeconfig.vue"),
+    "cancel-backup": httpVueLoader("./Delete.vue"),
   },
   props: ["vdc"],
 
   data() {
     return {
       selected: null,
-      selectedworker: null,
+      selectedBackup: null,
       dialogs: {
         info: false,
-        cancelWorkload: false,
-        downloadKube: false,
+        cancelBackup: false,
       },
       backups: [],
       headers: [
@@ -105,138 +107,48 @@ module.exports = {
         { text: "Status", value: "status" },
         { text: "Actions", value: "actions", sortable: false },
       ],
-      backup_data: [
-        {
-          name: "config-20210301101042",
-          expiration: 1617185447,
-          status: "Completed",
-          start_timestamp: 1614593447,
-          completion_timestamp: 1614593448,
-          errors: 0,
-          progress: {
-            totalItems: 52,
-            itemsBackedUp: 52,
-          },
-        },
-        {
-          name: "vdc-20210301101042",
-          expiration: 1617185442,
-          status: "PartiallyFailed",
-          start_timestamp: 1614593442,
-          completion_timestamp: 1614593446,
-          errors: 3,
-          progress: {
-            totalItems: 15,
-            itemsBackedUp: 15,
-          },
-        },
-        {
-          name: "config-20210301090945",
-          expiration: 1617181788,
-          status: "Completed",
-          start_timestamp: 1614589788,
-          completion_timestamp: 1614589789,
-          errors: 0,
-          progress: {
-            totalItems: 49,
-            itemsBackedUp: 49,
-          },
-        },
-        {
-          name: "vdc-20210301104328",
-          expiration: 1617187408,
-          status: "PartiallyFailed",
-          start_timestamp: 1614595408,
-          completion_timestamp: 1614595412,
-          errors: 3,
-          progress: {
-            totalItems: 10,
-            itemsBackedUp: 10,
-          },
-        },
-        {
-          name: "config-20210301104329",
-          expiration: 1617187413,
-          status: "Completed",
-          start_timestamp: 1614595413,
-          completion_timestamp: 1614595414,
-          errors: 0,
-          progress: {
-            totalItems: 54,
-            itemsBackedUp: 54,
-          },
-        },
-        {
-          name: "vdc-20210301114425",
-          expiration: 1617191065,
-          status: "PartiallyFailed",
-          start_timestamp: 1614599065,
-          completion_timestamp: 1614599068,
-          errors: 3,
-          progress: {
-            totalItems: 12,
-            itemsBackedUp: 12,
-          },
-        },
-        {
-          name: "config-20210301114425",
-          expiration: 1617191069,
-          status: "Completed",
-          start_timestamp: 1614599069,
-          completion_timestamp: 1614599070,
-          errors: 0,
-          progress: {
-            totalItems: 55,
-            itemsBackedUp: 55,
-          },
-        },
-        {
-          name: "config-20210301124425",
-          expiration: 1617194669,
-          status: "Completed",
-          start_timestamp: 1614602669,
-          completion_timestamp: 1614602670,
-          errors: 0,
-          progress: {
-            totalItems: 55,
-            itemsBackedUp: 55,
-          },
-        },
-      ],
+      loading: false,
+      show: false,
+      msg: null,
     };
   },
   methods: {
     createBackup() {
+      this.loading = true;
       this.$api.backup
         .create()
         .then((response) => {
-          // console.log(response.data);
-        })
-        .finally(() => {
-          console.log("Backup created");
-        });
-    },
-    list() {
-      this.$api.backup
-        .list()
-        .then((response) => {
-          //   backups = response.data;
-        })
-        .finally(() => {
-          console.log("Data listed");
-          this.backups = this.backup_data;
-        });
-    },
-    restore(name) {
-      this.$api.backup
-        .restore(name)
-        .then((response) => {
-          //   backups = response.data;
+          this.show = true;
+          this.msg = response.data;
           this.list();
         })
         .finally(() => {
-          console.log("Backup Restored");
-          this.backups = this.backup_data;
+          this.loading = false;
+        });
+    },
+    list() {
+      this.loading = true;
+      this.$api.backup
+        .list()
+        .then((response) => {
+          this.backups = response.data.data;
+        })
+        .finally(() => {
+          this.loading = false;
+          this.show = false;
+        });
+    },
+    restore(name) {
+      this.loading = true;
+      this.$api.backup
+        .restore(name)
+        .then((response) => {
+          this.show = true;
+          this.msg = response.data;
+          this.list();
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
     open(record) {
@@ -244,17 +156,8 @@ module.exports = {
       this.dialogs.info = true;
     },
     deleteBackup(name) {
-      this.selectedworker = name;
-      this.dialogs.cancelWorkload = true;
-      this.$api.backup
-        .delete(name)
-        .then((response) => {
-          //   backups = response.data;
-          this.list();
-        })
-        .finally(() => {
-          console.log("Backup Deleted");
-        });
+      this.selectedBackup = name;
+      this.dialogs.cancelBackup = true;
     },
     timeDifference(ts) {
       var timestamp = moment.unix(ts);
@@ -262,16 +165,9 @@ module.exports = {
       return timestamp.to(now);
     },
     getStatus(status) {
-      if (status == "PartiallyFailed") return "red";
+      if (status == "Error") return "red";
       else if (status == "Completed") return "green";
       else return "orange";
-    },
-  },
-  computed: {
-    backupData() {
-      if (this.vdc) {
-        return this.vdc.backup;
-      }
     },
   },
   mounted() {

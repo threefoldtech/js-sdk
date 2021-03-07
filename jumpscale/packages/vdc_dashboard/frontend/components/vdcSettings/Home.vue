@@ -43,10 +43,11 @@
 
       <v-tab-item class="ml-2">
         <v-card flat>
-          <backups :vdc="vdc"></backups>
+          <backups :vdc="vdc" :loading="loading"></backups>
         </v-card>
       </v-tab-item>
     </v-tabs>
+
     <v-dialog v-if="dialog.expiration" v-model="dialog.expiration" width="400">
       <v-card
         v-if="vdc"
@@ -148,15 +149,13 @@ module.exports = {
         });
     },
     checkDashboardUpdates() {
-      this.$api.version
-        .checkForUpdate()
-        .then((response) => {
-          let new_release = response.data.new_release;
-          if (new_release) {
-            this.release = false; //new_release;
-            this.dialog.release = false; //true;
-          }
-        })
+      this.$api.version.checkForUpdate().then((response) => {
+        let new_release = response.data.new_release;
+        if (new_release) {
+          this.release = false; //new_release;
+          this.dialog.release = false; //true;
+        }
+      });
     },
   },
   mounted() {
