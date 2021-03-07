@@ -26,14 +26,13 @@ class MaticDeploy(SolutionsChatflowDeploy):
         super().get_release_name()
 
     def _enter_access_code(self):
-        self.access_code = self.string_ask(
-            "Enter Access Code. This would be used to access your node's web page", required=True
+        self.access_code = self.secret_ask(
+            "Enter Access Code. (This would be used to access your node's web page)", required=True
         )
 
     def _enter_rpc_url(self):
         self.eth_rpc_url = self.string_ask(
-            "Insert Infura or any full node RPC URL to Ethereum. You can skip this option if you are deploying a sentry node",
-            required=False,
+            "Insert Infura or any full node RPC URL to Ethereum. You can skip this option if you are deploying a sentry node"
         )
 
     @chatflow_step(title="Node Configuration")
