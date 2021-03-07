@@ -64,6 +64,7 @@ class Packages(Base):
         packages_category = self.driver.find_elements_by_class_name("row")
         installed_packages_cards = packages_category[1].find_elements_by_class_name("v-card")
         available_packages_cards = packages_category[2].find_elements_by_class_name("v-card")
+        self.wait(self.driver, "progressbar")
         for installed_card in installed_packages_cards:
             installed_package_card_name = installed_card.find_element_by_class_name("v-card__title")
             installed_package_name = installed_package_card_name.text
