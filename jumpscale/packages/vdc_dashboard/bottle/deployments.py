@@ -62,6 +62,44 @@ def _total_capacity(vdc):
     return plan_nodes_count + len(addons) + 1
 
 
+def _get_zstor_config(ip_version=6):
+    vdc_full_name = list(j.sals.vdc.list_all())[0]
+    vdc = j.sals.vdc.find(vdc_full_name, load_info=True)
+    vdc_zdb_monitor = vdc.get_zdb_monitor()
+    password = vdc_zdb_monitor.get_password()
+    encryption_key = password[:32].encode().zfill(32).hex()
+    data = {
+        "data_shards": 2,
+        "parity_shards": 1,
+        "redundant_groups": 0,
+        "redundant_nodes": 0,
+        "encryption": {"algorithm": "AES", "key": encryption_key},
+        "compression": {"algorithm": "snappy"},
+        "meta": {
+            "type": "etcd",
+            "config": {
+                "endpoints": ["http://127.0.0.1:2379", "http://127.0.0.1:22379", "http://127.0.0.1:32379"],
+                "prefix": "someprefix",
+            },
+        },
+        "groups": [],
+    }
+    if ip_version == 4:
+        deployer = vdc.get_deployer()
+        vdc.load_info(load_proxy=True)
+        deployer.s3.expose_zdbs()
+
+    for zdb in vdc.s3.zdbs:
+        if ip_version == 6:
+            zdb_url = f"[{zdb.ip_address}]:{zdb.port}"
+        elif ip_version == 4:
+            zdb_url = zdb.proxy_address
+        else:
+            return
+        data["groups"].append({"backends": [{"address": zdb_url, "namespace": zdb.namespace, "password": password}]})
+    return data
+
+
 @app.route("/api/kube/get")
 @package_authorized("vdc_dashboard")
 def get_kubeconfig() -> str:
@@ -222,45 +260,13 @@ def get_zstor_config():
         data = j.data.serializers.json.loads(request.body.read())
     except Exception as e:
         j.logger.error(f"couldn't load body due to error: {str(e)}.")
-    vdc = _get_vdc()
-    vdc_zdb_monitor = vdc.get_zdb_monitor()
-    password = vdc_zdb_monitor.get_password()
-    encryption_key = password[:32].encode().zfill(32).hex()
     ip_version = data.get("ip_version", 6)
-    data = {
-        "data_shards": 2,
-        "parity_shards": 1,
-        "redundant_groups": 0,
-        "redundant_nodes": 0,
-        "encryption": {"algorithm": "AES", "key": encryption_key},
-        "compression": {"algorithm": "snappy"},
-        "meta": {
-            "type": "etcd",
-            "config": {
-                "endpoints": ["http://127.0.0.1:2379", "http://127.0.0.1:22379", "http://127.0.0.1:32379"],
-                "prefix": "someprefix",
-            },
-        },
-        "groups": [],
-    }
-    if ip_version == 4:
-        deployer = vdc.get_deployer()
-        vdc.load_info(load_proxy=True)
-        deployer.s3.expose_zdbs()
-
-    for zdb in vdc.s3.zdbs:
-        if ip_version == 6:
-            zdb_url = f"[{zdb.ip_address}]:{zdb.port}"
-        elif ip_version == 4:
-            zdb_url = zdb.proxy_address
-        else:
-            return HTTPResponse(
-                status=400,
-                message=f"unsupported ip version: {ip_version}",
-                headers={"Content-Type": "application/json"},
-            )
-        data["groups"].append({"backends": [{"address": zdb_url, "namespace": zdb.namespace, "password": password}]})
-    return j.data.serializers.json.dumps({"data": j.data.serializers.toml.dumps(data)})
+    zstor_config = _get_zstor_config(ip_version)
+    if not zstor_config:
+        return HTTPResponse(
+            status=400, message=f"unsupported ip version: {ip_version}", headers={"Content-Type": "application/json"},
+        )
+    return j.data.serializers.json.dumps({"data": j.data.serializers.toml.dumps(zstor_config)})
 
 
 @app.route("/api/zdb/secret", method="GET")
