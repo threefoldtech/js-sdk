@@ -2,6 +2,7 @@ from datetime import datetime
 
 from jumpscale.core.base import Base, StoredFactory, fields
 from jumpscale.loader import j
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 
 GP_WALLET_NAME = j.config.get("GRACE_PERIOD_WALLET", "grace_period")
@@ -104,11 +105,11 @@ class GracePeriodModel(Base):
         except Exception as e:
             j.logger.error(f"couldn't get balance prepaid wallet of {self.vdc_instance_name}, error was {e} ")
         else:
-            if balance > 0.1:
+            if balance > TRANSACTION_FEES:
                 grace_period_wallet = j.clients.stellar.find(GP_WALLET_NAME)
                 amount = round(self.fund_amount - self.paid_amount, 6)
-                if balance < amount + 0.1:
-                    amount = balance - 0.1
+                if balance < amount + TRANSACTION_FEES:
+                    amount = balance - TRANSACTION_FEES
                 j.logger.info(
                     f"vdc {self.vdc_instance_name} has enough balance and transfering {amount} to grace period wallet"
                 )

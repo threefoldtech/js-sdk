@@ -1,6 +1,7 @@
 from jumpscale.core.base import Base, fields, StoredFactory
 import datetime
 from jumpscale.loader import j
+from jumpscale.clients.stellar import TRANSACTION_FEES
 from decimal import Decimal
 import datetime
 
@@ -19,7 +20,7 @@ class PaymentTransaction(Base):
         if self.transaction_refund.success:
             return True
         try:
-            amount = round(self.get_amount(wallet) - Decimal(0.1), 6)
+            amount = round(self.get_amount(wallet) - Decimal(TRANSACTION_FEES), 6)
             if amount < 0:
                 self.transaction_refund.success = True
             else:
@@ -64,11 +65,11 @@ class PaymentResult(Base):
                 if transaction.success:
                     trans_amount = transaction.get_amount(self.parent.wallet)
                     diff = float(trans_amount) - self.parent.amount
-                    if diff <= 0.1:
+                    if diff <= TRANSACTION_FEES:
                         self.extra_paid = False
                         break
                     sender_address = self.parent.wallet.get_sender_wallet_address(transaction.transaction_hash)
-                    amount = round(diff - 0.1, 6)
+                    amount = round(diff - TRANSACTION_FEES, 6)
                     try:
                         j.logger.info(
                             f"refunding extra amount: {amount} of transaction {transaction.transaction_hash} to address: {sender_address}"
@@ -222,13 +223,13 @@ class RefundRequest(Base):
         if self.amount > 0:
             amount = self.amount
 
-        if amount <= 0.1 or not sender_address:
+        if amount <= TRANSACTION_FEES or not sender_address:
             self.success = True
         else:
             try:
                 a = payment.wallet._get_asset()
                 self.refund_transaction_hash = payment.wallet.transfer(
-                    sender_address, amount=round(amount - 0.1, 6), asset=f"{a.code}:{a.issuer}"
+                    sender_address, amount=round(amount - TRANSACTION_FEES, 6), asset=f"{a.code}:{a.issuer}"
                 )
                 self.success = True
                 j.logger.info(

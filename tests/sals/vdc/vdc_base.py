@@ -1,5 +1,6 @@
 import os
 
+from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.loader import j
 from jumpscale.packages import billing
 from tests.base_tests import BaseTests
@@ -72,7 +73,9 @@ class VDCBase(BaseTests):
 
         cls.info("Transfer needed TFT to deploy vdc for an hour to the provisioning wallet.")
         cls.vdc_price = j.tools.zos.consumption.calculate_vdc_price(cls.flavor)
-        needed_tft = float(cls.vdc_price) / 24 / 30 + 0.2  # 0.2 transaction fees for creating the pool and extend it
+        needed_tft = (
+            float(cls.vdc_price) / 24 / 30 + 2 * TRANSACTION_FEES
+        )  # 2 transaction fees for creating the pool and extend it
         cls.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
 
         cls.info("Deploy VDC.")

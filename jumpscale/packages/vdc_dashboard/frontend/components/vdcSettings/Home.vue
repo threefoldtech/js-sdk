@@ -148,13 +148,15 @@ module.exports = {
         });
     },
     checkDashboardUpdates() {
-      this.$api.version.checkForUpdate().then((response) => {
-        let new_release = response.data.new_release;
-        if (new_release) {
-          this.release = new_release;
-          this.dialog.release = true;
-        }
-      });
+      this.$api.version
+        .checkForUpdate()
+        .then((response) => {
+          let new_release = response.data.new_release;
+          if (new_release) {
+            this.release = false; //new_release;
+            this.dialog.release = false; //true;
+          }
+        })
     },
   },
   mounted() {

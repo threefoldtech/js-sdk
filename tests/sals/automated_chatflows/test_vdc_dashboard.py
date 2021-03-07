@@ -7,6 +7,7 @@ from solutions_automation.vdc import deployer
 from tests.sals.vdc.vdc_base import VDCBase
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
 from parameterized import parameterized_class
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 
 @parameterized_class(("no_deployment"), [("single",), ("double",)])
@@ -61,7 +62,7 @@ class VDCDashboard(VDCBase):
         kubernetes = K8s()
         kubernetes.size = VDC_SIZE.K8SNodeFlavor.MEDIUM.value
         # It will be deployed for an hour.
-        price = j.tools.zos.consumption.cost(kubernetes, 60 * 60) + 0.1  # transactions fees.
+        price = j.tools.zos.consumption.cost(kubernetes, 60 * 60) + TRANSACTION_FEES  # transactions fees.
         cls.vdc.transfer_to_provisioning_wallet(round(price, 6), "test_wallet")
 
         # Timeout for any exposed solution to be reachable and certified.
