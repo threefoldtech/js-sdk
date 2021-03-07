@@ -38,8 +38,6 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         ]
         self.non_running_names = {threebot["name"]: threebot for threebot in self.non_running_3bots}
         self.name = self.kwargs["tname"]
-        print("***********************************", self.name)
-        print(self.non_running_names)
         self.threebot_info = self.non_running_names[self.name]
         self.pool_id = self.threebot_info["compute_pool"]
         self.query = {
