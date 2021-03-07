@@ -294,6 +294,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         request = j.tools.http.get(f"http://{exposed.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/tfgateway/issues/60")
     def test07_4to6gw(self):
         """Test case for deploying a 4to6 GW.
 
