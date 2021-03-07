@@ -7,5 +7,12 @@ class VDCAutomated(GedisChatBotPatch, VDCDeploy):
     VDC_SECERT = "VDC Secret (Secret for controlling the vdc)"
     VDC_PLAN = "Choose the VDC plan"
     PAYMENT = r"^Please scan the QR Code below for the payment details .*"
+    ZDB_FARMS = "Do you wish to select farms for storage automatically?"
 
-    QS = {NAME_MESSAGE: "get_name", VDC_SECERT: "vdc_secert", VDC_PLAN: "vdc_plan", PAYMENT: "md_show_update"}
+    QS = {
+        NAME_MESSAGE: "get_name",
+        VDC_SECERT: "vdc_secert",
+        VDC_PLAN: "vdc_plan",
+        PAYMENT: "md_show_update",
+        ZDB_FARMS: "Automatically Select Farms",
+    }
