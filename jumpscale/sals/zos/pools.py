@@ -1,7 +1,7 @@
-from jumpscale.loader import j
-from jumpscale.clients.explorer.models import PoolCreated, Pool
+from typing import Iterator, List
 
-from typing import List, Iterator
+from jumpscale.clients.explorer.models import Pool, PoolCreated, PoolPayment
+from jumpscale.loader import j
 
 
 class Pools:
@@ -16,14 +16,19 @@ class Pools:
         self._nodes = explorer.nodes
         self._gateways = explorer.gateway
 
-    def _reserve(self, pool):
+    def _reserve(self, pool, sponsor_identity=None):
         me = self._identity
         pool.customer_tid = me.tid
         pool.json = j.data.serializers.json.dumps(pool.data_reservation.to_dict())
         pool.customer_signature = me.nacl.sign_hex(pool.json.encode()).decode()
+        if sponsor_identity:
+            pool.sponsor_tid = sponsor_identity.tid
+            pool.sponsor_signature = sponsor_identity.nacl.sign_hex(pool.json.encode()).decode()
         return self._pools.create(pool)
 
-    def create(self, cu: int, su: int, ipv4us: int, farm: str, currencies: List[str] = None) -> PoolCreated:
+    def create(
+        self, cu: int, su: int, ipv4us: int, farm: str, currencies: List[str] = None, sponsor_identity=None
+    ) -> PoolCreated:
         """create a new capacity pool
 
         Args:
@@ -37,6 +42,8 @@ class Pools:
           PoolCreated: the payment detail required to pay fo the reserved capacity
 
         """
+        cu = int(cu)
+        su = int(su)
         if not currencies:
             currencies = ["TFT"]
 
@@ -62,7 +69,7 @@ class Pools:
         pool.data_reservation.ipv4us = ipv4us
         pool.data_reservation.node_ids = node_ids
         pool.data_reservation.currencies = currencies
-        return self._reserve(pool)
+        return self._reserve(pool, sponsor_identity)
 
     def extend(
         self, pool_id: int, cu: int, su: int, ipv4us: int, currencies: List[str] = None, node_ids: List[str] = None
@@ -79,6 +86,8 @@ class Pools:
           PoolCreated: the payment detail required to pay fo the reserved capacity
 
         """
+        cu = int(cu)
+        su = int(su)
         p = self.get(pool_id)
         if not currencies:
             currencies = ["TFT"]
@@ -129,9 +138,13 @@ class Pools:
         """
         return self._pools.list(customer_tid=self._identity.tid)
 
-    def get_payment_info(self, reservation_id):
+    def get_payment_info(self, reservation_id) -> PoolPayment:
         """get pool payment info
-      Args:
-          reservation_id (int):
-      """
+
+        Args:
+            reservation_id (int)
+
+        Returns:
+            PoolPayment: pool payment info
+        """
         return self._pools.get_payment_info(reservation_id)

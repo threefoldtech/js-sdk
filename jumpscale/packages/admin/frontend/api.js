@@ -91,7 +91,6 @@ const apiClient = {
                 data: { name: name }
             })
         },
-
     },
     packages: {
         list: () => {
@@ -364,6 +363,15 @@ const apiClient = {
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
                 data: { solution_type: solution_type }
+            })
+        },
+        getK8sDetails: (k8s_solution_name) =>{
+            return axios({
+                url: `/tfgrid_solutions/actors/solutions/get_k8s_solution_details`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { k8s_solution_name: k8s_solution_name }
+
             })
         },
         getPools: (include_hidden) => {

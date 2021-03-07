@@ -58,6 +58,7 @@ def auto_extend_pools():
 
 def auto_extend_pool(pool_id, cu, su, currencies=None):
     currencies = currencies or ["TFT"]
+    pool_info = None
     try:
         pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, 0, currencies=currencies)
     except Exception as e:

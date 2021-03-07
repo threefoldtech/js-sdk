@@ -7,14 +7,14 @@ from textwrap import dedent
 
 import netaddr
 import requests
-from nacl.public import Box
-
 from jumpscale.clients.explorer.models import DeployedReservation, NextAction
+from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.clients.stellar.stellar import Network as StellarNetwork
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType, TfgridSolution1, TfgridSolutionsPayment1
+from nacl.public import Box
 
 NODES_DISALLOW_PREFIX = "ZOS:NODES:DISALLOWED"
 NODES_DISALLOW_EXPIRATION = 60 * 60 * 4  # 4 hours
@@ -569,7 +569,7 @@ class ReservationChatflow:
         payment_obj.escrow_address = escrow_address
         payment_obj.escrow_asset = escrow_asset
         payment_obj.total_amount = str(total_amount)
-        payment_obj.transaction_fees = f"0.1 {currency}"
+        payment_obj.transaction_fees = f"{TRANSACTION_FEES} {currency}"
         payment_obj.payment_source = payment_source
         for farmer in farmer_payments:
             farmer_name = self._explorer.farms.get(farm_id=farmer["farmer_id"]).name
@@ -597,8 +597,10 @@ class ReservationChatflow:
             payment_details += (
                 f"<tr><td>Farmer {farmer_name}</td><td>{format(farmer['total_amount'],'.7f')} {currency}</td></tr>"
             )
-        payment_details += f"<tr><td>Transaction Fees</td><td>{0.1} {currency}</td></tr>"
-        payment_details += f"<tr><td>Total amount</td><td>{format(total_amount + 0.1,'.7f')} {currency}</td></tr>"
+        payment_details += f"<tr><td>Transaction Fees</td><td>{TRANSACTION_FEES} {currency}</td></tr>"
+        payment_details += (
+            f"<tr><td>Total amount</td><td>{format(total_amount + TRANSACTION_FEES,'.7f')} {currency}</td></tr>"
+        )
         payment_details += "</table>"
 
         return payment_details
@@ -1235,7 +1237,7 @@ class ReservationChatflow:
         """
         ip_range_choose = ["Configure IP range myself", "Choose IP range for me"]
         iprange_user_choice = bot.single_choice(
-            "To have access to the 3Bot, the network must be configured",
+            "How would you like to configure the network IP range",
             ip_range_choose,
             required=True,
             default=ip_range_choose[1],
@@ -1370,6 +1372,7 @@ class ReservationChatflow:
         sru=None,
         mru=None,
         hru=None,
+        ipv4u=None,
         currency="TFT",
         ip_version=None,
         pool_ids=None,
@@ -1389,7 +1392,6 @@ class ReservationChatflow:
             hru (int, optional): hdd resources. Defaults to None.
             currency (str, optional): wanted currency. Defaults to "TFT".
             sort_by_disk_space (bool, optional): return nodes with highest free disk space (sru). If set to False, can be overriden by SORT_NODES_BY_SRU in config
-
         Raises:
             StopChatFlow: if no nodes found
 
@@ -1414,6 +1416,7 @@ class ReservationChatflow:
         # to avoid using the same node with different networks
         nodes_selected = []
         selected_ids = []
+        zos = j.sals.zos.get()
         for pool_id in nodes_distribution:
             nodes_number = nodes_distribution[pool_id]
             if not pool_ids:
@@ -1434,9 +1437,7 @@ class ReservationChatflow:
                 try:
                     if sort_by_disk_space:
                         if not nodes:
-                            raise StopChatFlow(
-                                err_msg, htmlAlert=True,
-                            )
+                            raise StopChatFlow(err_msg, htmlAlert=True)
                         for node in nodes:
                             if node.node_id not in selected_ids:
                                 break
@@ -1445,12 +1446,18 @@ class ReservationChatflow:
                         while node.node_id in selected_ids:
                             node = random.choice(nodes)
                 except IndexError:
-                    raise StopChatFlow(
-                        err_msg, htmlAlert=True,
-                    )
-                nodes.remove(node)
-                nodes_selected.append(node)
-                selected_ids.append(node.node_id)
+                    raise StopChatFlow(err_msg, htmlAlert=True)
+                # Validate if the selected node has public ip or not
+                if ipv4u:
+                    if zos.nodes_finder.filter_public_ip_bridge(node):
+                        nodes.remove(node)
+                        nodes_selected.append(node)
+                        selected_ids.append(node.node_id)
+
+                else:
+                    nodes.remove(node)
+                    nodes_selected.append(node)
+                    selected_ids.append(node.node_id)
         return nodes_selected
 
     def filter_nodes(self, nodes, free_to_use, ip_version=None):
@@ -1602,7 +1609,7 @@ class ReservationChatflow:
         if not j.core.config.get_config().get("threebot_connect", True):
             error_msg = """
             This chatflow is not supported when 3Bot is in dev mode.
-            To enable TF Connect : `j.core.config.set('threebot_connect', True)`
+            To enable ThreeFold Connect : `j.core.config.set('threebot_connect', True)`
             """
             raise j.exceptions.Runtime(error_msg)
         if not user_info["email"]:

@@ -1,6 +1,7 @@
 import ipaddress
 from datetime import datetime
 from enum import Enum
+from collections import OrderedDict
 
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
@@ -49,6 +50,12 @@ class FarmerIP(Base):
     reservation_id = fields.Integer()
 
 
+class CloudUnitMonthPrice(Base):
+    cu = fields.Float(default=10)
+    su = fields.Float(default=8)
+    ipv4u = fields.Float(default=6)
+
+
 class Farm(Base):
     id = fields.Integer()
     threebot_id = fields.Integer()
@@ -60,9 +67,17 @@ class Farm(Base):
     resource_prices = fields.List(fields.Object(ResourceUnitPrice))
     prefix_zero = fields.IPRange()
     ipaddresses = fields.List(fields.Object(FarmerIP))
+    enable_custom_pricing = fields.Boolean(default=False)
+    farm_cloudunits_price = fields.Object(CloudUnitMonthPrice)
 
     def __str__(self):
         return " - ".join([x for x in [self.name, str(self.location)] if x])
+
+
+class FarmThreebotPrice(Base):
+    threebot_id = fields.Integer()
+    farm_id = fields.Integer()
+    custom_cloudunits_price = fields.Object(CloudUnitMonthPrice)
 
 
 class WorkloadsAmount(Base):
@@ -420,9 +435,11 @@ class K8s(Base):
     public_ip = fields.Integer()
     stats_aggregator = fields.List(fields.Object(Statsaggregator))
     info = fields.Object(ReservationInfo)
+    datastore_endpoint = fields.String(default="")
+    disable_default_ingress = fields.Boolean(default=True)
 
-    def resource_units(self):
-        size_table = {
+    SIZES = OrderedDict(
+        {
             1: {"cru": 1, "mru": 2, "sru": 50},
             2: {"cru": 2, "mru": 4, "sru": 100},
             3: {"cru": 2, "mru": 8, "sru": 25},
@@ -440,12 +457,16 @@ class K8s(Base):
             15: {"cru": 1, "mru": 2, "sru": 25},
             16: {"cru": 2, "mru": 4, "sru": 50},
             17: {"cru": 4, "mru": 8, "sru": 50},
+            18: {"cru": 1, "mru": 1, "sru": 25},
         }
+    )
+
+    def resource_units(self):
 
         resource_units = ResourceUnitAmount()
-        size = size_table.get(self.size)
+        size = self.SIZES.get(self.size)
         if not size:
-            raise j.exceptions.Input(f"k8s size {self.size} not supported")
+            raise j.exceptions.Input(f"kubernetes size {self.size} not supported")
 
         resource_units.cru += size["cru"]
         resource_units.mru += size["mru"]
@@ -640,6 +661,8 @@ class PoolCreate(Base):
     data_reservation = fields.Object(PoolCreateData)
     customer_tid = fields.Integer()
     customer_signature = fields.String()
+    sponsor_tid = fields.Integer()
+    sponsor_signature = fields.String()
 
 
 class Pool(Base):

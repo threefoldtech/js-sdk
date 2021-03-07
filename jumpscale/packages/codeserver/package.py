@@ -5,7 +5,7 @@ import os
 class codeserver:
     def __init__(self):
         self.bin_path = j.sals.fs.join_paths(j.core.dirs.BINDIR, "code-server")
-        self.script_path = j.sals.fs.join_paths(os.path.dirname(__file__), "codeserver-install.sh")
+        self.script_path = j.sals.fs.join_paths(os.path.dirname(__file__), "codeserver_install.sh")
         self._started = False
 
     @property

@@ -1,7 +1,7 @@
 <template>
   <div>
     <Message :payload="payload"></Message>
-    <v-text-field v-model="val" :rules="rules" validate-on-blur outlined></v-text-field>
+    <v-text-field v-model="val" :rules="rules" validate-on-change outlined></v-text-field>
   </div>
 </template>
 

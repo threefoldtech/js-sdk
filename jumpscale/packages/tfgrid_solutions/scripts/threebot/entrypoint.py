@@ -3,7 +3,6 @@ from gevent import monkey
 monkey.patch_all(subprocess=False)  # noqa: E402
 
 import os
-import requests
 from jumpscale.loader import j
 from jumpscale.packages.backup.actors.threebot_deployer import Backup
 
@@ -13,7 +12,7 @@ def main():
     instance_name = os.environ.get("INSTANCE_NAME")
     threebot_name = os.environ.get("THREEBOT_NAME")
     domain = os.environ.get("DOMAIN")
-    backup_password = os.environ.get("BACKUP_PASSWORD", None)
+    backup_password = os.environ.get("BACKUP_PASSWORD", "")
     test_cert = os.environ.get("TEST_CERT")
 
     # email settings

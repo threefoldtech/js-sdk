@@ -78,7 +78,7 @@
           <v-divider></v-divider>
 
           <v-card-actions>
-            <v-btn block text href="/auth/logout">
+            <v-btn block text @click.stop="logout">
               <v-icon color="primary" class="mr-2" left>mdi-exit-to-app</v-icon>Logout
             </v-btn>
           </v-card-actions>
@@ -207,7 +207,14 @@ module.exports = {
   components: {
     identities: httpVueLoader("./Identity.vue"),
   },
-  methods: {},
+  methods: {
+    logout() {
+      // clear cache on logout
+      var backlen = history.length;
+      history.go(-backlen);
+      window.location.href = "/auth/logout";
+    }
+  },
   computed: {
     announcement_dialog() {
       return !this.announced

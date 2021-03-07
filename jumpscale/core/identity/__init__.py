@@ -7,7 +7,7 @@ from jumpscale.core import config as js_config
 from jumpscale.core.base import Base, StoredFactory, fields
 from jumpscale.core.config import get_config, update_config
 from jumpscale.core.exceptions import Input, NotFound, Value
-from jumpscale.data.encryption import mnemonic
+from jumpscale.data.encryption import mnemonic, generate_mnemonic
 from jumpscale.data.nacl import NACL
 from jumpscale.sals.nettools import get_default_ip_config
 
@@ -36,7 +36,16 @@ class Identity(Base):
     admins = fields.List(fields.String())
 
     def __init__(
-        self, tname=None, email=None, words=None, explorer_url=None, _tid=-1, admins=None, *args, **kwargs,
+        self,
+        tname=None,
+        email=None,
+        words=None,
+        explorer_url=None,
+        _tid=-1,
+        admins=None,
+        network=None,
+        *args,
+        **kwargs,
     ):
         """
         Get Identity
@@ -47,13 +56,25 @@ class Identity(Base):
             tname (str, optional): Name eg. example.3bot
             email (str, optional): Email of identity
             words (str): Words used to secure identity
-            explorer_url (str, optional): Url for the explorer to use
+            explorer_url (str, optional): Url for the explorer to
+            network (str, optional): network name (mainnet, testnet, devnet)
             tid (int, optional): When tid is passed tname, email will be verified against it
 
         Raises: NotFound incase tid is passed but does not exists on the explorer
         Raises: Input: when params are missing
         """
         self._explorer = None
+        if not words:
+            words = generate_mnemonic()
+        if network is None and explorer_url is None:
+            raise ValueError("network (mainnet, testnet, devnet) or explorer_url is required")
+
+        if explorer_url is None:
+            if network not in ["testnet", "mainnet", "devnet"]:
+                raise ValueError("network should be one of (mainnet, testnet, devnet)")
+            else:
+                explorer_url = DEFAULT_EXPLORER_URLS[network]
+
         explorer_url = explorer_url.rstrip("/")
         super().__init__(
             tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=_tid, admins=admins, *args, **kwargs,
@@ -185,10 +206,17 @@ class IdentityFactory(StoredFactory):
     _me = None
 
     def new(
-        self, name, tname=None, email=None, words=None, explorer_url=None, tid=-1, admins=None,
+        self, name, tname=None, email=None, words=None, explorer_url=None, tid=-1, admins=None, network=None,
     ):
         instance = super().new(
-            name, tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=tid, admins=admins,
+            name,
+            tname=tname,
+            email=email,
+            words=words,
+            explorer_url=explorer_url,
+            _tid=tid,
+            admins=admins,
+            network=network,
         )
         instance.save()
         return instance

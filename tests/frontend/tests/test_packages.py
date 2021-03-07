@@ -1,6 +1,6 @@
 import pytest
 from jumpscale.loader import j
-from jumpscale.packages import polls
+from jumpscale.packages import marketplace
 from tests.frontend.pages.Packages.packages import Packages
 from tests.frontend.tests.base_tests import BaseTest
 
@@ -34,12 +34,16 @@ class PackagesTests(BaseTest):
 
         - Add a package using GitURL.
         - Check that the package has been installed correctly.
+        - Delete the package.
+        - Check that the package has been deleted successfully
         - Add a package using path.
         - Check that the package has been installed correctly.
+        - Delete the package.
+        - Check that the package has been deleted successfully
         - Install another package.
         - Check that the package has been installed correctly.
-        - Delete the three packages.
-        - Check that the packages have been deleted successfully.
+        - Delete the package.
+        - Check that the package has been deleted successfully.
         """
 
         self.info("Add a package using GitURL")
@@ -51,14 +55,28 @@ class PackagesTests(BaseTest):
         self.assertNotIn("notebooks", available_packages.keys())
         self.assertIn("notebooks", installed_packages.keys())
 
+        self.info("Delete the package")
+        self.packages.delete_package("notebooks")
+
+        self.info("Check that the packages has been deleted successfully")
+        installed_packages, available_packages = self.packages.get_installed_and_available_packages()
+        self.assertNotIn("notebooks", installed_packages.keys())
+
         self.info("Add a package using path")
-        path = j.sals.fs.dirname(polls.__file__)
+        path = j.sals.fs.dirname(marketplace.__file__)
         self.packages.add_package(path=path)
 
         self.info("Check that the package has been Added correctly")
         installed_packages, available_packages = self.packages.get_installed_and_available_packages()
-        self.assertNotIn("polls", available_packages.keys())
-        self.assertIn("polls", installed_packages.keys())
+        self.assertNotIn("3bot_apps", available_packages.keys())
+        self.assertIn("3bot_apps", installed_packages.keys())
+
+        self.info("Delete the package")
+        self.packages.delete_package("3bot_apps")
+
+        self.info("Check that the packages has been deleted successfully")
+        installed_packages, available_packages = self.packages.get_installed_and_available_packages()
+        self.assertNotIn("3bot_apps", installed_packages.keys())
 
         self.info("Install another package")
         installed_package = self.packages.install_random_package()
@@ -68,15 +86,11 @@ class PackagesTests(BaseTest):
         self.assertNotIn(installed_package, available_packages.keys())
         self.assertIn(installed_package, installed_packages.keys())
 
-        self.info("Delete the three packages")
-        self.packages.delete_package("notebooks")
-        self.packages.delete_package("polls")
+        self.info("Delete the package")
         self.packages.delete_package(installed_package)
 
-        self.info("Check that the packages have been deleted successfully")
+        self.info("Check that the package has deleted successfully")
         installed_packages, available_packages = self.packages.get_installed_and_available_packages()
-        self.assertNotIn("notebooks", installed_packages.keys())
-        self.assertNotIn("polls", installed_packages.keys())
         self.assertNotIn(installed_package, installed_packages.keys())
 
     def test03_open_in_browser(self):

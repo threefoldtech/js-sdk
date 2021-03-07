@@ -51,7 +51,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "success",
     ]
 
-    CREATE_NAME_MESSAGE = "Just like humans, each 3Bot needs their own unique identity to exist on top of the Threefold Grid. Please enter a name for your new 3Bot. This name will be used as the web address that could give you access to your 3Bot anytime."
+    CREATE_NAME_MESSAGE = "Just like humans, each 3Bot needs its own unique identity. Please enter a name for your new 3Bot. This name can only consist of lower case letters and no special characters."
 
     def _threebot_start(self):
         self._validate_user()

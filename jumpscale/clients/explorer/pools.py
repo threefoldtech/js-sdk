@@ -83,8 +83,10 @@ class Pools:
 
     def get_payment_info(self, reservation_id: int) -> PoolPayment:
         """get pool payment info
+
         Args:
             reservation_id (int)
+
         Returns:
             PoolPayment: pool payment info
         """

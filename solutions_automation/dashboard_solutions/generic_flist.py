@@ -12,7 +12,7 @@ class FlistAutomated(GedisChatBotPatch, FlistDeploy):
     ENV_VARS = "Set Environment Variables"
     COREX_MESSAGE = "Would you like access to your container through the web browser (coreX)?"
     ENTRY_POINT = "Please add your entrypoint for your flist"
-    NETWORK_MESSAGE = "Please select a network"
+    NETWORK_MESSAGE = "Please select a network to connect your solution to"
     LOG_MESSAGE = "Do you want to push the container logs (stdout and stderr) onto an external redis channel"
     IP_MESSAGE = "Please choose IP Address for your solution"
     IPV6_MESSAGE = r"^Do you want to assign a global IPv6 address to (.*)\?$"

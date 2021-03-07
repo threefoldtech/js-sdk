@@ -41,6 +41,19 @@
                 </v-chip>
               </td>
             </tr>
+            <tr>
+              <td>QRCode</td>
+              <td class="pt-1">
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <div class="text-left ma-4" v-bind="attrs" v-on="on">
+                      <img style="border:1px dashed #85929E" :src="`data:image/png;base64, ${wallet.qrcode}`"/>
+                    </div>
+                  </template>
+                  <span>Scan the QRCode to topup wallet using Threefold Connect application</span>
+                </v-tooltip>
+              </td>
+            </tr>
           </tbody>
         </template>
       </v-simple-table>

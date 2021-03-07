@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: development_vdc
+          ref: development
       - uses: nanasess/setup-chromedriver@master
       - name: Gathering dependencies
         run: |
@@ -23,11 +23,13 @@ jobs:
           sudo service redis stop
           sudo service nginx stop
           sudo pip3 install poetry
-          sudo poetry run pip3 install pytest parameterized selenium pytest-cov
+          sudo poetry run pip3 install pytest parameterized selenium pytest-cov python-telegram-bot
       - name: Install
         run: |
           sudo poetry install
       - name: Run tests
+        id: tests
+        continue-on-error: true
         env:
           TNAME: ${{ secrets.TNAME }}
           EMAIL: ${{ secrets.EMAIL }}
@@ -40,7 +42,19 @@ jobs:
         run: |
           sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=WALLET_SECRET --preserve-env=SOURCE_WALLET_SECRET \
           --preserve-env=DESTINATION_WALLET_SECRET --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN \
-          poetry run pytest tests -sv --cov=jumpscale --cov-report=xml --ignore=tests/clients/digitalocean --ignore=tests/clients/sendgrid
+          poetry run pytest tests -sv -m "not extend" --cov=jumpscale --cov-report=xml --ignore=tests/clients/digitalocean --ignore=tests/clients/sendgrid
+      - name: Collect tokens back
+        env:
+          WALLET_SECRET: ${{ secrets.WALLET_SECRET }}
+          DESTINATION_WALLET_SECRET: ${{ secrets.DESTINATION_WALLET_SECRET }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          sudo --preserve-env=WALLET_SECRET --preserve-env=DESTINATION_WALLET_SECRET --preserve-env=TELEGRAM_BOT_TOKEN --preserve-env=TELEGRAM_CHAT_ID \
+          poetry run python3 tests/collect_tokens.py
+      - name: Check tests status
+        if: steps.tests.outcome != 'success'
+        run: exit "Tests failed, Please check 'Run tests' step."
       - name: Upload coverage to Codecov
         if: success()
         uses: codecov/codecov-action@v1

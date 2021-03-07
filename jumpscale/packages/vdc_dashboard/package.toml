@@ -1,0 +1,43 @@
+name = "vdc_dashboard"
+is_auth = true
+is_package_authorized = true
+is_admin = false
+frontend = "/vdc_dashboard"
+
+[[static_dirs]]
+name = "frontend"
+path_url = ""
+path_location = "frontend/"
+index = "index.html"
+spa = true
+
+[[bottle_servers]]
+name = "main"
+file_path = "bottle/deployments.py"
+path_url = "/api/"
+path_dest = "/api/"
+host = "0.0.0.0"
+port = 5556
+
+[[bottle_servers]]
+name = "backup"
+file_path = "bottle/backup.py"
+path_url = "/api/backup/"
+path_dest = "/api/backup/"
+host = "0.0.0.0"
+port = 5590
+
+[[servers]]
+name = "vdc_dashboard_root_proxy"
+domain = "vdc-dashboard.threefold.me"
+letsencryptemail = "motaweam@incubaid.com"
+includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.vdc_dashboard*"]
+
+[[servers.locations]]
+name = "custom"
+type = "custom"
+custom_config = """
+location / {
+   rewrite ^(.+) /vdc_dashboard;
+}
+"""

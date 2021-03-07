@@ -73,20 +73,25 @@ class Backup(BaseActor):
         return j.data.serializers.json.dumps({"data": "backup repos inited"})
 
     @actor_method
-    def backup(self, tags=None) -> str:
+    def backup(self, tags=None, paths=None) -> str:
         if not self.repos_exist():
             raise j.exceptions.Value("Please configure backup first")
         if tags:
             tags = tags.split(",")
         else:
             tags = []
+        paths = paths or []
         tags.append(str(j.data.time.now().timestamp))
         for repo_name in REPO_NAMES:
             repo = j.tools.restic.get(repo_name)
-            repo.backup(j.core.dirs.JSCFGDIR, tags=tags)
-            repo.backup(self.downloaded_packages_path, tags=tags)
-            repo.backup(self.user_code_path, tags=tags)
-            repo.backup(self.ssh_dir_path, tags=tags)
+            if not paths:
+                repo.backup(j.core.dirs.JSCFGDIR, tags=tags)
+                repo.backup(self.downloaded_packages_path, tags=tags)
+                repo.backup(self.user_code_path, tags=tags)
+                repo.backup(self.ssh_dir_path, tags=tags)
+            else:
+                for path in paths:
+                    repo.backup(path, tags=tags)
         return j.data.serializers.json.dumps({"data": "backup done"})
 
     @actor_method
