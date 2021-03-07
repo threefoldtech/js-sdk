@@ -74,6 +74,13 @@ class TFGridSolutionChatflows(ChatflowsBase):
         if self.solution_uuid:
             j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(self.solution_uuid)
         j.clients.sshclient.delete(self.ssh_client_name)
+
+        # down 4to6 wg
+        if hasattr(self, "wg_path"):
+            self.wg_path
+            j.sals.process.execute(f"sudo wg-quick down {self.wg_path}")
+            j.sals.fs.rmtree(path=self.wg_path)
+
         super().tearDown()
 
     def wait(self, ip, port, timeout):
@@ -286,3 +293,34 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.info("Check that the container coreX is reachable through the subdomain.")
         request = j.tools.http.get(f"http://{exposed.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
+
+    @pytest.mark.skip("https://github.com/threefoldtech/tfgateway/issues/60")
+    def test07_4to6gw(self):
+        """Test case for deploying a 4to6 GW.
+
+        **Test Scenario**
+
+        - Deploy a 4to6 GW.
+        - Get and up wireguard.
+        - Check that the 4to6 GW is reachable.
+        - Check that the ipv6 GW is reachable.
+        """
+        self.info("Deploy a 4to6 GW")
+        four_to6_gw = deployer.deploy_4to6gw()
+        self.solution_uuid = four_to6_gw.solution_id
+
+        self.info("Get and up wireguard")
+        self.wg_path = f"/tmp/{self.random_name()}.conf"
+        j.sals.fs.write_file(self.wg_path, four_to6_gw.wgconf)
+        rc, out, err = j.sals.process.execute(f"sudo wg-quick up {self.wg_path}")
+        TestCase().assertFalse(rc, f"out: {out} err: {err}")
+
+        self.info("Check that the 4to6 GW is reachable")
+        ip_address = four_to6_gw.wgconf.split()[-1]
+        endpoint = ip_address.split(":")[0]
+        res, out, err = j.sals.process.execute(f"ping -c 1 {endpoint}")
+        self.assertFalse(res)
+
+        self.info("Check that the ipv6 GW is reachable")
+        res, out, err = j.sals.process.execute(f"ping6 -c 1 google.com")
+        self.assertFalse(res)
