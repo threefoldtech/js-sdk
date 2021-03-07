@@ -362,8 +362,9 @@ def check_update():
     except Exception as e:
         raise j.exceptions.Runtime(f"Failed to fetch remote releases. {str(e)}")
 
-    _, latest_local_tag, _ = j.sals.process.execute("git describe --tags --abbrev=0")
-
+    vdc_dashboard_path = j.packages.vdc_dashboard.__file__
+    sdk_repo_path = j.tools.git.find_git_path(vdc_dashboard_path)
+    _, latest_local_tag, _ = j.sals.process.execute("git describe --tags --abbrev=0", cwd=sdk_repo_path)
     if latest_remote_tag != latest_local_tag.rstrip("\n"):
         return HTTPResponse(
             j.data.serializers.json.dumps({"new_release": latest_remote_tag}),
