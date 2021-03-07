@@ -34,7 +34,7 @@
                   :href="`https://${item.threebot.domain}/vdc_dashboard`"
                   target="_blank"
                 >
-                  <v-icon v-bind="attrs" v-on="on" color="primary"
+                  <v-icon v-bind="attrs" v-on="on" v-if="item.threebot.domain!==null" color="primary"
                     >mdi-web</v-icon
                   >
                 </a>

@@ -18,7 +18,7 @@ def _list_vdcs():
     result = []
     vdcs = VDCFACTORY.list(username, load_info=True)
     for vdc in vdcs:
-        if vdc.is_empty() or vdc.threebot.domain is None:
+        if vdc.is_empty():
             j.logger.warning(f"vdc {vdc.solution_uuid} is empty")
             continue
         vdc_dict = vdc.to_dict()
