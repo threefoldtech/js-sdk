@@ -27,19 +27,28 @@
             <div :class="`${item.class}`">{{ item.expiration }}</div>
           </template>
           <template v-slot:item.actions="{ item }">
-            <v-tooltip top>
+            <v-tooltip top v-if="item.threebot.domain!==null">
               <template v-slot:activator="{ on, attrs }">
                 <a
                   style="text-decoration: none"
                   :href="`https://${item.threebot.domain}/vdc_dashboard`"
                   target="_blank"
                 >
-                  <v-icon v-bind="attrs" v-on="on" v-if="item.threebot.domain!==null" color="primary"
+                  <v-icon v-bind="attrs" v-on="on" color="primary"
                     >mdi-web</v-icon
                   >
                 </a>
               </template>
               <span>Go to my VDC</span>
+            </v-tooltip>
+            <v-tooltip top v-else-if="item.threebot.domain===null">
+              <template v-slot:activator="{ on, attrs }">
+                  <v-icon v-bind="attrs" v-on="on" color="primary"
+                    >mdi-access-point-network-off</v-icon
+                  >
+              </template>
+              <span>There's an error reaching this VDC. Please wait if this VDC is deploying or
+                contact support if it is already deployed.</span>
             </v-tooltip>
             <v-tooltip top>
               <template v-slot:activator="{ on, attrs }">
