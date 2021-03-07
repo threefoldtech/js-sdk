@@ -240,7 +240,7 @@ const BC_SOLUTIONS = {
         },
         Matic: {
             name: "Matic",
-            type: "Matic",
+            type: "matic",
             image: "./assets/matic.png",
             disable: false,
             helpLink: "https://now.threefold.io/now/docs/matic/",
