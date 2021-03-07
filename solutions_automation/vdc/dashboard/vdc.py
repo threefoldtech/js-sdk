@@ -14,5 +14,5 @@ class VDCAutomated(GedisChatBotPatch, VDCDeploy):
         VDC_SECERT: "vdc_secert",
         VDC_PLAN: "vdc_plan",
         PAYMENT: "md_show_update",
-        ZDB_FARMS: "Automatically Select Farms",
+        ZDB_FARMS: "zdb_Farms",
     }
