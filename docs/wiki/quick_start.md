@@ -87,7 +87,9 @@ Note: if you started threebot server with `--local` option, then the admin can b
 
 ## Create a new wallet
 
-There are two options to be create a wallet, first is using the jsng shell where you will setup the wallet and can get FreeTFTs and TFTs. Second is through the admin dashboard where you will not be able to set up and recieve FreeTFTs and test TFTs.
+There are two options to be create a wallet
+- using the jsng shell where you will setup the wallet
+- through the admin dashboard
 
 1. Using jsng shell:
 
