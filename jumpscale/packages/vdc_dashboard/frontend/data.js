@@ -240,9 +240,9 @@ const BC_SOLUTIONS = {
         },
         Matic: {
             name: "Matic",
-            type: "Matic",
+            type: "matic",
             image: "./assets/matic.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/matic/",
             description: "Decentralized scalability platform solution using an adapted version of the Plasma framework that empowers Ethereum-based DApps."
         },

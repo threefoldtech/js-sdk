@@ -26,6 +26,7 @@ class PoolsSolution(Base):
         self.wait(self.driver, "progressbar")
 
         # set pool name in input element
+        self.wait(self.driver, "v-progress-circular")
         chat_box = self.driver.find_element_by_class_name("chat")
         name_element = chat_box.find_element_by_class_name("v-text-field__slot")
         name_input = name_element.find_element_by_tag_name("input")

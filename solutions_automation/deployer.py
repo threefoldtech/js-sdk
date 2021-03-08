@@ -7,6 +7,7 @@ from solutions_automation.dashboard_solutions.monitoring import MonitoringAutoma
 from solutions_automation.dashboard_solutions.network import NetworkDeployAutomated
 from solutions_automation.dashboard_solutions.pools import PoolAutomated
 from solutions_automation.dashboard_solutions.extend_pools import PoolExtendAutomated
+from solutions_automation.dashboard_solutions.four_to6gw import FourToSixGatewayAutomated
 from solutions_automation.dashboard_solutions.ubuntu import UbuntuAutomated
 from solutions_automation.marketplace.blog import BlogAutomated
 from solutions_automation.marketplace.cryptpad import CryptpadAutomated
@@ -192,9 +193,8 @@ def deploy_minio(
     )
 
 
-# TODO: uncomment after Fixing importing problem
-# def deploy_4to6gw(public_key, gateway="choose_random", debug=True):
-#     return FourToSixGatewayAutomated(public_key=public_key, gateway=gateway, debug=debug)
+def deploy_4to6gw(public_key="", gateway="choose_random", debug=True):
+    return FourToSixGatewayAutomated(public_key=public_key, gateway=gateway, debug=debug)
 
 
 def delegated_domain(domain, gateway="choose_random", debug=True):
