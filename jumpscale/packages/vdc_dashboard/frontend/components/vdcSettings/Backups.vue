@@ -74,11 +74,15 @@
       v-model="dialogs.info"
       :data="selected"
     ></solution-info>
-    <cancel-backup
-      v-if="selectedBackup"
-      v-model="dialogs.cancelBackup"
+    <actions
+      :title="title"
+      v-model="dialogs.actions"
       :name="selectedBackup"
-    ></cancel-backup>
+    ></actions>
+    <restore-backup
+      :name="selectedBackup"
+      v-model="dialogs.restoreBackup"
+    ></restore-backup>
 
     <popup v-if="show" :msg="msg"></popup>
   </div>
@@ -87,7 +91,8 @@
 module.exports = {
   components: {
     "solution-info": httpVueLoader("../base/Info.vue"),
-    "cancel-backup": httpVueLoader("./Delete.vue"),
+    actions: httpVueLoader("./Actions.vue"),
+    "restore-backup": httpVueLoader("./Restore.vue"),
   },
   props: ["vdc"],
 
@@ -97,7 +102,8 @@ module.exports = {
       selectedBackup: null,
       dialogs: {
         info: false,
-        cancelBackup: false,
+        actions: false,
+        restoreBackup: false,
       },
       backups: [],
       headers: [
@@ -110,21 +116,13 @@ module.exports = {
       loading: false,
       show: false,
       msg: null,
+      title: null,
     };
   },
   methods: {
     createBackup() {
-      this.loading = true;
-      this.$api.backup
-        .create()
-        .then((response) => {
-          this.show = true;
-          this.msg = response.data;
-          this.list();
-        })
-        .finally(() => {
-          this.loading = false;
-        });
+      this.title = "Create";
+      this.dialogs.actions = true;
     },
     list() {
       this.loading = true;
@@ -139,25 +137,17 @@ module.exports = {
         });
     },
     restore(name) {
-      this.loading = true;
-      this.$api.backup
-        .restore(name)
-        .then((response) => {
-          this.show = true;
-          this.msg = response.data;
-          this.list();
-        })
-        .finally(() => {
-          this.loading = false;
-        });
+      this.dialogs.restoreBackup = true;
+      this.selectedBackup = name;
     },
     open(record) {
       this.selected = record;
       this.dialogs.info = true;
     },
     deleteBackup(name) {
+      this.title = "Delete";
       this.selectedBackup = name;
-      this.dialogs.cancelBackup = true;
+      this.dialogs.actions = true;
     },
     timeDifference(ts) {
       var timestamp = moment.unix(ts);
@@ -168,6 +158,9 @@ module.exports = {
       if (status == "Error") return "red";
       else if (status == "Completed") return "green";
       else return "orange";
+    },
+    confirmCreation() {
+      this.dialogs.confirmBackup = true;
     },
   },
   mounted() {
