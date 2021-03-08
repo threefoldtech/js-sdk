@@ -44,9 +44,10 @@ class ThreebotChatflows(ChatflowsBase):
             ][0]
             if not threebot:
                 raise j.exceptions.Runtime(f"Couldn't find threebot {threebot_name}")
-            if threebot.state == status:
-                break
+            if threebot["state"] == status.value:
+                return True
             sleep(2)
+        return False
 
     def test01_deploy_threebot(self):
         """Test case for deploying a threebot.
@@ -86,7 +87,7 @@ class ThreebotChatflows(ChatflowsBase):
 
         self.info("Stop the deployed threebot")
         stop_threebot_solution(self.tname, self.solution_uuid, self.secret)
-        self.wait_for_threebot_state(name, ThreebotState.STOPPED)
+        self.assertTrue(self.wait_for_threebot_state(name, ThreebotState.STOPPED), "Threebot didn't stop")
 
         self.info("Start the stopped threebot")
         threebot = deployer.start_threebot(name, self.secret)
@@ -115,7 +116,7 @@ class ThreebotChatflows(ChatflowsBase):
 
         self.info("Stop the deployed threebot")
         stop_threebot_solution(self.tname, self.solution_uuid, self.secret)
-        self.wait_for_threebot_state(name, ThreebotState.STOPPED)
+        self.assertTrue(self.wait_for_threebot_state(name, ThreebotState.STOPPED), "Threebot didn't stop")
 
         self.info("Start the stopped threebot")
         threebot = deployer.change_threebot_size(
@@ -151,7 +152,7 @@ class ThreebotChatflows(ChatflowsBase):
 
         self.info("Stop the deployed threebot")
         stop_threebot_solution(self.tname, self.solution_uuid, self.secret)
-        self.wait_for_threebot_state(name, ThreebotState.STOPPED)
+        self.assertTrue(self.wait_for_threebot_state(name, ThreebotState.STOPPED), "Threebot didn't stop")
 
         self.info("Start the stopped threebot")
         expiration = j.data.time.utcnow().timestamp + 60 * 15
