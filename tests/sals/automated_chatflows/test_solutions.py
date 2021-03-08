@@ -159,7 +159,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
         out = ""
         now = j.data.time.now().timestamp
         while j.data.time.now().timestamp - now < self.timeout:
-            _, out, _ = localclient.sshclient.run("kubectl get nodes")
+            _, out, _ = localclient.sshclient.run("kubectl get nodes", warn=True)
             if out.count("Ready") - 1 == workernodes:
                 break
             sleep(2)
