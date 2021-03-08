@@ -312,8 +312,8 @@ class VDCDeployer:
         # cus += n_cus * ETCD_CLUSTER_SIZE
         # sus += n_sus * ETCD_CLUSTER_SIZE
 
-        # farm_resources[selected_farm]["cus"] += cus
-        # farm_resources[selected_farm]["sus"] += sus
+        farm_resources[selected_farm]["cus"] += cus
+        farm_resources[selected_farm]["sus"] += sus
 
         for farm_name, cloud_units in farm_resources.items():
             _, reservation_id = self.get_pool_id_and_reservation_id(farm_name, **cloud_units)
