@@ -11,8 +11,8 @@ class MaticDeploy(SolutionsChatflowDeploy):
 
     CHART_LIMITS = {
         "Silver": {"cpu": "2000m", "memory": "2024Mi"},
-        "Gold": {"cpu": "3000m", "memory": "3072Mi"},
-        "Platinum": {"cpu": "4000m", "memory": "4096Mi"},
+        "Gold": {"cpu": "4000m", "memory": "4096Mi"},
+        "Platinum": {"cpu": "4000m", "memory": "8192Mi"},
     }
 
     def _check_uniqueness(self):
