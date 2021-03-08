@@ -42,7 +42,13 @@ class HTTPServer:
 
 
 class TestNginxSal(BaseTests):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        j.sals.process.kill_all("nginx")
+
     def setUp(self):
+        super().setUp()
         self.nginx_conf = j.sals.nginx.get("testing")
         self.config_base_dir = self.nginx_conf.cfg_dir
         self.config_file = self.nginx_conf.cfg_file
@@ -272,3 +278,4 @@ class TestNginxSal(BaseTests):
             self.nginx_server.stop()
         self.nginx_conf.clean()
         self.server.stop()
+        super().tearDown()
