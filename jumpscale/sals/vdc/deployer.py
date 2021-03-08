@@ -303,14 +303,14 @@ class VDCDeployer:
         cus += n_cus
         sus += n_sus
 
-        etcd_cont = Container()
-        etcd_cont.capacity.cpu = ETCD_CPU
-        etcd_cont.capacity.memory = ETCD_MEMORY
-        etcd_cont.capacity.disk_size = ETCD_DISK
-        etcd_cont.capacity.disk_type = DiskType.SSD
-        n_cus, n_sus = get_cloud_units(etcd_cont)
-        cus += n_cus * ETCD_CLUSTER_SIZE
-        sus += n_sus * ETCD_CLUSTER_SIZE
+        # etcd_cont = Container()
+        # etcd_cont.capacity.cpu = ETCD_CPU
+        # etcd_cont.capacity.memory = ETCD_MEMORY
+        # etcd_cont.capacity.disk_size = ETCD_DISK
+        # etcd_cont.capacity.disk_type = DiskType.SSD
+        # n_cus, n_sus = get_cloud_units(etcd_cont)
+        # cus += n_cus * ETCD_CLUSTER_SIZE
+        # sus += n_sus * ETCD_CLUSTER_SIZE
 
         farm_resources[selected_farm]["cus"] += cus
         farm_resources[selected_farm]["sus"] += sus
