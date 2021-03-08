@@ -1,22 +1,14 @@
 <template>
   <v-container fluid class="grey lighten-5 mt-5">
-    <v-tabs class="text--left" background-color="transparent" vertical>
-      <v-tab>
-        <v-icon left> mdi-memory </v-icon>
-        Compute Nodes
-      </v-tab>
-      <v-tab>
-        <v-icon left> mdi-server </v-icon>
-        Storage Nodes
-      </v-tab>
-      <v-tab>
-        <v-icon left> mdi-wallet </v-icon>
-        Wallet Information
-      </v-tab>
-
-      <v-tab>
-        <v-icon left> mdi-backup-restore </v-icon>
-        Backup&amp;Restore
+    <v-tabs
+      v-model="activeTab"
+      class="text--left"
+      background-color="transparent"
+      vertical
+    >
+      <v-tab v-for="(tab, index) in tabs" :key="index">
+        <v-icon left>{{ tab.icon }} </v-icon>
+        {{ tab.title }}
       </v-tab>
 
       <v-tab-item class="ml-2">
@@ -123,6 +115,13 @@ module.exports = {
         release: false,
       },
       release: null,
+      tabs: [
+        { icon: "mdi-memory", title: "Compute Nodes" },
+        { icon: "mdi-server", title: "Storage Nodes" },
+        { icon: "mdi-wallet", title: "Wallet Information" },
+        { icon: "mdi-backup-restore", title: "Backup & Restore" },
+      ],
+      activeTab: null,
     };
   },
   methods: {
@@ -149,15 +148,13 @@ module.exports = {
         });
     },
     checkDashboardUpdates() {
-      this.$api.version
-        .checkForUpdate()
-        .then((response) => {
-          let new_release = response.data.new_release;
-          if (new_release) {
-            this.release = new_release;
-            this.dialog.release = true;
-          }
-        })
+      this.$api.version.checkForUpdate().then((response) => {
+        let new_release = response.data.new_release;
+        if (new_release) {
+          this.release = new_release;
+          this.dialog.release = true;
+        }
+      });
     },
   },
   mounted() {

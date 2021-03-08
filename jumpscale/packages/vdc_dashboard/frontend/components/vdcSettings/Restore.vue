@@ -7,7 +7,7 @@
       </template>
       <template #actions>
         <v-btn text @click="close">Cancel</v-btn>
-        <v-btn text color="error" @click="restore">Continue</v-btn>
+        <v-btn text @click="restore" color="error">Continue</v-btn>
       </template>
     </base-dialog>
     <popup v-if="show" :msg="msg"></popup>
@@ -33,7 +33,7 @@ module.exports = {
           this.show = true;
           this.msg = response.data;
           this.close();
-          this.$router.go(0);
+          this.getlist();
         })
         .finally(() => {
           this.loading = false;
@@ -41,6 +41,9 @@ module.exports = {
     },
     close() {
       this.dialog = false;
+    },
+    getlist() {
+      this.$emit("reload-backups", { message: "Backup list reloaded!" });
     },
   },
   mounted() {

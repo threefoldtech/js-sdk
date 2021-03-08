@@ -67,7 +67,7 @@ module.exports = {
           this.show = true;
           this.msg = response.data;
           this.close();
-          this.$router.go(0);
+          this.getlist();
         })
         .finally(() => {
           this.loading = false;
@@ -82,12 +82,15 @@ module.exports = {
           this.show = true;
           this.msg = response.data;
           this.close();
-          this.$router.go(0);
+          this.getlist();
         })
         .finally(() => {
           this.loading = false;
           this.confirmName = null;
         });
+    },
+    getlist() {
+      this.$emit("reload-backups", { message: "Backup list reloaded!" });
     },
   },
   mounted() {

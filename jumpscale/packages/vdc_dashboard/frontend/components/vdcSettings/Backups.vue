@@ -78,10 +78,12 @@
       :title="title"
       v-model="dialogs.actions"
       :name="selectedBackup"
+      @reload-backups="reload"
     ></actions>
     <restore-backup
       :name="selectedBackup"
       v-model="dialogs.restoreBackup"
+      @reload-backups="reload"
     ></restore-backup>
 
     <popup v-if="show" :msg="msg"></popup>
@@ -161,6 +163,9 @@ module.exports = {
     },
     confirmCreation() {
       this.dialogs.confirmBackup = true;
+    },
+    reload() {
+      this.list();
     },
   },
   mounted() {
