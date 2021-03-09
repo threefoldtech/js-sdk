@@ -194,12 +194,12 @@ const DECENTRALIZED_DEV = {
         },
 
         minio: {
-            name: "S3 Storage",
+            name: "Quantum Storage",
             type: "minio",
             image: "./assets/minio.png",
             disable: false,
             helpLink: "",
-            description: "S3 Storage solution uses MinIO which is a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with a number of zdbs needed for storage."
+            description: "Quantum Storage solution uses MinIO which is a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with a number of zdbs needed for storage."
         },
     },
 }

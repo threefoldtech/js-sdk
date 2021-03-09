@@ -10,7 +10,8 @@ class MinioDeploy(SolutionsChatflowDeploy):
         "get_release_name",
         "create_subdomain",
         "set_config",
-        "quantum_storage" "install_chart",
+        "quantum_storage",
+        "install_chart",
         "initializing",
         "success",
     ]

@@ -34,11 +34,11 @@ const SOLUTIONS = {
     description: "Deploy a Kubernetes cluster on the TF grid using a chatflow. This cluster can then be interacted with using kubectl on the user's local machine."
   },
   minio: {
-    name: "Quantum Storage",
+    name: "S3 Storage",
     type: "minio",
     image: "./assets/minio.png",
     url: "/solutions/minio",
-    description: "Quantum Storage solution uses MinIO which is a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with a number of zdbs needed for storage."
+    description: "S3 Storage solution uses MinIO which is a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with a number of zdbs needed for storage."
   },
   expose: {
     name: "Solution Expose",
