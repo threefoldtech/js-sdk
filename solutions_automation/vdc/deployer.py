@@ -17,7 +17,9 @@ from solutions_automation.vdc.dashboard.zeroci import ZeroCIAutomated
 
 
 def deploy_vdc(solution_name, vdc_secert, vdc_plan):
-    return VDCAutomated(solution_name=solution_name, vdc_secert=vdc_secert, vdc_plan=vdc_plan)
+    return VDCAutomated(
+        solution_name=solution_name, vdc_secert=vdc_secert, vdc_plan=vdc_plan, zdb_Farms="Automatically Select Farms"
+    )
 
 
 def deploy_blog(
