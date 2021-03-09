@@ -311,7 +311,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             )
 
         domains = dict()
-        is_http_failure = False
         is_managed_domains = False
         gateway_values = list(gateways.values())
         random.shuffle(gateway_values)
@@ -341,12 +340,6 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     continue
                 else:
                     deployer.unblock_managed_domain(domain)
-                try:
-                    if not j.core.config.get("TEST_CERT") and j.sals.crtsh.has_reached_limit(domain):
-                        continue
-                except requests.exceptions.HTTPError:
-                    is_http_failure = True
-
                 domains[domain] = gw_dict
                 self.gateway_pool = gw_dict["pool"]
                 self.gateway = gw_dict["gateway"]
@@ -396,12 +389,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 if not self.addresses:
                     continue
                 return self.domain
-
-        if is_http_failure:
-            j.logger.warning(
-                'An error encountered while trying to fetch certifcates information from "https://crt.sh". Please try again later.'
-            )
-        elif not is_managed_domains:
+        if not is_managed_domains:
             raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
         else:
             raise StopChatFlow(
