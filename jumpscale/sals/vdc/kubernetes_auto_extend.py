@@ -203,12 +203,13 @@ class KubernetesMonitor:
                     memory *= 1024
             node_reservations[node]["cpu"] += cpu
             node_reservations[node]["memory"] += memory
-        for node_name in self.node_stats:
-            node_reservations[node_name]["total_cpu"] = self.node_stats[node_name]["cpu"]["total"]
-            node_reservations[node_name]["total_memory"] = self.node_stats[node_name]["memory"]["total"]
 
         result = []
         for node_name, resv in node_reservations.items():
+            if node_name not in self.node_stats:
+                continue
+            node_reservations[node_name]["total_cpu"] = self.node_stats[node_name]["cpu"]["total"]
+            node_reservations[node_name]["total_memory"] = self.node_stats[node_name]["memory"]["total"]
             result.append(
                 NodeReservation(
                     name=node_name,

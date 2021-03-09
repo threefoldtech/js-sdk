@@ -284,3 +284,14 @@ class GlobalCapacityChecker:
         self._result = True
         for cc in self._checkers.values():
             cc.refresh(clear_excluded)
+
+    def get_available_farms(
+        self, cru=None, mru=None, hru=None, sru=None, ip_version=None, public_ip=None, no_nodes=1, backup_no=0
+    ):
+        explorer = j.core.identity.me.explorer
+        all_farms = explorer.farms.list()
+        for farm in all_farms:
+            cc = self.get_checker(farm.name)
+            result = cc.add_query(cru, mru, hru, sru, ip_version, public_ip, no_nodes, backup_no)
+            if result:
+                yield farm.name

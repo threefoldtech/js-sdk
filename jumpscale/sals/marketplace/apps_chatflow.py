@@ -460,9 +460,8 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         # farm_names = ["freefarm"]  # DEUBGGING ONLY
 
         for farm in farms:
-            farm_name = farm.name
             available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
-                farm_name, currencies=[self.currency], ip_version="IPv4", **self.query
+                farm.name, currencies=[self.currency], ip_version="IPv4", **self.query
             )
             if available_ipv4:
                 self.available_farms.append(farm)

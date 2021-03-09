@@ -1,18 +1,19 @@
 from jumpscale.sals.vdc.size import PREFERED_FARM
 from jumpscale.loader import j
-from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
+from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION, ZDB_STARTING_SIZE
 from jumpscale.sals.vdc.proxy import VDC_PARENT_DOMAIN
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
 from textwrap import dedent
-from minio import Minio
+from jumpscale.sals.vdc.scheduler import GlobalCapacityChecker
 from urllib.parse import urlparse
+import math
 
 MINIMUM_ACTIVATION_XLMS = 0
 
 
 class VDCDeploy(GedisChatBot):
     title = "VDC"
-    steps = ["vdc_info", "deploy", "initializing", "success"]
+    steps = ["vdc_info", "storage_farms_selection", "deploy", "initializing", "success"]
 
     def _init(self):
         self.md_show_update("It will take a few seconds to be ready to help you ...")
@@ -82,6 +83,12 @@ class VDCDeploy(GedisChatBot):
         self.vdc_secret = form.secret_ask("VDC Secret (Secret for controlling the vdc)", min_length=8, required=True,)
         self.vdc_flavor = form.single_choice(
             "Choose the VDC plan", options=vdc_flavor_messages, default=vdc_flavor_messages[0], required=True,
+        )
+        self.storage_selection = form.single_choice(
+            "Do you wish to select farms for storage automatically?",
+            ["Automatically Select Farms", "Manually Select Farms"],
+            required=True,
+            default="Automatically Select Farms",
         )
         # self.deployment_logs = form.single_choice("Enable extensive deployment logs?", ["Yes", "No"], default="No")
         form.ask()
@@ -184,8 +191,39 @@ class VDCDeploy(GedisChatBot):
         # self._backup_form()
         # self._k3s_and_minio_form() # TODO: Restore later
 
+    @chatflow_step(title="Storage Farms")
+    def storage_farms_selection(self):
+        self.zdb_farms = None
+        available_farms = []
+        if self.storage_selection.value == "Manually Select Farms":
+            while True:
+                self.no_farms = self.int_ask(
+                    "How many farms you want to deploy your storage on?", max=10, min=1, required=True, default=2
+                )
+                no_nodes = math.ceil(10 / self.no_farms)
+                gcc = GlobalCapacityChecker()
+                available_farms = list(
+                    gcc.get_available_farms(hru=ZDB_STARTING_SIZE, ip_version="IPv6", no_nodes=no_nodes)
+                )
+                if len(available_farms) < self.no_farms:
+                    self.md_show(
+                        f"There are not enough farms to deploy {no_nodes} ZDBs each. Click next to try again with smaller number of farms."
+                    )
+                else:
+                    break
+            while True:
+                self.zdb_farms = self.multi_list_choice(
+                    f"Please select {self.no_farms} farms", available_farms, required=True
+                )
+                if len(self.zdb_farms) == self.no_farms:
+                    break
+                self.md_show(
+                    f"Invalid number of farms {len(self.zdb_farms)}. you must select exactly {self.no_farms}. click next to try again"
+                )
+
     @chatflow_step(title="VDC Deployment")
     def deploy(self):
+        self.md_show_update(f"Initializing Deployer (This may take a few moments)....")
         self.vdc = j.sals.vdc.new(
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDC_SIZE.VDCFlavor[self.vdc_flavor],
         )
@@ -205,7 +243,7 @@ class VDCDeploy(GedisChatBot):
             self.stop("failed to initialize VDC deployer. please contact support")
 
         farm_name = PREFERED_FARM.get()  # TODO: use the selected farm name when users are allowed to select farms
-        if not self.deployer.check_capacity(farm_name):
+        if not self.deployer.check_capacity(farm_name, zdb_farms=self.zdb_farms):
             raise StopChatFlow(
                 f"There are not enough resources available to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
             )
@@ -237,7 +275,9 @@ class VDCDeploy(GedisChatBot):
         initialization_wallet_name = j.core.config.get("VDC_INITIALIZATION_WALLET")
         old_wallet = self.deployer._set_wallet(initialization_wallet_name)
         try:
-            self.config = self.deployer.deploy_vdc(minio_ak=None, minio_sk=None, s3_backup_config=self.backup_config)
+            self.config = self.deployer.deploy_vdc(
+                minio_ak=None, minio_sk=None, s3_backup_config=self.backup_config, zdb_farms=self.zdb_farms
+            )
             if not self.config:
                 raise StopChatFlow("Failed to deploy VDC due to invalid kube config. please try again later")
             self.public_ip = self.vdc.kubernetes[0].public_ip
