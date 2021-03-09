@@ -17,6 +17,7 @@ from .kubernetes_auto_extend import KubernetesMonitor
 import netaddr
 import hashlib
 from .snapshot import SnapshotManager
+from jumpscale.sals.vdc.quantum_storage import QuantumStorage
 
 VDC_WORKLOAD_TYPES = [
     WorkloadType.Container,
@@ -167,6 +168,9 @@ class UserVDC(Base):
 
     def get_snapshot_manager(self, snapshots_dir=None):
         return SnapshotManager(self, snapshots_dir)
+
+    def get_quantumstorage_manager(self):
+        return QuantumStorage(self)
 
     def load_info(self, load_proxy=False):
         self.kubernetes = []

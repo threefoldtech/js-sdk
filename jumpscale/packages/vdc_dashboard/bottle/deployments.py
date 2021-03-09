@@ -11,7 +11,6 @@ from jumpscale.packages.auth.bottle.auth import (
 )
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
-from jumpscale.sals.vdc import VDCFACTORY
 from jumpscale.sals.vdc.size import VDC_SIZE
 from jumpscale.sals.vdc.models import KubernetesRole
 
@@ -27,7 +26,7 @@ def _get_vdc():
     username = user_info["username"]
     vdc_full_name = list(j.sals.vdc.list_all())[0]
     vdc_instance = j.sals.vdc.get(vdc_full_name)
-    return VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+    return j.sals.vdc.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
 
 
 def _get_addons(flavor, kubernetes_addons):
@@ -126,7 +125,7 @@ def delete_node():
     username = user_info["username"]
     vdc_full_name = list(j.sals.vdc.list_all())[0]
     vdc_instance = j.sals.vdc.get(vdc_full_name)
-    vdc = VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+    vdc = j.sals.vdc.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     deployer = vdc.get_deployer()
