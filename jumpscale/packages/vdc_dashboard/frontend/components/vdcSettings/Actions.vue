@@ -2,9 +2,8 @@
   <div>
     <base-dialog :title="`${title} Backup`" v-model="dialog" :loading="loading">
       <template #default v-if="title == 'Delete'">
-        Are you sure you want to {{ title }} backup, this action can't be
-        undone? Please type <b class="font-weight-black">{{ name }}</b> to
-        confirm.
+        Deleting <b class="font-weight-black">{{ name }}</b> backup cannot be
+        undone. Enter {{ name }} to confirm.
         <v-text-field v-model="confirmName" dense></v-text-field>
       </template>
 
