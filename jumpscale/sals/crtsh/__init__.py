@@ -20,9 +20,9 @@ def fetch_domain_certs(domain):
     """
     url = BASE_URL.format(domain)
     result = requests.get(url)
-    if result.status_code == 200:
-        result.json()
-    return {}
+    if result.status_code != 200:
+        result.raise_for_status()
+    return result.json()
 
 
 def count_domain_certs_since(domain, days=7):
