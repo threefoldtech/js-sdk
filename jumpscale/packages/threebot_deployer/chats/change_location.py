@@ -26,16 +26,18 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         "enter_password",
         "choose_location",
         "choose_deployment_location",
-        "new_expiration",
         "create_pool",
         "deploy",
         "initializing",
+        "new_expiration",
+        "solution_extension",
         "success",
     ]
 
     @chatflow_step(title="Initializing chatflow")
     def choose_name(self):
         self._init_solution()
+        self.expiration = 60 * 60  # 60 minutes for 3bot
         all_3bot_solutions = list_threebot_solutions(self.threebot_name)
         self.stopped_3bots = [
             threebot for threebot in all_3bot_solutions if threebot["state"] == ThreebotState.STOPPED.value
@@ -50,11 +52,6 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
             "sru": self.threebot_info["disk_size"] / 1024,
         }
         self.retry = True
-
-    @chatflow_step(title="New Expiration")
-    def new_expiration(self):
-        default_time = j.data.time.utcnow().timestamp + 1209600
-        self.expiration = deployer.ask_expiration(self, default_time)
 
     def _verify_password(self, password):
         instance = USER_THREEBOT_FACTORY.get(f"threebot_{self.threebot_info['solution_uuid']}")
@@ -163,13 +160,13 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
                 raise StopChatFlow(
                     f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
                 )
-            msg, qr_code = deployer.get_qr_code_payment_info(self.pool_info)
-            deployer.msg_payment_info = msg
-            result = deployer.wait_pool_reservation(
-                self.pool_info.reservation_id, qr_code=qr_code, bot=self, identity_name=identity.instance_name
-            )
+            payment_info = deployer.pay_for_pool(self.pool_info)
+            result = deployer.wait_pool_reservation(self.pool_info.reservation_id, bot=self)
             if not result:
                 raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
+            self.md_show_update(
+                f"Capacity pool {self.pool_info.reservation_id} created and funded with {payment_info['total_amount_dec']} TFT"
+            )
             self.pool_id = self.pool_info.reservation_id
 
     @chatflow_step(title="Deployment location policy")
