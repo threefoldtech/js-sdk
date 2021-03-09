@@ -4,7 +4,7 @@ from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsCh
 
 class MinioDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "minio"
-    title = "Quantum Storage"
+    title = "Minio Quantum Storage"
     HELM_REPO_NAME = "marketplace"
     steps = [
         "get_release_name",
@@ -18,6 +18,8 @@ class MinioDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
+        self.path = f"/home/rancher/{self.chart_name}{self.release_name}"
+
         form = self.new_form()
         accesskey = form.string_ask(
             "Please add the key to be used for minio when logging in. Make sure not to lose it",
@@ -31,14 +33,20 @@ class MinioDeploy(SolutionsChatflowDeploy):
         )
         form.ask()
 
-        self.chart_config.update({"ingress.host": self.domain, "accessKey": accesskey.value, "secretKey": secret.value})
+        self.chart_config.update(
+            {
+                "ingress.host": self.domain,
+                "accessKey": accesskey.value,
+                "secretKey": secret.value,
+                "volume.hostPath": self.path,
+            }
+        )
 
     @chatflow_step(title="Quantum Storage")
     def quantum_storage(self):
         self.md_show_update("Initializing Quantum Storage, This may take few seconds ...")
-        path = "/home/rancher/minio"
         qs = self.vdc.get_quantumstorage_manager()
-        qs.apply(path)
+        qs.apply(self.path)
 
 
 chat = MinioDeploy

@@ -194,7 +194,7 @@ const DECENTRALIZED_DEV = {
         },
 
         minio: {
-            name: "Quantum Storage",
+            name: "Minio Quantum Storage",
             type: "minio",
             image: "./assets/minio.png",
             disable: false,

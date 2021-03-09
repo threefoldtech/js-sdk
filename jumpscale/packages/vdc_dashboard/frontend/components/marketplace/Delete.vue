@@ -21,10 +21,24 @@ module.exports = {
   props: ["releasename", "solutionid", "vdcname", "namespace"],
   methods: {
     submit() {
+      let quantumStorageSolutions = ["minio"]; // TODO: add all quantum storage solutions here
       this.loading = true;
       this.error = null;
+      var usesQuantumStorage = null;
+      quantumStorageSolutions.forEach((element) => {
+        if (this.namespace.includes(element)) {
+          usesQuantumStorage = true;
+          break;
+        }
+      });
       this.$api.solutions
-        .deleteSolution(this.releasename, this.solutionid, this.vdcname, this.namespace)
+        .deleteSolution(
+          this.releasename,
+          this.solutionid,
+          this.vdcname,
+          this.namespace,
+          usesQuantumStorage
+        )
         .then((response) => {
           console.log("cancelled");
           this.$router.go(0);

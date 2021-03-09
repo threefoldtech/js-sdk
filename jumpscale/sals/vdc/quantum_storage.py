@@ -34,13 +34,15 @@ class QuantumStorage:
                 f"mkdir -p /home/rancher/0-db-fs/ && curl {ZDB_HOOK_URL} > {ZDB_HOOK_PATH} && chmod +x {ZDB_HOOK_PATH}"
             )
             j.logger.info(f"Creating dirs on: {kubernetes_node.wid} ...")
-            ssh_client.sshclient.run(f"sudo mkdir -p /zdb/data /zdb/index && sudo chown -R $USER:$USER /zdb")
-            ssh_client.sshclient.run(f"sudo mkdir -p {mount_location}  && sudo chown -R $USER:$USER {mount_location}")
+            ssh_client.sshclient.run(f"sudo mkdir -p /zdb/data /zdb/index && sudo chown -R rancher:rancher /zdb")
+            ssh_client.sshclient.run(
+                f"sudo mkdir -p {mount_location} && sudo chown -R rancher:rancher {mount_location} && sudo chmod 777 {mount_location}"
+            )
             j.logger.info(f"Updating fuse config file on: {kubernetes_node.wid}")
             ssh_client.sshclient.run("sudo sed -i /#user_allow_other/c\\user_allow_other /etc/fuse.conf")
 
             endpoints = [f"http://{etcdnode.ip_address}:2379" for etcdnode in self.vdc.etcd]
-            prefix = f"node-{kubernetes_node.wid}"
+            prefix = j.sals.fs.basename(mount_location)
             ssh_client.sshclient.run(f"sudo echo '''{self.zstor_config(endpoints, prefix)}''' > {ZSTORCONF_PATH}")
             j.logger.info(f"Starting zdb & zdbfs on: {kubernetes_node.wid}")
             zdb_cmd_args = "--datasize $((32 * 1024 * 1024)) --mode seq --hook /home/rancher/0-db-fs/zdb_hook.sh --data /zdb/data --index /zdb/index"
@@ -96,13 +98,6 @@ class QuantumStorage:
             ssh_client = self.vdc.get_ssh_client(
                 f"qs_init_{kubernetes_node.wid}", kubernetes_node.ip_address, "rancher"
             )
-
-            try:
-                ssh_client.sshclient.run("sudo rc-service zdb stop")
-            except Exception as e:
-                j.logger.warning(f"failed to kill zdb to {str(e)}, killing it manually on {kubernetes_node.wid}")
-                ssh_client.sshclient.run("sudo pkill -9 zdb")
-
             try:
                 ssh_client.sshclient.run(
                     f"sudo rc-service zdbfs-{mount_location.replace('/', '-').replace('~', '-')} stop"
@@ -118,3 +113,14 @@ class QuantumStorage:
                 j.logger.warning(
                     f"failed to umount {mount_location} on {kubernetes_node.wid} or it was unmounted already"
                 )
+
+    def kill_zdb(self):
+        for kubernetes_node in self.vdc.kubernetes:
+            ssh_client = self.vdc.get_ssh_client(
+                f"qs_init_{kubernetes_node.wid}", kubernetes_node.ip_address, "rancher"
+            )
+            try:
+                ssh_client.sshclient.run("sudo rc-service zdb stop")
+            except Exception as e:
+                j.logger.warning(f"failed to kill zdb to {str(e)}, killing it manually on {kubernetes_node.wid}")
+                ssh_client.sshclient.run("sudo pkill -9 zdb")
