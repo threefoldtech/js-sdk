@@ -238,7 +238,6 @@ def cancel_deployment():
     username = user_info["username"]
     vdc_name = data.get("vdc_name")
     namespace = data.get("namespace", "default")
-    uses_quantum_storage = data.get("usesQuantumStorage", False)
     if not vdc_name:
         abort(400, "Error: Not all required params was passed.")
     config_path = j.sals.fs.expanduser("~/.kube/config")
@@ -249,9 +248,6 @@ def cancel_deployment():
     else:
         k8s_client.execute_native_cmd(f"kubectl delete ns {namespace}")
     j.sals.marketplace.solutions.cancel_solution_by_uuid(data["solution_id"])
-    if uses_quantum_storage:
-        qs = vdc.get_quantumstorage_manager()
-        qs.stop(f"/home/rancher/{namespace.replace('-', '')}")
     return j.data.serializers.json.dumps({"result": True})
 
 

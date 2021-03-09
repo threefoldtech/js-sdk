@@ -31,11 +31,11 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    deleteSolution: (releaseName, solutionId, vdcName, namespace, usesQuantumStorage) => {
+    deleteSolution: (releaseName, solutionId, vdcName, namespace) => {
       return axios({
         url: `${baseURL}/deployments/cancel/`,
         method: "post",
-        data: { release: releaseName, solution_id: solutionId, vdc_name: vdcName, namespace: namespace, usesQuantumStorage: usesQuantumStorage },
+        data: { release: releaseName, solution_id: solutionId, vdc_name: vdcName, namespace: namespace },
         headers: { 'Content-Type': 'application/json' }
       })
     },

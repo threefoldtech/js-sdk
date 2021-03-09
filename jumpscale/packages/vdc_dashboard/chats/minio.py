@@ -1,5 +1,12 @@
-from jumpscale.sals.chatflows.chatflows import chatflow_step
+from textwrap import dedent
+from time import time
+
+import gevent
 from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
+from jumpscale.sals.chatflows.chatflows import chatflow_step
+from jumpscale.loader import j
+
+POD_INITIALIZING_TIMEOUT = 120
 
 
 class MinioDeploy(SolutionsChatflowDeploy):
@@ -47,6 +54,40 @@ class MinioDeploy(SolutionsChatflowDeploy):
         self.md_show_update("Initializing Quantum Storage, This may take few seconds ...")
         qs = self.vdc.get_quantumstorage_manager()
         qs.apply(self.path)
+
+    @chatflow_step(title="Initializing", disable_previous=True)
+    def initializing(self, timeout=300):
+        self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
+        domain_message = ""
+        if self._has_domain():
+            domain_message = f"Domain: {self.domain}"
+        error_message_template = f"""\
+                Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
+
+                {domain_message}
+                VDC Name: {self.vdc_name}
+                Farm name: {self.vdc_info["farm_name"]}
+                Reason: {{reason}}
+                """
+        start_time = time()
+        while time() - start_time <= POD_INITIALIZING_TIMEOUT:
+            if self.chart_pods_started():
+                break
+            gevent.sleep(1)
+
+        if not self.chart_pods_started() and self.chart_resource_failure():
+            stop_message = error_message_template.format(
+                reason="Couldn't find resources in the cluster for the solution"
+            )
+            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.release_name}")
+            self.stop(dedent(stop_message))
+
+        if self._has_domain() and not j.sals.reservation_chatflow.wait_http_test(
+            f"https://{self.domain}", timeout=timeout - POD_INITIALIZING_TIMEOUT, verify=False, status_code=403
+        ):
+            stop_message = error_message_template.format(reason="Couldn't reach the website after deployment")
+            self.stop(dedent(stop_message))
+        self._label_resources(backupType="vdc")
 
 
 chat = MinioDeploy
