@@ -20,9 +20,9 @@ def fetch_domain_certs(domain):
     """
     url = BASE_URL.format(domain)
     result = requests.get(url)
-    if result.status_code != 200:
-        result.raise_for_status()
-    return result.json()
+    if result.status_code == 200:
+        result.json()
+    return {}
 
 
 def count_domain_certs_since(domain, days=7):
@@ -47,7 +47,7 @@ def count_domain_certs_since(domain, days=7):
         # rate limit is 50 certs every week. so we check how many certs were issued within the last 7 days
         # we will check using date only. entry_timestamp example "2020-08-23T12:15:27.833"
         # check only for letsencrypt
-        if not "Let's Encrypt" in cert["issuer_name"]:
+        if "Let's Encrypt" not in cert["issuer_name"]:
             continue
         t = jstime.Arrow.strptime(cert["entry_timestamp"].split("T")[0], "%Y-%m-%d").to("utc")
         subdomain = cert["name_value"].split(".")[0]
