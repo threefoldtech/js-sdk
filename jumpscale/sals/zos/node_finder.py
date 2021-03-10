@@ -44,6 +44,16 @@ class NodeFinder:
         """
         return filter_public_ip(node, 6)
 
+    def filter_accessnode_ip4(self, node):
+        """filter function that filters out nodes that have a public config with IPv4 address
+        """
+        return is_access_node(node, 4)
+
+    def filter_accessnode_ip6(self, node):
+        """filter function that filters out nodes that have a public config with IPv6 address
+        """
+        return is_access_node(node, 6)
+
     def filter_farm_currency(self, farm: Farm, currency: str):
         """filter function that filters farms by the type of currency supported for capacity reservation
 
@@ -211,4 +221,25 @@ def filter_public_ip(node, version):
             for addr in iface.addrs:
                 if is_public_ip(addr, version):
                     return True
+    return False
+
+
+def is_access_node(node, version):
+    """
+
+    Args:
+      node:
+      version:
+
+    Returns:
+
+    """
+    if version not in [4, 6]:
+        raise Input("ip version can only be 4 or 6")
+
+    if node.public_config and node.public_config.master:
+        if version == 4:
+            return is_public_ip(node.public_config.ipv4, 4)
+        elif node.public_config.ipv6:
+            return is_public_ip(node.public_config.ipv6, 6)
     return False

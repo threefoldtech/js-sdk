@@ -440,7 +440,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 f"{farm.capitalize()}{location}: CRU: {resources[0]} SRU: {resources[1]} HRU: {resources[2]} MRU {resources[3]}"
             ] = farm
         if not farm_messages:
-            raise StopChatFlow(f"There are no farms available that the support {currencies[0]} currency")
+            raise StopChatFlow(
+                f"There are no available farms that have enough resources for this deployment: currency: {currencies[0]}, cu: {cu}, su: {su}, ipv4u: {ipv4u} "
+            )
         selected_farm = bot.drop_down_choice(
             "Please choose a farm to reserve capacity from. By reserving IT Capacity, you are purchasing the capacity from one of the farms. The available Resource Units (RU): CRU, MRU, HRU, SRU, NRU are displayed for you to make a more-informed decision on farm selection. ",
             list(farm_messages.keys()),
@@ -477,9 +479,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             raise j.exceptions.Runtime(f"{ip_version} is not a valid IP Version")
         else:
             if ip_version == "IPv4":
-                node_filter = zos.nodes_finder.filter_public_ip4
+                node_filter = zos.nodes_finder.filter_accessnode_ip4
             elif ip_version == "IPv6":
-                node_filter = zos.nodes_finder.filter_public_ip6
+                node_filter = zos.nodes_finder.filter_accessnode_ip6
         currencies = currencies or []
         farm_nodes = zos.nodes_finder.nodes_search(farm_name=farm_name)
         available_cru = 0
@@ -1024,7 +1026,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         network_views = network_views or self.list_networks()
         if not network_views:
             raise StopChatFlow(f"You don't have any deployed network.")
-        network_name = bot.single_choice("Please select a network to connect your solution to", list(network_views.keys()), required=True)
+        network_name = bot.single_choice(
+            "Please select a network to connect your solution to", list(network_views.keys()), required=True
+        )
         return network_views[network_name]
 
     def deploy_volume(
@@ -1235,10 +1239,21 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         identity_name=None,
         description="",
         public_ip_wid=0,
+        datastore_endpoint="",
+        disable_default_ingress=False,
         **metadata,
     ):
         master = j.sals.zos.get(identity_name).kubernetes.add_master(
-            node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id, public_ip_wid
+            node_id,
+            network_name,
+            cluster_secret,
+            ip_address,
+            size,
+            ssh_keys,
+            pool_id,
+            public_ip_wid,
+            disable_default_ingress,
+            datastore_endpoint,
         )
         desc = {"role": "master"}
         if metadata:
@@ -1982,7 +1997,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
     def deploy_etcd_containers(
         self,
         pool_id,
-        node_id,
+        node_ids,
         network_name,
         ip_addresses,
         etcd_cluster,
@@ -1993,6 +2008,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         disk_type=DiskType.SSD,
         entrypoint="etcd",
         public_ipv6=False,
+        identity_name=None,
+        description="",
+        secret_env=None,
+        log_config=None,
+        ssh_key="",
         **metadata,
     ):
         """
@@ -2015,7 +2035,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             List: List of reservation ids
         """
         etcd_cluster = etcd_cluster.rstrip(",")
-        solution_uuid = metadata["solution_uuid"]
+        solution_uuid = metadata.get("solution_uuid", uuid.uuid4().hex)
         env_cluster = {
             "ETCD_INITIAL_CLUSTER_TOKEN": f"etcd_cluster_{solution_uuid}",
             "ETCD_INITIAL_CLUSTER_STATE": "new",
@@ -2023,6 +2043,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         result = []
         for n, ip_address in enumerate(ip_addresses):
             env = {}
+            node_id = node_ids[n]
             if len(ip_addresses) > 1:
                 env.update(env_cluster)
             env.update(
@@ -2034,6 +2055,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     "ETCD_ADVERTISE_CLIENT_URLS": f"http://{ip_address}:2379",
                     "ETCD_LISTEN_CLIENT_URLS": "http://0.0.0.0:2379",
                     "ETCD_INITIAL_CLUSTER": etcd_cluster,
+                    "SSH_KEY": ssh_key,
                 }
             )
             result.append(
@@ -2049,7 +2071,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     disk_size,
                     disk_type,
                     entrypoint=entrypoint,
+                    secret_env=secret_env,
                     public_ipv6=public_ipv6,
+                    description=description,
+                    identity_name=identity_name,
+                    log_config=log_config,
                     **metadata,
                 )
             )
@@ -2108,6 +2134,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 messages[f"Name: {name} Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}"] = p
             else:
                 messages[f"Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}"] = p
+
+        if not messages:
+            raise StopChatFlow(f"no pools available for resources: {resource_query}")
 
         while True:
             pool_choices = bot.multi_list_choice(
@@ -2238,7 +2267,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         <h4> Memo Text (Reservation ID): </h4>  p-{info['resv_id']} \n
         <h4> Total Amount: </h4> {total_amount} {info['thecurrency']} \n
 
-        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 {info['thecurrency']} will automatically occur per transaction.</h5>
+        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.01 {info['thecurrency']} will automatically occur per transaction.</h5>
         """
 
         return msg_text, qr_code

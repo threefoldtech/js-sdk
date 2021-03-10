@@ -196,7 +196,6 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 )
 
         domains = dict()
-        is_http_failure = False
         is_managed_domains = False
         gateway_values = list(gateways.values())
         random.shuffle(gateway_values)
@@ -221,12 +220,6 @@ class SolutionsChatflowDeploy(GedisChatBot):
                     continue
                 else:
                     deployer.unblock_managed_domain(domain)
-                try:
-                    if j.sals.crtsh.has_reached_limit(domain):
-                        continue
-                except requests.exceptions.HTTPError:
-                    is_http_failure = True
-                    continue
                 domains[domain] = gw_dict
                 self.gateway_pool = gw_dict["pool"]
                 self.gateway = gw_dict["gateway"]
@@ -296,11 +289,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                     continue
                 return self.domain
 
-        if is_http_failure:
-            raise StopChatFlow(
-                'An error encountered while trying to fetch certifcates information from <a href="crt.sh" target="_blank">crt.sh</a>. Please try again later.'
-            )
-        elif not is_managed_domains:
+        if not is_managed_domains:
             raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
         else:
             raise StopChatFlow(
@@ -416,9 +405,9 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     def chart_pods_started(self):
         pods_status_info = self.k8s_client.execute_native_cmd(
-            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.phase}}'"
+            cmd=f"kubectl --namespace {self.chart_name}-{self.release_name} get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.containerStatuses[*].ready}}'"
         )
-        if "Pending" in pods_status_info:
+        if "false" in pods_status_info or pods_status_info == "":
             return False
         return True
 
@@ -427,7 +416,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     def chart_resource_failure(self):
         pods_info = self.k8s_client.execute_native_cmd(
-            cmd=f"kubectl get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[*].message}}'"
+            cmd=f"kubectl --namespace {self.chart_name}-{self.release_name} get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[*].message}}'"
         )  # Gets the last event message
         if "Insufficient" in pods_info:
             return True
@@ -457,7 +446,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             stop_message = error_message_template.format(
                 reason="Couldn't find resources in the cluster for the solution"
             )
-            self.k8s_client.delete_deployed_release(self.release_name)
+            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.release_name}")
             self.stop(dedent(stop_message))
 
         if self._has_domain() and not j.sals.reservation_chatflow.wait_http_test(
@@ -465,6 +454,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         ):
             stop_message = error_message_template.format(reason="Couldn't reach the website after deployment")
             self.stop(dedent(stop_message))
+        self._label_resources(backupType="vdc")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self, extra_info=""):
@@ -478,3 +468,23 @@ class SolutionsChatflowDeploy(GedisChatBot):
         {extra_info}
         """
         self.md_show(dedent(message), md=True)
+
+    def _label_resources(self, resources=None, **kwargs):
+        if not kwargs:
+            return
+        resources = resources or "deployment,rs,svc,sts,ds,cm,secret,ing,pv,pvc,sc"
+        namespace = f"{self.chart_name}-{self.release_name}"
+        all_resources_json = self.k8s_client.execute_native_cmd(f"kubectl get {resources} -n {namespace} -o json")
+        all_resources = j.data.serializers.json.loads(all_resources_json)
+        for resource in all_resources.get("items", []):
+            kind = resource.get("kind", "").lower()
+            name = resource.get("name", "")
+            if not name:
+                name = resource.get("metadata", {}).get("name", "")
+            if not all([name, kind]):
+                j.logger.warning(f"can't retrieve resource info of {list(resource.keys())}")
+                continue
+            for key, val in kwargs.items():
+                self.k8s_client.execute_native_cmd(
+                    f"kubectl label {kind} {name} -n {namespace} {key}={val} --overwrite"
+                )

@@ -12,7 +12,7 @@ WORKDIR /sandbox/code/github/threefoldtech/js-sdk
 RUN poetry config virtualenvs.create false &&  poetry install
 RUN poetry shell
 RUN /etc/init.d/redis-server start
-RUN python3 jumpscale/install/codeserver-install.py
+RUN python3 jumpscale/install/codeserver_install.py
 
 RUN wget https://github.com/threefoldtech/zinit/releases/download/v0.1/zinit -O /sbin/zinit \
     && chmod +x /sbin/zinit

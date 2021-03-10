@@ -7,14 +7,14 @@ from textwrap import dedent
 
 import netaddr
 import requests
-from nacl.public import Box
-
 from jumpscale.clients.explorer.models import DeployedReservation, NextAction
+from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.clients.stellar.stellar import Network as StellarNetwork
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow.models import SolutionType, TfgridSolution1, TfgridSolutionsPayment1
+from nacl.public import Box
 
 NODES_DISALLOW_PREFIX = "ZOS:NODES:DISALLOWED"
 NODES_DISALLOW_EXPIRATION = 60 * 60 * 4  # 4 hours
@@ -569,7 +569,7 @@ class ReservationChatflow:
         payment_obj.escrow_address = escrow_address
         payment_obj.escrow_asset = escrow_asset
         payment_obj.total_amount = str(total_amount)
-        payment_obj.transaction_fees = f"0.1 {currency}"
+        payment_obj.transaction_fees = f"{TRANSACTION_FEES} {currency}"
         payment_obj.payment_source = payment_source
         for farmer in farmer_payments:
             farmer_name = self._explorer.farms.get(farm_id=farmer["farmer_id"]).name
@@ -597,8 +597,10 @@ class ReservationChatflow:
             payment_details += (
                 f"<tr><td>Farmer {farmer_name}</td><td>{format(farmer['total_amount'],'.7f')} {currency}</td></tr>"
             )
-        payment_details += f"<tr><td>Transaction Fees</td><td>{0.1} {currency}</td></tr>"
-        payment_details += f"<tr><td>Total amount</td><td>{format(total_amount + 0.1,'.7f')} {currency}</td></tr>"
+        payment_details += f"<tr><td>Transaction Fees</td><td>{TRANSACTION_FEES} {currency}</td></tr>"
+        payment_details += (
+            f"<tr><td>Total amount</td><td>{format(total_amount + TRANSACTION_FEES,'.7f')} {currency}</td></tr>"
+        )
         payment_details += "</table>"
 
         return payment_details
@@ -1424,7 +1426,8 @@ class ReservationChatflow:
             )
             nodes = filter_disallowed_nodes(disallowed_node_ids, nodes)
             nodes = self.filter_nodes(nodes, currency == "FreeTFT", ip_version=ip_version)
-            err_msg = f"""Failed to find resources (cru={cru}, sru={sru}, mru={mru} and hru={hru} in pool with id={pool_id}) for this reservation.
+            farm_name = j.sals.marketplace.deployer.get_pool_farm_name(pool_id)
+            err_msg = f"""Failed to find resources (cru={cru}, sru={sru}, mru={mru}, hru={hru} and ip_version={ip_version} in pool with id={pool_id} in farm {farm_name}) for this reservation.
                         If you are using a low resources environment like testnet,
                         please make sure to allow over provisioning from the settings tab in dashboard.
                         For more info visit <a href='https://manual2.threefold.io/#/3bot_settings?id=developers-options'>our manual</a>

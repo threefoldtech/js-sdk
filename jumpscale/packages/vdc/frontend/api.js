@@ -54,5 +54,16 @@ const apiClient = {
         method: "get"
       })
     },
-  }
+  },
+  wallets: {
+    walletQRCodeImage: (address, amount, scale) => {
+      return axios({
+        url: `/vdc/api/wallet/qrcode/get`,
+        method: "post",
+        data: { address: address,amount: amount, scale: scale},
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
+  },
+
 }

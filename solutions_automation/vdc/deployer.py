@@ -17,7 +17,9 @@ from solutions_automation.vdc.dashboard.zeroci import ZeroCIAutomated
 
 
 def deploy_vdc(solution_name, vdc_secert, vdc_plan):
-    return VDCAutomated(solution_name=solution_name, vdc_secert=vdc_secert, vdc_plan=vdc_plan)
+    return VDCAutomated(
+        solution_name=solution_name, vdc_secert=vdc_secert, vdc_plan=vdc_plan, zdb_Farms="Automatically Select Farms"
+    )
 
 
 def deploy_blog(
@@ -106,8 +108,16 @@ def deploy_discourse(
     )
 
 
-def deploy_etcd(release_name, flavor="Silver", debug=True):
-    return EtcdAutomated(release_name=release_name, flavor=flavor, debug=debug)
+def deploy_etcd(
+    release_name, flavor="Silver", sub_domain="Choose subdomain for me on a gateway", custom_sub_domain="", debug=True
+):
+    return EtcdAutomated(
+        release_name=release_name,
+        flavor=flavor,
+        sub_domain=sub_domain,
+        custom_sub_domain=custom_sub_domain,
+        debug=debug,
+    )
 
 
 def extend_kubernetes(size, existing_balance="Yes", debug=True):

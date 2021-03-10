@@ -16,7 +16,7 @@ module.exports = new Promise(async(resolve, reject) => {
                 addFarmDialog: false,
                 addNodeDialog: false,
                 settingsDialog: false,
-                setDefaultPrice: false,
+                showSetFarmPrice: false,
                 farmDescriptionRules: [v => v.length <= 250 || "Max 250 characters"],
                 searchFarms: "",
                 'searchnodes': "",
@@ -26,6 +26,7 @@ module.exports = new Promise(async(resolve, reject) => {
                 showResult: false,
                 itemsPerPage: 4,
                 expanded: [],
+                addCustomModelError: null,
                 headers: [
                     { text: "Id", value: "id" },
                     {
@@ -33,9 +34,9 @@ module.exports = new Promise(async(resolve, reject) => {
                         sortable: false,
                         value: "name"
                     },
-                    { text: "CU ($/mo)", value: "farm_cloudunits_price.cu" },
-                    { text: "SU ($/mo)", value: "farm_cloudunits_price.su" },
-                    { text: "IPv4u ($/mo)", value: "farm_cloudunits_price.ipv4u" },
+                    { text: "CU ($/mo)", value: "cu" },
+                    { text: "SU ($/mo)", value: "su" },
+                    { text: "IPv4u ($/mo)", value: "ipv4u" },
                     { text: "Actions", value: "action", sortable: false }
                 ],
                 prices: [{ node: 3 }, { node: 8 }],
@@ -57,7 +58,7 @@ module.exports = new Promise(async(resolve, reject) => {
                     //     }
                     // ]
                 },
-                default_price: {
+                farm_price: {
                     cu: null,
                     su: null,
                     ipv4u: null
@@ -81,7 +82,7 @@ module.exports = new Promise(async(resolve, reject) => {
             }
         },
         computed: {
-            ...vuex.mapGetters("farmmanagement", ["farms", "nodes", "user", "tfgridUrl", "customPricesList"]),
+            ...vuex.mapGetters("farmmanagement", ["farms", "nodes", "farm", "user", "tfgridUrl", "customPricesList"]),
             parsedLocation() {
                 return {
                     lat: this.newFarm.location.latitude,
@@ -104,8 +105,9 @@ module.exports = new Promise(async(resolve, reject) => {
                 "getNodes",
                 "getTfgridUrl",
                 "setCustomPricesList",
-                "setDefaultCustomPrices",
-                "createOrUpdateFarmThreebotCustomPrice"
+                "setDefaultFarmPrices",
+                "createOrUpdateFarmThreebotCustomPrice",
+                "setFarm",
             ]),
             initialiseRefresh() {
                 const that = this;
@@ -125,8 +127,8 @@ module.exports = new Promise(async(resolve, reject) => {
                 this.getNodes(item.id);
                 this.setCustomPricesList(item.id)
                 this.farmSelected = item;
-                console.log("ITEM: ", item)
-                this.default_price = item.default_cloudunits_price && Object.assign(this.default_price, item.default_cloudunits_price) || {cu:0, su:0, ipv4u:0};
+                this.setFarm(item);
+                this.farm_price = item.farm_cloudunits_price && Object.assign(this.farm_price, item.farm_cloudunits_price) || {cu:item.explorer_prices.cu, su:item.explorer_prices.su, ipv4u: item.explorer_prices.ipv4u};
             },
             viewSettings(farm) {
                 this.farmToEdit = farm;
@@ -208,27 +210,39 @@ module.exports = new Promise(async(resolve, reject) => {
             goToEdit(farm) {
                 this.$router.history.push(`/edit/${farm.id}`)
             },
-            setDefault(cu, su, ipv4u) {
+            setFarmPrice(cu, su, ipv4u) {
                 let prices = { cu: cu, su: su, ipv4u: ipv4u }
                 let farmCustomPricesInfo = { farmId: this.farmSelected.id, prices: prices }
-                this.setDefaultCustomPrices(farmCustomPricesInfo)
+                this.setDefaultFarmPrices(farmCustomPricesInfo)
                     .then(response => {
-                        this.setDefaultPrice = false;
+                        this.showSetFarmPrice = false;
                         this.getFarms();
                     }).catch(err => {
                         console.log(err)
                     })
             },
             addCustomPrice(threebotName, cu, su, ipv4u) {
-                let prices = { cu: +cu, su: +su, ipv4u: +ipv4u }
-                let farmCustomPricesInfo = { farmId: this.farmSelected.id, prices: prices, threebotName: threebotName }
-                this.createOrUpdateFarmThreebotCustomPrice(farmCustomPricesInfo)
-                    .then(response => {
-                        this.openAddCustomModel = false;
-                        this.setCustomPricesList(farmCustomPricesInfo.farmId);
-                    }).catch(err => {
-                        console.log(err)
-                    })
+                if (this.$refs.customPriceForm.validate()) {
+                    let prices = { cu: +cu, su: +su, ipv4u: +ipv4u }
+                    let farmCustomPricesInfo = { farmId: this.farmSelected.id, prices: prices, threebotName: threebotName }
+                    this.createOrUpdateFarmThreebotCustomPrice(farmCustomPricesInfo)
+                        .then(response => {
+                            this.openAddCustomModel = false;
+                            this.setCustomPricesList(farmCustomPricesInfo.farmId);
+                            this.customPrice = {
+                                threebotName: '',
+                                cu: null,
+                                su: null,
+                                ipv4u: null,
+                                threebotId: null
+                            };
+                            this.addCustomModelError = null;
+                            this.$refs.customPriceForm.resetValidation();
+                        }).catch(err => {
+                            console.log("Error: ",err.response.data.error)
+                            this.addCustomModelError = err.response.data.error
+                        })
+                }
             },
         }
     });

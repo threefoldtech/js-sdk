@@ -4,7 +4,7 @@
 
       <template #actions>
         <v-btn color="primary" text to="/solutions/pools">
-          <v-icon left>mdi-cloud</v-icon> Create/Extend Pool
+          <v-icon left>mdi-cloud</v-icon> Create Pool
         </v-btn>
 
         <v-btn color="primary" text @click.stop="dialogs.addAdmin = true">

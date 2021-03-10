@@ -1,7 +1,8 @@
 from jumpscale.loader import j
-from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.vdc.deployer import VDCIdentityError
+from jumpscale.sals.vdc.scheduler import CapacityChecker
+from jumpscale.sals.vdc.size import VDC_SIZE
 
 
 class ExtendKubernetesCluster(GedisChatBot):
@@ -15,9 +16,7 @@ class ExtendKubernetesCluster(GedisChatBot):
         if not j.clients.stellar.check_stellar_service():
             raise StopChatFlow("Payment service is currently down, try again later")
         self.vdc_name = list(j.sals.vdc.list_all())[0]
-        self.user_info_data = self.user_info()
-        self.username = self.user_info_data["username"]
-        self.vdc = j.sals.vdc.find(name=self.vdc_name, owner_tname=self.username)
+        self.vdc = j.sals.vdc.get(name=self.vdc_name)
         if not self.vdc:
             self.stop(f"VDC {self.vdc_name} doesn't exist")
 
@@ -38,15 +37,27 @@ class ExtendKubernetesCluster(GedisChatBot):
     @chatflow_step(title="Adding node")
     def add_node(self):
         try:
+            self.vdc.load_info()
             deployer = self.vdc.get_deployer(bot=self)
         except VDCIdentityError:
             self.stop(
                 f"Couldn't verify VDC secret. please make sure you are using the correct secret for VDC {self.vdc_name}"
             )
+        # check for capacity before deploying
+        old_node_ids = []
+        for k8s_node in self.vdc.kubernetes:
+            old_node_ids.append(k8s_node.node_id)
+        farm_name = j.sals.marketplace.deployer.get_pool_farm_name(self.vdc.kubernetes[0].pool_id)
+        cc = CapacityChecker(farm_name)
+        cc.exclude_nodes(*old_node_ids)
+        node_flavor_size = VDC_SIZE.K8SNodeFlavor[self.node_flavor.upper()]
+        if not cc.add_query(**VDC_SIZE.K8S_SIZES[node_flavor_size]):
+            self.stop(
+                f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {self.node_flavor}"
+            )
+        j.logger.debug("found enough capacity, continue to payment")
 
-        success, amount, payment_id = self.vdc.show_external_node_payment(
-            self, self.node_flavor, public_ip=self.public_ip
-        )
+        success, _, payment_id = self.vdc.show_external_node_payment(self, self.node_flavor, public_ip=self.public_ip)
         if not success:
             self.stop(f"payment timedout")
 
@@ -59,16 +70,7 @@ class ExtendKubernetesCluster(GedisChatBot):
             self.stop(f"failed to add nodes to your cluster. due to error {str(e)}")
 
         self.md_show_update("Processing transaction...")
-        try:
-            self.vdc.transfer_to_provisioning_wallet(amount / 2)
-        except Exception as e:
-            j.logger.error(
-                f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}. please contact support"
-            )
-            raise StopChatFlow(f"failed to fund provisioning wallet due to error {str(e)}")
         deployer._set_wallet(old_wallet)
-        self.md_show_update(f"updating pool expiration...")
-        deployer.extend_k8s_workloads(14 - (INITIAL_RESERVATION_DURATION / 24), *wids)
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

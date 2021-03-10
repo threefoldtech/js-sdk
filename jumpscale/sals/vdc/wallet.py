@@ -11,7 +11,7 @@ class VDCWallet(Base):
     def _init_wallet(self, secret=None):
         wallet = j.clients.stellar.new(self.instance_name, secret=secret)
         if not secret:
-            wallet.activate_through_threefold_service()
+            wallet.activate_through_activation_wallet()
         wallet.save()
         self.wallet_secret = wallet.secret
 

@@ -82,7 +82,7 @@
           </v-list>
           <v-divider></v-divider>
           <v-card-actions>
-            <v-btn block text href="/auth/logout">
+            <v-btn block text @click.stop="logout">
               <v-icon color="primary" class="mr-2" left>mdi-exit-to-app</v-icon
               >Logout
             </v-btn>
@@ -92,7 +92,7 @@
     </v-app-bar>
 
     <v-main>
-      <router-view></router-view>
+      <router-view @update-dashboard="updateDashboard"></router-view>
       <popup></popup>
     </v-main>
   </v-app>
@@ -127,6 +127,12 @@ module.exports = {
           this.$router.go(0);
           this.updateLoading = false;
         })
+    },
+    logout() {
+      // clear cache on logout
+      var backlen = history.length;
+      history.go(-backlen);
+      window.location.href = "/auth/logout";
     }
   },
   mounted() {

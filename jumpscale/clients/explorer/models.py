@@ -49,6 +49,7 @@ class FarmerIP(Base):
     gateway = fields.IPAddress()
     reservation_id = fields.Integer()
 
+
 class CloudUnitMonthPrice(Base):
     cu = fields.Float(default=10)
     su = fields.Float(default=8)
@@ -72,10 +73,12 @@ class Farm(Base):
     def __str__(self):
         return " - ".join([x for x in [self.name, str(self.location)] if x])
 
+
 class FarmThreebotPrice(Base):
     threebot_id = fields.Integer()
     farm_id = fields.Integer()
     custom_cloudunits_price = fields.Object(CloudUnitMonthPrice)
+
 
 class WorkloadsAmount(Base):
     network = fields.Integer()
@@ -356,7 +359,6 @@ class ReservationInfo(Base):
     workload_type = fields.Enum(WorkloadType)
 
 
-
 class GatewayProxy(Base):
     id = fields.Integer()
     domain = fields.String(default="")
@@ -433,6 +435,9 @@ class K8s(Base):
     public_ip = fields.Integer()
     stats_aggregator = fields.List(fields.Object(Statsaggregator))
     info = fields.Object(ReservationInfo)
+    datastore_endpoint = fields.String(default="")
+    disable_default_ingress = fields.Boolean(default=True)
+
     SIZES = OrderedDict(
         {
             1: {"cru": 1, "mru": 2, "sru": 50},

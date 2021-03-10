@@ -1,4 +1,6 @@
+
 <section class="cspricestable">
+
     <v-alert :type="deleteNodeFarmAlert.type" v-if="deleteNodeFarmAlert">
         {{deleteNodeFarmAlert.message}}
     </v-alert>
@@ -8,7 +10,7 @@
                 <v-row>
                     <v-col cols="6">
                         <v-icon small color="white" left>fas fa-dollar-sign</v-icon>
-                        <div class="d-inline " v-if="farmselected">{{ tableName }}</div>
+                        <div class="d-inline " v-if="farm">{{ tableName }}</div>
                     </v-col>
                     <v-col></v-col>
                     <v-col cols="3" class="py-0">
@@ -26,7 +28,7 @@
                 <v-icon small> fa-edit </v-icon>
               </v-btn>
 
-              <v-btn fab small text @click="deleteModal(item)">
+              <v-btn fab small text @click="showDeletePriceModal(item)">
                 <v-icon small> fa-trash </v-icon>
               </v-btn>
 
@@ -68,7 +70,7 @@
                     <v-btn
                       color="black darken-1"
                       text
-                      @click="openEditModal = false"
+                      @click="closeEditModal"
                       >Cancel</v-btn
                     >
                     <v-btn color="yellow darken-1" text @click="editPrice"
@@ -85,8 +87,8 @@
                     >Delete price</v-card-title
                   >
 
-                  <v-card-text>    
-                    Are you sure you want to delete price with ID: {{ priceToDelete.id }}?</</v-card-text>
+                  <v-card-text>
+                    Are you sure you want to delete this deal for {{  item.threebot_name }}?</</v-card-text>
                   <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn
@@ -95,7 +97,7 @@
                       @click="openDeleteModal = false"
                       >Cancel</v-btn
                     >
-                    <v-btn color="red darken-1" text @click="deleteNode()"
+                    <v-btn color="red darken-1" text @click="deletePrice(item.farm_id, item.threebot_id)"
                       >Delete</v-btn
                     >
                   </v-card-actions>

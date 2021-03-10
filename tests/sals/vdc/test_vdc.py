@@ -3,11 +3,11 @@ from jumpscale.clients.explorer.models import K8s, ZdbNamespace
 from jumpscale.loader import j
 from jumpscale.sals.vdc.size import VDC_SIZE
 from parameterized import parameterized_class
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 from .vdc_base import VDCBase
 
 
-@parameterized_class(("flavor"), [("silver",), ("gold",), ("platinum",), ("diamond",)])
 @pytest.mark.integration
 class TestVDC(VDCBase):
     flavor = "silver"
@@ -127,7 +127,7 @@ class TestVDC(VDCBase):
         kubernetes = K8s()
         kubernetes.size = VDC_SIZE.K8SNodeFlavor.MEDIUM.value
         # It will be deployed for an hour.
-        price = j.tools.zos.consumption.cost(kubernetes, 60 * 60) + 0.1  # transactions fees.
+        price = j.tools.zos.consumption.cost(kubernetes, 60 * 60) + TRANSACTION_FEES  # transactions fees.
         self.vdc.transfer_to_provisioning_wallet(round(price, 6), "test_wallet")
 
         self.info("Add kubernetes node")
@@ -186,7 +186,7 @@ class TestVDC(VDCBase):
         pools_expiration_value = self.vdc.get_pools_expiration()
 
         self.info("Renew plan with one day")
-        needed_tft = float(self.vdc_price) / 30 + 0.1  # 0.1 transaction fees
+        needed_tft = float(self.vdc_price) / 30 + TRANSACTION_FEES  # 0.01 transaction fees
         self.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
         self.deployer.renew_plan(1)
 
@@ -234,7 +234,7 @@ class TestVDC(VDCBase):
         zdb = ZdbNamespace()
         zdb.size = 10
         # In case of all tests runs, it will be deployed for an hour and renewed by a day.
-        price = j.tools.zos.consumption.cost(zdb, 25 * 60 * 60) + 0.1  # transactions fees.
+        price = j.tools.zos.consumption.cost(zdb, 25 * 60 * 60) + TRANSACTION_FEES  # transactions fees.
         self.vdc.transfer_to_provisioning_wallet(round(price, 6), "test_wallet")
 
         self.info("Extend zdbs")
@@ -248,3 +248,10 @@ class TestVDC(VDCBase):
         self.vdc.load_info()
         zdb_monitor = self.vdc.get_zdb_monitor()
         self.assertEqual(zdb_monitor.zdb_total_size, old_zdb_total_size + 10)
+
+
+@parameterized_class(("flavor"), [("gold",), ("platinum",), ("diamond",)])
+@pytest.mark.integration
+@pytest.mark.extend
+class TestVDCExtend(TestVDC):
+    pass

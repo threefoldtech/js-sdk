@@ -7,6 +7,7 @@ from solutions_automation.vdc import deployer
 from tests.sals.vdc.vdc_base import VDCBase
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
 from parameterized import parameterized_class
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 
 @parameterized_class(("no_deployment"), [("single",), ("double",)])
@@ -15,6 +16,7 @@ class VDCDashboard(VDCBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls._import_wallet("demos_wallet")
         no_deployment = "single"
         cls.flavor = "platinum"
         cls.kube_config = cls.deploy_vdc()
@@ -60,7 +62,7 @@ class VDCDashboard(VDCBase):
         kubernetes = K8s()
         kubernetes.size = VDC_SIZE.K8SNodeFlavor.MEDIUM.value
         # It will be deployed for an hour.
-        price = j.tools.zos.consumption.cost(kubernetes, 60 * 60) + 0.1  # transactions fees.
+        price = j.tools.zos.consumption.cost(kubernetes, 60 * 60) + TRANSACTION_FEES  # transactions fees.
         cls.vdc.transfer_to_provisioning_wallet(round(price, 6), "test_wallet")
 
         # Timeout for any exposed solution to be reachable and certified.
@@ -86,15 +88,6 @@ class VDCDashboard(VDCBase):
             self.info(f"Delete {sol.release_name}")
             self.kube_manager.execute_native_cmd(f"kubectl delete ns {sol.chart_name}-{sol.release_name}")
         super().tearDown()
-
-    @classmethod
-    def _import_wallet(cls):
-        super()._import_wallet()
-        wallet = j.clients.stellar.get("demos_wallet")
-        wallet.secret = cls.wallet_secret
-        wallet.network = "STD"
-        wallet.save()
-        return wallet
 
     def _set_vdc_identity(self):
         vdc_ident = j.core.identity.get(f"vdc_ident_{self.vdc.solution_uuid}")
@@ -298,6 +291,7 @@ class VDCDashboard(VDCBase):
             request_second = j.tools.http.get(url=f"https://{gitea_second.domain}", timeout=self.timeout, verify=False)
             self.assertEqual(request_second.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2630")
     def test06_discourse(self):
         """Test case for deploying Discourse.
 
@@ -437,6 +431,7 @@ class VDCDashboard(VDCBase):
             )
             self.assertEqual(request_second.status_code, 200)
 
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2630")
     def test10_Taiga(self):
         """Test case for deploying Taiga.
 

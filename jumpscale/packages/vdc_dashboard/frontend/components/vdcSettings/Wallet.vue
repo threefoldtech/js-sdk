@@ -64,6 +64,27 @@
               {{ new Date(expirationdate * 1000).toLocaleString("en-GB") }}
             </td>
           </tr>
+          <tr>
+            <td>QRCode</td>
+            <td class="pt-1">
+              <div class="text-left ma-1">
+                <v-tooltip top>
+                  <template v-slot:activator="{ on, attrs }">
+                    <img
+                      v-bind="attrs"
+                      v-on="on"
+                      style="border: 1px dashed #85929e"
+                      :src="`data:image/png;base64, ${qrcode}`"
+                    />
+                  </template>
+                  <span
+                    >Scan the QRCode to topup wallet using Threefold Connect
+                    application</span
+                  >
+                </v-tooltip>
+              </div>
+            </td>
+          </tr>
         </tbody>
       </template>
     </v-simple-table>
@@ -72,12 +93,35 @@
 
 <script>
 module.exports = {
-  props: { wallet: Object, expirationdays: Number, expirationdate: Number },
+  props: {
+    wallet: Object,
+    expirationdays: Number,
+    expirationdate: Number,
+    price: Number,
+  },
   mixins: [dialog],
   data() {
     return {
       showSecret: false,
+      qrcode: "",
     };
+  },
+  methods: {
+    getQRCode() {
+      this.$api.wallets
+        .walletQRCodeImage(this.wallet.address, this.price, 3)
+        .then((result) => {
+          this.qrcode = result.data.data;
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+  },
+  mounted() {
+    if (this.wallet) {
+      this.getQRCode();
+    }
   },
 };
 </script>

@@ -19,6 +19,13 @@ path_dest = "/api/"
 host = "0.0.0.0"
 port = 5556
 
+[[bottle_servers]]
+name = "backup"
+file_path = "bottle/backup.py"
+path_url = "/api/backup/"
+path_dest = "/api/backup/"
+host = "0.0.0.0"
+port = 5590
 
 [[servers]]
 name = "vdc_dashboard_root_proxy"

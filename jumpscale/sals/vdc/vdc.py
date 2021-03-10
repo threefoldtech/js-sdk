@@ -1,3 +1,4 @@
+from collections import defaultdict
 import datetime
 import uuid
 
@@ -5,6 +6,7 @@ from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 from jumpscale.sals.zos import get as get_zos
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 from .deployer import VDCDeployer
 from .models import *
@@ -13,6 +15,8 @@ from .wallet import VDC_WALLET_FACTORY
 from .zdb_auto_topup import ZDBMonitor
 from .kubernetes_auto_extend import KubernetesMonitor
 import netaddr
+import hashlib
+from .snapshot import SnapshotManager
 
 VDC_WORKLOAD_TYPES = [
     WorkloadType.Container,
@@ -30,6 +34,7 @@ class UserVDC(Base):
     identity_tid = fields.Integer()
     s3 = fields.Object(S3)
     kubernetes = fields.List(fields.Object(KubernetesNode))
+    etcd = fields.List(fields.Object(ETCDNode))
     threebot = fields.Object(VDCThreebot)
     created = fields.DateTime(default=datetime.datetime.utcnow)
     last_updated = fields.DateTime(default=datetime.datetime.utcnow)
@@ -64,7 +69,7 @@ class UserVDC(Base):
 
     @property
     def expiration_date(self):
-        expiration = self.get_pools_expiration()
+        expiration = self.calculate_expiration_value()
         return j.data.time.get(expiration).datetime
 
     @property
@@ -109,7 +114,16 @@ class UserVDC(Base):
         active_pools = [p for p in explorer.pools.list(customer_tid=self.identity_tid) if p.pool_id in my_pool_ids]
         return active_pools
 
-    def get_deployer(self, password=None, identity=None, bot=None, proxy_farm_name=None, deployment_logs=False):
+    def get_deployer(
+        self,
+        password=None,
+        identity=None,
+        bot=None,
+        proxy_farm_name=None,
+        deployment_logs=False,
+        ssh_key_path=None,
+        restore=False,
+    ):
         proxy_farm_name = proxy_farm_name or PROXY_FARM.get()
         if not password and not identity:
             identity = self._get_identity()
@@ -121,13 +135,27 @@ class UserVDC(Base):
             proxy_farm_name=proxy_farm_name,
             identity=identity,
             deployment_logs=deployment_logs,
+            ssh_key_path=ssh_key_path,
+            restore=restore,
         )
 
-    def _get_identity(self):
+    def validate_password(self, password):
+        password_hash = hashlib.md5(password.encode()).hexdigest()
+        identity = self._get_identity(default=False)
+        if not identity:
+            # identity was not generated for this vdc instance
+            return True
+        words = j.data.encryption.key_to_mnemonic(password_hash.encode())
+        if identity.words == words:
+            return True
+        return False
+
+    def _get_identity(self, default=True):
         instance_name = f"vdc_ident_{self.solution_uuid}"
+        identity = None
         if j.core.identity.find(instance_name):
             identity = j.core.identity.find(instance_name)
-        else:
+        elif default:
             identity = j.core.identity.me
         return identity
 
@@ -137,8 +165,12 @@ class UserVDC(Base):
     def get_kubernetes_monitor(self):
         return KubernetesMonitor(self)
 
-    def load_info(self):
+    def get_snapshot_manager(self, snapshots_dir=None):
+        return SnapshotManager(self, snapshots_dir)
+
+    def load_info(self, load_proxy=False):
         self.kubernetes = []
+        self.etcd = []
         self.s3 = S3()
         self.threebot = VDCThreebot()
         instance_vdc_workloads = self._filter_vdc_workloads()
@@ -152,6 +184,61 @@ class UserVDC(Base):
                 proxies.append(workload)
         self._get_s3_subdomains(subdomains)
         self._get_threebot_subdomain(proxies)
+        if load_proxy:
+            self._build_zdb_proxies()
+
+    def _build_zdb_proxies(self):
+        proxies = self._list_socat_proxies()
+        for zdb in self.s3.zdbs:
+            zdb_proxies = proxies[zdb.ip_address]
+            if not zdb_proxies:
+                continue
+            proxy = zdb_proxies[0]
+            zdb.proxy_address = f"{proxy['ip_address']}:{proxy['listen_port']}"
+
+    def get_public_ip(self):
+        if not self.kubernetes:
+            self.load_info()
+        public_ip = None
+        for node in self.kubernetes:
+            if node.public_ip != "::/128":
+                public_ip = node.public_ip
+                break
+        return public_ip
+
+    def _list_socat_proxies(self, public_ip=None):
+        public_ip = public_ip or self.get_public_ip()
+        if not public_ip:
+            raise j.exceptions.Runtime(f"couldn't get a public ip for vdc: {self.vdc_name}")
+        ssh_client = self.get_ssh_client("socat_list", public_ip, "rancher",)
+        result = defaultdict(list)
+        rc, out, _ = ssh_client.sshclient.run(f"sudo ps -ef | grep -v grep | grep socat", warn=True)
+        if rc != 0:
+            return result
+
+        for line in out.splitlines():
+            # root      6659     1  0 Feb19 ?        00:00:00 /var/lib/rancher/k3s/data/current/bin/socat tcp-listen:9900,reuseaddr,fork tcp:[2a02:1802:5e:0:c46:cff:fe32:39ae]:9900
+            splits = line.split("tcp-listen:")
+            if len(splits) != 2:
+                continue
+            splits = splits[1].split(",")
+            if len(splits) < 2:
+                continue
+            listen_port = splits[0]
+            splits = line.split("tcp:")
+            if len(splits) != 2:
+                continue
+            proxy_address = splits[1]
+            splits = proxy_address.split(":")
+            if len(splits) < 2:
+                continue
+
+            port = splits[-1]
+            ip_address = ":".join(splits[:-1])
+            if ip_address[0] == "[" and ip_address[-1] == "]":
+                ip_address = ip_address[1:-1]
+            result[ip_address].append({"dst_port": port, "listen_port": listen_port, "ip_address": public_ip})
+        return result
 
     def _filter_vdc_workloads(self):
         zos = get_zos()
@@ -215,6 +302,13 @@ class UserVDC(Base):
                 container.wid = workload.id
                 container.ip_address = workload.network_connection[0].ipaddress
                 self.threebot = container
+            elif "etcd" in workload.flist:
+                node = ETCDNode()
+                node.node_id = workload.info.node_id
+                node.pool_id = workload.info.pool_id
+                node.wid = workload.id
+                node.ip_address = workload.network_connection[0].ipaddress
+                self.etcd.append(node)
         elif workload.info.workload_type == WorkloadType.Zdb:
             result_json = j.data.serializers.json.loads(workload.info.result.data_json)
             if "IPs" in result_json:
@@ -393,7 +487,7 @@ class UserVDC(Base):
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
             result = bot.single_choice(
-                f"Do you want to use your existing balance to pay {amount} TFT? (This will impact the overall expiration of your plan)",
+                f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
                 ["Yes", "No"],
                 required=True,
             )
@@ -437,7 +531,7 @@ class UserVDC(Base):
         for t_hash in transaction_hashes:
             effects = initial_wallet.get_transaction_effects(t_hash)
             for effect in effects:
-                amount += effect.amount + 0.1  # transaction fees to not drain the initialization wallet
+                amount += effect.amount + TRANSACTION_FEES  # transaction fees to not drain the initialization wallet
         amount = round(abs(amount), 6)
         if not amount:
             return True
@@ -463,7 +557,7 @@ class UserVDC(Base):
                     for b in balances:
                         if b.asset_code != "TFT":
                             continue
-                        if amount <= float(b.balance) + 0.1:
+                        if amount <= float(b.balance) + TRANSACTION_FEES:
                             has_funds = True
                             break
                         else:
@@ -562,10 +656,20 @@ class UserVDC(Base):
         """
         if load_info:
             self.load_info()
-        total_funds = self.get_total_funds()
-        spec_price = self.calculate_spec_price() or 1
-        spec_price += 30 * 24 * 0.1  # one month price + hourly transaction fees
-        return (total_funds / spec_price) * 30
+        prepaid_wallet_balance = self._get_wallet_balance(self.prepaid_wallet)
+        provision_wallet_balance = self._get_wallet_balance(self.provision_wallet)
+
+        days_prepaid_can_fund = (prepaid_wallet_balance / self.calculate_spec_price()) * 30
+        days_provisioning_can_fund = provision_wallet_balance / (self.calculate_active_units_price() * 60 * 60 * 24)
+        return days_prepaid_can_fund + days_provisioning_can_fund
+
+    def calculate_active_units_price(self):
+        cus = sus = ipv4us = 0
+        for pool in self.active_pools:
+            cus += pool.active_cu
+            sus += pool.active_su
+            ipv4us += pool.active_ipv4
+        return self._get_identity().explorer.prices.calculate(cus, sus, ipv4us)  # TFTs per second
 
     def calculate_expiration_value(self, load_info=True):
         funded_period = self.calculate_funded_period(load_info)
@@ -578,9 +682,26 @@ class UserVDC(Base):
         dst_wallet = j.clients.stellar.find(destination_wallet_name)
         current_balance = self._get_wallet_balance(dst_wallet)
         j.logger.info(f"current balance in {destination_wallet_name} is {current_balance}")
-        vdc_cost = float(j.tools.zos.consumption.calculate_vdc_price(self.flavor.value)) / 2 + 0.5
+        vdc_cost = float(j.tools.zos.consumption.calculate_vdc_price(self.flavor.value)) / 2
         j.logger.info(f"vdc_cost: {vdc_cost}")
         if vdc_cost > current_balance:
             diff = float(vdc_cost) - float(current_balance)
             j.logger.info(f"funding diff: {diff} for vdc {self.vdc_name} from wallet: {funding_wallet_name}")
             self.pay_amount(dst_wallet.address, diff, wallet)
+
+    def get_ssh_client(self, name, ip_address, user, private_key_path=None):
+        private_key_path = (
+            private_key_path or f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
+        )
+        if not j.sals.fs.exists(private_key_path):
+            private_key_path = "/root/.ssh/id_rsa"
+        if not j.sals.fs.exists(private_key_path):
+            raise j.exceptions.Input(f"couldn't find key at default locations")
+        j.logger.info(f"getting ssh_client to: {user}@{ip_address} using key: {private_key_path}")
+        j.clients.sshkey.delete(name)
+        ssh_key = j.clients.sshkey.get(name)
+        ssh_key.private_key_path = private_key_path
+        ssh_key.load_from_file_system()
+        j.clients.sshclient.delete(name)
+        ssh_client = j.clients.sshclient.get(name, user=user, host=ip_address, sshkey=self.vdc_name)
+        return ssh_client

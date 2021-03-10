@@ -5,11 +5,10 @@ import time
 import pytest
 from jumpscale.loader import j
 from tests.base_tests import BaseTests
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 WALLET_NAME = os.environ.get("WALLET_NAME")
 WALLET_SECRET = os.environ.get("WALLET_SECRET")
-TRANSACTION_FEES = 0.1
-zos = j.sals.zos
 
 
 def info(msg):
@@ -32,11 +31,11 @@ def new_wallet():
     info("Create empty wallet")
     wallet_name = j.data.idgenerator.nfromchoices(10, string.ascii_letters)
     wallet = j.clients.stellar.new(wallet_name, network="STD")
-    wallet.activate_through_threefold_service()
+    wallet.activate_through_activation_wallet()
     wallet.add_known_trustline("TFT")
     yield wallet
     info("Returning XLMs to the activation wallet")
-    wallet.return_xlms_to_activation()
+    wallet.merge_into_account(get_funded_wallet().address)
 
 
 def get_wallet_balance(wallet):
@@ -71,6 +70,7 @@ def test01_create_pool_with_funded_wallet():
 
     info("Create a pool")
     farm = BaseTests.get_farm_name()
+    zos = j.sals.zos.get()
     pool = zos.pools.create(cu=1, su=1, ipv4us=0, farm=farm, currencies=["TFT"])
 
     info("Pay for the pool")
@@ -106,6 +106,7 @@ def test02_extend_pool_with_funded_wallet():
     user_tft_amount = get_wallet_balance(wallet)
 
     info("Extend an existing pool")
+    zos = j.sals.zos.get()
     pools = zos.pools.list()
     assert pools, "There is no existing pools to be extend"
 
@@ -142,6 +143,7 @@ def test03_create_pool_with_empty_wallet(new_wallet):
     - Check that the pool has been created with empty units.
     """
     info("Create a pool")
+    zos = j.sals.zos.get()
     farm = BaseTests.get_farm_name()
     pool = zos.pools.create(cu=1, su=1, ipv4us=0, farm=farm, currencies=["TFT"])
 
@@ -172,6 +174,7 @@ def test04_extend_pool_with_empty_wallet(new_wallet):
     - Check that the pool has not been extended.
     """
     info("Extend an existing pool")
+    zos = j.sals.zos.get()
     pools = zos.pools.list()
     assert pools, "There is no existing pools to be extended"
 

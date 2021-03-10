@@ -6,7 +6,7 @@ from stellar_sdk import Keypair
 from .exceptions import *
 from .stellar import Stellar
 
-ACTIVATION_WALLET_ADDRESS = "GCKLGWHEYT2V63HC2VDJRDWEY3G54YSHHPOA6Q3HAPQUGA5OZDWZL7KW"
+TRANSACTION_FEES = 0.01
 
 
 class StellarFactory(StoredFactory):
@@ -91,13 +91,6 @@ class StellarFactory(StoredFactory):
 
         j.logger.info("Wallet created successfully")
         return True
-
-    def get_activation_wallet_xlms(self) -> float:
-        balances = Stellar().get_balance(ACTIVATION_WALLET_ADDRESS)
-        for balance in balances.balances:
-            if balance.asset_code == "XLM":
-                return float(balance.balance)
-        return 0
 
 
 def export_module_as():

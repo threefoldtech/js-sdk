@@ -1,5 +1,4 @@
-# TODO: Fix importing problem
-# from jumpscale.packages.tfgrid_solutions.chats.4to6gw import FourToSixGateway
+from jumpscale.packages.tfgrid_solutions.chats.gw4to6 import FourToSixGateway
 from solutions_automation.utils.gedispatch import GedisChatBotPatch
 
 

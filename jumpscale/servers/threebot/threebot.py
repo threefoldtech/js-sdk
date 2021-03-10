@@ -277,6 +277,10 @@ class Package:
         return self._config
 
     @property
+    def ui_name(self):
+        return self.config.get("ui_name", self.name)
+
+    @property
     def actors_dir(self):
         actors_dir = j.sals.fs.join_paths(self.path, self.config.get("actors_dir", "actors"))
         if j.sals.fs.exists(actors_dir):
@@ -414,6 +418,7 @@ class PackageManager(Base):
                             "installed": True,
                             "frontend": package.config.get("frontend", False),
                             "chatflows": chatflows,
+                            "ui_name": package.ui_name,
                         }
                     )
                 else:
@@ -426,6 +431,10 @@ class PackageManager(Base):
             for pkg in os.listdir(path):
                 pkg_path = j.sals.fs.join_paths(path, pkg)
                 pkgtoml_path = j.sals.fs.join_paths(pkg_path, "package.toml")
+                ui_name = pkg
+                with open(pkgtoml_path) as f:
+                    conf = j.data.serializers.toml.loads(f.read())
+                    ui_name = conf.get("ui_name", pkg)
                 if pkg not in self.packages and j.sals.fs.exists(pkgtoml_path):
                     all_packages.append(
                         {
@@ -434,6 +443,7 @@ class PackageManager(Base):
                             "giturl": "",
                             "system_package": pkg in DEFAULT_PACKAGES.keys(),
                             "installed": False,
+                            "ui_name": ui_name,
                         }
                     )
 
@@ -516,6 +526,7 @@ class PackageManager(Base):
             "giturl": package.giturl,
             "kwargs": package.kwargs,
             "admins": package.admins,
+            "ui_name": package.ui_name,
         }
 
         self.save()

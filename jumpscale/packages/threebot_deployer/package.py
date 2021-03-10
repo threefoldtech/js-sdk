@@ -14,14 +14,13 @@ class threebot_deployer:
         WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
         if WALLET_NAME not in j.clients.stellar.list_all():
             wallet_secret = kwargs.get("wallet_secret", None)
-            wallet = j.clients.stellar.new(WALLET_NAME, secret=wallet_secret)
-
             if not wallet_secret:
+                j.logger.critical(f"Couldn't find wallet {WALLET_NAME} or its secret")
+            else:
                 # mainnet, activate and add trustlines to an empty wallet
-                wallet.activate_through_threefold_service()
-                wallet.add_known_trustline("TFT")
+                wallet = j.clients.stellar.new(WALLET_NAME, secret=wallet_secret)
                 wallet.save()
-            j.logger.info(f"Created wallet {WALLET_NAME} successfully and ready to use.")
+                j.logger.info(f"{WALLET_NAME} wallet has been imported successfully and ready to use.")
 
         # Configure Redis logs
         log_config = {}

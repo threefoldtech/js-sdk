@@ -254,7 +254,7 @@ class Stellar(Client):
         if self.network.value != "TEST":
             raise Exception("Account activation through friendbot is only available on testnet")
 
-        resp = j.tools.http.get("https://friendbot.stellar.org/", params={"address": self.address})
+        resp = j.tools.http.get("https://friendbot.stellar.org", params={"addr": self.address})
         resp.raise_for_status()
         j.logger.info(f"account with address {self.address} activated and funded through friendbot")
 
@@ -275,22 +275,27 @@ class Stellar(Client):
                 j.logger.error(f"failed to activate using the activation service {e}")
                 ## Try activating with `activation_wallet` j.clients.stellar.activation_wallet if exists
                 ## this activator should be imported on the system.
+        else:
+            raise RuntimeError(
+                "could not activate wallet. tried activation service and there's no activation_wallet configured on the system"
+            )
 
-        if "activation_wallet" in j.clients.stellar.list_all() and self.instance_name != "activation_wallet":
+    def activate_through_activation_wallet(self, wallet_name="activation_wallet"):
+        """Activate your wallet through activation wallet.
+        """
+        if wallet_name in j.clients.stellar.list_all() and self.instance_name != wallet_name:
             j.logger.info(f"trying to fund the wallet ourselves with the activation wallet")
             j.logger.info(f"activation wallet {self.instance_name}")
             for _ in range(5):
                 try:
-                    j.clients.stellar.activation_wallet.activate_account(self.address, "3.6")
+                    j.clients.stellar.activation_wallet.activate_account(self.address, "2.6")
                     self.add_known_trustline("TFT")
                     j.logger.info(f"activated wallet {self.instance_name}")
                     return
                 except Exception as e:
                     j.logger.error(f"failed to activate wallet {self.instance_name} using activation_wallet")
         else:
-            raise RuntimeError(
-                "could not activate wallet. tried activation service and there's no activation_wallet configured on the system"
-            )
+            raise RuntimeError(f"could not find the activation wallet: {wallet_name}")
 
     def activate_account(self, destination_address, starting_balance="3.6"):
         """Activates another account

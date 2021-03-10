@@ -33,6 +33,7 @@ requests_unixsocket = "^0.2.0"
 protobuf = "^3.12.2"
 namecom = "^0.5.0"
 crontab = "^0.22.9"
+parameterized = "^0.8.1"
 
 [tool.poetry.scripts]
 threebot = "jumpscale.entry_points.threebot:cli"
@@ -43,4 +44,4 @@ build-backend = "poetry.masonry.api"
 
 [tool.pytest.ini_options]
 markers = ["integration: marks tests as integration (deselect with '-m \"not integration\"')",
-           "unittests"]
+           "unittests", "extend"]

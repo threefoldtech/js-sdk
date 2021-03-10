@@ -68,11 +68,12 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    getZstorConfig: () => {
+    getZstorConfig: (ip_version) => {
       return axios({
         url: `${baseURL}/zstor/config`,
         method: "post",
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        data: { ip_version: ip_version }
       })
     },
     getZdbSecret: () => {
@@ -97,6 +98,53 @@ const apiClient = {
         url: `${baseURL}/update`,
         method: "get"
       })
-    }
-  }
+    },
+    checkForUpdate: () => {
+      return axios({
+        url: `${baseURL}/check_update`,
+        method: "get"
+      })
+    },
+  },
+  wallets: {
+    walletQRCodeImage: (address, amount, scale) => {
+      return axios({
+        url: `${baseURL}/wallet/qrcode/get`,
+        method: "post",
+        data: { address: address, amount: amount, scale: scale },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
+  },
+  backup: {
+    list: () => {
+      return axios({
+        url: `${baseURL}/backup/list`,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
+    create: () => {
+      return axios({
+        url: `${baseURL}/backup/create`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
+    delete: (name) => {
+      return axios({
+        url: `${baseURL}/backup/delete`,
+        method: "post",
+        data: { name: name },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
+    restore: (name) => {
+      return axios({
+        url: `${baseURL}/backup/restore`,
+        method: "post",
+        data: { name: name },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
+  },
 }
