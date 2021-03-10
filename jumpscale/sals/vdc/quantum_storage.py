@@ -27,12 +27,26 @@ class QuantumStorage:
             ssh_client = self.vdc.get_ssh_client(
                 f"qs_init_{kubernetes_node.wid}", kubernetes_node.ip_address, "rancher"
             )
-
-            j.logger.info(f"Downloading zdbstor config on: {kubernetes_node.wid} in {ZSTORCONF_PATH}")
             j.logger.info(f"Downloading zdb hook on: {kubernetes_node.wid} in {ZDB_HOOK_PATH}")
+
+            zdb_hook_data = None
+            try:
+                zdb_hook_res = j.tools.http.get(ZDB_HOOK_URL)
+                zdb_hook_res.raise_for_status()
+                zdb_hook_data = zdb_hook_res.text
+                j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/zdb_hook.sh", zdb_hook_data)
+            except Exception as e:
+                j.logger.critical(
+                    f"Failed to download zdb hook on: {kubernetes_node.wid} due to {str(e)}, It will be used from cache."
+                )
+                if not j.sals.fs.exists(f"{j.core.dirs.CFGDIR}/vdc/zdb_hook.sh"):
+                    raise e
+                zdb_hook_data = j.sals.fs.read_file(f"{j.core.dirs.CFGDIR}/vdc/zdb_hook.sh")
+
             ssh_client.sshclient.run(
-                f"mkdir -p /home/rancher/0-db-fs/ && curl {ZDB_HOOK_URL} > {ZDB_HOOK_PATH} && chmod +x {ZDB_HOOK_PATH}"
+                f"mkdir -p /home/rancher/0-db-fs/ && echo '''{zdb_hook_data}''' > {ZDB_HOOK_PATH} && chmod +x {ZDB_HOOK_PATH}"
             )
+
             j.logger.info(f"Creating dirs on: {kubernetes_node.wid} ...")
             ssh_client.sshclient.run(f"sudo mkdir -p /zdb/data /zdb/index && sudo chown -R rancher:rancher /zdb")
             ssh_client.sshclient.run(
@@ -41,6 +55,7 @@ class QuantumStorage:
             j.logger.info(f"Updating fuse config file on: {kubernetes_node.wid}")
             ssh_client.sshclient.run("sudo sed -i /#user_allow_other/c\\user_allow_other /etc/fuse.conf")
 
+            j.logger.info(f"Downloading zdbstor config on: {kubernetes_node.wid} in {ZSTORCONF_PATH}")
             endpoints = [f"http://{etcdnode.ip_address}:2379" for etcdnode in self.vdc.etcd]
             prefix = j.sals.fs.basename(mount_location)
             ssh_client.sshclient.run(f"sudo echo '''{self.zstor_config(endpoints, prefix)}''' > {ZSTORCONF_PATH}")
