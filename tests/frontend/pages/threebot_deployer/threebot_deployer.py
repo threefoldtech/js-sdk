@@ -20,7 +20,7 @@ class ThreebotDeployer(Base):
         view_my_existing_3bot_button.click()
         self.wait(self.driver, "v-data-table__progress")
 
-        # select All ti show all 3bots
+        # select All to show all 3bots
         footer = self.driver.find_element_by_class_name("v-data-footer")
         select_dev = footer.find_element_by_class_name("v-input__control")
         select_dev.click()
@@ -64,12 +64,12 @@ class ThreebotDeployer(Base):
         )
 
     def deploy_new_3bot(self, my_3bot_instances, password, wallet_name):
-
         # Deploy a new 3bot button
         self.wait(self.driver, "v-progress-circular")
 
         deploy_new_3bot_button = self.driver.find_elements_by_class_name("v-btn__content")[1]
         deploy_new_3bot_button.click()
+        self.wait(self.driver, "v-progress-circular")
 
         # switch driver to iframe
         iframe = self.driver.find_elements_by_tag_name("iframe")[0]
@@ -83,16 +83,18 @@ class ThreebotDeployer(Base):
         name_input.send_keys(my_3bot_instances)
         self.click_button(self.driver, "NEXT")
         self.wait(self.driver, "v-progress-circular")
+        self.wait(self.driver, "v-card__progress")
 
         # Choose how much resources the deployed solution will use.
         # We use 1 CPU, 2GB Memory, and 2GB[SSD] in this example.
 
         self.click_button(self.driver, "NEXT")
+        self.wait(self.driver, "v-progress-circular")
 
         # choose ssh file
-        ssh_element = chat_box.find_element_by_class_name("v-text-field__slot")
-        ssh_input = ssh_element.find_element_by_tag_name("input")
-        ssh_input.send_keys("/home/hassan/.ssh/id_rsa.pub")
+        # ssh_element = chat_box.find_element_by_class_name("v-text-field__slot")
+        # ssh_input = ssh_element.find_element_by_tag_name("input")
+        # ssh_input.send_keys("/home/hassan/.ssh/id_rsa.pub")
         self.click_button(self.driver, "NEXT")
         self.wait(self.driver, "v-progress-circular")
 
@@ -101,25 +103,27 @@ class ThreebotDeployer(Base):
         password_input = password_element.find_element_by_tag_name("input")
         password_input.send_keys(password)
         self.click_button(self.driver, "NEXT")
+        self.wait(self.driver, "v-card__progress")
         self.wait(self.driver, "v-progress-circular")
 
         # The deployment location policy ( We here use it automatically )
 
         self.click_button(self.driver, "NEXT")
-        # TODO need line wait
-        self.wait(self.driver, "v-card--loading")
+        self.wait(self.driver, "v-card__progress")
+
         self.wait(self.driver, "v-progress-circular")
         # wait for "Initializing your 3Bot ..."
         self.wait(self.driver, "v-progress-circular")
+        # solution's expiration time
         self.click_button(self.driver, "NEXT")
+        self.wait(self.driver, "v-card__progress")
         self.wait(self.driver, "v-progress-circular")
 
         # Payment process
-        self.wait(self.driver, "v-progress-linear__indeterminate")
+        self.wait(self.driver, "v-progress-circular")
         self.payment_process(wallet_name=wallet_name)
         self.click_button(self.driver, "NEXT")
         self.wait(self.driver, "v-progress-circular")
-
         self.click_button(self.driver, "NEXT")
         self.wait(self.driver, "v-progress-circular")
 
@@ -156,7 +160,7 @@ class ThreebotDeployer(Base):
         return my_3bot_instances
 
     def delete_threebot_instance(self, my_3bot_instance_name, password):
-
+        self.wait(self.driver, "v-progress-linear__buffer")
         # View an existing 3bot button
         self.view_an_existing_3bot_button()
 
@@ -203,6 +207,7 @@ class ThreebotDeployer(Base):
         return threebot_instance_URL
 
     def stop_running_3bot_instance(self, my_3bot_instance_name, password):
+        self.wait(self.driver, "v-progress-linear__buffer")
 
         # View an existing 3bot button
         self.view_an_existing_3bot_button()

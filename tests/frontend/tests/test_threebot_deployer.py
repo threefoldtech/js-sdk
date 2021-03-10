@@ -26,10 +26,11 @@ class ThreebotDeployerTests(BaseTest):
         wallet.save()
 
     def tearDown(self):
-        self.info("Delete the threebot instance")
-        self.threebot_deployer.delete_threebot_instance(
-            my_3bot_instance_name=self.threebot_name, password=self.password
-        )
+        self.info("Stop and Delete the threebot instance")
+        threebot_deployer = ThreebotDeployer(self.driver)
+        threebot_deployer.load()
+        threebot_deployer.stop_running_3bot_instance(my_3bot_instance_name=self.threebot_name, password=self.password)
+        threebot_deployer.delete_threebot_instance(my_3bot_instance_name=self.threebot_name, password=self.password)
         super().tearDown()
 
     def test01_deploy_3bot(self):
@@ -44,7 +45,7 @@ class ThreebotDeployerTests(BaseTest):
         threebot_deployer = ThreebotDeployer(self.driver)
         threebot_deployer.load()
         self.info("Create a threebot instance")
-        self.threebot_name = "threebot{}".format(randint(1, 1000))
+        self.threebot_name = self.random_name().lower()
         self.password = randint(1, 500000)
         threebot_instance_url = threebot_deployer.deploy_new_3bot(
             my_3bot_instances=self.threebot_name, password=self.password, wallet_name=self.wallet_name
