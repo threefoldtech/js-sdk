@@ -50,7 +50,11 @@
             </v-list-item>
             <v-list-item>
               <v-list-item-content>
-                <v-btn :loading="updateLoading" text color="blue" @click.stop="updateDashboard()"
+                <v-btn
+                  :loading="updateLoading"
+                  text
+                  color="blue"
+                  @click.stop="updateDashboard()"
                   >Update Dashboard</v-btn
                 >
               </v-list-item-content>
@@ -95,6 +99,19 @@
       <router-view @update-dashboard="updateDashboard"></router-view>
       <popup></popup>
     </v-main>
+    <v-dialog v-model="dialog" hide-overlay persistent width="300">
+      <v-card :color="dialogColor" dark>
+        <v-card-text>
+          {{ dialogMessage }}
+          <v-progress-linear
+            v-if="dialogLinear"
+            indeterminate
+            color="white"
+            class="mb-0"
+          ></v-progress-linear>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-app>
 </template>
 
@@ -106,6 +123,10 @@ module.exports = {
       menu: false,
       mini: false,
       updateLoading: false,
+      dialog: false,
+      dialogLinear: true,
+      dialogColor: "primary",
+      dialogMessage: "Updating the VDC...",
     };
   },
   methods: {
@@ -120,20 +141,50 @@ module.exports = {
         });
     },
     updateDashboard() {
-      this.updateLoading = true;
       this.$api.version
         .update()
         .then(() => {
-          this.$router.go(0);
-          this.updateLoading = false;
+          this.menu = false;
+          // show massege say "request success and now the server is restarting"
+          this.dialog = true;
+          // wait until the server start
+          const startTime = new Date();
+          let timeNow = new Date();
+          let timeSpent = 0;
+          while (timeSpent > 5) {
+            this.$api.server
+              .isRunning()
+              .then(() => {
+                console.log("server started");
+                // refresh the page
+                this.$router.go(0);
+                break;
+              })
+              .catch(() => {
+                console.log("server is restarting...");
+              });
+            timeNow = new Date();
+            timeSpent = (startTime.getTime() - timeNow.getTime()) / 1000;
+            timeSpent /= 60; //convert to min
+          }
+          if (timeSpent > 5) {
+            this.dialogColor = "error";
+            this.dialogLinear = false;
+            this.dialogMessage =
+              "Error in updating the VDC, please contact support.";
+          }
         })
+        .catch((error) => {
+          this.menu = false;
+          console.log(`Can't update the vdc ${error}`);
+        });
     },
     logout() {
       // clear cache on logout
       var backlen = history.length;
       history.go(-backlen);
       window.location.href = "/auth/logout";
-    }
+    },
   },
   mounted() {
     this.getCurrentUser();

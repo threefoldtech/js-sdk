@@ -410,4 +410,12 @@ def redir(solution):
     return redirect(f"/vdc_dashboard/#{solution}")
 
 
+@app.route("/api/vdc/status", method="GET")
+@login_required
+def is_running():
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"running": True}), status=200, headers={"Content-Type": "application/json"}
+    )
+
+
 app = SessionMiddleware(app, SESSION_OPTS)

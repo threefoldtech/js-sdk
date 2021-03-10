@@ -9,6 +9,14 @@ const apiClient = {
       })
     }
   },
+  server:{
+    isRunning: () => {
+      return axios({
+        url: `${baseURL}/vdc/status`,
+        method: "get"
+      })
+    }
+  },
   admins: {
     getCurrentUser: () => {
       return axios({
