@@ -16,7 +16,7 @@ class TaigaDeploy(SolutionsChatflowDeploy):
     @chatflow_step(title="Configurations")
     def set_config(self):
 
-        self._choose_flavor()
+        self._choose_flavor(chart_limits=self.CHART_LIMITS)
         self.chart_config.update(
             {
                 "domain": self.domain,
