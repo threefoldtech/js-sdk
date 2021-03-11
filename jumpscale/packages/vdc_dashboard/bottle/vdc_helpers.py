@@ -75,6 +75,4 @@ def threebot_vdc_helper(vdc=None):
     }
     vdc_dict["price"] = math.ceil(vdc.calculate_spec_price())
 
-    return HTTPResponse(
-        j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
-    )
+    return vdc_dict

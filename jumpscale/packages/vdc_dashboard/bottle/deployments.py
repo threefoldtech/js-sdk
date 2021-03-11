@@ -170,7 +170,10 @@ def list_all_deployments() -> str:
 @package_authorized("vdc_dashboard")
 def threebot_vdc():
     vdc = get_vdc()
-    return threebot_vdc_helper(vdc=vdc)
+    vdc_dict = threebot_vdc_helper(vdc=vdc)
+    return HTTPResponse(
+        j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
+    )
 
 
 @app.route("/api/deployments/install", method="POST")
