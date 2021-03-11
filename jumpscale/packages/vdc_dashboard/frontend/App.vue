@@ -144,7 +144,7 @@ module.exports = {
       let startTime = new Date();
       let timeNow = new Date();
       let timeSpent = 0;
-      while (timeSpent > 5) {
+      while (timeSpent <= 5) {
         await this.$api.server
           .isRunning()
           .then(() => {
@@ -160,12 +160,9 @@ module.exports = {
         timeSpent = (startTime.getTime() - timeNow.getTime()) / 1000;
         timeSpent /= 60; //convert to min
       }
-      if (timeSpent > 5) {
-        this.dialogColor = "error";
-        this.dialogLinear = false;
-        this.dialogMessage =
-          "Error in updating the VDC, please contact support.";
-      }
+      this.dialogColor = "error";
+      this.dialogLinear = false;
+      this.dialogMessage = "Error in updating the VDC, please contact support.";
     },
     async updateDashboard() {
       this.menu = false;
@@ -175,9 +172,9 @@ module.exports = {
         .update()
         .then(() => {
           // wait until the server start
-          console.log("this. >>> ",this.serverIsrunningCheck)
-          console.log("without this. >>>> ",serverIsrunningCheck)
-          this.serverIsrunningCheck()
+          setTimeout(async () => {
+            await this.serverIsrunningCheck();
+          }, 1000 * 5);
         })
         .catch((error) => {
           this.menu = false;
