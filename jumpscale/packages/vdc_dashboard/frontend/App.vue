@@ -149,6 +149,8 @@ module.exports = {
           .isRunning()
           .then(() => {
             console.log("server started");
+            // refresh the page
+            this.$router.go(0);
             return;
           })
           .catch(() => {
@@ -171,11 +173,11 @@ module.exports = {
       this.dialog = true;
       await this.$api.version
         .update()
-        .then(async () => {
+        .then(() => {
           // wait until the server start
-          await this.serverIsrunningCheck()
-          // refresh the page
-          this.$router.go(0);
+          console.log("this. >>> ",this.serverIsrunningCheck)
+          console.log("without this. >>>> ",serverIsrunningCheck)
+          this.serverIsrunningCheck()
         })
         .catch((error) => {
           this.menu = false;
