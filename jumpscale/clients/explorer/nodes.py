@@ -133,6 +133,27 @@ class Nodes(BaseResource):
         )
         return True
 
+
+    def configure_dedicated(self, node_id: str, user: int) -> bool:
+        """
+        configure if the node capacity can be paid using FreeTFT
+
+        :param node_id: the node ID of the node to configure
+        :type node_id: str
+        :param user: user id to dedicate this node to, 0 to unset.
+        :type user: int
+        :return: True when the configuration was done successfully
+        :rtype: bool
+        """
+        if not isinstance(user, int):
+            raise Input("user must be an int")
+
+        data = {"user_id": user}
+        self._session.put(
+            f"{self._url}/{node_id}/dedicated", json=data,
+        )
+        return True
+
     def configure_public_config(
         self, node_id: str, master_iface: str, ipv4: str, gw4: str, ipv6: str, gw6: str
     ) -> bool:
