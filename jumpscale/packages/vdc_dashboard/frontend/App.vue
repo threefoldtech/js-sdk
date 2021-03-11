@@ -140,39 +140,42 @@ module.exports = {
           this.user = null;
         });
     },
+    async serverIsrunningCheck() {
+      let startTime = new Date();
+      let timeNow = new Date();
+      let timeSpent = 0;
+      while (timeSpent > 5) {
+        await this.$api.server
+          .isRunning()
+          .then(() => {
+            console.log("server started");
+            return;
+          })
+          .catch(() => {
+            console.log("server is restarting...");
+          });
+        timeNow = new Date();
+        timeSpent = (startTime.getTime() - timeNow.getTime()) / 1000;
+        timeSpent /= 60; //convert to min
+      }
+      if (timeSpent > 5) {
+        this.dialogColor = "error";
+        this.dialogLinear = false;
+        this.dialogMessage =
+          "Error in updating the VDC, please contact support.";
+      }
+    },
     updateDashboard() {
       this.$api.version
         .update()
-        .then(() => {
+        .then(async () => {
           this.menu = false;
           // show massege say "request success and now the server is restarting"
           this.dialog = true;
           // wait until the server start
-          const startTime = new Date();
-          let timeNow = new Date();
-          let timeSpent = 0;
-          while (timeSpent > 5) {
-            this.$api.server
-              .isRunning()
-              .then(() => {
-                console.log("server started");
-                // refresh the page
-                this.$router.go(0);
-                break;
-              })
-              .catch(() => {
-                console.log("server is restarting...");
-              });
-            timeNow = new Date();
-            timeSpent = (startTime.getTime() - timeNow.getTime()) / 1000;
-            timeSpent /= 60; //convert to min
-          }
-          if (timeSpent > 5) {
-            this.dialogColor = "error";
-            this.dialogLinear = false;
-            this.dialogMessage =
-              "Error in updating the VDC, please contact support.";
-          }
+          await this.serverIsrunningCheck()
+          // refresh the page
+          this.$router.go(0);
         })
         .catch((error) => {
           this.menu = false;
