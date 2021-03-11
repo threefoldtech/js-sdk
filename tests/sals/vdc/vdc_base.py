@@ -66,19 +66,19 @@ class VDCBase(BaseTests):
         cls.server.start()
 
     @classmethod
-    def deploy_vdc(cls):
+    def deploy_vdc(cls, hours=1):
         cls.vdc_name = cls.random_name().lower()
         cls.password = cls.random_string()
         cls.vdc = j.sals.vdc.new(cls.vdc_name, cls.tname, cls.flavor)
 
         cls.info("Transfer needed TFT to deploy vdc for an hour to the provisioning wallet.")
         cls.vdc_price = j.tools.zos.consumption.calculate_vdc_price(cls.flavor)
-        needed_tft = (
+        needed_tft = hours * (
             float(cls.vdc_price) / 24 / 30 + 2 * TRANSACTION_FEES
         )  # 2 transaction fees for creating the pool and extend it
         cls.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
 
-        cls.info("Deploy VDC.")
+        cls.info(f"Deploy VDC for {hours} hours.")
         cls.deployer = cls.vdc.get_deployer(password=cls.password)
         minio_ak = cls.random_name().lower()
         minio_sk = cls.random_string()
