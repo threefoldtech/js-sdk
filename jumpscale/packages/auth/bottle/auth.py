@@ -387,4 +387,26 @@ def get_package_admins(package_name):
     return package.admins
 
 
+def controller_autherized():
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            # Get vdc instance and password
+            vdc_full_name = list(j.sals.vdc.list_all())[0]
+            vdc = j.sals.vdc.get(vdc_full_name)
+            vdc_zdb_monitor = vdc.get_zdb_monitor()
+            vdc_password = vdc_zdb_monitor.get_password()
+
+            # Get password from request
+            data = j.data.serializers.json.loads(request.body.read())
+            request_input_password = data.get("password")
+
+            if request_input_password != vdc_password:
+                return abort(403)
+            return function(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 app = SessionMiddleware(app, SESSION_OPTS)
