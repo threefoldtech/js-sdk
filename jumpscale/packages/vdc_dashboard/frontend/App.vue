@@ -101,7 +101,7 @@
     </v-main>
     <v-dialog v-model="dialog" hide-overlay persistent width="300">
       <v-card :color="dialogColor" dark>
-        <v-card-text>
+        <v-card-text class="pt-4">
           {{ dialogMessage }}
           <v-progress-linear
             v-if="dialogLinear"
@@ -110,6 +110,12 @@
             class="mb-0"
           ></v-progress-linear>
         </v-card-text>
+        <v-card-actions v-if="!dialogLinear">
+          <v-spacer></v-spacer>
+          <v-btn color="white darken-1" text @click="dialog = false">
+            close
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </v-app>
@@ -178,6 +184,10 @@ module.exports = {
         })
         .catch((error) => {
           this.menu = false;
+          this.dialogColor = "error";
+          this.dialogLinear = false;
+          this.dialogMessage =
+            "Error in updating the VDC, please contact support.";
           console.log(`Can't update the vdc ${error}`);
         });
     },
