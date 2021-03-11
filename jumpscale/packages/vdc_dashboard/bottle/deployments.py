@@ -8,27 +8,17 @@ from jumpscale.packages.auth.bottle.auth import (
     get_user_info,
     authenticated,
     package_authorized,
-    controller_autherized,
 )
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper
 from jumpscale.core.base import StoredFactory
 from jumpscale.sals.vdc.size import VDC_SIZE
 from jumpscale.sals.vdc.models import KubernetesRole
 
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
 import os
-import math
 
 app = Bottle()
-
-
-def _get_vdc(username=None):
-    if not username:
-        user_info = j.data.serializers.json.loads(get_user_info())
-        username = user_info["username"]
-    vdc_full_name = list(j.sals.vdc.list_all())[0]
-    vdc_instance = j.sals.vdc.get(vdc_full_name)
-    return j.sals.vdc.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
 
 
 def _get_addons(flavor, kubernetes_addons):
@@ -141,7 +131,7 @@ def delete_node():
 @app.route("/api/s3/expose")
 @package_authorized("vdc_dashboard")
 def expose_s3() -> str:
-    vdc = _get_vdc()
+    vdc = get_vdc()
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
 
@@ -176,53 +166,11 @@ def list_all_deployments() -> str:
     return j.data.serializers.json.dumps({"data": deployments})
 
 
-def _threebot_vdc_helper(vdc=None):
-    if not vdc:
-        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
-    vdc_dict = vdc.to_dict()
-    vdc_dict["expiration_days"] = (vdc.expiration_date - j.data.time.now()).days
-    vdc_dict["expiration_date"] = vdc.calculate_expiration_value(False)
-    # Add wallet address
-    wallet = vdc.prepaid_wallet
-    balances = wallet.get_balance()
-    balances_data = []
-    for item in balances.balances:
-        # Add only TFT balance
-        if item.asset_code == "TFT":
-            balances_data.append(
-                {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
-            )
-    vdc_dict["total_capacity"] = _total_capacity(vdc)
-    vdc_dict["wallet"] = {
-        "address": wallet.address,
-        "network": wallet.network.value,
-        "secret": wallet.secret,
-        "balances": balances_data,
-    }
-    vdc_dict["price"] = math.ceil(vdc.calculate_spec_price())
-
-    return HTTPResponse(
-        j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
-    )
-
-
 @app.route("/api/threebot_vdc", method="GET")
 @package_authorized("vdc_dashboard")
 def threebot_vdc():
-    vdc = _get_vdc()
-    return _threebot_vdc_helper(vdc=vdc)
-
-
-@app.route("/api/controller/threebot_vdc", method="POST")
-@controller_autherized()
-def controller_threebot_vdc():
-    # get username
-    data = j.data.serializers.json.loads(request.body.read())
-    username = data.get("username")
-    if not username:
-        abort(400, "Error: Not all required params was passed.")
-    vdc = _get_vdc(username=username)
-    return _threebot_vdc_helper(vdc=vdc)
+    vdc = get_vdc()
+    return threebot_vdc_helper(vdc=vdc)
 
 
 @app.route("/api/deployments/install", method="POST")
@@ -260,7 +208,7 @@ def cancel_deployment():
         abort(400, "Error: Not all required params was passed.")
     config_path = j.sals.fs.expanduser("~/.kube/config")
     k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
-    vdc = _get_vdc()
+    vdc = get_vdc()
     if namespace == "default":
         k8s_client.delete_deployed_release(release=data["release"], vdc_instance=vdc, namespace=namespace)
     else:
@@ -281,7 +229,7 @@ def get_zstor_config():
     zstor_config = _get_zstor_config(ip_version)
     if not zstor_config:
         return HTTPResponse(
-            status=400, message=f"unsupported ip version: {ip_version}", headers={"Content-Type": "application/json"},
+            status=400, message=f"unsupported ip version: {ip_version}", headers={"Content-Type": "application/json"}
         )
     return j.data.serializers.json.dumps({"data": j.data.serializers.toml.dumps(zstor_config)})
 
@@ -289,7 +237,7 @@ def get_zstor_config():
 @app.route("/api/zdb/secret", method="GET")
 @authenticated
 def get_zdb_secret():
-    vdc = _get_vdc()
+    vdc = get_vdc()
     vdc_zdb_monitor = vdc.get_zdb_monitor()
     password = vdc_zdb_monitor.get_password()
     return j.data.serializers.json.dumps({"data": password})
@@ -444,7 +392,7 @@ def is_running():
 @app.route("/api/quantumstorage/enable", method="GET")
 @login_required
 def enable_quantumstorage():
-    vdc = _get_vdc()
+    vdc = get_vdc()
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
 
