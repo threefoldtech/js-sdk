@@ -19,7 +19,7 @@ class TaigaDeploy(SolutionsChatflowDeploy):
         self._choose_flavor(chart_limits=self.CHART_LIMITS)
         self.chart_config.update(
             {
-                "domain": self.domain,
+                "ingress.host": self.domain,
                 "resources.cpu": self.resources_limits["cpu"][:-1],  # remove units added in chart
                 "resources.memory": self.resources_limits["memory"][:-2],  # remove units added in chart
             }
