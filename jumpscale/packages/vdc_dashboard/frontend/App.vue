@@ -165,13 +165,13 @@ module.exports = {
           "Error in updating the VDC, please contact support.";
       }
     },
-    updateDashboard() {
-      this.$api.version
+    async updateDashboard() {
+      this.menu = false;
+      // show massege say "request success and now the server is restarting"
+      this.dialog = true;
+      await this.$api.version
         .update()
         .then(async () => {
-          this.menu = false;
-          // show massege say "request success and now the server is restarting"
-          this.dialog = true;
           // wait until the server start
           await this.serverIsrunningCheck()
           // refresh the page
