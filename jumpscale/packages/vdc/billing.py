@@ -27,7 +27,7 @@ def transfer_prepaid_to_provision_wallet():
     prepaid_wallet = vdc_instance.prepaid_wallet
     provision_wallet = vdc_instance.provision_wallet
     tft = prepaid_wallet._get_asset("TFT")
-    hourly_amount = vdc_instance.calculate_spec_price() * 60 * 60
+    hourly_amount = vdc_instance.calculate_spec_price() / (24 * 30)
     j.logger.info(
         f"starting the hourly transaction from prepaid wallet to provision wallet with total hourly amount {hourly_amount}"
     )
