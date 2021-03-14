@@ -350,9 +350,13 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def get_release_name(self):
         self._get_vdc_info()
         message = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
-        releases = [release["name"] for release in self.k8s_client.list_deployed_releases()]
+        releases = [
+            release["name"]
+            for release in self.k8s_client.list_deployed_releases()
+            if release["namespace"].startswith(self.chart_name)
+        ]
         self.release_name = self.string_ask(
-            message, required=True, is_identifier=True, not_exist=["solution name", releases], md=True
+            message, required=True, is_identifier=True, not_exist=["solution name", releases], md=True, max_length=20
         )
 
     @chatflow_step(title="Create subdomain")

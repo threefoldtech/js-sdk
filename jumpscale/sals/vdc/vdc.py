@@ -491,7 +491,7 @@ class UserVDC(Base):
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
             result = bot.single_choice(
-                f"Do you want to use your existing balance to pay {amount} TFT? (This will impact the overall expiration of your plan)",
+                f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
                 ["Yes", "No"],
                 required=True,
             )

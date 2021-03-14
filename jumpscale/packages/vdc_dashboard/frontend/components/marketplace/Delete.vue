@@ -9,7 +9,7 @@
       Are you sure you want to cancel {{ releasename }}?
     </template>
     <template #actions>
-      <v-btn text @click="close">Close</v-btn>
+      <v-btn text @close="close">Close</v-btn>
       <v-btn text color="error" @click="submit">Confirm</v-btn>
     </template>
   </base-dialog>
