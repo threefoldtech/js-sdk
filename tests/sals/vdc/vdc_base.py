@@ -71,7 +71,7 @@ class VDCBase(BaseTests):
         cls.password = cls.random_string()
         cls.vdc = j.sals.vdc.new(cls.vdc_name, cls.tname, cls.flavor)
 
-        cls.info("Transfer needed TFT to deploy vdc for an hour to the provisioning wallet.")
+        cls.info(f"Transfer needed TFT to deploy vdc for {hours} hour/s to the provisioning wallet.")
         cls.vdc_price = j.tools.zos.consumption.calculate_vdc_price(cls.flavor)
         needed_tft = hours * (
             float(cls.vdc_price) / 24 / 30 + 2 * TRANSACTION_FEES
