@@ -21,7 +21,7 @@ class FundPricesDifference(BackgroundService):
         for vdc_name in VDCFACTORY.list_all():
             vdc_instance = VDCFACTORY.find(vdc_name)
             vdc_instance.load_info()
-            vdc_spec_price = vdc_instance.calculate_spec_price()  # user price
+            vdc_spec_price = vdc_instance.calculate_spec_price() / (24 * 30)  # user price
             # check if vdc in grace period
             if vdc_instance.is_blocked or vdc_instance.is_empty():
                 j.logger.info(f"FUND PRICES DIFF: VDC {vdc_instance.instance_name} is empty or in grace period")
