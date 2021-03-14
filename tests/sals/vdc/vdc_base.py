@@ -50,7 +50,7 @@ class VDCBase(BaseTests):
             cls.me = j.core.identity.me
 
         # Configure test identity and start threebot server.
-        cls.explorer_url = "https://explorer.devnet.grid.tf/api/v1"
+        cls.explorer_url = "https://explorer.testnet.grid.tf/api/v1"
         cls.identity_name = j.data.random_names.random_name()
         identity = j.core.identity.new(
             cls.identity_name, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url
@@ -74,9 +74,8 @@ class VDCBase(BaseTests):
         cls.info(f"Transfer needed TFT to deploy vdc for {hours} hour/s to the provisioning wallet.")
         cls.vdc_price = j.tools.zos.consumption.calculate_vdc_price(cls.flavor)
         extension_fees = TRANSACTION_FEES if hours > 1 else 0
-        needed_tft = hours * (
-            float(cls.vdc_price) / 24 / 30 ) + 2 * TRANSACTION_FEES + extension_fees
-        )  # 2 transaction fees for creating the pool and extend it
+        needed_tft = hours * (float(cls.vdc_price) / 24 / 30) + 2 * TRANSACTION_FEES + extension_fees
+        # 2 transaction fees for creating the pool and extend it
         cls.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
 
         cls.info(f"Deploy VDC for {hours} hours.")
@@ -85,5 +84,6 @@ class VDCBase(BaseTests):
         minio_sk = cls.random_string()
         cls.timestamp_now = j.data.time.get().utcnow().timestamp
         kube_config = cls.deployer.deploy_vdc(minio_ak, minio_sk)
-        cls.deployer.renew_plan(duration=hours / 24)
+        if hours > 1:
+            cls.deployer.renew_plan(duration=hours / 24)
         return kube_config
