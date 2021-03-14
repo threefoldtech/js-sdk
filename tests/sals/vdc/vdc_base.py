@@ -50,7 +50,7 @@ class VDCBase(BaseTests):
             cls.me = j.core.identity.me
 
         # Configure test identity and start threebot server.
-        cls.explorer_url = "https://explorer.testnet.grid.tf/api/v1"
+        cls.explorer_url = "https://explorer.devnet.grid.tf/api/v1"
         cls.identity_name = j.data.random_names.random_name()
         identity = j.core.identity.new(
             cls.identity_name, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url
@@ -84,4 +84,5 @@ class VDCBase(BaseTests):
         minio_sk = cls.random_string()
         cls.timestamp_now = j.data.time.get().utcnow().timestamp
         kube_config = cls.deployer.deploy_vdc(minio_ak, minio_sk)
+        cls.deployer.renew_plan(duration=hours / 24)
         return kube_config
