@@ -35,7 +35,7 @@ Test case for delete deployed chart.
 **Test Scenario**
 
 - Deploy VDC
-- Deploy ETCD chart
+- Deploy Cryptpad chart
 - Check that chart deployed
 - Delete deployed chart
 - List all deployed charts
