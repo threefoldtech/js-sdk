@@ -15,9 +15,9 @@
           <template slot="no-data">No pools available</p></template>
           <template v-slot:item.node_ids="{ item }">{{ item.node_ids.length }}</template>
           <template v-slot:item.active_workload_ids="{ item }">{{ item.active_workload_ids.length }}</template>
-          <template v-slot:item.cus="{ item }">{{ ( item.active_cu * (30*24*60*60) ).toFixed(1) }} / {{ item.cus.toFixed(0) }} </template>
-          <template v-slot:item.sus="{ item }">{{ ( item.active_su * (30*24*60*60) ).toFixed(1) }} / {{ item.sus.toFixed(0) }} </template>
-          <template v-slot:item.ipv4us="{ item }">{{ ( item.active_ipv4 * (30*24*60*60) ).toFixed(1) }} / {{ item.ipv4us.toFixed(0) }} </template>
+          <template v-slot:item.cus="{ item }">{{ ( item.active_cu * (30*24*60*60) ).toFixed(1) }} / {{ item.cus.toFixed(1) }} </template>
+          <template v-slot:item.sus="{ item }">{{ ( item.active_su * (30*24*60*60) ).toFixed(1) }} / {{ item.sus.toFixed(1) }} </template>
+          <template v-slot:item.ipv4us="{ item }">{{ ( item.active_ipv4 * (30*24*60*60) ).toFixed(1) }} / {{ item.ipv4us.toFixed(1) }} </template>
           <template v-slot:item.empty_at="{ item }">
             <div :class="`${item.class}`">{{ item.empty_at }}</div>
           </template>
