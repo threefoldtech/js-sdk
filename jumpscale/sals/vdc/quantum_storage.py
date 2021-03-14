@@ -2,6 +2,8 @@ from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.packages.vdc_dashboard.bottle.deployments import _get_zstor_config
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
+from solutions_automation.vdc.deployer import deploy_etcd
 
 ZDB_HOOK_URL = "https://raw.githubusercontent.com/threefoldtech/quantum-storage/master/zdb-hook.sh"
 ZDB_HOOK_PATH = "/home/rancher/0-db-fs/zdb_hook.sh"
@@ -56,9 +58,23 @@ class QuantumStorage:
             ssh_client.sshclient.run("sudo sed -i /#user_allow_other/c\\user_allow_other /etc/fuse.conf")
 
             j.logger.info(f"Downloading zdbstor config on: {kubernetes_node.wid} in {ZSTORCONF_PATH}")
-            endpoints = [f"http://{etcdnode.ip_address}:2379" for etcdnode in self.vdc.etcd]
+
+            deployments = get_deployments(solution_type="etcd", username=self.vdc.owner_tname)
+            for deployment in deployments:
+                if "etcdqs" in deployment.get("Release"):
+                    etcd_domain = deployment.get("Domain")
+                    break
+            else:
+                etcd_domain = deploy_etcd(
+                    f"etcdqs-{kubernetes_node.wid}",
+                    sub_domain="Choose a custom subdomain on a gateway",
+                    custom_sub_domain=f"etcdqs-{kubernetes_node.wid}",
+                ).domain
+
+            endpoints = [f"https://{etcd_domain}:2379"]
             prefix = j.sals.fs.basename(mount_location)
             ssh_client.sshclient.run(f"sudo echo '''{self.zstor_config(endpoints, prefix)}''' > {ZSTORCONF_PATH}")
+
             j.logger.info(f"Starting zdb & zdbfs on: {kubernetes_node.wid}")
             zdb_cmd_args = "--datasize $((32 * 1024 * 1024)) --mode seq --hook /home/rancher/0-db-fs/zdb_hook.sh --data /zdb/data --index /zdb/index"
             self._create_service("zdb", "/usr/bin/zdb", zdb_cmd_args, ssh_client)
