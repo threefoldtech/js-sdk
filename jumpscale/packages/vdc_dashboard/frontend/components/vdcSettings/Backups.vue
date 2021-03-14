@@ -11,10 +11,20 @@
         <v-icon left>mdi-plus</v-icon>Create backup
       </v-btn>
     </div>
+    <div>
+      <v-text-field
+        v-model="search"
+        label="Search"
+        single-line
+        hide-details
+      ></v-text-field>
+    </div>
     <v-data-table
       :loading="loading"
       :headers="headers"
       :items="backups"
+      :search="search"
+      :sort-by.sync="sortBy"
       class="elevation-1"
     >
       <template slot="no-data">No VDC instances available</template>
@@ -100,8 +110,10 @@ module.exports = {
 
   data() {
     return {
+      search: "",
       selected: null,
       selectedBackup: null,
+      sortBy: "start_timestamp",
       dialogs: {
         info: false,
         actions: false,
@@ -110,8 +122,8 @@ module.exports = {
       backups: [],
       headers: [
         { text: "Name", value: "name" },
-        { text: "Start Date", value: "start_timestamp" },
-        { text: "Expiry Date", value: "expiration" },
+        { text: "Back-up Date", value: "start_timestamp" },
+        { text: "Back-up Removal Date", value: "expiration" },
         { text: "Status", value: "status" },
         { text: "Actions", value: "actions", sortable: false },
       ],
@@ -152,9 +164,17 @@ module.exports = {
       this.dialogs.actions = true;
     },
     timeDifference(ts) {
-      var timestamp = moment.unix(ts);
-      var now = new Date();
-      return timestamp.to(now);
+      var a = new Date(ts * 1000);
+      var months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+      var year = a.getFullYear();
+      var month = months[a.getMonth()];
+      var date = a.getDate();
+      var hour = a.getHours();
+      var min = a.getMinutes();
+      var sec = a.getSeconds();
+      var time =
+        date + "/" + month + "/" + year + " " + hour + ":" + min + ":" + sec;
+      return time;
     },
     getStatus(status) {
       if (status == "Error") return "red";
@@ -177,5 +197,10 @@ module.exports = {
 <style scoped>
 h1 {
   color: #1b4f72;
+}
+
+.v-input {
+  width: 20%;
+  margin-left: auto;
 }
 </style>

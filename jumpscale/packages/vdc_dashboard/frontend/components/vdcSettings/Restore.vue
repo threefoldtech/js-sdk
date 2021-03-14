@@ -2,7 +2,7 @@
   <div>
     <base-dialog :title="`Restore ${name}`" v-model="dialog" :loading="loading">
       <template #default>
-        WARINING: It will restore the system to the state of the backup, any
+        WARNING: It will restore the system to the state of the backup, any
         unsaved changes will be lost Are you sure to continue?
       </template>
       <template #actions>
