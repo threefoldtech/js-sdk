@@ -79,7 +79,7 @@ class QuantumStorage:
 
                 j.logger.info(f"Authenticate etcd with username and password")
                 ssh_client.sshclient.run(
-                    f"export ETCDCTL_API=3 && etcdctl --endpoints={etcd_domain} user add root --new-user-password {etcd_secret} --interactive=false && etcdctl --endpoints={etcd_domain} auth enable"
+                    f"export ETCDCTL_API=3 && etcdctl --endpoints={etcd_domain} user add root:{etcd_secret} --interactive=false && etcdctl --endpoints={etcd_domain} auth enable"
                 )
 
             endpoints = [etcd_domain]
