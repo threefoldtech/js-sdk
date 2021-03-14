@@ -78,9 +78,10 @@ class QuantumStorage:
                 etcd_domain = f"https://{domain}:2379"
 
                 j.logger.info(f"Authenticate etcd with username and password")
-                ssh_client.sshclient.run(
+                rc, out, err = j.sals.process.execute(
                     f"export ETCDCTL_API=3 && etcdctl --endpoints={etcd_domain} user add root:{etcd_secret} --interactive=false && etcdctl --endpoints={etcd_domain} auth enable"
                 )
+                j.logger.debug(f"Authentication results: {rc}, {out}, {err}")
 
             endpoints = [etcd_domain]
             prefix = j.sals.fs.basename(mount_location)
