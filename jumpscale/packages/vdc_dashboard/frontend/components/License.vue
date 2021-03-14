@@ -37,12 +37,10 @@
       <v-card>
         <v-card-title class="headline"> Welcome to ThreeFold Now </v-card-title>
         <v-card-text>
-          This marketplace is a showcase of open source peer-to-peer apps built on top of the TF Grid. We are in demo mode
-          and running on testnet. Note your deployment will be cancelled automatically after three hours.
-          Forgive any instability you might encounter while our developers work out the kinks.
+          The marketplace is a platform for opensource peer-to-peer apps built on top of TF grid.
           <br />
           Please visit the
-          <a href="https://manual.threefold.io/" target="_blank">manual</a> and <a href="https://now.threefold.io/" target="_blank">wiki</a> for
+          <a href="https://manual.threefold.io/" target="_blank">manual</a> and <a href="https://wiki.cloud.threefold.io" target="_blank">wiki</a> for
           more information.
         </v-card-text>
         <v-card-actions>
