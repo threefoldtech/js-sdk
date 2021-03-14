@@ -1,6 +1,5 @@
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
-from jumpscale.sals.vdc import VDCFACTORY
 from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
 from jumpscale.sals.marketplace import deployer
 from jumpscale.sals.reservation_chatflow import DeploymentFailed

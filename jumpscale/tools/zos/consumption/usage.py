@@ -154,13 +154,13 @@ def calculate_vdc_price(flavor, farm_name=None):
     all_cus += n_cus
     all_sus += n_sus
 
-    # etcd containers usage
-    etcd_cont = Container()
-    etcd_cont.capacity.cpu = ETCD_CPU
-    etcd_cont.capacity.memory = ETCD_MEMORY
-    etcd_cont.capacity.disk_size = ETCD_DISK
-    etcd_cont.capacity.disk_type = DiskType.SSD
-    n_cus, n_sus, _ = get_cloud_units(etcd_cont)
+    # # etcd containers usage
+    # etcd_cont = Container()
+    # etcd_cont.capacity.cpu = ETCD_CPU
+    # etcd_cont.capacity.memory = ETCD_MEMORY
+    # etcd_cont.capacity.disk_size = ETCD_DISK
+    # etcd_cont.capacity.disk_type = DiskType.SSD
+    # n_cus, n_sus, _ = get_cloud_units(etcd_cont)
 
     all_cus += n_cus * ETCD_CLUSTER_SIZE
     all_sus += n_sus * ETCD_CLUSTER_SIZE

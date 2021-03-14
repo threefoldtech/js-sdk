@@ -303,14 +303,14 @@ class VDCDeployer:
         cus += n_cus
         sus += n_sus
 
-        etcd_cont = Container()
-        etcd_cont.capacity.cpu = ETCD_CPU
-        etcd_cont.capacity.memory = ETCD_MEMORY
-        etcd_cont.capacity.disk_size = ETCD_DISK
-        etcd_cont.capacity.disk_type = DiskType.SSD
-        n_cus, n_sus = get_cloud_units(etcd_cont)
-        cus += n_cus * ETCD_CLUSTER_SIZE
-        sus += n_sus * ETCD_CLUSTER_SIZE
+        # etcd_cont = Container()
+        # etcd_cont.capacity.cpu = ETCD_CPU
+        # etcd_cont.capacity.memory = ETCD_MEMORY
+        # etcd_cont.capacity.disk_size = ETCD_DISK
+        # etcd_cont.capacity.disk_type = DiskType.SSD
+        # n_cus, n_sus = get_cloud_units(etcd_cont)
+        # cus += n_cus * ETCD_CLUSTER_SIZE
+        # sus += n_sus * ETCD_CLUSTER_SIZE
 
         farm_resources[selected_farm]["cus"] += cus
         farm_resources[selected_farm]["sus"] += sus
@@ -396,12 +396,13 @@ class VDCDeployer:
         1- deploy master
         2- extend cluster with the flavor no_nodes
         """
-        self.bot_show_update("Deploying External ETCD Cluster...")
-        etcd_ips = self.kubernetes.deploy_external_etcd(farm_name=farm_name, solution_uuid=self.vdc_uuid)
-        if not etcd_ips:
-            self.error("failed to deploy etcd cluster")
-            return
-        endpoint = ",".join([f"http://{ip_address}:2379" for ip_address in etcd_ips])
+        # self.bot_show_update("Deploying External ETCD Cluster...")
+        # etcd_ips = self.kubernetes.deploy_external_etcd(farm_name=farm_name, solution_uuid=self.vdc_uuid)
+        # if not etcd_ips:
+        #     self.error("failed to deploy etcd cluster")
+        #     return
+        # endpoint = ",".join([f"http://{ip_address}:2379" for ip_address in etcd_ips])
+        endpoint = ""
         self.bot_show_update("Deploying Kubernetes Controller...")
         gs = scheduler or GlobalScheduler()
         master_pool_id, _ = self.get_pool_id_and_reservation_id(NETWORK_FARM.get())
