@@ -41,7 +41,9 @@
       </template>
 
       <template v-slot:item.status="{ item }">
-        <v-chip :color="getStatus(item.status)" dark>{{ item.status }}</v-chip>
+        <v-chip :color="getStatus(item.status)" dark>{{
+          updateStatus(item.status)
+        }}</v-chip>
       </template>
 
       <template v-slot:item.actions="{ item }">
@@ -186,6 +188,13 @@ module.exports = {
     },
     reload() {
       this.list();
+    },
+    updateStatus(status) {
+      if (status == "partiallyfailed") {
+        status == "Backed up MetadataOnly";
+      } else {
+        return status;
+      }
     },
   },
   mounted() {
