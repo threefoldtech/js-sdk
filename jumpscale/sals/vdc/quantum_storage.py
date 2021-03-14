@@ -4,7 +4,7 @@ from textwrap import dedent
 from jumpscale.loader import j
 from jumpscale.packages.vdc_dashboard.bottle.deployments import _get_zstor_config
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
-from solutions_automation.vdc.deployer import deploy_etcd
+
 
 ZDB_HOOK_URL = "https://raw.githubusercontent.com/threefoldtech/quantum-storage/master/zdb-hook.sh"
 ZDB_HOOK_PATH = "/home/rancher/0-db-fs/zdb_hook.sh"
@@ -70,6 +70,8 @@ class QuantumStorage:
                     etcd_domain = f"https://{domain}:2379"
                     break
             else:
+                from solutions_automation.vdc.deployer import deploy_etcd
+
                 domain = deploy_etcd(
                     f"etcdqs-{kubernetes_node.wid}",
                     sub_domain="Choose a custom subdomain on a gateway",
