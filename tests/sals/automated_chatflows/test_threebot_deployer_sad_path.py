@@ -6,6 +6,7 @@ from solutions_automation import deployer
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
 from jumpscale.packages.threebot_deployer.bottle.utils import stop_threebot_solution
 from jumpscale.packages.threebot_deployer.models import USER_THREEBOT_FACTORY
+from gevent import sleep
 
 
 @pytest.mark.integration
@@ -35,6 +36,10 @@ class ThreebotChatflows(ChatflowsBase):
             stop_threebot_solution(self.tname, self.solution_uuid, self.secret)
         if hasattr(self, "ssh_client_name"):
             j.clients.sshclient.delete(self.ssh_client_name)
+
+        if hasattr(self, "wg_conf_path"):
+            j.sals.process.execute(f"sudo wg-quick down {self.wg_conf_path}")
+            j.sals.fs.rmtree(path=self.wg_conf_path)
 
     def test01_deploy_threebot_on_past_expiration(self):
         """Test case for deploying a threebot with an expiration on the past.
@@ -66,8 +71,8 @@ class ThreebotChatflows(ChatflowsBase):
         - Check that threebot deploying has been failed.
         """
         self.info("Deploy a threebot")
-        name = "testxbto"  # self.random_name()
-        self.secret = "hassanhassan"  # self.random_name()
+        name = self.random_name()
+        self.secret = self.random_name()
         expiration = j.data.time.utcnow().timestamp + 60 * 15
 
         self.info("Deploy a threebot")
@@ -94,8 +99,8 @@ class ThreebotChatflows(ChatflowsBase):
         - Check that threebot changing location has been failed.
         """
         self.info("Deploy a threebot")
-        name = "testxbto25"  # self.random_name()
-        self.secret = "hassanhassan"  # self.random_name()
+        name = self.random_name()
+        self.secret = self.random_name()
         expiration = j.data.time.utcnow().timestamp + 60 * 15
         threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
@@ -118,8 +123,8 @@ class ThreebotChatflows(ChatflowsBase):
         - Check that threebot changing size has been failed.
         """
         self.info("Deploy a threebot")
-        name = "testxbto12"  # self.random_name()
-        self.secret = "hassanhassan"  # self.random_name()
+        name = self.random_name()
+        self.secret = self.random_name()
         expiration = j.data.time.utcnow().timestamp + 60 * 15
         threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
@@ -144,8 +149,8 @@ class ThreebotChatflows(ChatflowsBase):
         - Check that threebot running has been failed.
         """
         self.info("Deploy a threebot")
-        name = "testxbto231"  # self.random_name()
-        self.secret = "hassanhassan"  # self.random_name()
+        name = self.random_name()
+        self.secret = self.random_name()
         expiration = j.data.time.utcnow().timestamp + 60 * 15
         threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
@@ -168,8 +173,8 @@ class ThreebotChatflows(ChatflowsBase):
         - Check that threebot running has been failed.
         """
         self.info("Deploy a threebot")
-        name = "testxbto2"  # self.random_name()
-        self.secret = "hassanhassan"  # self.random_name()
+        name = self.random_name()
+        self.secret = self.random_name()
         expiration = j.data.time.utcnow().timestamp + 60 * 15
         threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
@@ -192,8 +197,8 @@ class ThreebotChatflows(ChatflowsBase):
         - Check expiration value after one hour.
         """
         self.info("Deploy a threebot")
-        name = "testxbto2115"  # self.random_name()
-        self.secret = "hassanhassan"  # self.random_name()
+        name = self.random_name()
+        self.secret = self.random_name()
         expiration = j.data.time.utcnow().timestamp + 60 * 60
         threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
@@ -209,11 +214,11 @@ class ThreebotChatflows(ChatflowsBase):
 
         - Prepare ssh key.
         - Deploy threebot with ssh key.
+        - Up wireguard.
         - Check ssh to threebot.
         """
 
         self.info("Prepare ssh key")
-        # Prepare ssh
         self.ssh_client_name = self.random_name()
         if not j.sals.fs.exists("/tmp/.ssh"):
             j.core.executors.run_local('mkdir /tmp/.ssh && ssh-keygen -t rsa -f /tmp/.ssh/id_rsa -q -N "" ')
@@ -231,10 +236,17 @@ class ThreebotChatflows(ChatflowsBase):
         )
         self.solution_uuid = threebot.solution_id
 
+        self.info("Up wireguard")
+        self.wg_conf_path = f"/tmp/{self.random_name()}.conf"
+        j.sals.fs.write_file(self.wg_conf_path, threebot.wgcfg)
+        rc, out, err = j.sals.process.execute(f"sudo wg-quick up {self.wg_conf_path}")
+        sleep(5)
+
         self.info("Check ssh to threebot")
         localclient = j.clients.sshclient.get(self.ssh_client_name)
         localclient.sshkey = self.ssh_client_name
-        localclient.host = threebot.addresses[0]
+        localclient.host = threebot.ip_address
         localclient.save()
+
         _, res, _ = localclient.sshclient.run("cat /etc/os-release")
-        self.assertIn('VERSION_ID="18.04"', res)
+        self.assertIn('NAME="Ubuntu"', res)

@@ -7,6 +7,7 @@ from gevent import sleep
 from unittest import TestCase
 
 
+@parameterized_class(("ubuntu_version"), [("ubuntu-18.04",), ("double",)])
 @pytest.mark.integration
 class TFGridSolutionChatflows(ChatflowsBase):
     @classmethod
