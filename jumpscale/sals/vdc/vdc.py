@@ -1,23 +1,23 @@
-from collections import defaultdict
 import datetime
+import hashlib
 import uuid
+from collections import defaultdict
 
+import netaddr
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
+from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
+from jumpscale.sals.vdc.quantum_storage import QuantumStorage
 from jumpscale.sals.zos import get as get_zos
-from jumpscale.clients.stellar import TRANSACTION_FEES
 
 from .deployer import VDCDeployer
+from .kubernetes_auto_extend import KubernetesMonitor
 from .models import *
-from .size import VDC_SIZE, PROXY_FARM, FARM_DISCOUNT
+from .size import FARM_DISCOUNT, PROXY_FARM, VDC_SIZE
+from .snapshot import SnapshotManager
 from .wallet import VDC_WALLET_FACTORY
 from .zdb_auto_topup import ZDBMonitor
-from .kubernetes_auto_extend import KubernetesMonitor
-import netaddr
-import hashlib
-from .snapshot import SnapshotManager
-from jumpscale.sals.vdc.quantum_storage import QuantumStorage
 
 VDC_WORKLOAD_TYPES = [
     WorkloadType.Container,
