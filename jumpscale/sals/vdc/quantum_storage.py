@@ -1,3 +1,4 @@
+import os
 from textwrap import dedent
 
 from jumpscale.loader import j
@@ -15,11 +16,13 @@ class QuantumStorage:
         self._zstor_config = None
         self.vdc = vdc
 
-    def zstor_config(self, endpoints, prefix="someprefix"):
+    def zstor_config(self, endpoints, prefix="someprefix", etcd_secret=None):
         if not self._zstor_config:
             config = _get_zstor_config()
             config["meta"]["config"]["endpoints"] = endpoints
             config["meta"]["config"]["prefix"] = prefix
+            config["meta"]["config"]["username"] = "root"
+            config["meta"]["config"]["password"] = etcd_secret
             self._zstor_config = j.data.serializers.toml.dumps(config)
         return self._zstor_config
 
@@ -60,20 +63,30 @@ class QuantumStorage:
             j.logger.info(f"Downloading zdbstor config on: {kubernetes_node.wid} in {ZSTORCONF_PATH}")
 
             deployments = get_deployments(solution_type="etcd", username=self.vdc.owner_tname)
+            etcd_secret = os.environ.get("VDC_PASSWORD_HASH", "etcd_secret")
             for deployment in deployments:
                 if "etcdqs" in deployment.get("Release"):
-                    etcd_domain = deployment.get("Domain")
+                    domain = deployment.get("Domain")
+                    etcd_domain = f"https://{domain}:2379"
                     break
             else:
-                etcd_domain = deploy_etcd(
+                domain = deploy_etcd(
                     f"etcdqs-{kubernetes_node.wid}",
                     sub_domain="Choose a custom subdomain on a gateway",
                     custom_sub_domain=f"etcdqs-{kubernetes_node.wid}",
                 ).domain
+                etcd_domain = f"https://{domain}:2379"
 
-            endpoints = [f"https://{etcd_domain}:2379"]
+                j.logger.info(f"Authenticate etcd with username and password")
+                ssh_client.sshclient.run(
+                    f"export ETCDCTL_API=3 && etcdctl --endpoints={etcd_domain} user add root --new-user-password {etcd_secret} --interactive=false && etcdctl --endpoints={etcd_domain} auth enable"
+                )
+
+            endpoints = [etcd_domain]
             prefix = j.sals.fs.basename(mount_location)
-            ssh_client.sshclient.run(f"sudo echo '''{self.zstor_config(endpoints, prefix)}''' > {ZSTORCONF_PATH}")
+            ssh_client.sshclient.run(
+                f"sudo echo '''{self.zstor_config(endpoints, prefix, etcd_secret)}''' > {ZSTORCONF_PATH}"
+            )
 
             j.logger.info(f"Starting zdb & zdbfs on: {kubernetes_node.wid}")
             zdb_cmd_args = "--datasize $((32 * 1024 * 1024)) --mode seq --hook /home/rancher/0-db-fs/zdb_hook.sh --data /zdb/data --index /zdb/index"
