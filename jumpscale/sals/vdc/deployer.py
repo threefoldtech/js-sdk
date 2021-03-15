@@ -109,6 +109,7 @@ class VDCDeployer:
                 else:
                     self.error(f"failed to execute function {func.__name__} due to error {str(e)}.")
                     raise e
+            gevent.sleep(2)
 
     @property
     def transaction_hashes(self):
