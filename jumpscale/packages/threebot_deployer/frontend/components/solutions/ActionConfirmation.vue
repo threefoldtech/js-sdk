@@ -34,7 +34,7 @@ module.exports = {
     title: String,
     api: String,
     data: Object,
-    messages: String,
+    messages: Object,
   },
   methods: {
     submit() {
