@@ -247,7 +247,7 @@ class VDCDeployer:
             reservation_id = pool_info.reservation_id
             return pool.pool_id, reservation_id
         pool_info = self._retry_call(
-            self.zos.pools.create, args=[cus, sus, ipv4us, farm_name, ["TFT"], j.core.identity.me],
+            self.zos.pools.create, args=[cus, sus, ipv4us, farm_name, ["TFT"], j.core.identity.me]
         )
         reservation_id = pool_info.reservation_id
         self.info(
@@ -411,7 +411,7 @@ class VDCDeployer:
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         pub_keys = pub_keys or []
         master_ip = self.kubernetes.deploy_master(
-            master_pool_id, gs, master_size, cluster_secret, pub_keys, self.vdc_uuid, nv, endpoint,
+            master_pool_id, gs, master_size, cluster_secret, pub_keys, self.vdc_uuid, nv, endpoint
         )
         if not master_ip:
             self.error("failed to deploy kubernetes master")
@@ -624,7 +624,7 @@ class VDCDeployer:
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
             threebot_wid = self.threebot.deploy_threebot(
-                minio_wid, pool_id, kube_config=kube_config, backup_config=s3_backup_config, zdb_farms=zdb_farms,
+                minio_wid, pool_id, kube_config=kube_config, backup_config=s3_backup_config, zdb_farms=zdb_farms
             )
             self.info(f"threebot_wid: {threebot_wid}")
             if not threebot_wid:
