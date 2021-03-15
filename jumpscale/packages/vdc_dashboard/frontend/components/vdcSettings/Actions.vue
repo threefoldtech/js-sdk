@@ -8,8 +8,7 @@
       </template>
 
       <template #default v-else-if="title == 'Create'">
-        Are you sure you want to {{ title }} backup, this action can't be
-        undone? Please enter backup name to confirm.
+        Please enter backup name to confirm.
         <v-text-field v-model="confirmName" dense></v-text-field>
       </template>
       <template #actions>

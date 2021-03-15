@@ -11,10 +11,20 @@
         <v-icon left>mdi-plus</v-icon>Create backup
       </v-btn>
     </div>
+    <div>
+      <v-text-field
+        v-model="search"
+        label="Search"
+        single-line
+        hide-details
+      ></v-text-field>
+    </div>
     <v-data-table
       :loading="loading"
       :headers="headers"
       :items="backups"
+      :search="search"
+      :sort-by.sync="sortBy"
       class="elevation-1"
     >
       <template slot="no-data">No VDC instances available</template>
@@ -31,7 +41,9 @@
       </template>
 
       <template v-slot:item.status="{ item }">
-        <v-chip :color="getStatus(item.status)" dark>{{ item.status }}</v-chip>
+        <v-chip :color="getStatus(item.status)" dark>{{
+          updateStatus(item.status)
+        }}</v-chip>
       </template>
 
       <template v-slot:item.actions="{ item }">
@@ -100,8 +112,10 @@ module.exports = {
 
   data() {
     return {
+      search: "",
       selected: null,
       selectedBackup: null,
+      sortBy: "start_timestamp",
       dialogs: {
         info: false,
         actions: false,
@@ -110,8 +124,8 @@ module.exports = {
       backups: [],
       headers: [
         { text: "Name", value: "name" },
-        { text: "Start Date", value: "start_timestamp" },
-        { text: "Expiry Date", value: "expiration" },
+        { text: "Back-up Date", value: "start_timestamp" },
+        { text: "Back-up Removal Date", value: "expiration" },
         { text: "Status", value: "status" },
         { text: "Actions", value: "actions", sortable: false },
       ],
@@ -152,9 +166,8 @@ module.exports = {
       this.dialogs.actions = true;
     },
     timeDifference(ts) {
-      var timestamp = moment.unix(ts);
-      var now = new Date();
-      return timestamp.to(now);
+      var timestamp = new Date(ts * 1000).toLocaleString("en-GB");
+      return timestamp
     },
     getStatus(status) {
       if (status == "Error") return "red";
@@ -167,6 +180,13 @@ module.exports = {
     reload() {
       this.list();
     },
+    updateStatus(status) {
+      if (status == "partiallyfailed") {
+        status == "Backed up MetadataOnly";
+      } else {
+        return status;
+      }
+    },
   },
   mounted() {
     this.list();
@@ -177,5 +197,10 @@ module.exports = {
 <style scoped>
 h1 {
   color: #1b4f72;
+}
+
+.v-input {
+  width: 20%;
+  margin-left: auto;
 }
 </style>
