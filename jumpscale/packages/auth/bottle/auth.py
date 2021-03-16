@@ -398,7 +398,7 @@ def controller_autherized():
             data = j.data.serializers.json.loads(request.body.read())
             request_input_password = data.get("password")
             if not vdc.validate_password(request_input_password):
-                return abort(403)
+                return abort(403, "Wrong password is passed")
             return function(*args, **kwargs)
 
         return wrapper
