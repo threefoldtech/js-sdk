@@ -14,8 +14,8 @@ class VDCDashboard(VDCBase):
         cls.flavor = "silver"
 
     def tearDown(self):
-        self.vdc.provision_wallet.merge_into_account(self.wallet.address)
-        self.vdc.prepaid_wallet.merge_into_account(self.wallet.address)
+        # self.vdc.provision_wallet.merge_into_account(self.wallet.address)
+        # self.vdc.prepaid_wallet.merge_into_account(self.wallet.address)
         # j.sals.vdc.delete(self.vdc.instance_name)
 
         super().tearDown()
@@ -35,14 +35,16 @@ class VDCDashboard(VDCBase):
         """
 
         self.info("Deploy VDC")
-        self.vdc_name = self.random_name().lower()
-        self.password = self.random_string()
+        # self.vdc_name = self.random_name().lower()
+        # self.password = self.random_string()
+        self.vdc_name = "essamcloud"
+        self.password = "12345678"
         self.vdc = j.sals.vdc.vdc_essamcloud_essam
         # self.kube_config = self.deploy_vdc(self.vdc_name, self.password)
 
         # if not self.kube_config:
         #     raise RuntimeError("VDC is not deployed")
-
+        self.vdc.load_info()
         j.sals.fs.copy_file(
             f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{self.vdc.owner_tname}/{self.vdc.vdc_name}.yaml",
             j.sals.fs.expanduser("~/.kube/config"),
@@ -56,8 +58,8 @@ class VDCDashboard(VDCBase):
         self.create_backup(backup_name)
 
         self.info("Delete this VDC")
-        self.vdc.provision_wallet.merge_into_account(self.wallet.address)
-        self.vdc.prepaid_wallet.merge_into_account(self.wallet.address)
+        # self.vdc.provision_wallet.merge_into_account(self.wallet.address)
+        # self.vdc.prepaid_wallet.merge_into_account(self.wallet.address)
         j.sals.vdc.delete(self.vdc.instance_name)
 
         self.info("Redeploy VDC with same name and password")
