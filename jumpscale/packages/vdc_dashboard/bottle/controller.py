@@ -202,8 +202,18 @@ def list_pools():
 @app.route("/api/controller/alerts", method="POST")
 @controller_autherized()
 def list_alerts():
-    # TODO
-    pass
+    data = j.data.serializers.json.loads(request.body.read())
+    username = data.get("username")
+    app_name = data.get("application")
+    if not all([username]):
+        abort(400, "Error: Not all required params were passed.")
+
+    if not app_name:
+        alerts = [alert.json for alert in j.tools.alerthandler.find()]
+    else:
+        alerts = [alert.json for alert in j.tools.alerthandler.find() if alert.app_name == app_name]
+
+    return HTTPResponse(j.data.serializers.json.dumps(alerts), status=200, headers={"Content-Type": "application/json"})
 
 
 app = SessionMiddleware(app, SESSION_OPTS)
