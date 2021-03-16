@@ -10,7 +10,7 @@ from gevent import sleep
 
 
 @pytest.mark.integration
-class ThreebotChatflows(ChatflowsBase):
+class ThreebotChatflowsSadPath(ChatflowsBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

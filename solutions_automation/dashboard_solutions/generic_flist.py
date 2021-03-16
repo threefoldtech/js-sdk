@@ -1,5 +1,6 @@
 from jumpscale.packages.tfgrid_solutions.chats.flist import FlistDeploy
 from solutions_automation.utils.gedispatch import GedisChatBotPatch
+from jumpscale.loader import j
 
 
 class FlistAutomated(GedisChatBotPatch, FlistDeploy):
@@ -50,3 +51,9 @@ class FlistAutomated(GedisChatBotPatch, FlistDeploy):
                 if str(selected) in m:
                     return m
         return selected
+
+    def md_show(self, msg, *args, **kwargs):
+        if self.debug:
+            if "This flist doesn't exist. Please make sure you enter a valid link to an existing flist" in msg:
+                raise RuntimeError(msg)
+            j.logger.info(msg)

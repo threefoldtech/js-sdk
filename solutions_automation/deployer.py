@@ -5,6 +5,7 @@ from solutions_automation.dashboard_solutions.kubernetes import KubernetesAutoma
 from solutions_automation.dashboard_solutions.minio import MinioAutomated
 from solutions_automation.dashboard_solutions.monitoring import MonitoringAutomated
 from solutions_automation.dashboard_solutions.network import NetworkDeployAutomated
+from solutions_automation.dashboard_solutions.network_access import NetworkAccessAutomated
 from solutions_automation.dashboard_solutions.pools import PoolAutomated
 from solutions_automation.dashboard_solutions.extend_pools import PoolExtendAutomated
 from solutions_automation.dashboard_solutions.four_to6gw import FourToSixGatewayAutomated
@@ -308,8 +309,12 @@ def create_network(
     )
 
 
-def add_access_to_network(network_name, ip_version="IPv4", debug=True):
-    return NetworkDeployAutomated(network_name=network_name, type="Add Access", ip_version=ip_version, debug=True)
+def add_access_to_network(
+    network_name, ip_version="IPv4", access_node="choose_random", pool="choose_random", debug=True
+):
+    return NetworkAccessAutomated(
+        network_name=network_name, ip_version=ip_version, access_node=access_node, pool=pool, debug=True
+    )
 
 
 def deploy_exposed(
