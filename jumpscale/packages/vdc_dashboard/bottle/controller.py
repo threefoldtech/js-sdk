@@ -146,7 +146,6 @@ def list_zdbs():
 @app.route("/api/controller/zdb/add", method="POST")
 @controller_autherized()
 def add_zdb():
-    # TODO To be tested
     data = j.data.serializers.json.loads(request.body.read())
     username = data.get("username")
     capacity = data.get("capacity")
@@ -187,18 +186,17 @@ def get_wallet_info():
 @app.route("/api/controller/pools", method="POST")
 @controller_autherized()
 def list_pools():
-    # TODO
-    # data = j.data.serializers.json.loads(request.body.read())
-    # username = data.get("username")
-    # vdc_dict = _get_vdc_dict(username=username)
-    # pool_ids = set()
-    # for zdb in vdc_dict["s3"]["zdbs"]:
-    #     pool_ids.add(zdb["pool_id"])
+    data = j.data.serializers.json.loads(request.body.read())
+    username = data.get("username")
 
-    # for node in vdc_dict["kubernetes"]:
-    #     pool_ids.add(node["pool_id"])
-    # pools = vdc.active_pools
-    pass
+    if not all([username]):
+        abort(400, "Error: Not all required params were passed.")
+
+    vdc = get_vdc(username=username)
+    vdc.load_info()
+
+    pools = [pool.to_dict() for pool in vdc.active_pools]
+    return HTTPResponse(j.data.serializers.json.dumps(pools), status=200, headers={"Content-Type": "application/json"})
 
 
 @app.route("/api/controller/alerts", method="POST")
