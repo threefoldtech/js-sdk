@@ -62,6 +62,19 @@
       <template v-slot:item.size="{ item }">
         <div>{{ item.size }} GB</div>
       </template>
+
+      <template v-slot:item.actions="{ item }">
+        <v-tooltip top>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn icon @click.stop="deleteZdb(item.wid)">
+              <v-icon v-bind="attrs" v-on="on" color="#810000"
+                >mdi-delete</v-icon
+              >
+            </v-btn>
+          </template>
+          <span>Delete</span>
+        </v-tooltip>
+      </template>
     </v-data-table>
     <base-dialog
       title="Download storage nodes Information file"
@@ -89,6 +102,14 @@
     <enable-quantumstorage
       v-model="dialogs.enableQuantum"
     ></enable-quantumstorage>
+    <cancel-zdb
+      v-if="selectedZdb"
+      v-model="dialogs.cancelZdb"
+      api="deleteZdb"
+      title="Delete ZDB"
+      :messages="deletionMessages"
+      :wid="selectedZdb"
+    ></cancel-zdb>
   </div>
 </template>
 
@@ -100,20 +121,27 @@ module.exports = {
   },
   props: ["vdc"],
   mixins: [dialog],
+  components: {
+    "cancel-zdb": httpVueLoader("./DeleteConfirmation.vue"),
+  },
   data() {
     return {
       selected: null,
+      selectedZdb: null,
       headers: [
         { text: "WID", value: "wid" },
         { text: "Node", value: "node" },
         { text: "Disk Size", value: "size" },
+        { text: "Actions", value: "actions", sortable: false },
       ],
       S3URL: null,
       downloadType: null,
       dialogs: {
         downloadInfo: false,
         enableQuantum: false,
+        cancelZdb : false
       },
+      deletionMessages:{confirmationMsg:"Are you sure you want to delete the zdb?",successMsg:"ZDB deleted successfully"}
     };
   },
   methods: {
@@ -199,6 +227,10 @@ module.exports = {
     },
     enableQuantumStorage() {
       this.dialogs.enableQuantum = true;
+    },
+    deleteZdb(wid) {
+      this.selectedZdb = wid
+      this.dialogs.cancelZdb = true;
     },
   },
   computed: {

@@ -76,6 +76,14 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
+    deleteZdb: (wid) => {
+      return axios({
+        url: `${baseURL}/s3/zdbs/delete`,
+        method: "post",
+        data: { wid: wid },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
     getZstorConfig: (ip_version) => {
       return axios({
         url: `${baseURL}/zstor/config`,
