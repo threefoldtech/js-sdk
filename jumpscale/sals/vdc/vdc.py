@@ -718,7 +718,7 @@ class UserVDC(Base):
         ssh_client = j.clients.sshclient.get(name, user=user, host=ip_address, sshkey=self.vdc_name)
         return ssh_client
 
-    def check_capacity_available(self):
+    def check_capacity_available(self, flavor):
         old_node_ids = []
         for k8s_node in self.kubernetes:
             old_node_ids.append(k8s_node.node_id)

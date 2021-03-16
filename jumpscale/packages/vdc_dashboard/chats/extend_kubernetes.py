@@ -44,7 +44,7 @@ class ExtendKubernetesCluster(GedisChatBot):
                 f"Couldn't verify VDC secret. please make sure you are using the correct secret for VDC {self.vdc_name}"
             )
 
-        capacity_check, farm_name = self.vdc.check_capacity_available()
+        capacity_check, farm_name = self.vdc.check_capacity_available(self.node_flavor)
         if not capacity_check:
             self.stop(
                 f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {self.node_flavor}"
