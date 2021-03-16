@@ -190,7 +190,7 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, siz
         if not wait_pool_reservation(reservation_id):
             j.logger.warning(f"pool {pool_id} extension timedout for reservation: {reservation_id}")
             continue
-        for node in gs.nodes_by_capacity(pool_id=pool_id, sru=size):
+        for node in gs.nodes_by_capacity(pool_id=pool_id, hru=size):
             wid = deployer.deploy_zdb(
                 pool_id=pool_id,
                 node_id=node.node_id,
