@@ -9,6 +9,14 @@ const apiClient = {
       })
     }
   },
+  server:{
+    isRunning: () => {
+      return axios({
+        url: `${baseURL}/vdc/status`,
+        method: "get"
+      })
+    }
+  },
   admins: {
     getCurrentUser: () => {
       return axios({
@@ -123,10 +131,11 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    create: () => {
+    create: (name) => {
       return axios({
         url: `${baseURL}/backup/create`,
         method: "post",
+        data: { name: name },
         headers: { 'Content-Type': 'application/json' }
       })
     },

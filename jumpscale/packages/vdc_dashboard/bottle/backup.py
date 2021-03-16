@@ -8,9 +8,7 @@ from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, package_authorized
 app = Bottle()
 
 
-@app.route("/api/backup/list")
-@package_authorized("vdc_dashboard")
-def list_user_backups() -> str:
+def _list():
     config_path = j.sals.fs.expanduser("~/.kube/config")
     client = j.sals.kubernetes.Manager(config_path=config_path)
     res = client.execute_native_cmd("velero get backup -o json")
@@ -29,18 +27,36 @@ def list_user_backups() -> str:
             filterd_backups.append(backup_data)
         except Exception as e:
             j.logger.warning(f"Skipping backup, it has {str(e)} missing.")
+    return filterd_backups
+
+
+@app.route("/api/backup/list")
+@package_authorized("vdc_dashboard")
+def list_user_backups() -> str:
+    filterd_backups = _list()
     return j.data.serializers.json.dumps({"data": filterd_backups})
 
 
 @app.route("/api/backup/create", method="POST")
 @package_authorized("vdc_dashboard")
 def create_backup():
+    data = j.data.serializers.json.loads(request.body.read())
+    name = data.get("name")
+    if not name:
+        return HTTPResponse(
+            "Error: Not all required params was passed.", status=400, headers={"Content-Type": "application/json"},
+        )
+    backups = _list()
+    for backup in backups:
+        if name in backup:
+            return HTTPResponse(
+                "Please select another name. Already exists", status=409, headers={"Content-Type": "application/json"},
+            )
     config_path = j.sals.fs.expanduser("~/.kube/config")
     client = j.sals.kubernetes.Manager(config_path=config_path)
-    time = j.data.time.utcnow().format("YYYYMMDDHHMMSS")
     try:
-        client.execute_native_cmd(f"velero create backup config-{time} --include-resources secrets,configmaps")
-        client.execute_native_cmd(f'velero create backup vdc-{time} -l "backupType=vdc"')
+        client.execute_native_cmd(f"velero create backup config-{name} --include-resources secrets,configmaps")
+        client.execute_native_cmd(f'velero create backup vdc-{name} -l "backupType=vdc"')
         return HTTPResponse("Backup created successfully.", status=201, headers={"Content-Type": "application/json"})
     except Exception as e:
         j.logger.warning(f"Failed to create backup due to {str(e)}")

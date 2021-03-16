@@ -19,9 +19,13 @@ class VDCDashboard(VDCBase):
         cls._import_wallet("demos_wallet")
         no_deployment = "single"
         cls.flavor = "platinum"
+
         cls.vdc_name = cls.random_name().lower()
         cls.password = cls.random_string()
-        cls.kube_config = cls.deploy_vdc(cls.vdc_name, cls.password)
+        if cls.no_deployment == "single":
+            cls.kube_config = cls.deploy_vdc(cls.vdc_name, cls.password)
+        else:
+            cls.kube_config = cls.deploy_vdc(cls.vdc_name, cls.password, hours=2)
 
         if not cls.kube_config:
             raise RuntimeError("VDC is not deployed")

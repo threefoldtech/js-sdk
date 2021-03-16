@@ -29,7 +29,7 @@ r = zos.reservation_create()
 network = zos.network.create(r, ip_range="10.80.0.0/16", network_name="<network_name>")
 
 # find all node from farm with id <farm_id>
-nodes = list(j.sals.zos.get().nodes_finder.nodes_by_capacity(cru=1, sru=10, mru=2, hru=5, currency="FreeTFT"))
+nodes = list(j.sals.zos.get().nodes_finder.nodes_by_capacity(cru=1, sru=10, mru=2, hru=5, currency="TFT"))
 
 # add each node into the network
 for i, node in enumerate(nodes):
@@ -108,8 +108,8 @@ zos.container.create(reservation=r,
                     entrypoint='/bin/bash /start.sh')
 
 expiration = j.data.time.get().timestamp +3900
-# register the reservation with FreeTFT
-registered_reservation = zos.reservation_register(r, expiration, currencies=["FreeTFT"])
+# register the reservation
+registered_reservation = zos.reservation_register(r, expiration, currencies=["TFT"])
 ```
 ## deploy ubuntu container access using Web only COREX
 
@@ -163,7 +163,9 @@ def create_wallet(name):
 
 wallet = create_wallet("wallet_name")
 ```
-## Get FreeTFT and TFT to your wallet
+## Get TFT
+
+TODO: add wiki link here.
 See [here](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/tutorials/add_funds_to_wallet.md)
 
 ## Get balance of your wallet

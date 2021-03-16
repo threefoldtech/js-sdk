@@ -66,21 +66,22 @@ class VDCBase(BaseTests):
         cls.server.start()
 
     @classmethod
-    def deploy_vdc(cls, vdc_name, password):
+    def deploy_vdc(cls, vdc_name, password, hours=1):
 
         cls.vdc = j.sals.vdc.new(vdc_name, cls.tname, cls.flavor)
-
-        cls.info("Transfer needed TFT to deploy vdc for an hour to the provisioning wallet.")
+        cls.info(f"Transfer needed TFT to deploy vdc for {hours} hour/s to the provisioning wallet.")
         cls.vdc_price = j.tools.zos.consumption.calculate_vdc_price(cls.flavor)
-        needed_tft = (
-            float(cls.vdc_price) / 24 / 30 + 2 * TRANSACTION_FEES
-        )  # 2 transaction fees for creating the pool and extend it
+        extension_fees = TRANSACTION_FEES if hours > 1 else 0
+        needed_tft = hours * (float(cls.vdc_price) / 24 / 30) + 2 * TRANSACTION_FEES + extension_fees
+        # 2 transaction fees for creating the pool and extend it
         cls.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
 
-        cls.info("Deploy VDC.")
+        cls.info(f"Deploy VDC for {hours} hours.")
         cls.deployer = cls.vdc.get_deployer(password=password)
         minio_ak = cls.random_name().lower()
         minio_sk = cls.random_string()
         cls.timestamp_now = j.data.time.get().utcnow().timestamp
         kube_config = cls.deployer.deploy_vdc(minio_ak, minio_sk)
+        if hours > 1:
+            cls.deployer.renew_plan(duration=hours / 24)
         return kube_config

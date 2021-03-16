@@ -11,6 +11,7 @@ class VDCDashboard(VDCBase):
     def setUpClass(cls):
         super().setUpClass()
         cls.wallet = cls._import_wallet("demos_wallet")
+        cls.flavor = "silver"
 
     def tearDown(self):
         self.vdc.provision_wallet.merge_into_account(self.wallet.address)

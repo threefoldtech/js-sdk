@@ -48,7 +48,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 self._branch = "development"
         return self._branch
 
-    def deploy_threebot(self, minio_wid, pool_id, kube_config, embed_trc=True, backup_config=None):
+    def deploy_threebot(self, minio_wid, pool_id, kube_config, embed_trc=True, backup_config=None, zdb_farms=None):
         backup_config = backup_config or {}
         etcd_backup_config = j.core.config.get("VDC_S3_CONFIG", {})
         flist = THREEBOT_TRC_FLIST if embed_trc else THREEBOT_FLIST
@@ -86,7 +86,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                     * (1 + (S3_NO_PARITY_NODES / (S3_NO_DATA_NODES + S3_NO_PARITY_NODES)))
                 )
             ),
-            "S3_AUTO_TOPUP_FARMS": ",".join(S3_AUTO_TOPUP_FARMS.get()),
+            "S3_AUTO_TOPUP_FARMS": ",".join(S3_AUTO_TOPUP_FARMS.get()) if not zdb_farms else ",".join(zdb_farms),
             # "VDC_MINIO_ADDRESS": minio_ip_address,
             "SDK_VERSION": self.branch,
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),

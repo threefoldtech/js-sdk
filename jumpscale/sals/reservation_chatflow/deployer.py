@@ -479,9 +479,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             raise j.exceptions.Runtime(f"{ip_version} is not a valid IP Version")
         else:
             if ip_version == "IPv4":
-                node_filter = zos.nodes_finder.filter_public_ip4
+                node_filter = zos.nodes_finder.filter_accessnode_ip4
             elif ip_version == "IPv6":
-                node_filter = zos.nodes_finder.filter_public_ip6
+                node_filter = zos.nodes_finder.filter_accessnode_ip6
         currencies = currencies or []
         farm_nodes = zos.nodes_finder.nodes_search(farm_name=farm_name)
         available_cru = 0

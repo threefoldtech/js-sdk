@@ -182,13 +182,17 @@ class Manager:
         return out
 
     @helm_required
-    def list_deployed_releases(self, namespace="default"):
+    def list_deployed_releases(self, namespace=""):
         """list deployed helm releases
-
+        Args:
+            namespace: default empty will list all releases in all namepaces
         Returns:
             list: output of the helm command as dicts
         """
-        rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} --namespace {namespace} list -o json")
+        if namespace:
+            rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} --namespace {namespace} list -o json")
+        else:
+            rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} list -A -o json")
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to list charts, error was {err}")
         return j.data.serializers.json.loads(out)

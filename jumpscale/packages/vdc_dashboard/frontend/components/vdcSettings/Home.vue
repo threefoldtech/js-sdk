@@ -1,17 +1,14 @@
 <template>
   <v-container fluid class="grey lighten-5 mt-5">
-    <v-tabs class="text--left" background-color="transparent" vertical>
-      <v-tab>
-        <v-icon left> mdi-memory </v-icon>
-        Compute Nodes
-      </v-tab>
-      <v-tab>
-        <v-icon left> mdi-server </v-icon>
-        Storage Nodes
-      </v-tab>
-      <v-tab>
-        <v-icon left> mdi-wallet </v-icon>
-        Wallet Information
+    <v-tabs
+      v-model="activeTab"
+      class="text--left"
+      background-color="transparent"
+      vertical
+    >
+      <v-tab v-for="(tab, index) in tabs" :key="index">
+        <v-icon left>{{ tab.icon }} </v-icon>
+        {{ tab.title }}
       </v-tab>
 
       <v-tab-item class="ml-2">
@@ -35,7 +32,14 @@
           ></wallet>
         </v-card>
       </v-tab-item>
+
+      <v-tab-item class="ml-2">
+        <v-card flat>
+          <backups :vdc="vdc" :loading="loading"></backups>
+        </v-card>
+      </v-tab-item>
     </v-tabs>
+
     <v-dialog v-if="dialog.expiration" v-model="dialog.expiration" width="400">
       <v-card
         v-if="vdc"
@@ -63,11 +67,7 @@
       </v-card>
     </v-dialog>
     <v-dialog v-if="release" v-model="dialog.release" width="400">
-      <v-card
-        class="pt-4 pb-2"
-        color="info"
-        dark
-      >
+      <v-card class="pt-4 pb-2" color="info" dark>
         <v-card-text>
           <v-row align="center" justify="center">
             <v-icon class="my-4" align="center" x-large justify="center" center
@@ -75,7 +75,8 @@
             >
           </v-row>
           <b class="font-weight-bold">
-            New release {{ this.release }} is available. You can update it later from the user menu in the topbar.
+            New release {{ this.release }} is available. You can update it later
+            from the user menu in the topbar.
           </b>
         </v-card-text>
         <v-card-actions>
@@ -84,15 +85,11 @@
             class="text--lighten-2"
             color="grey"
             text
-            @click="dialog.release=false"
+            @click="dialog.release = false"
           >
             Later
           </v-btn>
-          <v-btn
-            color="white"
-            outlined
-            @click="$emit('update-dashboard')"
-          >
+          <v-btn color="white" outlined @click="$emit('update-dashboard')">
             Update now
           </v-btn>
         </v-card-actions>
@@ -118,6 +115,13 @@ module.exports = {
         release: false,
       },
       release: null,
+      tabs: [
+        { icon: "mdi-memory", title: "Compute Nodes" },
+        { icon: "mdi-server", title: "Storage Nodes" },
+        { icon: "mdi-wallet", title: "Wallet Information" },
+        { icon: "mdi-backup-restore", title: "Backup & Restore" },
+      ],
+      activeTab: null,
     };
   },
   methods: {
@@ -144,15 +148,13 @@ module.exports = {
         });
     },
     checkDashboardUpdates() {
-      this.$api.version
-        .checkForUpdate()
-        .then((response) => {
-          let new_release = response.data.new_release;
-          if (new_release) {
-            this.release = false; //new_release;
-            this.dialog.release = false; //true;
-          }
-        })
+      this.$api.version.checkForUpdate().then((response) => {
+        let new_release = response.data.new_release;
+        if (new_release) {
+          this.release = new_release;
+          this.dialog.release = true;
+        }
+      });
     },
   },
   mounted() {

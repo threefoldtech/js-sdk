@@ -196,7 +196,6 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 )
 
         domains = dict()
-        is_http_failure = False
         is_managed_domains = False
         gateway_values = list(gateways.values())
         random.shuffle(gateway_values)
@@ -221,12 +220,6 @@ class SolutionsChatflowDeploy(GedisChatBot):
                     continue
                 else:
                     deployer.unblock_managed_domain(domain)
-                try:
-                    if j.sals.crtsh.has_reached_limit(domain):
-                        continue
-                except requests.exceptions.HTTPError:
-                    is_http_failure = True
-                    continue
                 domains[domain] = gw_dict
                 self.gateway_pool = gw_dict["pool"]
                 self.gateway = gw_dict["gateway"]
@@ -296,11 +289,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                     continue
                 return self.domain
 
-        if is_http_failure:
-            raise StopChatFlow(
-                'An error encountered while trying to fetch certifcates information from <a href="crt.sh" target="_blank">crt.sh</a>. Please try again later.'
-            )
-        elif not is_managed_domains:
+        if not is_managed_domains:
             raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
         else:
             raise StopChatFlow(
@@ -361,9 +350,13 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def get_release_name(self):
         self._get_vdc_info()
         message = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
-        releases = [release["name"] for release in self.k8s_client.list_deployed_releases()]
+        releases = [
+            release["name"]
+            for release in self.k8s_client.list_deployed_releases()
+            if release["namespace"].startswith(self.chart_name)
+        ]
         self.release_name = self.string_ask(
-            message, required=True, is_identifier=True, not_exist=["solution name", releases], md=True
+            message, required=True, is_identifier=True, not_exist=["solution name", releases], md=True, max_length=20
         )
 
     @chatflow_step(title="Create subdomain")

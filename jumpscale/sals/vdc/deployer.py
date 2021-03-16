@@ -109,6 +109,7 @@ class VDCDeployer:
                 else:
                     self.error(f"failed to execute function {func.__name__} due to error {str(e)}.")
                     raise e
+            gevent.sleep(2)
 
     @property
     def transaction_hashes(self):
@@ -255,7 +256,7 @@ class VDCDeployer:
         self.pay(pool_info)
         return reservation_id, reservation_id
 
-    def init_vdc(self, selected_farm):
+    def init_vdc(self, selected_farm, zdb_farms=None):
         """
         1- create 2 pool on storage farms (with the required capacity to have 50-50) as speced
         2- get (and extend) or create a pool for kubernetes controller on the network farm with small flavor
@@ -269,8 +270,8 @@ class VDCDeployer:
             cloud_units = ru.cloud_units()
             return cloud_units.cu * 60 * 60 * 24 * duration, cloud_units.su * 60 * 60 * 24 * duration
 
-        def calc_zdb_farm_units():
-            zdb_farms = ZDB_FARMS.get()
+        def calc_zdb_farm_units(zdb_farms=None):
+            zdb_farms = zdb_farms or ZDB_FARMS.get()
             total_no_nodes = S3_NO_DATA_NODES + S3_NO_PARITY_NODES
             remainder = total_no_nodes % len(zdb_farms)
             no_node_per_farm = (total_no_nodes - remainder) / len(zdb_farms)
@@ -282,7 +283,7 @@ class VDCDeployer:
                 farm_resources[farm_name]["sus"] += sus * no_node_per_farm
             farm_resources[zdb_farms[0]]["sus"] += sus * remainder
 
-        calc_zdb_farm_units()
+        calc_zdb_farm_units(zdb_farms)
 
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         k8s = K8s()
@@ -303,14 +304,14 @@ class VDCDeployer:
         cus += n_cus
         sus += n_sus
 
-        etcd_cont = Container()
-        etcd_cont.capacity.cpu = ETCD_CPU
-        etcd_cont.capacity.memory = ETCD_MEMORY
-        etcd_cont.capacity.disk_size = ETCD_DISK
-        etcd_cont.capacity.disk_type = DiskType.SSD
-        n_cus, n_sus = get_cloud_units(etcd_cont)
-        cus += n_cus * ETCD_CLUSTER_SIZE
-        sus += n_sus * ETCD_CLUSTER_SIZE
+        # etcd_cont = Container()
+        # etcd_cont.capacity.cpu = ETCD_CPU
+        # etcd_cont.capacity.memory = ETCD_MEMORY
+        # etcd_cont.capacity.disk_size = ETCD_DISK
+        # etcd_cont.capacity.disk_type = DiskType.SSD
+        # n_cus, n_sus = get_cloud_units(etcd_cont)
+        # cus += n_cus * ETCD_CLUSTER_SIZE
+        # sus += n_sus * ETCD_CLUSTER_SIZE
 
         farm_resources[selected_farm]["cus"] += cus
         farm_resources[selected_farm]["sus"] += sus
@@ -360,12 +361,12 @@ class VDCDeployer:
                     )
                     return True
 
-    def deploy_vdc_zdb(self, scheduler=None):
+    def deploy_vdc_zdb(self, scheduler=None, zdb_farms=None):
         """
         1- get pool_id of each farm from ZDB_FARMS
         2- deploy zdbs on it with half of the capacity
         """
-        zdb_farms = ZDB_FARMS.get()
+        zdb_farms = zdb_farms or ZDB_FARMS.get()
         total_no_nodes = S3_NO_DATA_NODES + S3_NO_PARITY_NODES
         remainder = total_no_nodes % len(zdb_farms)
         no_node_per_farm = (total_no_nodes - remainder) / len(zdb_farms)
@@ -447,7 +448,7 @@ class VDCDeployer:
         self._wallet = None
         return old_wallet_name
 
-    def check_capacity(self, farm_name):
+    def check_capacity(self, farm_name, zdb_farms=None):
         # make sure there are available public ips
         farm = self.explorer.farms.get(farm_name=NETWORK_FARM.get())
         available_ips = False
@@ -460,7 +461,7 @@ class VDCDeployer:
 
         gcc = GlobalCapacityChecker()
         # check zdb capacity
-        zdb_farms = ZDB_FARMS.get()
+        zdb_farms = zdb_farms or ZDB_FARMS.get()
         total_no_nodes = S3_NO_DATA_NODES + S3_NO_PARITY_NODES
         remainder = total_no_nodes % len(zdb_farms)
         no_node_per_farm = (total_no_nodes - remainder) / len(zdb_farms)
@@ -525,7 +526,9 @@ class VDCDeployer:
 
         return gcc.result
 
-    def deploy_vdc(self, minio_ak, minio_sk, farm_name=None, install_monitoring_stack=False, s3_backup_config=None):
+    def deploy_vdc(
+        self, minio_ak, minio_sk, farm_name=None, install_monitoring_stack=False, s3_backup_config=None, zdb_farms=None
+    ):
         """deploys a new vdc
         Args:
             minio_ak: access key for minio
@@ -554,7 +557,7 @@ class VDCDeployer:
         with new_vdc_context(self):
             # deploy zdbs for s3
             self.bot_show_update("Deploying ZDBs for s3")
-            deployment_threads = self.deploy_vdc_zdb(gs)
+            deployment_threads = self.deploy_vdc_zdb(gs, zdb_farms)
             # public_keys to deploy vdc with
             pub_keys = [self.ssh_key.public_key.strip()]
             # deploy k8s cluster
@@ -621,7 +624,7 @@ class VDCDeployer:
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
             threebot_wid = self.threebot.deploy_threebot(
-                minio_wid, pool_id, kube_config=kube_config, backup_config=s3_backup_config
+                minio_wid, pool_id, kube_config=kube_config, backup_config=s3_backup_config, zdb_farms=zdb_farms,
             )
             self.info(f"threebot_wid: {threebot_wid}")
             if not threebot_wid:

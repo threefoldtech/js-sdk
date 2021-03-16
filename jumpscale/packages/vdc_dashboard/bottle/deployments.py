@@ -362,8 +362,9 @@ def check_update():
     except Exception as e:
         raise j.exceptions.Runtime(f"Failed to fetch remote releases. {str(e)}")
 
-    _, latest_local_tag, _ = j.sals.process.execute("git describe --tags --abbrev=0")
-
+    vdc_dashboard_path = j.packages.vdc_dashboard.__file__
+    sdk_repo_path = j.tools.git.find_git_path(vdc_dashboard_path)
+    _, latest_local_tag, _ = j.sals.process.execute("git describe --tags --abbrev=0", cwd=sdk_repo_path)
     if latest_remote_tag != latest_local_tag.rstrip("\n"):
         return HTTPResponse(
             j.data.serializers.json.dumps({"new_release": latest_remote_tag}),
@@ -407,6 +408,14 @@ def get_wallet_qrcode_image():
 @login_required
 def redir(solution):
     return redirect(f"/vdc_dashboard/#{solution}")
+
+
+@app.route("/api/vdc/status", method="GET")
+@login_required
+def is_running():
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"running": True}), status=200, headers={"Content-Type": "application/json"}
+    )
 
 
 app = SessionMiddleware(app, SESSION_OPTS)

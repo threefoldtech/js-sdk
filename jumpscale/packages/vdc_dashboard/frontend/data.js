@@ -5,7 +5,7 @@ const DECENTRALIZED_OFFICE = {
             name: "Taiga",
             type: "taiga",
             image: "./assets/taiga.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/docs/dmcircles/",
             description: "Taiga is a P2P alternative to centralized project management tool for multi-functional agile teams."
         },
@@ -240,9 +240,9 @@ const BC_SOLUTIONS = {
         },
         Matic: {
             name: "Matic",
-            type: "Matic",
+            type: "matic",
             image: "./assets/matic.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/matic/",
             description: "Decentralized scalability platform solution using an adapted version of the Plasma framework that empowers Ethereum-based DApps."
         },

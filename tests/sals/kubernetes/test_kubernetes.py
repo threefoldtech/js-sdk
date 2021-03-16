@@ -79,14 +79,14 @@ class TestKubernetes(VDCBase):
         - Install helm chart
         - Check that chart is installed.
         """
-        self.info("Add bitnami repo")
-        repo_name = "bitnami"
-        repo_url = "https://charts.bitnami.com/bitnami"
+        self.info("Add Marketplace repo")
+        repo_name = "marketplace"
+        repo_url = "https://threefoldtech.github.io/vdc-solutions-charts/"
         self.kube_manager.add_helm_repo(repo_name, repo_url)
 
-        self.info("Install etcd chart from bitnami repo")
+        self.info("Install Cryptpad chart from Marketplace repo")
         self.release_name = "testinstallchart"
-        self.release_chart = "bitnami/etcd"
+        self.release_chart = f"{repo_name}/cryptpad"
         self.kube_manager.install_chart(self.release_name, self.release_chart)
 
         self.info("Check if chart installed")
@@ -103,15 +103,20 @@ class TestKubernetes(VDCBase):
         **Test Scenario**
 
         - Deploy VDC
-        - Deploy ETCD chart
+        - Deploy Cryptpad chart
         - Check that chart deployed
         - Delete deployed chart
         - List all deployed charts
         - Check that deleted chart not in deployed charts.
         """
-        self.info("Deploy ETCD chart")
-        self.release_name = "testdeletechart"
-        self.release_chart = "bitnami/etcd"
+        self.info("Add Marketplace repo")
+        repo_name = "marketplace"
+        repo_url = "https://threefoldtech.github.io/vdc-solutions-charts/"
+        self.kube_manager.add_helm_repo(repo_name, repo_url)
+
+        self.info("Install Cryptpad chart from Marketplace repo")
+        self.release_name = "testupgraderelease"
+        self.release_chart = f"{repo_name}/cryptpad"
         self.kube_manager.install_chart(self.release_name, self.release_chart)
 
         self.info("Check that chart deployed")
@@ -122,7 +127,7 @@ class TestKubernetes(VDCBase):
                 break
         self.assertTrue(is_installed, "Failed Because chart not deployed")
 
-        self.info("Delete etcd release that installed before")
+        self.info("Delete Cryptpad release that installed before")
         self.kube_manager.delete_deployed_release(self.release_name)
 
         self.info("Check if deployed chart deleted")
@@ -168,17 +173,17 @@ class TestKubernetes(VDCBase):
         - Get helm chart user values
         - Check if values are equal
         """
-        self.info("Add bitnami repo")
-        repo_name = "bitnami"
-        repo_url = "https://charts.bitnami.com/bitnami"
+        self.info("Add Marketplace repo")
+        repo_name = "marketplace"
+        repo_url = "https://threefoldtech.github.io/vdc-solutions-charts/"
         self.kube_manager.add_helm_repo(repo_name, repo_url)
 
-        self.info("Install etcd chart from bitnami repo with custom value")
-        self.release_name = "testgetuservalues"
-        self.release_chart = "bitnami/etcd"
-        input_user_values = {"auth.rbac.enabled": "false"}
+        self.info("Install Cryptpad chart from Marketplace repo")
+        self.release_name = "testupgraderelease"
+        self.release_chart = f"{repo_name}/cryptpad"
+        input_user_values = {"volume:size": "20"}
         # Modified version of input_user_values as str to be comparable
-        input_user_values_str = "auth:rbac:enabled:false"
+        input_user_values_str = "volume:size:20"
         self.kube_manager.install_chart(self.release_name, self.release_chart, extra_config=input_user_values)
 
         self.info("Get user values from get_helm_chart_user_values function")
@@ -199,14 +204,14 @@ class TestKubernetes(VDCBase):
         - Upgrade release
         - Check if release upgraded
         """
-        self.info("Add bitnami repo")
-        repo_name = "bitnami"
-        repo_url = "https://charts.bitnami.com/bitnami"
+        self.info("Add Marketplace repo")
+        repo_name = "marketplace"
+        repo_url = "https://threefoldtech.github.io/vdc-solutions-charts/"
         self.kube_manager.add_helm_repo(repo_name, repo_url)
 
-        self.info("Install etcd chart from bitnami repo")
+        self.info("Install Cryptpad chart from Marketplace repo")
         self.release_name = "testupgraderelease"
-        self.release_chart = "bitnami/etcd"
+        self.release_chart = f"{repo_name}/cryptpad"
         self.kube_manager.install_chart(self.release_name, self.release_chart)
 
         self.info("Upgrade Release")
@@ -226,25 +231,25 @@ class TestKubernetes(VDCBase):
         - Check if release upgraded
         - Check if yaml config updated in the release values
         """
-        self.info("Add bitnami repo")
-        repo_name = "bitnami"
-        repo_url = "https://charts.bitnami.com/bitnami"
+        self.info("Add Marketplace repo")
+        repo_name = "marketplace"
+        repo_url = "https://threefoldtech.github.io/vdc-solutions-charts/"
         self.kube_manager.add_helm_repo(repo_name, repo_url)
 
-        self.info("Install etcd chart from bitnami repo")
+        self.info("Install Cryptpad chart from Marketplace repo")
         self.release_name = "testupgradereleasewithyaml"
-        self.release_chart = "bitnami/etcd"
+        self.release_chart = f"{repo_name}/cryptpad"
         self.kube_manager.install_chart(self.release_name, self.release_chart)
 
         self.info("Upgrade Release with yaml config")
-        yaml_config = yaml.safe_dump({"auth:rbac:enabled": "false"})
+        yaml_config = yaml.safe_dump({"volume:size": "20"})
         upgrade_status = self.kube_manager.upgrade_release(
             self.release_name, self.release_chart, yaml_config=yaml_config
         )
 
         self.info("Check if release upgraded")
         self.assertTrue(upgrade_status.find(f'Release "{self.release_name}" has been upgraded. Happy Helming!') != -1)
-        input_user_values_str = "auth:rbac:enabled:false"
+        input_user_values_str = "volume:size:20"
 
         self.info("Get current user values")
         func_user_values_str = self.kube_manager.get_helm_chart_user_values(self.release_name)
