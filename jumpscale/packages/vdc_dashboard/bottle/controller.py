@@ -67,6 +67,15 @@ def list_nodes():
 @app.route("/api/controller/node/add", method="POST")
 @controller_autherized()
 def add_node():
+    """
+    request body:
+        password
+        username
+        flavor
+
+    Returns:
+        wids: list of wids
+    """
     data = j.data.serializers.json.loads(request.body.read())
     vdc_password = data.get("password")
     username = data.get("username")
@@ -108,6 +117,15 @@ def add_node():
 @app.route("/api/controller/node/delete", method="POST")
 @controller_autherized()
 def delete_node():
+    """
+    request body:
+        password
+        username
+        wid
+
+    Returns:
+        status
+    """
     data = j.data.serializers.json.loads(request.body.read())
     vdc_password = data.get("password")
     username = data.get("username")
@@ -132,6 +150,14 @@ def delete_node():
 @app.route("/api/controller/zdb/list", method="POST")
 @controller_autherized()
 def list_zdbs():
+    """
+    request body:
+        password
+        username
+
+    Returns:
+        zdbs: string
+    """
     data = j.data.serializers.json.loads(request.body.read())
     username = data.get("username")
     vdc_dict = _get_vdc_dict(username=username)
@@ -144,6 +170,16 @@ def list_zdbs():
 @app.route("/api/controller/zdb/add", method="POST")
 @controller_autherized()
 def add_zdb():
+    """
+    request body:
+        password
+        username
+        capacity
+        farm(optional)
+
+    Returns:
+        wids: list of wids
+    """
     data = j.data.serializers.json.loads(request.body.read())
     username = data.get("username")
     capacity = data.get("capacity")
@@ -171,6 +207,15 @@ def add_zdb():
 @app.route("/api/controller/zdb/delete", method="POST")
 @controller_autherized()
 def delete_zdb():
+    """
+    request body:
+        password
+        username
+        wid
+
+    Returns:
+        status
+    """
     data = j.data.serializers.json.loads(request.body.read())
     vdc_password = data.get("password")
     username = data.get("username")
@@ -195,6 +240,14 @@ def delete_zdb():
 @app.route("/api/controller/wallet", method="POST")
 @controller_autherized()
 def get_wallet_info():
+    """
+    request body:
+        password
+        username
+
+    Returns:
+        wallet (prepaid): string
+    """
     # Get prepaid wallet info
     data = j.data.serializers.json.loads(request.body.read())
     username = data.get("username")
@@ -208,6 +261,14 @@ def get_wallet_info():
 @app.route("/api/controller/pools", method="POST")
 @controller_autherized()
 def list_pools():
+    """
+    request body:
+        password
+        username
+
+    Returns:
+        pools: string
+    """
     data = j.data.serializers.json.loads(request.body.read())
     username = data.get("username")
 
@@ -224,6 +285,15 @@ def list_pools():
 @app.route("/api/controller/alerts", method="POST")
 @controller_autherized()
 def list_alerts():
+    """
+    request body:
+        password
+        username
+        application (optional, if not given all alerts returned)
+
+    Returns:
+        alerts: string
+    """
     data = j.data.serializers.json.loads(request.body.read())
     username = data.get("username")
     app_name = data.get("application")
