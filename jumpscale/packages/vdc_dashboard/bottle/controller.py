@@ -67,7 +67,6 @@ def list_nodes():
 @app.route("/api/controller/node/add", method="POST")
 @controller_autherized()
 def add_node():
-    # TODO To be tested
     data = j.data.serializers.json.loads(request.body.read())
     vdc_password = data.get("password")
     username = data.get("username")
