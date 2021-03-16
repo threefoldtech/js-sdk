@@ -722,7 +722,7 @@ class UserVDC(Base):
         old_node_ids = []
         for k8s_node in self.kubernetes:
             old_node_ids.append(k8s_node.node_id)
-        farm_name = j.sals.marketplace.deployer.get_pool_farm_name(self.vdc.kubernetes[0].pool_id)
+        farm_name = j.sals.marketplace.deployer.get_pool_farm_name(self.kubernetes[0].pool_id)
         cc = CapacityChecker(farm_name)
         cc.exclude_nodes(*old_node_ids)
         node_flavor_size = VDC_SIZE.K8SNodeFlavor[self.node_flavor.upper()]
