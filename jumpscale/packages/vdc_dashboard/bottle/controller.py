@@ -109,7 +109,6 @@ def add_node():
 @app.route("/api/controller/node/delete", method="POST")
 @controller_autherized()
 def delete_node():
-    # TODO To be tested
     data = j.data.serializers.json.loads(request.body.read())
     vdc_password = data.get("password")
     username = data.get("username")
@@ -162,12 +161,36 @@ def add_zdb():
         zdb_farms = zdb_monitor.get_zdb_farm_names()
         farm = random.choice(zdb_farms)
     try:
-        zdb_monitor.extend(required_capacity=capacity, farm_names=[farm], wallet_name="prepaid_wallet")
+        wids = zdb_monitor.extend(required_capacity=capacity, farm_names=[farm], wallet_name="prepaid_wallet")
         return HTTPResponse(
-            j.data.serializers.json.dumps({"success": True}), status=201, headers={"Content-Type": "application/json"}
+            j.data.serializers.json.dumps(wids), status=201, headers={"Content-Type": "application/json"}
         )
     except Exception as e:
         abort(500, f"Error: Failed to deploy zdb due to the following {str(e)}")
+
+
+@app.route("/api/controller/zdb/delete", method="POST")
+@controller_autherized()
+def delete_zdb():
+    data = j.data.serializers.json.loads(request.body.read())
+    vdc_password = data.get("password")
+    username = data.get("username")
+    wid = data.get("wid")
+    if not all([username, wid]):
+        abort(400, "Error: Not all required params were passed.")
+
+    vdc = get_vdc(username=username)
+    vdc.load_info()
+    deployer = vdc.get_deployer(password=vdc_password)
+
+    try:
+        deployer.delete_s3_zdb(wid)
+    except j.exceptions.Input:
+        abort(400, "Error: Failed to delete workload")
+
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"result": True}), status=200, headers={"Content-Type": "application/json"}
+    )
 
 
 @app.route("/api/controller/wallet", method="POST")

@@ -127,6 +127,7 @@ class ZDBMonitor:
         j.logger.info(f"zdbs extended with wids: {wids}")
         if len(wids) != no_zdbs:
             j.logger.error(f"AUTO_TOPUP: couldn't deploy all required zdbs. successful workloads {wids}")
+        return wids
 
     def get_zdb_farm_names(self):
         pool_ids = set()

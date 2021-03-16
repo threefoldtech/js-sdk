@@ -727,6 +727,9 @@ class VDCDeployer:
     def delete_k8s_node(self, wid):
         return self.kubernetes.delete_worker(wid)
 
+    def delete_s3_zdb(self, wid):
+        return self.s3.delete_zdb(wid)
+
     def rollback_vdc_deployment(self):
         self.vdc_instance.load_info()
         if all([self.vdc_instance.threebot.domain, os.environ.get("VDC_NAME_USER"), os.environ.get("VDC_NAME_TOKEN")]):
