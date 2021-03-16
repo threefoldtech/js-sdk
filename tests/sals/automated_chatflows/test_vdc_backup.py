@@ -16,7 +16,7 @@ class VDCDashboard(VDCBase):
     def tearDown(self):
         self.vdc.provision_wallet.merge_into_account(self.wallet.address)
         self.vdc.prepaid_wallet.merge_into_account(self.wallet.address)
-        j.sals.vdc.delete(self.vdc.instance_name)
+        # j.sals.vdc.delete(self.vdc.instance_name)
 
         super().tearDown()
 
@@ -37,17 +37,21 @@ class VDCDashboard(VDCBase):
         self.info("Deploy VDC")
         self.vdc_name = self.random_name().lower()
         self.password = self.random_string()
-        kube_config = self.deploy_vdc(self.vdc_name, self.password)
+        self.vdc = j.sals.vdc.vdc_essamcloud_essam
+        # self.kube_config = self.deploy_vdc(self.vdc_name, self.password)
 
+        # if not self.kube_config:
+        #     raise RuntimeError("VDC is not deployed")
+
+        j.sals.fs.copy_file(
+            f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{self.vdc.owner_tname}/{self.vdc.vdc_name}.yaml",
+            j.sals.fs.expanduser("~/.kube/config"),
+        )
         self.info("Deploy a cryptpad")
         name = self.random_name().lower()
         cryptpad = deployer.deploy_cryptpad(release_name=name)
 
         self.info("Backup a VDC")
-        j.sals.fs.copy_file(
-            f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{self.vdc.owner_tname}/{self.vdc.vdc_name}.yaml",
-            j.sals.fs.expanduser("~/.kube/config"),
-        )
         backup_name = self.random_name().lower()
         self.create_backup(backup_name)
 

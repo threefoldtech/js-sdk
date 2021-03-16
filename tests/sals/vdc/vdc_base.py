@@ -11,14 +11,14 @@ class VDCBase(BaseTests):
     def setUpClass(cls):
         cls._get_env_vars()
         cls._import_wallet("test_wallet")
-        cls._import_wallet("activation_wallet")
+        # cls._import_wallet("activation_wallet")
         cls._prepare_identity()
-        cls._start_threebot_server()
+        # cls._start_threebot_server()
 
     @classmethod
     def tearDownClass(cls):
         # Stop threebot server and the testing identity.
-        cls.server.stop()
+        # cls.server.stop()
         j.core.identity.delete(cls.identity_name)
 
         # Restore the user identity
@@ -50,7 +50,7 @@ class VDCBase(BaseTests):
             cls.me = j.core.identity.me
 
         # Configure test identity and start threebot server.
-        cls.explorer_url = "https://explorer.testnet.grid.tf/api/v1"
+        cls.explorer_url = "https://explorer.devnet.grid.tf/api/v1"
         cls.identity_name = j.data.random_names.random_name()
         identity = j.core.identity.new(
             cls.identity_name, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url
