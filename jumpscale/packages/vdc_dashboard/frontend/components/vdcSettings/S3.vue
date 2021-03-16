@@ -27,6 +27,14 @@
         <v-icon left>mdi-download</v-icon>Zdbs Info
       </v-btn>
       <v-btn
+        class="float-right p-4"
+        color="primary"
+        text
+        @click.stop="enableQuantumStorage"
+      >
+        <v-icon left>mdi-folder-key-network</v-icon>Enable Quantum Storage
+      </v-btn>
+      <v-btn
         v-if="S3URL"
         class="float-right p-4"
         text
@@ -78,12 +86,18 @@
         <v-btn text color="error" @click="downloadFile()">Download</v-btn>
       </template>
     </base-dialog>
+    <enable-quantumstorage
+      v-model="dialogs.enableQuantum"
+    ></enable-quantumstorage>
   </div>
 </template>
 
 
 <script>
 module.exports = {
+  components: {
+    "enable-quantumstorage": httpVueLoader("./QuantumStorage.vue"),
+  },
   props: ["vdc"],
   mixins: [dialog],
   data() {
@@ -98,6 +112,7 @@ module.exports = {
       downloadType: null,
       dialogs: {
         downloadInfo: false,
+        enableQuantum: false,
       },
     };
   },
@@ -113,8 +128,8 @@ module.exports = {
           .then((response) => {
             Secret = response.data.data;
             let zdbs = this.vdc.s3.zdbs;
-            for(i in this.vdc.s3.zdbs){
-              let zdb = this.vdc.s3.zdbs[i]
+            for (i in this.vdc.s3.zdbs) {
+              let zdb = this.vdc.s3.zdbs[i];
               zdb.password = Secret;
             }
             data = JSON.stringify(zdbs, null, "\t");
@@ -181,6 +196,9 @@ module.exports = {
             this.loading = false;
           });
       }
+    },
+    enableQuantumStorage() {
+      this.dialogs.enableQuantum = true;
     },
   },
   computed: {

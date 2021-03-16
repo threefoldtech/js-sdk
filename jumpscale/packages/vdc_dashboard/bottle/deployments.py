@@ -423,4 +423,26 @@ def is_running():
     )
 
 
+@app.route("/api/quantumstorage/enable", method="GET")
+@login_required
+def enable_quantumstorage():
+    vdc = _get_vdc()
+    if not vdc:
+        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
+
+    qs = vdc.get_quantumstorage_manager()
+    try:
+        file_content = qs.apply()
+        return HTTPResponse(
+            j.data.serializers.json.dumps({"data": file_content}),
+            status=200,
+            headers={"Content-Type": "application/json"},
+        )
+    except Exception as e:
+        j.logger.error(f"Failed to enable quantum storage on your vdc due to {str(e)}")
+        return HTTPResponse(
+            "Failed to enable quantum storage on your vdc", status=500, headers={"Content-Type": "application/json"}
+        )
+
+
 app = SessionMiddleware(app, SESSION_OPTS)

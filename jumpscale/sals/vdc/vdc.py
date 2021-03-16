@@ -169,8 +169,8 @@ class UserVDC(Base):
     def get_snapshot_manager(self, snapshots_dir=None):
         return SnapshotManager(self, snapshots_dir)
 
-    def get_quantumstorage_manager(self):
-        return QuantumStorage(self)
+    def get_quantumstorage_manager(self, ip_version=4):
+        return QuantumStorage(self, ip_version)
 
     def load_info(self, load_proxy=False):
         self.kubernetes = []
