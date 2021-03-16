@@ -150,9 +150,6 @@ def add_zdb():
     username = data.get("username")
     capacity = data.get("capacity")
     farm = data.get("farm")
-    if not farm:
-        zdb_farms = ZDB_FARMS.get()
-        farm = random.choice(zdb_farms)
 
     if not all([username, capacity]):
         abort(400, "Error: Not all required params were passed.")
@@ -161,6 +158,9 @@ def add_zdb():
     vdc.load_info()
 
     zdb_monitor = vdc.get_zdb_monitor()
+    if not farm:
+        zdb_farms = zdb_monitor.get_zdb_farm_names()
+        farm = random.choice(zdb_farms)
     try:
         zdb_monitor.extend(required_capacity=capacity, farm_names=[farm], wallet_name="prepaid_wallet")
         return HTTPResponse(

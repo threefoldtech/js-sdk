@@ -1,5 +1,6 @@
 from jumpscale.loader import j
 import math
+from jumpscale.sals.reservation_chatflow import deployer, solutions
 from .s3_auto_topup import get_zdb_farms_distribution, get_farm_pool_id, extend_zdbs
 
 
@@ -126,3 +127,16 @@ class ZDBMonitor:
         j.logger.info(f"zdbs extended with wids: {wids}")
         if len(wids) != no_zdbs:
             j.logger.error(f"AUTO_TOPUP: couldn't deploy all required zdbs. successful workloads {wids}")
+
+    def get_zdb_farm_names(self):
+        pool_ids = set()
+        farm_names = []
+        for zdb in self.vdc_instance.s3.zdbs:
+            if zdb.pool_id in pool_ids:
+                continue
+            pool_ids.add(zdb.pool_id)
+            farm_id = deployer.get_pool_farm_id(zdb.pool_id)
+            farm_name = deployer._explorer.farms.get(farm_id).name
+            farm_names.append(farm_name)
+
+        return farm_names
