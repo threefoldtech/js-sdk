@@ -98,7 +98,7 @@ class ZDBMonitor:
             return metadata_dict["password"]
         raise j.exceptions.Runtime("couldn't get password for any zdb of vdc")
 
-    def extend(self, required_capacity, farm_names, extension_size=10):
+    def extend(self, required_capacity, farm_names, wallet_name="provision_wallet", extension_size=10):
         password = self.get_password()
         no_zdbs = math.floor(required_capacity / extension_size)
         if no_zdbs < 1:
@@ -113,6 +113,7 @@ class ZDBMonitor:
                 pool_id = get_farm_pool_id(farm_name)
                 farm_pools[farm_name] = pool_id
             pool_ids.append(pool_id)
+        wallet = getattr(self.vdc_instance, wallet_name)
         wids, _ = extend_zdbs(
             self.vdc_instance.vdc_name,
             pool_ids,
@@ -120,7 +121,7 @@ class ZDBMonitor:
             password,
             self.vdc_instance.get_pools_expiration(),
             extension_size,
-            wallet_name=self.vdc_instance.provision_wallet.instance_name,
+            wallet_name=wallet.instance_name,
         )
         j.logger.info(f"zdbs extended with wids: {wids}")
         if len(wids) != no_zdbs:

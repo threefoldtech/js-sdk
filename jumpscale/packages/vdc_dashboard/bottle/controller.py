@@ -148,40 +148,33 @@ def list_zdbs():
 def add_zdb():
     # TODO To be tested
     data = j.data.serializers.json.loads(request.body.read())
-    vdc_password = data.get("password")
     username = data.get("username")
-    if not all([username]):
+    capacity = data.get("capacity")
+    farm = data.get("farm")
+    if not farm:
+        zdb_farms = ZDB_FARMS.get()
+        farm = random.choice(zdb_farms)
+
+    if not all([username, capacity]):
         abort(400, "Error: Not all required params were passed.")
 
     vdc = get_vdc(username=username)
     vdc.load_info()
-    deployer = vdc.get_deployer(password=vdc_password)
 
-    zdb_farms = ZDB_FARMS.get()
-    farm = random.choice(zdb_farms)  # TODO to be changed with check
-    gs = GlobalScheduler()
-
-    pool_id, _ = deployer.get_pool_id_and_reservation_id(farm)
+    zdb_monitor = vdc.get_zdb_monitor()
     try:
-        wids = vdc.s3.deploy_s3_zdb(
-            pool_id=pool_id,
-            scheduler=gs,
-            storage_per_zdb=ZDB_STARTING_SIZE,
-            password=vdc_password,
-            solution_uuid=vdc.solution_uuid,
-            no_nodes=1,
-        )
+        zdb_monitor.extend(required_capacity=capacity, farm_names=[farm], wallet_name="prepaid_wallet")
         return HTTPResponse(
-            j.data.serializers.json.dumps(wids), status=201, headers={"Content-Type": "application/json"}
+            j.data.serializers.json.dumps({"success": True}), status=201, headers={"Content-Type": "application/json"}
         )
-
     except Exception as e:
-        abort(500, "Error: Failed to deploy zdb")
+        abort(500, f"Error: Failed to deploy zdb due to the following {str(e)}")
 
 
 @app.route("/api/controller/wallet", method="POST")
 @controller_autherized()
 def get_wallet_info():
+    # Get prepaid wallet info
     data = j.data.serializers.json.loads(request.body.read())
     username = data.get("username")
     vdc_dict = _get_vdc_dict(username=username)
@@ -204,6 +197,7 @@ def list_pools():
 
     # for node in vdc_dict["kubernetes"]:
     #     pool_ids.add(node["pool_id"])
+    # pools = vdc.active_pools
     pass
 
 
