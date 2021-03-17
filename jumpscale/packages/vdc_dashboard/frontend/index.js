@@ -71,6 +71,14 @@ const router = new VueRouter({
     ]
 })
 
+Vue.mixin({
+    methods: {
+        alert(message, status) {
+            this.$root.$emit('popup', message, status)
+        }
+    }
+})
+
 const getUser = async() => {
     return axios.get("/auth/authenticated/").then(res => true).catch(() => false)
 }

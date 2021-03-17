@@ -72,15 +72,11 @@ class ExtendKubernetesCluster(GedisChatBot):
             self.stop(
                 f"Couldn't verify VDC secret. please make sure you are using the correct secret for VDC {self.vdc_name}"
             )
-        # check for capacity before deploying
-        if not self.farm_name:
-            self.farm_name = j.sals.marketplace.deployer.get_pool_farm_name(self.vdc.kubernetes[0].pool_id)
-        cc = CapacityChecker(self.farm_name)
-        cc.exclude_nodes(*self.old_node_ids)
-        node_flavor_size = VDC_SIZE.K8SNodeFlavor[self.node_flavor.upper()]
-        if not cc.add_query(**VDC_SIZE.K8S_SIZES[node_flavor_size]):
+
+        capacity_check, farm_name = self.vdc.check_capacity_available(self.node_flavor, self.farm_name)
+        if not capacity_check:
             self.stop(
-                f"There's no enough capacity in farm {self.farm_name} for kubernetes node of flavor {self.node_flavor}"
+                f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {self.node_flavor}"
             )
         j.logger.debug("found enough capacity, continue to payment")
 

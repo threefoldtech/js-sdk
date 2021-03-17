@@ -49,15 +49,6 @@ const DECENTRALIZED_OFFICE = {
             helpLink: "https://now.threefold.io/now/docs/dmcustomers/",
             description: "Full featured Customer Relationship Management system."
         },
-        commento: {
-            name: "Commento",
-            type: "commento",
-            image: "./assets/commento.png",
-            disable: true,
-            helpLink: "https://now.threefold.io/now/docs/commento/",
-            description: "Collaborate on online content without giving up your privacy."
-        },
-
     },
 }
 
@@ -130,6 +121,14 @@ const DECENTRALIZED_WE = {
             helpLink: "https://now.threefold.io/now/docs/knowledge-base/",
             description: "A simple, self-hosted, easy-to-use platform for organizing and storing information."
         },
+        commento: {
+            name: "Commento",
+            type: "commento",
+            image: "./assets/commento.png",
+            disable: true,
+            helpLink: "https://now.threefold.io/now/docs/commento/",
+            description: "Commento lets you embed comments without giving up your privacy."
+        },
     },
 }
 
@@ -192,6 +191,15 @@ const DECENTRALIZED_DEV = {
             helpLink: "",
             description: "A distributed, reliable key-value store for the most critical data of a distributed system. Used by kubectl"
         },
+
+        minio: {
+            name: "Minio Quantum Storage",
+            type: "minio",
+            image: "./assets/minio.png",
+            disable: false,
+            helpLink: "",
+            description: "Quantum Storage solution uses MinIO which is a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with a number of zdbs needed for storage."
+        },
     },
 }
 
@@ -222,14 +230,6 @@ const BC_SOLUTIONS = {
             helpLink: "https://now.threefold.io/now/docs/presearch/",
             description: "Presearch is a decentralized search engine powered by blockchain technology."
         },
-        elrond: {
-            name: "Elrond",
-            type: "elrond",
-            image: "./assets/elrond.png",
-            disable: true,
-            helpLink: "https://now.threefold.io/now/docs/elrond/",
-            description: "The internet-scale blockchain, designed from scratch to bring a 1000-fold cumulative improvement in throughput and execution speed."
-        },
         harmony: {
             name: "Harmony",
             type: "harmony",
@@ -239,12 +239,12 @@ const BC_SOLUTIONS = {
             description: "Fast and open blockchain for decentralized applications."
         },
         matic: {
-            name: "Matic",
+            name: "Polygon",
             type: "matic",
-            image: "./assets/matic.png",
+            image: "./assets/polygon.png",
             disable: false,
             helpLink: "https://now.threefold.io/now/docs/matic/",
-            description: "Decentralized scalability platform solution using an adapted version of the Plasma framework that empowers Ethereum-based DApps."
+            description: "Protocol and framework for building Ethereum-compatible blockchain networks."
         },
         neo: {
             name: "Neo",

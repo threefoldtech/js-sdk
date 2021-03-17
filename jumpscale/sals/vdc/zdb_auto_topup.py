@@ -1,5 +1,6 @@
 from jumpscale.loader import j
 import math
+from jumpscale.sals.reservation_chatflow import deployer, solutions
 from .s3_auto_topup import get_zdb_farms_distribution, get_farm_pool_id, extend_zdbs
 
 
@@ -98,7 +99,7 @@ class ZDBMonitor:
             return metadata_dict["password"]
         raise j.exceptions.Runtime("couldn't get password for any zdb of vdc")
 
-    def extend(self, required_capacity, farm_names, extension_size=10):
+    def extend(self, required_capacity, farm_names, wallet_name="provision_wallet", extension_size=10):
         password = self.get_password()
         no_zdbs = math.floor(required_capacity / extension_size)
         if no_zdbs < 1:
@@ -113,6 +114,7 @@ class ZDBMonitor:
                 pool_id = get_farm_pool_id(farm_name)
                 farm_pools[farm_name] = pool_id
             pool_ids.append(pool_id)
+        wallet = getattr(self.vdc_instance, wallet_name)
         wids, _ = extend_zdbs(
             self.vdc_instance.vdc_name,
             pool_ids,
@@ -120,8 +122,22 @@ class ZDBMonitor:
             password,
             self.vdc_instance.get_pools_expiration(),
             extension_size,
-            wallet_name=self.vdc_instance.provision_wallet.instance_name,
+            wallet_name=wallet.instance_name,
         )
         j.logger.info(f"zdbs extended with wids: {wids}")
         if len(wids) != no_zdbs:
             j.logger.error(f"AUTO_TOPUP: couldn't deploy all required zdbs. successful workloads {wids}")
+        return wids
+
+    def get_zdb_farm_names(self):
+        pool_ids = set()
+        farm_names = []
+        for zdb in self.vdc_instance.s3.zdbs:
+            if zdb.pool_id in pool_ids:
+                continue
+            pool_ids.add(zdb.pool_id)
+            farm_id = deployer.get_pool_farm_id(zdb.pool_id)
+            farm_name = deployer._explorer.farms.get(farm_id).name
+            farm_names.append(farm_name)
+
+        return farm_names

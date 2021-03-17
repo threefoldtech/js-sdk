@@ -9,7 +9,7 @@ const apiClient = {
       })
     }
   },
-  server:{
+  server: {
     isRunning: () => {
       return axios({
         url: `${baseURL}/vdc/status`,
@@ -71,6 +71,14 @@ const apiClient = {
     deleteWorkerWorkload: (wid) => {
       return axios({
         url: `${baseURL}/kube/nodes/delete`,
+        method: "post",
+        data: { wid: wid },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
+    deleteZdb: (wid) => {
+      return axios({
+        url: `${baseURL}/s3/zdbs/delete`,
         method: "post",
         data: { wid: wid },
         headers: { 'Content-Type': 'application/json' }
@@ -156,4 +164,13 @@ const apiClient = {
       })
     },
   },
+  quantumstorage: {
+    enable: () => {
+      return axios({
+        url: `${baseURL}/quantumstorage/enable`,
+        headers: { 'Content-Type': 'application/json' },
+        method: "get"
+      })
+    }
+  }
 }
