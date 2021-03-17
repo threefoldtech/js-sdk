@@ -2,9 +2,6 @@ from bottle import HTTPResponse
 import math
 from jumpscale.loader import j
 
-from jumpscale.packages.auth.bottle.auth import get_user_info
-
-from jumpscale.sals.vdc import VDCFACTORY
 from jumpscale.sals.vdc.size import VDC_SIZE
 from jumpscale.sals.vdc.models import KubernetesRole
 
@@ -43,7 +40,7 @@ def _total_capacity(vdc):
 
 def get_vdc():
     vdc_full_name = list(j.sals.vdc.list_all())[0]
-    return VDCFACTORY.find(vdc_full_name, load_info=True)
+    return j.sals.vdc.find(vdc_full_name, load_info=True)
 
 
 def threebot_vdc_helper(vdc=None):
