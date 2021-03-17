@@ -43,6 +43,14 @@
         <v-icon color="primary" class="mr-2" left>mdi-web</v-icon>Storage
         Browser
       </v-btn>
+      <v-btn
+        class="float-right p-4"
+        color="primary"
+        text
+        @click.stop="openChatflow('extend_storage')"
+      >
+        <v-icon left>mdi-plus</v-icon>Add node
+      </v-btn>
     </div>
     <v-data-table
       :headers="headers"
@@ -231,6 +239,12 @@ module.exports = {
     deleteZdb(wid) {
       this.selectedZdb = wid
       this.dialogs.cancelZdb = true;
+    },
+    openChatflow(topic) {
+      this.$router.push({
+        name: "SolutionChatflow",
+        params: { topic: topic },
+      });
     },
   },
   computed: {
