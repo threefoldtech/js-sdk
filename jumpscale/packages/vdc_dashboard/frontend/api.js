@@ -9,7 +9,7 @@ const apiClient = {
       })
     }
   },
-  server:{
+  server: {
     isRunning: () => {
       return axios({
         url: `${baseURL}/vdc/status`,
@@ -156,4 +156,13 @@ const apiClient = {
       })
     },
   },
+  quantumstorage: {
+    enable: () => {
+      return axios({
+        url: `${baseURL}/quantumstorage/enable`,
+        headers: { 'Content-Type': 'application/json' },
+        method: "get"
+      })
+    }
+  }
 }
