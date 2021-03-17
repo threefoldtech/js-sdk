@@ -103,8 +103,9 @@ def delete_zdb():
     deployer = vdc.get_deployer()
     try:
         deployer.delete_s3_zdb(wid)
-    except j.exceptions.Input:
-        abort(400, "Error: Failed to delete workload")
+    except Exception as e:
+        j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
+        abort(500, "Error: Failed to delete workload")
     return j.data.serializers.json.dumps({"result": True})
 
 
