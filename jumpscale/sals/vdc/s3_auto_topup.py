@@ -170,7 +170,7 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, siz
 
     pool_total_sus = defaultdict(int)
     for _, pool_id in enumerate(pool_ids):
-        cloud_units = deployer.calculate_capacity_units(sru=size)
+        cloud_units = deployer.calculate_capacity_units(hru=size)
         su = cloud_units.su
         pool_total_sus[pool_id] += su
 
