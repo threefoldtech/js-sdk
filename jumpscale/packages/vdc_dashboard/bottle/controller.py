@@ -122,8 +122,9 @@ def delete_node():
 
     try:
         deployer.delete_k8s_node(wid)
-    except j.exceptions.Input:
-        abort(400, "Error: Failed to delete workload")
+    except Exception as e:
+        j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
+        abort(500, "Error: Failed to delete workload")
 
     return HTTPResponse(
         j.data.serializers.json.dumps({"result": True}), status=200, headers={"Content-Type": "application/json"}
@@ -180,7 +181,8 @@ def add_zdb():
             j.data.serializers.json.dumps(wids), status=201, headers={"Content-Type": "application/json"}
         )
     except Exception as e:
-        abort(500, f"Error: Failed to deploy zdb due to the following {str(e)}")
+        j.logger.error(f"Error: Failed to deploy zdb due to the following {str(e)}")
+        abort(500, f"Error: Failed to deploy zdb")
 
 
 @app.route("/api/controller/zdb/delete", method="POST")
@@ -206,8 +208,9 @@ def delete_zdb():
 
     try:
         deployer.delete_s3_zdb(wid)
-    except j.exceptions.Input:
-        abort(400, "Error: Failed to delete workload")
+    except Exception as e:
+        j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
+        abort(500, "Error: Failed to delete workload")
 
     return HTTPResponse(
         j.data.serializers.json.dumps({"result": True}), status=200, headers={"Content-Type": "application/json"}

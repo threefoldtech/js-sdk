@@ -2,7 +2,6 @@ import os
 from textwrap import dedent
 
 from jumpscale.loader import j
-from jumpscale.packages.vdc_dashboard.bottle.deployments import _get_zstor_config
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
 
 
@@ -18,6 +17,8 @@ class QuantumStorage:
         self.ip_version = ip_version  # to use in zstor config
 
     def zstor_config(self, endpoints, prefix="someprefix", etcd_secret=None):
+        from jumpscale.packages.vdc_dashboard.bottle.deployments import _get_zstor_config
+
         if not self._zstor_config:
             config = _get_zstor_config(self.ip_version)
             config["meta"]["config"]["endpoints"] = endpoints
