@@ -10,6 +10,8 @@ from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 from jumpscale.sals.vdc.quantum_storage import QuantumStorage
 from jumpscale.sals.zos import get as get_zos
+from jumpscale.sals.vdc.scheduler import CapacityChecker
+from jumpscale.clients.stellar import TRANSACTION_FEES
 
 from .deployer import VDCDeployer
 from .kubernetes_auto_extend import KubernetesMonitor
@@ -214,7 +216,7 @@ class UserVDC(Base):
         public_ip = public_ip or self.get_public_ip()
         if not public_ip:
             raise j.exceptions.Runtime(f"couldn't get a public ip for vdc: {self.vdc_name}")
-        ssh_client = self.get_ssh_client("socat_list", public_ip, "rancher",)
+        ssh_client = self.get_ssh_client("socat_list", public_ip, "rancher")
         result = defaultdict(list)
         rc, out, _ = ssh_client.sshclient.run(f"sudo ps -ef | grep -v grep | grep socat", warn=True)
         if rc != 0:
@@ -464,7 +466,7 @@ class UserVDC(Base):
             refund_extra=False,
             expiry=expiry,
             description=j.data.serializers.json.dumps(
-                {"type": "VDC_INIT", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
+                {"type": "VDC_INIT", "owner": self.owner_tname, "solution_uuid": self.solution_uuid}
             ),
         )
 
@@ -490,13 +492,19 @@ class UserVDC(Base):
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
-            result = bot.single_choice(
-                f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
-                ["Yes", "No"],
-                required=True,
-            )
-            if result == "Yes":
+            if bot:
+                result = bot.single_choice(
+                    f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
+                    ["Yes", "No"],
+                    required=True,
+                )
+                if result == "Yes":
+                    amount = 0
+            else:
                 amount = 0
+        elif not bot:
+            # Not enough funds in prepaid wallet and no bot passed to use to view QRcode
+            return False, amount, None
 
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
@@ -504,7 +512,7 @@ class UserVDC(Base):
             refund_extra=False,
             expiry=expiry,
             description=j.data.serializers.json.dumps(
-                {"type": "VDC_K8S_EXTEND", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
+                {"type": "VDC_K8S_EXTEND", "owner": self.owner_tname, "solution_uuid": self.solution_uuid}
             ),
         )
         if amount > 0:
@@ -709,3 +717,15 @@ class UserVDC(Base):
         j.clients.sshclient.delete(name)
         ssh_client = j.clients.sshclient.get(name, user=user, host=ip_address, sshkey=self.vdc_name)
         return ssh_client
+
+    def check_capacity_available(self, flavor):
+        old_node_ids = []
+        for k8s_node in self.kubernetes:
+            old_node_ids.append(k8s_node.node_id)
+        farm_name = j.sals.marketplace.deployer.get_pool_farm_name(self.kubernetes[0].pool_id)
+        cc = CapacityChecker(farm_name)
+        cc.exclude_nodes(*old_node_ids)
+        node_flavor_size = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
+        if not cc.add_query(**VDC_SIZE.K8S_SIZES[node_flavor_size]):
+            return False, farm_name
+        return True, farm_name

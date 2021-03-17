@@ -10,55 +10,13 @@ from jumpscale.packages.auth.bottle.auth import (
     package_authorized,
 )
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper
 from jumpscale.core.base import StoredFactory
-from jumpscale.sals.vdc.size import VDC_SIZE
-from jumpscale.sals.vdc.models import KubernetesRole
 
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
 import os
-import math
 
 app = Bottle()
-
-
-def _get_vdc():
-    user_info = j.data.serializers.json.loads(get_user_info())
-    username = user_info["username"]
-    vdc_full_name = list(j.sals.vdc.list_all())[0]
-    vdc_instance = j.sals.vdc.get(vdc_full_name)
-    return j.sals.vdc.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
-
-
-def _get_addons(flavor, kubernetes_addons):
-    """Get all the addons on the basic user plan
-    Args:
-        flavor(str): user flavor for the plan
-        kubernetes_addons(list): all kubernetes nodes
-    Returns:
-        addons(list): list of addons used by the user over the basic chosen plan
-    """
-    plan = VDC_SIZE.VDC_FLAVORS.get(flavor)
-    plan_nodes_count = plan.get("k8s").get("no_nodes")
-    plan_nodes_size = plan.get("k8s").get("size")
-    addons = list()
-    for addon in kubernetes_addons:
-        if addon.role != KubernetesRole.MASTER:
-            if addon.size == plan_nodes_size:
-                plan_nodes_count -= 1
-                if plan_nodes_count < 0:
-                    addons.append(addon)
-            else:
-                addons.append(addon)
-    return addons
-
-
-def _total_capacity(vdc):
-    vdc.load_info()
-    addons = _get_addons(vdc.flavor, vdc.kubernetes)
-    plan = VDC_SIZE.VDC_FLAVORS.get(vdc.flavor)
-    plan_nodes_count = plan.get("k8s").get("no_nodes")
-    # total capacity = worker plan nodes + added nodes + master node
-    return plan_nodes_count + len(addons) + 1
 
 
 def _get_zstor_config(ip_version=6):
@@ -121,25 +79,41 @@ def delete_node():
     wid = data.get("wid")
     if not wid:
         abort(400, "Error: Not all required params was passed.")
-    user_info = j.data.serializers.json.loads(get_user_info())
-    username = user_info["username"]
-    vdc_full_name = list(j.sals.vdc.list_all())[0]
-    vdc_instance = j.sals.vdc.get(vdc_full_name)
-    vdc = j.sals.vdc.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+    vdc = get_vdc()
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     deployer = vdc.get_deployer()
     try:
         deployer.delete_k8s_node(wid)
-    except j.exceptions.Input:
-        abort(400, "Error: Failed to delete workload")
+    except Exception as e:
+        j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
+        abort(500, "Error: Failed to delete workload")
+    return j.data.serializers.json.dumps({"result": True})
+
+
+@app.route("/api/s3/zdbs/delete", method="POST")
+@package_authorized("vdc_dashboard")
+def delete_zdb():
+    data = j.data.serializers.json.loads(request.body.read())
+    wid = data.get("wid")
+    if not wid:
+        abort(400, "Error: Not all required params was passed.")
+    vdc = get_vdc()
+    if not vdc:
+        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
+    deployer = vdc.get_deployer()
+    try:
+        deployer.delete_s3_zdb(wid)
+    except Exception as e:
+        j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
+        abort(500, "Error: Failed to delete workload")
     return j.data.serializers.json.dumps({"result": True})
 
 
 @app.route("/api/s3/expose")
 @package_authorized("vdc_dashboard")
 def expose_s3() -> str:
-    vdc = _get_vdc()
+    vdc = get_vdc()
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
 
@@ -177,31 +151,8 @@ def list_all_deployments() -> str:
 @app.route("/api/threebot_vdc", method="GET")
 @package_authorized("vdc_dashboard")
 def threebot_vdc():
-    vdc = _get_vdc()
-    if not vdc:
-        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
-    vdc_dict = vdc.to_dict()
-    vdc_dict["expiration_days"] = (vdc.expiration_date - j.data.time.now()).days
-    vdc_dict["expiration_date"] = vdc.calculate_expiration_value(False)
-    # Add wallet address
-    wallet = vdc.prepaid_wallet
-    balances = wallet.get_balance()
-    balances_data = []
-    for item in balances.balances:
-        # Add only TFT balance
-        if item.asset_code == "TFT":
-            balances_data.append(
-                {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
-            )
-    vdc_dict["total_capacity"] = _total_capacity(vdc)
-    vdc_dict["wallet"] = {
-        "address": wallet.address,
-        "network": wallet.network.value,
-        "secret": wallet.secret,
-        "balances": balances_data,
-    }
-    vdc_dict["price"] = math.ceil(vdc.calculate_spec_price())
-
+    vdc = get_vdc()
+    vdc_dict = threebot_vdc_helper(vdc=vdc)
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
     )
@@ -242,7 +193,7 @@ def cancel_deployment():
         abort(400, "Error: Not all required params was passed.")
     config_path = j.sals.fs.expanduser("~/.kube/config")
     k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
-    vdc = _get_vdc()
+    vdc = get_vdc()
     if namespace == "default":
         k8s_client.delete_deployed_release(release=data["release"], vdc_instance=vdc, namespace=namespace)
     else:
@@ -263,7 +214,7 @@ def get_zstor_config():
     zstor_config = _get_zstor_config(ip_version)
     if not zstor_config:
         return HTTPResponse(
-            status=400, message=f"unsupported ip version: {ip_version}", headers={"Content-Type": "application/json"},
+            status=400, message=f"unsupported ip version: {ip_version}", headers={"Content-Type": "application/json"}
         )
     return j.data.serializers.json.dumps({"data": j.data.serializers.toml.dumps(zstor_config)})
 
@@ -271,7 +222,7 @@ def get_zstor_config():
 @app.route("/api/zdb/secret", method="GET")
 @authenticated
 def get_zdb_secret():
-    vdc = _get_vdc()
+    vdc = get_vdc()
     vdc_zdb_monitor = vdc.get_zdb_monitor()
     password = vdc_zdb_monitor.get_password()
     return j.data.serializers.json.dumps({"data": password})
@@ -426,7 +377,7 @@ def is_running():
 @app.route("/api/quantumstorage/enable", method="GET")
 @login_required
 def enable_quantumstorage():
-    vdc = _get_vdc()
+    vdc = get_vdc()
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
 
