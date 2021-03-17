@@ -45,7 +45,7 @@ class ExtendKubernetesCluster(GedisChatBot):
     def different_farm(self):
         self.diff_farm = False
         diff_farm = self.single_choice(
-            "Do you want to deploy this node on different farm", options=["Yes", "No"], default="No", required=True
+            "Do you want to deploy this node on a different farm", options=["Yes", "No"], default="No", required=True
         )
         if diff_farm == "Yes":
             self.diff_farm = True
@@ -54,10 +54,11 @@ class ExtendKubernetesCluster(GedisChatBot):
     def select_farm(self):
         self.farm_name = None
         if self.diff_farm:
+            self.md_show_update("Checking the available farms")
             gcc = GlobalCapacityChecker()
             gcc.exclude_nodes(*self.old_node_ids)
             node_flavor_size = VDC_SIZE.K8SNodeFlavor[self.node_flavor.upper()]
-            farms_names = gcc.get_available_farms(**VDC_SIZE.K8S_SIZES[node_flavor_size])
+            farms_names = list(gcc.get_available_farms(**VDC_SIZE.K8S_SIZES[node_flavor_size]))
             if not farms_names:
                 self.stop(f"There's no enough capacity for kubernetes node of flavor {self.node_flavor}")
             self.farm_name = self.single_choice("Choose a farm to deploy on", options=farms_names, required=True)

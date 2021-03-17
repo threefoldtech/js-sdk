@@ -2,7 +2,7 @@ from collections import defaultdict
 import datetime
 import uuid
 
-from jumpscale.clients.explorer.models import NextAction, WorkloadType
+from jumpscale.clients.explorer.models import NextAction, WorkloadType, ZdbNamespace, DiskType
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 from jumpscale.sals.zos import get as get_zos
@@ -10,7 +10,7 @@ from jumpscale.clients.stellar import TRANSACTION_FEES
 
 from .deployer import VDCDeployer
 from .models import *
-from .size import VDC_SIZE, PROXY_FARM, FARM_DISCOUNT
+from .size import VDC_SIZE, PROXY_FARM, FARM_DISCOUNT, ZDB_STARTING_SIZE
 from .wallet import VDC_WALLET_FACTORY
 from .zdb_auto_topup import ZDBMonitor
 from .kubernetes_auto_extend import KubernetesMonitor
@@ -510,6 +510,42 @@ class UserVDC(Base):
             return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
         else:
             return True, node_price, payment_id
+
+    def show_external_zdb_payment(self, bot, farm_name, size=ZDB_STARTING_SIZE, no_nodes=1, expiry=5, wallet_name=None):
+        discount = FARM_DISCOUNT.get()
+        zos = j.sals.zos.get()
+        farm_id = zos._explorer.farms.get(farm_name).id
+        zdb = ZdbNamespace()
+        zdb.size = size
+        zdb.disk_type = DiskType.HDD
+        amount = j.tools.zos.consumption.cost(zdb, 60 * 60 * 24 * 30, farm_id) + TRANSACTION_FEES
+
+        prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
+        if prepaid_balance >= amount:
+            result = bot.single_choice(
+                f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
+                ["Yes", "No"],
+                required=True,
+            )
+            if result == "Yes":
+                amount = 0
+
+        payment_id, _ = j.sals.billing.submit_payment(
+            amount=amount,
+            wallet_name=wallet_name or self.prepaid_wallet.instance_name,
+            refund_extra=False,
+            expiry=expiry,
+            description=j.data.serializers.json.dumps(
+                {"type": "VDC_ZDB_EXTEND", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
+            ),
+        )
+        if amount > 0:
+            notes = []
+            if discount:
+                notes = ["For testing purposes, we applied a discount of {:.0f}%".format(discount * 100)]
+            return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
+        else:
+            return True, payment_id
 
     def transfer_to_provisioning_wallet(self, amount, wallet_name=None):
         if not amount:
