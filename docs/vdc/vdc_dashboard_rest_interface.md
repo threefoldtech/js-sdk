@@ -13,7 +13,6 @@ The functionalities can be accessed through the following endpoints:
 - method: POST
 - Body params:
     - *password*: (string) password to access vdc
-    - *username*: (string) username of the vdc owner
 - Return:
     - *vdc*: (JSON string) all vdc information
 
@@ -24,7 +23,6 @@ The functionalities can be accessed through the following endpoints:
 - method: POST
 - Body params:
     - *password*: (string) password to access vdc
-    - *username*: (string) username of the vdc owner
 - Return:
     - *kubernetes*: (JSON string) all kubernetes worker nodes information
 
@@ -34,7 +32,6 @@ The functionalities can be accessed through the following endpoints:
 - method: POST
 - Body params:
     - *password*: (string) password to access vdc
-    - *username*: (string) username of the vdc owner
     - *flavor*: (string) flavor(specs) of the new node to be added e.g: SMALL
 - Return:
     - *wids*: (JSON string) list of workload ids of the new node/s added
@@ -45,7 +42,6 @@ The functionalities can be accessed through the following endpoints:
 - method: POST
 - Body params:
     - *password*: (string) password to access vdc
-    - *username*: (string) username of the vdc owner
     - *wid*: (string) workload id of the node to be deleted
 
 
@@ -55,7 +51,6 @@ The functionalities can be accessed through the following endpoints:
 - method: POST
 - Body params:
     - *password*: (string) password to access vdc
-    - *username*: (string) username of the vdc owner
 - Return:
     - *zdbs*: (JSON string) all storage nodes information of vdc
 
@@ -66,7 +61,6 @@ The functionalities can be accessed through the following endpoints:
 - method: POST
 - Body params:
     - *password*: (string) password to access vdc
-    - *username*: (string) username of the vdc owner
     - *capacity*: (int) size of the storage node to be added in GB e.g 10
     - *farm*(optional): (string) farm to add zdb on
 - Return:
@@ -79,7 +73,6 @@ The functionalities can be accessed through the following endpoints:
 - method: POST
 - Body params:
     - *password*: (string) password to access vdc
-    - *username*: (string) username of the vdc owner
     - *wid*: (int) workload id of the storage node to be deleted
 
 
@@ -89,7 +82,6 @@ The functionalities can be accessed through the following endpoints:
 - method: POST
 - Body params:
     - *password*: (string) password to access vdc
-    - *username*: (string) username of the vdc owner
 - Return:
     - *wallet*: (JSON string) prepaid wallet information used in vdc
 
@@ -99,7 +91,6 @@ The functionalities can be accessed through the following endpoints:
 - method: POST
 - Body params:
     - *password*: (string) password to access vdc
-    - *username*: (string) username of the vdc owner
 - Return:
     - *pools*: (JSON string list) all active pools' information used in the vdc
 
@@ -109,7 +100,6 @@ The functionalities can be accessed through the following endpoints:
 - method: POST
 - Body params:
     - *password*: (string) password to access vdc
-    - *username*: (string) username of the vdc owner
     - *application*(optional): application type to filter alerts with
 - Return:
     - *alerts*: (JSON string) all alerts on vdc threebot machine

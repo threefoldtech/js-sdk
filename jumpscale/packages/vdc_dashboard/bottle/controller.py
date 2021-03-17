@@ -5,18 +5,14 @@ import random
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, controller_authorized
 from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper
-from jumpscale.sals.vdc.size import VDC_SIZE, ZDB_FARMS, ZDB_STARTING_SIZE
-from jumpscale.sals.vdc.scheduler import GlobalScheduler
+from jumpscale.sals.vdc.size import VDC_SIZE
 
 
 app = Bottle()
 
 
-def _get_vdc_dict(username=None):
-    if not username:
-        abort(400, "Error: Not all required params were passed.")
-
-    vdc = get_vdc(username=username)
+def _get_vdc_dict():
+    vdc = get_vdc()
     vdc_dict = threebot_vdc_helper(vdc=vdc)
     return vdc_dict
 
@@ -27,16 +23,11 @@ def threebot_vdc():
     """
     request body:
         password
-        username
 
     Returns:
         vdc: string
     """
-    # get username
-    data = j.data.serializers.json.loads(request.body.read())
-    username = data.get("username")
-
-    vdc_dict = _get_vdc_dict(username=username)
+    vdc_dict = _get_vdc_dict()
 
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
@@ -49,15 +40,11 @@ def list_nodes():
     """
     request body:
         password
-        username
 
     Returns:
         kubernetes: string
     """
-    # get username
-    data = j.data.serializers.json.loads(request.body.read())
-    username = data.get("username")
-    vdc_dict = _get_vdc_dict(username=username)
+    vdc_dict = _get_vdc_dict()
 
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict["kubernetes"]), status=200, headers={"Content-Type": "application/json"}
@@ -70,7 +57,6 @@ def add_node():
     """
     request body:
         password
-        username
         flavor
 
     Returns:
@@ -78,9 +64,8 @@ def add_node():
     """
     data = j.data.serializers.json.loads(request.body.read())
     vdc_password = data.get("password")
-    username = data.get("username")
     node_flavor = data.get("flavor")
-    if not all([username, node_flavor]):
+    if not all([node_flavor]):
         abort(400, "Error: Not all required params were passed.")
 
     # check stellar service
@@ -91,7 +76,7 @@ def add_node():
         abort(400, "Error: Flavor passed is not supported")
     node_flavor = node_flavor.upper()
 
-    vdc = get_vdc(username=username)
+    vdc = get_vdc()
     vdc.load_info()
     deployer = vdc.get_deployer(password=vdc_password)
     capacity_check, farm_name = vdc.check_capacity_available(node_flavor)
@@ -120,7 +105,6 @@ def delete_node():
     """
     request body:
         password
-        username
         wid
 
     Returns:
@@ -128,12 +112,11 @@ def delete_node():
     """
     data = j.data.serializers.json.loads(request.body.read())
     vdc_password = data.get("password")
-    username = data.get("username")
     wid = data.get("wid")
-    if not all([username, wid]):
+    if not all([wid]):
         abort(400, "Error: Not all required params were passed.")
 
-    vdc = get_vdc(username=username)
+    vdc = get_vdc()
     vdc.load_info()
     deployer = vdc.get_deployer(password=vdc_password)
 
@@ -153,14 +136,12 @@ def list_zdbs():
     """
     request body:
         password
-        username
 
     Returns:
         zdbs: string
     """
     data = j.data.serializers.json.loads(request.body.read())
-    username = data.get("username")
-    vdc_dict = _get_vdc_dict(username=username)
+    vdc_dict = _get_vdc_dict()
 
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict["s3"]["zdbs"]), status=200, headers={"Content-Type": "application/json"}
@@ -173,7 +154,6 @@ def add_zdb():
     """
     request body:
         password
-        username
         capacity
         farm(optional)
 
@@ -181,14 +161,13 @@ def add_zdb():
         wids: list of wids
     """
     data = j.data.serializers.json.loads(request.body.read())
-    username = data.get("username")
     capacity = data.get("capacity")
     farm = data.get("farm")
 
-    if not all([username, capacity]):
+    if not all([capacity]):
         abort(400, "Error: Not all required params were passed.")
 
-    vdc = get_vdc(username=username)
+    vdc = get_vdc()
     vdc.load_info()
 
     zdb_monitor = vdc.get_zdb_monitor()
@@ -210,7 +189,6 @@ def delete_zdb():
     """
     request body:
         password
-        username
         wid
 
     Returns:
@@ -218,12 +196,11 @@ def delete_zdb():
     """
     data = j.data.serializers.json.loads(request.body.read())
     vdc_password = data.get("password")
-    username = data.get("username")
     wid = data.get("wid")
-    if not all([username, wid]):
+    if not all([wid]):
         abort(400, "Error: Not all required params were passed.")
 
-    vdc = get_vdc(username=username)
+    vdc = get_vdc()
     vdc.load_info()
     deployer = vdc.get_deployer(password=vdc_password)
 
@@ -243,15 +220,12 @@ def get_wallet_info():
     """
     request body:
         password
-        username
 
     Returns:
         wallet (prepaid): string
     """
     # Get prepaid wallet info
-    data = j.data.serializers.json.loads(request.body.read())
-    username = data.get("username")
-    vdc_dict = _get_vdc_dict(username=username)
+    vdc_dict = _get_vdc_dict()
 
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict["wallet"]), status=200, headers={"Content-Type": "application/json"}
@@ -264,18 +238,12 @@ def list_pools():
     """
     request body:
         password
-        username
 
     Returns:
         pools: string
     """
-    data = j.data.serializers.json.loads(request.body.read())
-    username = data.get("username")
 
-    if not all([username]):
-        abort(400, "Error: Not all required params were passed.")
-
-    vdc = get_vdc(username=username)
+    vdc = get_vdc()
     vdc.load_info()
 
     pools = [pool.to_dict() for pool in vdc.active_pools]
@@ -288,17 +256,13 @@ def list_alerts():
     """
     request body:
         password
-        username
         application (optional, if not given all alerts returned)
 
     Returns:
         alerts: string
     """
     data = j.data.serializers.json.loads(request.body.read())
-    username = data.get("username")
     app_name = data.get("application")
-    if not all([username]):
-        abort(400, "Error: Not all required params were passed.")
 
     if not app_name:
         alerts = [alert.json for alert in j.tools.alerthandler.find()]

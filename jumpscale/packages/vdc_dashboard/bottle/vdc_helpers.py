@@ -41,13 +41,9 @@ def _total_capacity(vdc):
     return plan_nodes_count + len(addons) + 1
 
 
-def get_vdc(username=None):
-    if not username:
-        user_info = j.data.serializers.json.loads(get_user_info())
-        username = user_info["username"]
+def get_vdc():
     vdc_full_name = list(j.sals.vdc.list_all())[0]
-    vdc_instance = j.sals.vdc.get(vdc_full_name)
-    return VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+    return VDCFACTORY.find(vdc_full_name, load_info=True)
 
 
 def threebot_vdc_helper(vdc=None):
