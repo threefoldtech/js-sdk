@@ -247,7 +247,7 @@ const BC_SOLUTIONS = {
             helpLink: "https://now.threefold.io/now/docs/harmony/",
             description: "Fast and open blockchain for decentralized applications."
         },
-        Matic: {
+        matic: {
             name: "Matic",
             type: "matic",
             image: "./assets/matic.png",
