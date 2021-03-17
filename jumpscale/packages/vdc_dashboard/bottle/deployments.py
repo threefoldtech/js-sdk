@@ -113,11 +113,7 @@ def delete_node():
     wid = data.get("wid")
     if not wid:
         abort(400, "Error: Not all required params was passed.")
-    user_info = j.data.serializers.json.loads(get_user_info())
-    username = user_info["username"]
-    vdc_full_name = list(j.sals.vdc.list_all())[0]
-    vdc_instance = j.sals.vdc.get(vdc_full_name)
-    vdc = j.sals.vdc.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+    vdc = get_vdc()
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     deployer = vdc.get_deployer()
@@ -135,11 +131,7 @@ def delete_zdb():
     wid = data.get("wid")
     if not wid:
         abort(400, "Error: Not all required params was passed.")
-    user_info = j.data.serializers.json.loads(get_user_info())
-    username = user_info["username"]
-    vdc_full_name = list(j.sals.vdc.list_all())[0]
-    vdc_instance = j.sals.vdc.get(vdc_full_name)
-    vdc = VDCFACTORY.find(vdc_name=vdc_instance.vdc_name, owner_tname=username, load_info=True)
+    vdc = get_vdc()
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     deployer = vdc.get_deployer()
