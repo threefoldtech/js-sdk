@@ -25,6 +25,7 @@ class ExtendKubernetesCluster(GedisChatBot):
     def select_farm(self):
         self.farm_name = None
         if self.diff_farm:
+            self.md_show_update("Checking the available farms")
             gcc = GlobalCapacityChecker()
             farms_names = list(gcc.get_available_farms(hru=ZDB_STARTING_SIZE))
             if not farms_names:
@@ -55,6 +56,7 @@ class ExtendKubernetesCluster(GedisChatBot):
 
         self.md_show_update("Payment successful")
         try:
+            self.md_show_update("Deploying 1 Storage Node")
             zdb_monitor.extend(
                 required_capacity=ZDB_STARTING_SIZE, farm_names=[self.farm_name], wallet_name="prepaid_wallet"
             )

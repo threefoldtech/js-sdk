@@ -526,7 +526,7 @@ class UserVDC(Base):
     def show_external_zdb_payment(self, bot, farm_name, size=ZDB_STARTING_SIZE, no_nodes=1, expiry=5, wallet_name=None):
         discount = FARM_DISCOUNT.get()
         zos = j.sals.zos.get()
-        farm_id = zos._explorer.farms.get(farm_name).id
+        farm_id = zos._explorer.farms.get(farm_name=farm_name).id
         zdb = ZdbNamespace()
         zdb.size = size
         zdb.disk_type = DiskType.HDD
