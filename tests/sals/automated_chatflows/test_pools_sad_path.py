@@ -83,22 +83,19 @@ class PoolChatflows(ChatflowsBase):
         **Test Scenario**
 
         - Create empty wallet.
-        - Create a pool with non-existing farm.
+        - Create a pool with empty wallet.
         - Check that the pool creation has been failed.
         """
         self.info("Create empty wallet")
         self.wallet_name = self.random_name()
         self.create_wallet(self.wallet_name)
 
-        self.info("Create a pool with non-existing farm")
+        self.info("Create a pool with empty wallet")
         name = self.random_name()
         farm = self.get_farm_name().capitalize()
         with pytest.raises(j.core.exceptions.exceptions.Runtime) as exp:
             pool = deployer.create_pool(solution_name=name, farm=farm, wallet_name=self.wallet_name,)
 
-        import pdb
-
-        pdb.set_trace()
         self.info("Check that the pool creation has been failed")
         error_message = "Something wrong happened"
         self.assertIn(error_message, str(exp.value))

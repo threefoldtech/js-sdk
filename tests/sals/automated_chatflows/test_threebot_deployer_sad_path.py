@@ -21,7 +21,7 @@ class ThreebotChatflowsSadPath(ChatflowsBase):
 
         path = j.sals.fs.dirname(threebot_deployer.__file__)
         threebot_deployer = j.servers.threebot.default.packages.add(path)
-
+        cls.wg_conf_paths = []
         cls.solution_uuid = ""
         cls.secret = ""
 
@@ -29,18 +29,19 @@ class ThreebotChatflowsSadPath(ChatflowsBase):
     def tearDownClass(cls):
         # Remove userEntry for accepting T&C
         cls.user_factory.delete(cls.user_entry_name)
+        for path in cls.wg_conf_paths:
+            j.sals.process.execute(f"sudo wg-quick down {path}")
+            j.sals.fs.rmtree(path=path)
         super().tearDownClass()
 
     def tearDown(self):
         if self.solution_uuid and self.secret:
             stop_threebot_solution(self.tname, self.solution_uuid, self.secret)
         if hasattr(self, "ssh_client_name"):
+            j.sals.fs.rmtree(path="/tmp/.ssh")
             j.clients.sshclient.delete(self.ssh_client_name)
 
-        if hasattr(self, "wg_conf_path"):
-            j.sals.process.execute(f"sudo wg-quick down {self.wg_conf_path}")
-            j.sals.fs.rmtree(path=self.wg_conf_path)
-
+    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2777")
     def test01_deploy_threebot_on_past_expiration(self):
         """Test case for deploying a threebot with an expiration on the past.
 
@@ -52,40 +53,38 @@ class ThreebotChatflowsSadPath(ChatflowsBase):
         self.info("Deploy a threebot with an expiration on the past")
         name = self.random_name()
         self.secret = self.random_name()
-        expiration = j.data.time.utcnow().timestamp - 60 * 15
+        expiration = j.data.time.utcnow().timestamp - 60 * 60  # an hour ago
 
         with pytest.raises(j.core.exceptions.exceptions.Runtime) as exp:
             threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
-            self.solution_uuid = threebot.solution_id
+
         self.info("Check that threebot deploying has been failed")
         error_message = "Something wrong happened"
         self.assertIn(error_message, str(exp.value))
 
     def test02_deploy_two_threebot_with_same_name(self):
-        """Test case for deploying a threebot with an expiration on the past.
+        """Test case for deploying two threebot with same name.
 
         **Test Scenario**
 
         - Deploy a threebot.
-        - Try to deploy threebot with same name.
-        - Check that threebot deploying has been failed.
+        - Try to deploy anther threebot with same name.
+        - Check that second threebot deploying has been failed.
         """
         self.info("Deploy a threebot")
         name = self.random_name()
         self.secret = self.random_name()
         expiration = j.data.time.utcnow().timestamp + 60 * 15
-
-        self.info("Deploy a threebot")
         threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
 
-        self.info("Try to deploy threebot with same name")
+        self.info("Try to deploy anther threebot with same name")
         with pytest.raises(j.core.exceptions.exceptions.Runtime) as exp:
             threebot_with_same_name = deployer.deploy_threebot(
                 solution_name=name, secret=self.secret, expiration=expiration, ssh=""
             )
 
-        self.info("Check that threebot deploying has been failed")
+        self.info("Check that second threebot deploying has been failed")
         error_message = "Something wrong happened"
         self.assertIn(error_message, str(exp.value))
 
@@ -105,7 +104,7 @@ class ThreebotChatflowsSadPath(ChatflowsBase):
         threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
 
-        self.info("Try to deploy threebot with same name")
+        self.info("Try to change location for runing threebot")
         with pytest.raises(j.core.exceptions.exceptions.Runtime) as exp:
             changed_threebot = deployer.change_threebot_location(name, self.secret, expiration_time=expiration)
 
@@ -146,7 +145,7 @@ class ThreebotChatflowsSadPath(ChatflowsBase):
 
         - Deploy a threebot.
         - Try to start runing threebot.
-        - Check that threebot running has been failed.
+        - Check that start threebot running has been failed.
         """
         self.info("Deploy a threebot")
         name = self.random_name()
@@ -159,36 +158,12 @@ class ThreebotChatflowsSadPath(ChatflowsBase):
         with pytest.raises(j.core.exceptions.exceptions.Runtime) as exp:
             changed_threebot = deployer.start_threebot(name, self.secret)
 
-        self.info("Check that threebot running has been failed")
-        error_message = "Something wrong happened"
-        self.assertIn(error_message, str(exp.value))
-
-    def test06_start_running_threebot(self):
-        """Test case for start running threebot.
-
-        **Test Scenario**
-
-        - Deploy a threebot.
-        - Try to start runing threebot.
-        - Check that threebot running has been failed.
-        """
-        self.info("Deploy a threebot")
-        name = self.random_name()
-        self.secret = self.random_name()
-        expiration = j.data.time.utcnow().timestamp + 60 * 15
-        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
-        self.solution_uuid = threebot.solution_id
-
-        self.info("Try to start runing threebot")
-        with pytest.raises(j.core.exceptions.exceptions.Runtime) as exp:
-            changed_threebot = deployer.start_threebot(name, self.secret)
-
-        self.info("Check that threebot running has been failed")
+        self.info("Check that start threebot running has been failed")
         error_message = "Something wrong happened"
         self.assertIn(error_message, str(exp.value))
 
     def test06_threebot_expiration_time(self):
-        """Test case for check threebot expiration time.
+        """Test case for checking threebot expiration time.
 
         **Test Scenario**
 
@@ -199,13 +174,16 @@ class ThreebotChatflowsSadPath(ChatflowsBase):
         self.info("Deploy a threebot")
         name = self.random_name()
         self.secret = self.random_name()
+        timestamp_now = j.data.time.utcnow().timestamp
         expiration = j.data.time.utcnow().timestamp + 60 * 60
         threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
 
-        timestamp_after_one_hour = self.timestamp_now + 60 * 60
+        self.info("Get the expiration value")
+        timestamp_after_one_hour = timestamp_now + 60 * 60
 
-        self.assertLess(int(threebot.expiration - timestamp_after_one_hour), 200)
+        self.info("Check expiration value after one hour")
+        self.assertLess(int(threebot.expiration - timestamp_after_one_hour), 300)
 
     def test07_ssh_threebot(self):
         """Test case for ssh threebot.
@@ -237,9 +215,9 @@ class ThreebotChatflowsSadPath(ChatflowsBase):
         self.solution_uuid = threebot.solution_id
 
         self.info("Up wireguard")
-        self.wg_conf_path = f"/tmp/{self.random_name()}.conf"
-        j.sals.fs.write_file(self.wg_conf_path, threebot.wgcfg)
-        rc, out, err = j.sals.process.execute(f"sudo wg-quick up {self.wg_conf_path}")
+        self.wg_conf_paths.append(f"/tmp/{self.random_name()}.conf")
+        j.sals.fs.write_file(self.wg_conf_paths[-1], threebot.wgcfg)
+        rc, out, err = j.sals.process.execute(f"sudo wg-quick up {self.wg_conf_paths[-1]}")
         sleep(5)
 
         self.info("Check ssh to threebot")

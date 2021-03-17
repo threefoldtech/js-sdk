@@ -57,7 +57,6 @@ class TFGridSolutionChatflowsSadPath(ChatflowsBase):
 
     @classmethod
     def tearDownClass(cls):
-        # should stop threebot server.
         for path in cls.wg_conf_paths:
             j.sals.process.execute(f"sudo wg-quick down {path}")
             j.sals.fs.rmtree(path=path)
@@ -78,12 +77,6 @@ class TFGridSolutionChatflowsSadPath(ChatflowsBase):
             j.sals.reservation_chatflow.solutions.cancel_solution_by_uuid(self.solution_uuid)
         j.clients.sshclient.delete(self.ssh_client_name)
 
-        # down 4to6 wg
-        if hasattr(self, "wg_path"):
-            self.wg_path
-            j.sals.process.execute(f"sudo wg-quick down {self.wg_path}")
-            j.sals.fs.rmtree(path=self.wg_path)
-
         super().tearDown()
 
     def wait(self, ip, port, timeout):
@@ -103,14 +96,12 @@ class TFGridSolutionChatflowsSadPath(ChatflowsBase):
         """
         self.info("Deploy Ubuntu")
         name = self.random_name()
-        node = "26ZATmd3K1fjeQKQsi8Dr7bm9iSRa3ePsV8ubMcbZEuY"
         ubuntu = deployer.deploy_ubuntu(
             solution_name=name,
             pool=self.pool_id,
             network=self.network_name,
             ssh=self.ssh_cl.public_key_path,
             node_automatic="NO",
-            node=node,
         )
         self.solution_uuid = ubuntu.solution_id
 
@@ -138,15 +129,13 @@ class TFGridSolutionChatflowsSadPath(ChatflowsBase):
         self.info("Deploy kubernetes")
         name = self.random_name()
         secret = self.random_name()
-        workernodes = j.data.idgenerator.random_int(1, 2)
 
         kubernetes = deployer.deploy_kubernetes(
             solution_name=name,
             secret=secret,
             network=self.network_name,
-            workernodes=workernodes,
             ssh=self.ssh_cl.public_key_path,
-            pools="12620",
+            pools=self.pool_id,
             size=kub_size,
         )
         self.solution_uuid = kubernetes.solution_id
