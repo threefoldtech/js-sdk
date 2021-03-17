@@ -387,7 +387,7 @@ def get_package_admins(package_name):
     return package.admins
 
 
-def controller_autherized():
+def controller_authorized():
     def decorator(function):
         def wrapper(*args, **kwargs):
             # Get vdc instance and password

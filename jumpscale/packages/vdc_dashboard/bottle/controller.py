@@ -3,7 +3,7 @@ from bottle import Bottle, request, HTTPResponse, abort
 import random
 
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, controller_autherized
+from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, controller_authorized
 from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper
 from jumpscale.sals.vdc.size import VDC_SIZE, ZDB_FARMS, ZDB_STARTING_SIZE
 from jumpscale.sals.vdc.scheduler import GlobalScheduler
@@ -22,7 +22,7 @@ def _get_vdc_dict(username=None):
 
 
 @app.route("/api/controller/vdc", method="POST")
-@controller_autherized()
+@controller_authorized()
 def threebot_vdc():
     """
     request body:
@@ -44,7 +44,7 @@ def threebot_vdc():
 
 
 @app.route("/api/controller/node/list", method="POST")
-@controller_autherized()
+@controller_authorized()
 def list_nodes():
     """
     request body:
@@ -52,7 +52,7 @@ def list_nodes():
         username
 
     Returns:
-        vdc: string
+        kubernetes: string
     """
     # get username
     data = j.data.serializers.json.loads(request.body.read())
@@ -65,7 +65,7 @@ def list_nodes():
 
 
 @app.route("/api/controller/node/add", method="POST")
-@controller_autherized()
+@controller_authorized()
 def add_node():
     """
     request body:
@@ -115,7 +115,7 @@ def add_node():
 
 
 @app.route("/api/controller/node/delete", method="POST")
-@controller_autherized()
+@controller_authorized()
 def delete_node():
     """
     request body:
@@ -148,7 +148,7 @@ def delete_node():
 
 
 @app.route("/api/controller/zdb/list", method="POST")
-@controller_autherized()
+@controller_authorized()
 def list_zdbs():
     """
     request body:
@@ -168,7 +168,7 @@ def list_zdbs():
 
 
 @app.route("/api/controller/zdb/add", method="POST")
-@controller_autherized()
+@controller_authorized()
 def add_zdb():
     """
     request body:
@@ -205,7 +205,7 @@ def add_zdb():
 
 
 @app.route("/api/controller/zdb/delete", method="POST")
-@controller_autherized()
+@controller_authorized()
 def delete_zdb():
     """
     request body:
@@ -238,7 +238,7 @@ def delete_zdb():
 
 
 @app.route("/api/controller/wallet", method="POST")
-@controller_autherized()
+@controller_authorized()
 def get_wallet_info():
     """
     request body:
@@ -259,7 +259,7 @@ def get_wallet_info():
 
 
 @app.route("/api/controller/pools", method="POST")
-@controller_autherized()
+@controller_authorized()
 def list_pools():
     """
     request body:
@@ -283,7 +283,7 @@ def list_pools():
 
 
 @app.route("/api/controller/alerts", method="POST")
-@controller_autherized()
+@controller_authorized()
 def list_alerts():
     """
     request body:
