@@ -41,14 +41,6 @@ const DECENTRALIZED_OFFICE = {
             helpLink: "https://now.threefold.io/now/docs/zeroci/",
             description: "Continuous integration system useful for all programming languages."
         },
-        commento: {
-            name: "Commento",
-            type: "commento",
-            image: "./assets/commento.png",
-            disable: true,
-            helpLink: "https://now.threefold.io/now/docs/commento/",
-            description: "Collaborate on online content without giving up your privacy."
-        },
     },
 }
 
@@ -121,6 +113,14 @@ const DECENTRALIZED_WE = {
             helpLink: "https://now.threefold.io/now/docs/knowledge-base/",
             description: "A simple, self-hosted, easy-to-use platform for organizing and storing information."
         },
+        commento: {
+            name: "Commento",
+            type: "commento",
+            image: "./assets/commento.png",
+            disable: true,
+            helpLink: "https://now.threefold.io/now/docs/commento/",
+            description: "Commento lets you embed comments without giving up your privacy."
+        },
 
     },
 }
@@ -191,12 +191,12 @@ const BC_SOLUTIONS = {
             description: "Fast and open blockchain for decentralized applications."
         },
         Matic: {
-            name: "Matic",
+            name: "Polygon",
             type: "Matic",
-            image: "./assets/matic.png",
+            image: "./assets/polygon.png",
             disable: true,
             helpLink: "https://now.threefold.io/now/docs/matic/",
-            description: "Decentralized scalability platform solution using an adapted version of the Plasma framework that empowers Ethereum-based DApps."
+            description: "Protocol and framework for building Ethereum-compatible blockchain networks."
         },
         neo: {
             name: "Neo",
