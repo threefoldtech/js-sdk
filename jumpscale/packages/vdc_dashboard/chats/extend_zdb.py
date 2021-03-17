@@ -5,7 +5,7 @@ from jumpscale.sals.vdc.size import VDC_SIZE, ZDB_STARTING_SIZE
 
 
 class ExtendKubernetesCluster(GedisChatBot):
-    title = "Extend Kubernetes Cluster"
+    title = "Extend Storage Nodes"
     steps = ["different_farm", "select_farm", "add_node", "success"]
 
     @chatflow_step(title="Farm Selection")
