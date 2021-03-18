@@ -27,7 +27,7 @@ class ExtendKubernetesCluster(GedisChatBot):
         if self.diff_farm:
             self.md_show_update("Checking the available farms")
             gcc = GlobalCapacityChecker()
-            farms_names = list(gcc.get_available_farms(hru=ZDB_STARTING_SIZE))
+            farms_names = list(gcc.get_available_farms(hru=ZDB_STARTING_SIZE, ip_version="IPv6"))
             if not farms_names:
                 self.stop("There's no enough capacity for adding storage node")
             self.farm_name = self.single_choice("Choose a farm to deploy on", options=farms_names, required=True)
@@ -46,7 +46,7 @@ class ExtendKubernetesCluster(GedisChatBot):
             farm_names = zdb_monitor.get_zdb_farm_names()
             self.farm_name = farm_names[0]
         cc = CapacityChecker(self.farm_name)
-        if not cc.add_query(hru=ZDB_STARTING_SIZE):
+        if not cc.add_query(hru=ZDB_STARTING_SIZE, ip_version="IPv6"):
             self.stop(f"There's no enough capacity in farm {self.farm_name} for adding storage node")
         j.logger.debug("found enough capacity, continue to payment")
 
