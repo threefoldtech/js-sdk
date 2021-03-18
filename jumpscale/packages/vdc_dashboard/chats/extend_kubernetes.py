@@ -34,13 +34,6 @@ class ExtendKubernetesCluster(GedisChatBot):
         self.node_flavor = self.node_flavor.split(":")[0].lower()
         self.public_ip = False
 
-    @property
-    def old_node_ids(self):
-        old_node_ids = []
-        for k8s_node in self.vdc.kubernetes:
-            old_node_ids.append(k8s_node.node_id)
-        return old_node_ids
-
     @chatflow_step(title="Farm Selection")
     def different_farm(self):
         self.diff_farm = False
@@ -55,8 +48,11 @@ class ExtendKubernetesCluster(GedisChatBot):
         self.farm_name = None
         if self.diff_farm:
             self.md_show_update("Checking the available farms")
+            old_node_ids = []
+            for k8s_node in self.vdc.kubernetes:
+                old_node_ids.append(k8s_node.node_id)
             gcc = GlobalCapacityChecker()
-            gcc.exclude_nodes(*self.old_node_ids)
+            gcc.exclude_nodes(*old_node_ids)
             node_flavor_size = VDC_SIZE.K8SNodeFlavor[self.node_flavor.upper()]
             farms_names = list(gcc.get_available_farms(**VDC_SIZE.K8S_SIZES[node_flavor_size]))
             if not farms_names:
