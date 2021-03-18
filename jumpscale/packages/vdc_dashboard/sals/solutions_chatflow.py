@@ -2,6 +2,7 @@ import random
 import gevent
 import requests
 import uuid
+import nacl
 from textwrap import dedent
 from time import time
 
@@ -492,3 +493,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 self.k8s_client.execute_native_cmd(
                     f"kubectl label {kind} {name} -n {namespace} {key}={val} --overwrite"
                 )
+
+    def generate_signing_key(self):
+        k = nacl.signing.SigningKey.generate()
+        return k.encode(encoder=nacl.encoding.Base64Encoder).decode()

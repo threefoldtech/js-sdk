@@ -85,7 +85,7 @@ const DECENTRALIZED_WE = {
             name: "Discourse",
             type: "discourse",
             image: "./assets/discourse.png",
-            disable: true,
+            disable: false,
             helpLink: "https://now.threefold.io/now/docs/discourse/",
             description: "Discourse is an open source Internet forum and mailing list management software application built to educate members about civil community engagement."
         },
