@@ -1,17 +1,16 @@
 import random
+import gevent
+import requests
 import uuid
+import nacl
 from textwrap import dedent
 from time import time
 
-import gevent
-import nacl
-import requests
-
-from jumpscale.clients.explorer.models import WorkloadType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
+from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 from jumpscale.sals.marketplace import deployer, solutions
-from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployment_context
+from jumpscale.clients.explorer.models import WorkloadType
 from jumpscale.sals.vdc.models import KubernetesRole
 
 CHART_LIMITS = {
@@ -21,8 +20,7 @@ CHART_LIMITS = {
 }
 RESOURCE_VALUE_TEMPLATE = {"cpu": "CPU {}", "memory": "Memory {}"}
 HELM_REPOS = {
-    "marketplace": {"name": "marketplace", "url": "https://threefoldtech.github.io/vdc-solutions-charts/"},
-    "ashraffouda": {"name": "ashraffouda", "url": "https://ashraffouda.github.io/ashrafchart/"},
+    "marketplace": {"name": "marketplace", "url": "https://threefoldtech.github.io/vdc-solutions-charts/"}
 }  # TODO: revert to threefoldtech
 VDC_ENDPOINT = "/vdc"
 PREFERRED_FARM = "csfarmer"
@@ -310,7 +308,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         cluster_ip = self.vdc_info["public_ip"]
         while not valid:
             custom_domain = self.string_ask(
-                f"Please enter the domain name, make sure the domain points to {cluster_ip}.", required=True
+                f"Please enter the domain name, make sure the domain points to {cluster_ip}.", required=True,
             )
             if not self._does_domain_point_to_ip(custom_domain, cluster_ip):
                 self.md_show(f"The domain {custom_domain} doesn't point to {cluster_ip}.")
