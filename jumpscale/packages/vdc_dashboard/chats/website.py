@@ -5,6 +5,7 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 class WebsiteDeploy(Publisher):
     SOLUTION_TYPE = "website"
     EXAMPLE_URL = "https://github.com/threefoldfoundation/website_example"
+    DOC_URL = "https://wiki.cloud.threefold.io/#/evdc_website"
 
     title = "Website"
 

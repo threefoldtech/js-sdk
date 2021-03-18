@@ -7,6 +7,7 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 class BlogDeploy(Publisher):
     SOLUTION_TYPE = "blog"
     EXAMPLE_URL = "https://github.com/threefoldfoundation/blog_example"
+    DOC_URL = "https://wiki.cloud.threefold.io/#/evdc_blog"
 
     title = "Blog"
 

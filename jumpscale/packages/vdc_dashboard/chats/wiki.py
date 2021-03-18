@@ -5,7 +5,7 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 class WikiDeploy(Publisher):
     SOLUTION_TYPE = "wiki"
     EXAMPLE_URL = "https://github.com/threefoldfoundation/wiki_example"
-
+    DOC_URL = "https://wiki.cloud.threefold.io/#/evdc_wiki"
     title = "Wiki"
 
     @chatflow_step(title="Configurations")
