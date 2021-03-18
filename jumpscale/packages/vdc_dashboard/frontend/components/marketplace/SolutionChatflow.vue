@@ -27,6 +27,10 @@ module.exports = {
           this.$router.push({
             name: "VDCSettings",
           });
+        } else if (topic === "extend_storage") {
+          this.$router.push({
+            name: "VDCSettings",
+          });
         } else {
           this.$router.push({
             name: "Solution",

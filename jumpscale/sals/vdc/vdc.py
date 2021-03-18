@@ -4,7 +4,7 @@ import uuid
 from collections import defaultdict
 
 import netaddr
-from jumpscale.clients.explorer.models import NextAction, WorkloadType
+from jumpscale.clients.explorer.models import NextAction, WorkloadType, ZdbNamespace, DiskType
 from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
@@ -16,7 +16,7 @@ from jumpscale.clients.stellar import TRANSACTION_FEES
 from .deployer import VDCDeployer
 from .kubernetes_auto_extend import KubernetesMonitor
 from .models import *
-from .size import FARM_DISCOUNT, PROXY_FARM, VDC_SIZE
+from .size import FARM_DISCOUNT, PROXY_FARM, VDC_SIZE, ZDB_STARTING_SIZE
 from .snapshot import SnapshotManager
 from .wallet import VDC_WALLET_FACTORY
 from .zdb_auto_topup import ZDBMonitor
@@ -523,6 +523,42 @@ class UserVDC(Base):
         else:
             return True, node_price, payment_id
 
+    def show_external_zdb_payment(self, bot, farm_name, size=ZDB_STARTING_SIZE, no_nodes=1, expiry=5, wallet_name=None):
+        discount = FARM_DISCOUNT.get()
+        zos = j.sals.zos.get()
+        farm_id = zos._explorer.farms.get(farm_name=farm_name).id
+        zdb = ZdbNamespace()
+        zdb.size = size
+        zdb.disk_type = DiskType.HDD
+        amount = j.tools.zos.consumption.cost(zdb, 60 * 60 * 24 * 30, farm_id) + TRANSACTION_FEES
+
+        prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
+        if prepaid_balance >= amount:
+            result = bot.single_choice(
+                f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
+                ["Yes", "No"],
+                required=True,
+            )
+            if result == "Yes":
+                amount = 0
+
+        payment_id, _ = j.sals.billing.submit_payment(
+            amount=amount,
+            wallet_name=wallet_name or self.prepaid_wallet.instance_name,
+            refund_extra=False,
+            expiry=expiry,
+            description=j.data.serializers.json.dumps(
+                {"type": "VDC_ZDB_EXTEND", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
+            ),
+        )
+        if amount > 0:
+            notes = []
+            if discount:
+                notes = ["For testing purposes, we applied a discount of {:.0f}%".format(discount * 100)]
+            return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
+        else:
+            return True, amount, payment_id
+
     def transfer_to_provisioning_wallet(self, amount, wallet_name=None):
         if not amount:
             return True
@@ -718,11 +754,11 @@ class UserVDC(Base):
         ssh_client = j.clients.sshclient.get(name, user=user, host=ip_address, sshkey=self.vdc_name)
         return ssh_client
 
-    def check_capacity_available(self, flavor):
+    def check_capacity_available(self, flavor, farm_name=None):
         old_node_ids = []
         for k8s_node in self.kubernetes:
             old_node_ids.append(k8s_node.node_id)
-        farm_name = j.sals.marketplace.deployer.get_pool_farm_name(self.kubernetes[0].pool_id)
+        farm_name = farm_name or j.sals.marketplace.deployer.get_pool_farm_name(self.kubernetes[0].pool_id)
         cc = CapacityChecker(farm_name)
         cc.exclude_nodes(*old_node_ids)
         node_flavor_size = VDC_SIZE.K8SNodeFlavor[flavor.upper()]

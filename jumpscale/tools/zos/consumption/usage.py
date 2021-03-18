@@ -71,6 +71,7 @@ def cost(
         ZdbNamespace,
     ],
     duration,
+    farm_id,
 ) -> float:
     """
         compute the cost of a workload over a certain period
@@ -84,7 +85,8 @@ def cost(
     """
     cu = cloud_units(workload)
     zos = j.sals.zos.get()
-    price = zos._explorer.prices.calculate(cus=cu.cu, sus=cu.su, ipv4us=cu.ipv4u)
+    farm_prices = zos._explorer.farms.get_deal_for_threebot(farm_id, j.core.identity.me.tid)["custom_cloudunits_price"]
+    price = zos._explorer.prices.calculate(cus=cu.cu, sus=cu.su, ipv4us=cu.ipv4u, farm_prices=farm_prices)
     return price * duration
 
 

@@ -1,13 +1,13 @@
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.vdc.deployer import VDCIdentityError
-from jumpscale.sals.vdc.scheduler import CapacityChecker
+from jumpscale.sals.vdc.scheduler import CapacityChecker, GlobalCapacityChecker
 from jumpscale.sals.vdc.size import VDC_SIZE
 
 
 class ExtendKubernetesCluster(GedisChatBot):
     title = "Extend Kubernetes Cluster"
-    steps = ["flavor", "add_node", "success"]
+    steps = ["flavor", "different_farm", "select_farm", "add_node", "success"]
 
     @chatflow_step(title="Node Size")
     def flavor(self):
@@ -34,6 +34,31 @@ class ExtendKubernetesCluster(GedisChatBot):
         self.node_flavor = self.node_flavor.split(":")[0].lower()
         self.public_ip = False
 
+    @chatflow_step(title="Farm Selection")
+    def different_farm(self):
+        self.diff_farm = False
+        diff_farm = self.single_choice(
+            "Do you want to deploy this node on a different farm", options=["Yes", "No"], default="No", required=True
+        )
+        if diff_farm == "Yes":
+            self.diff_farm = True
+
+    @chatflow_step(title="Farm selection")
+    def select_farm(self):
+        self.farm_name = None
+        if self.diff_farm:
+            self.md_show_update("Checking the available farms")
+            old_node_ids = []
+            for k8s_node in self.vdc.kubernetes:
+                old_node_ids.append(k8s_node.node_id)
+            gcc = GlobalCapacityChecker()
+            gcc.exclude_nodes(*old_node_ids)
+            node_flavor_size = VDC_SIZE.K8SNodeFlavor[self.node_flavor.upper()]
+            farms_names = list(gcc.get_available_farms(**VDC_SIZE.K8S_SIZES[node_flavor_size]))
+            if not farms_names:
+                self.stop(f"There's no enough capacity for kubernetes node of flavor {self.node_flavor}")
+            self.farm_name = self.drop_down_choice("Choose a farm to deploy on", options=farms_names, required=True)
+
     @chatflow_step(title="Adding node")
     def add_node(self):
         try:
@@ -44,7 +69,7 @@ class ExtendKubernetesCluster(GedisChatBot):
                 f"Couldn't verify VDC secret. please make sure you are using the correct secret for VDC {self.vdc_name}"
             )
 
-        capacity_check, farm_name = self.vdc.check_capacity_available(self.node_flavor)
+        capacity_check, farm_name = self.vdc.check_capacity_available(self.node_flavor, self.farm_name)
         if not capacity_check:
             self.stop(
                 f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {self.node_flavor}"
@@ -58,7 +83,7 @@ class ExtendKubernetesCluster(GedisChatBot):
         self.md_show_update("Payment successful")
         old_wallet = deployer._set_wallet(self.vdc.prepaid_wallet.instance_name)
         try:
-            wids = deployer.add_k8s_nodes(self.node_flavor, public_ip=self.public_ip)
+            wids = deployer.add_k8s_nodes(self.node_flavor, farm_name=farm_name, public_ip=self.public_ip)
         except Exception as e:
             j.sals.billing.issue_refund(payment_id)
             self.stop(f"failed to add nodes to your cluster. due to error {str(e)}")
