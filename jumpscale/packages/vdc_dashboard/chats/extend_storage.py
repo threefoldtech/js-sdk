@@ -30,7 +30,7 @@ class ExtendKubernetesCluster(GedisChatBot):
             farms_names = list(gcc.get_available_farms(hru=ZDB_STARTING_SIZE, ip_version="IPv6"))
             if not farms_names:
                 self.stop("There's no enough capacity for adding storage node")
-            self.farm_name = self.single_choice("Choose a farm to deploy on", options=farms_names, required=True)
+            self.farm_name = self.drop_down_choice("Choose a farm to deploy on", options=farms_names, required=True)
 
     @chatflow_step(title="Adding node")
     def add_node(self):
@@ -50,7 +50,7 @@ class ExtendKubernetesCluster(GedisChatBot):
             self.stop(f"There's no enough capacity in farm {self.farm_name} for adding storage node")
         j.logger.debug("found enough capacity, continue to payment")
 
-        success, payment_id = self.vdc.show_external_zdb_payment(self, self.farm_name)
+        success, _, payment_id = self.vdc.show_external_zdb_payment(self, self.farm_name)
         if not success:
             self.stop(f"payment timedout")
 

@@ -61,7 +61,7 @@ class ExtendKubernetesCluster(GedisChatBot):
             farms_names = list(gcc.get_available_farms(**VDC_SIZE.K8S_SIZES[node_flavor_size]))
             if not farms_names:
                 self.stop(f"There's no enough capacity for kubernetes node of flavor {self.node_flavor}")
-            self.farm_name = self.single_choice("Choose a farm to deploy on", options=farms_names, required=True)
+            self.farm_name = self.drop_down_choice("Choose a farm to deploy on", options=farms_names, required=True)
 
     @chatflow_step(title="Adding node")
     def add_node(self):
