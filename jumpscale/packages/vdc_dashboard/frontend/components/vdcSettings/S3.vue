@@ -27,6 +27,14 @@
         <v-icon left>mdi-download</v-icon>Zdbs Info
       </v-btn>
       <v-btn
+        class="float-right p-4"
+        color="primary"
+        text
+        @click.stop="enableQuantumStorage"
+      >
+        <v-icon left>mdi-folder-key-network</v-icon>Enable Quantum Storage
+      </v-btn>
+      <v-btn
         v-if="S3URL"
         class="float-right p-4"
         text
@@ -34,6 +42,14 @@
       >
         <v-icon color="primary" class="mr-2" left>mdi-web</v-icon>Storage
         Browser
+      </v-btn>
+      <v-btn
+        class="float-right p-4"
+        color="primary"
+        text
+        @click.stop="openChatflow('extend_storage')"
+      >
+        <v-icon left>mdi-plus</v-icon>Add node
       </v-btn>
     </div>
     <v-data-table
@@ -53,6 +69,19 @@
 
       <template v-slot:item.size="{ item }">
         <div>{{ item.size }} GB</div>
+      </template>
+
+      <template v-slot:item.actions="{ item }">
+        <v-tooltip top>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn icon @click.stop="deleteZdb(item.wid)">
+              <v-icon v-bind="attrs" v-on="on" color="#810000"
+                >mdi-delete</v-icon
+              >
+            </v-btn>
+          </template>
+          <span>Delete</span>
+        </v-tooltip>
       </template>
     </v-data-table>
     <base-dialog
@@ -78,27 +107,49 @@
         <v-btn text color="error" @click="downloadFile()">Download</v-btn>
       </template>
     </base-dialog>
+    <enable-quantumstorage
+      v-model="dialogs.enableQuantum"
+    ></enable-quantumstorage>
+    <cancel-zdb
+      v-if="selectedZdb"
+      v-model="dialogs.cancelZdb"
+      api="deleteZdb"
+      title="Delete ZDB"
+      :messages="deletionMessages"
+      :wid="selectedZdb"
+    ></cancel-zdb>
   </div>
 </template>
 
 
 <script>
 module.exports = {
+  components: {
+    "enable-quantumstorage": httpVueLoader("./QuantumStorage.vue"),
+  },
   props: ["vdc"],
   mixins: [dialog],
+  components: {
+    "cancel-zdb": httpVueLoader("./DeleteConfirmation.vue"),
+  },
   data() {
     return {
       selected: null,
+      selectedZdb: null,
       headers: [
         { text: "WID", value: "wid" },
         { text: "Node", value: "node" },
         { text: "Disk Size", value: "size" },
+        { text: "Actions", value: "actions", sortable: false },
       ],
       S3URL: null,
       downloadType: null,
       dialogs: {
         downloadInfo: false,
+        enableQuantum: false,
+        cancelZdb : false
       },
+      deletionMessages:{confirmationMsg:"Are you sure you want to delete the zdb?",successMsg:"ZDB deleted successfully"}
     };
   },
   methods: {
@@ -113,8 +164,8 @@ module.exports = {
           .then((response) => {
             Secret = response.data.data;
             let zdbs = this.vdc.s3.zdbs;
-            for(i in this.vdc.s3.zdbs){
-              let zdb = this.vdc.s3.zdbs[i]
+            for (i in this.vdc.s3.zdbs) {
+              let zdb = this.vdc.s3.zdbs[i];
               zdb.password = Secret;
             }
             data = JSON.stringify(zdbs, null, "\t");
@@ -181,6 +232,19 @@ module.exports = {
             this.loading = false;
           });
       }
+    },
+    enableQuantumStorage() {
+      this.dialogs.enableQuantum = true;
+    },
+    deleteZdb(wid) {
+      this.selectedZdb = wid
+      this.dialogs.cancelZdb = true;
+    },
+    openChatflow(topic) {
+      this.$router.push({
+        name: "SolutionChatflow",
+        params: { topic: topic },
+      });
     },
   },
   computed: {

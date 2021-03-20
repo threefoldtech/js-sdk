@@ -170,7 +170,7 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, siz
 
     pool_total_sus = defaultdict(int)
     for _, pool_id in enumerate(pool_ids):
-        cloud_units = deployer.calculate_capacity_units(sru=size)
+        cloud_units = deployer.calculate_capacity_units(hru=size)
         su = cloud_units.su
         pool_total_sus[pool_id] += su
 
@@ -190,7 +190,7 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, siz
         if not wait_pool_reservation(reservation_id):
             j.logger.warning(f"pool {pool_id} extension timedout for reservation: {reservation_id}")
             continue
-        for node in gs.nodes_by_capacity(pool_id=pool_id, sru=size):
+        for node in gs.nodes_by_capacity(pool_id=pool_id, hru=size):
             wid = deployer.deploy_zdb(
                 pool_id=pool_id,
                 node_id=node.node_id,

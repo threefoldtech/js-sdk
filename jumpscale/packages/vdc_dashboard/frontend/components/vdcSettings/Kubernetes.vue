@@ -75,11 +75,11 @@
         </v-tooltip>
       </template>
     </v-data-table>
-    
+
     <template v-if="this.vdc && this.vdc.kubernetes.length < this.vdc.total_capacity">
       <p>The VDC will autoscale to the plan limit.</p>
     </template>
-    
+
     <solution-info
       v-if="selected"
       v-model="dialogs.info"
@@ -88,6 +88,9 @@
     <cancel-workload
       v-if="selectedworker"
       v-model="dialogs.cancelWorkload"
+      api="deleteWorkerWorkload"
+      title="Delete Worker"
+      :messages="deletionMessages"
       :wid="selectedworker"
     ></cancel-workload>
     <download-kubeconfig v-model="dialogs.downloadKube"></download-kubeconfig>
@@ -98,7 +101,7 @@
 module.exports = {
   components: {
     "solution-info": httpVueLoader("../base/Info.vue"),
-    "cancel-workload": httpVueLoader("./Delete.vue"),
+    "cancel-workload": httpVueLoader("./DeleteConfirmation.vue"),
     "download-kubeconfig": httpVueLoader("./DownloadKubeconfig.vue"),
   },
   props: ["vdc", "loading"],
@@ -122,6 +125,8 @@ module.exports = {
         { text: "Actions", value: "actions", sortable: false },
       ],
       kubernetesSizeMap: KUBERNETES_VM_SIZE_MAP,
+      deletionMessages:{confirmationMsg:"Are you sure you want to delete this worker?",successMsg:"Worker deleted successfully"}
+
     };
   },
   methods: {

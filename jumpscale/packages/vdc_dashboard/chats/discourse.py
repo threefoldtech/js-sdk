@@ -49,6 +49,8 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
                 "discourse.extraEnvVars[2].value": self.smtp_username,
                 "discourse.extraEnvVars[3].name": "SMTP_PASSWORD",
                 "discourse.extraEnvVars[3].value": self.smtp_password,
+                "discourse.extraEnvVars[3].name": "THREEBOT_KEY",
+                "discourse.extraEnvVars[3].value": self.generate_signing_key(),
                 "sidekiq.extraEnvVars[0].name": "SMTP_HOST",
                 "sidekiq.extraEnvVars[0].value": self.smtp_host,
                 "sidekiq.extraEnvVars[1].name": "SMTP_PORT",

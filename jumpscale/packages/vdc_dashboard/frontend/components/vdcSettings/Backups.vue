@@ -167,7 +167,7 @@ module.exports = {
     },
     timeDifference(ts) {
       var timestamp = new Date(ts * 1000).toLocaleString("en-GB");
-      return timestamp
+      return timestamp;
     },
     getStatus(status) {
       if (status == "Error") return "red";
@@ -181,8 +181,8 @@ module.exports = {
       this.list();
     },
     updateStatus(status) {
-      if (status == "partiallyfailed") {
-        status == "Backed up MetadataOnly";
+      if (status === "PartiallyFailed") {
+        return "Backed up MetadataOnly";
       } else {
         return status;
       }
