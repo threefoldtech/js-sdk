@@ -27,12 +27,21 @@ class MaticDeploy(SolutionsChatflowDeploy):
 
     def _enter_access_code(self):
         self.access_code = self.secret_ask(
-            "Enter Access Code. (This would be used to access your node's web page)", required=True
+            "Enter Access Code (This would be used to access your node's web page)", required=True
         )
 
     def _enter_rpc_url(self):
         self.eth_rpc_url = self.string_ask(
             "Insert Infura or any full node RPC URL to Ethereum. You can skip this option if you are deploying a sentry node"
+        )
+
+    def _enter_eth_keyinfo(self):
+        self.eth_key = self.string_ask(
+            "For Validator setup, please enter your ethereum wallet's *private* key. You can skip this step if you are setting up a full node or a sentry node."
+        self.eth_key_passphrase = self.string_ask(
+            "Please enter the passphrase for your ethereum wallet's *private* key. It should be minimum 8 characters."
+        self.eth_walletaddr = self.string_ask(
+            "Please enter your Ethereum wallet address"
         )
 
     @chatflow_step(title="Node Configuration")
