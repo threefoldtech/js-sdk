@@ -5,7 +5,7 @@ from jumpscale.loader import j
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
 
 
-ZDB_HOOK_URL = "https://raw.githubusercontent.com/threefoldtech/quantum-storage/master/zdb-hook.sh"
+ZDB_HOOK_URL = "https://raw.githubusercontent.com/threefoldtech/quantum-storage/master/lib/zdb-hook.sh"
 ZDB_HOOK_PATH = "/home/rancher/0-db-fs/zdb_hook.sh"
 ZSTORCONF_PATH = "/etc/zstor-default.toml"
 
