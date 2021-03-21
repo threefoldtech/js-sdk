@@ -170,7 +170,10 @@ class Stellar(Client):
             response = accounts_endpoint.call()
             next_link = response["_links"]["next"]["href"]
             next_link_query = parse.urlsplit(next_link).query
-            new_cursor = parse.parse_qs(next_link_query)["cursor"][0]
+            cursor = parse.parse_qs(next_link_query).get("cursor")
+            if not cursor:
+                break
+            new_cursor = cursor[0]
             accounts = response["_embedded"]["records"]
             for account in accounts:
                 account_id = account["account_id"]
@@ -941,9 +944,7 @@ class Stellar(Client):
             asset_issuer = _NETWORK_KNOWN_TRUSTS[network].get(code, None)
             return Asset(code, asset_issuer)
 
-    def cancel_sell_order(
-        self, offer_id, selling_asset: str, buying_asset: str, price: Union[str, decimal.Decimal],
-    ):
+    def cancel_sell_order(self, offer_id, selling_asset: str, buying_asset: str, price: Union[str, decimal.Decimal]):
         """Deletes a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
 
         Args:
@@ -1052,7 +1053,7 @@ class Stellar(Client):
         base_fee = horizon_server.fetch_base_fee()
         transaction = (
             stellar_sdk.TransactionBuilder(
-                source_account=account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value], base_fee=base_fee,
+                source_account=account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value], base_fee=base_fee
             )
             .append_manage_data_op(name, value)
             .set_timeout(30)
