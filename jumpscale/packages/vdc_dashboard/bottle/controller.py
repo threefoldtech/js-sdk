@@ -120,6 +120,9 @@ def delete_node():
     vdc.load_info()
     deployer = vdc.get_deployer(password=vdc_password)
 
+    if vdc.kubernetes[0].wid == wid:
+        abort(400, "Error: Can not delete master node")
+
     try:
         deployer.delete_k8s_node(wid)
     except Exception as e:
