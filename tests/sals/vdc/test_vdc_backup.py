@@ -19,7 +19,9 @@ class VDCDashboard(VDCBase):
         cls._import_wallet("demos_wallet")
         cls.flavor = "silver"
 
-        cls.kube_config = cls.deploy_vdc("test1", "hassanhassan")
+        cls.vdc_name = cls.random_name().lower()
+        cls.password = cls.random_string()
+        cls.kube_config = cls.deploy_vdc(cls.vdc_name, cls.password)
 
         if not cls.kube_config:
             raise RuntimeError("VDC is not deployed")
@@ -76,6 +78,29 @@ class VDCDashboard(VDCBase):
 
         return request
 
+    def create_backup(self, backup_name):
+        config_path = j.sals.fs.expanduser("~/.kube/config")
+        client = j.sals.kubernetes.Manager(config_path=config_path)
+
+        try:
+            client.execute_native_cmd(
+                f"velero create backup config-{backup_name} --include-resources secrets,configmaps"
+            )
+            client.execute_native_cmd(f'velero create backup vdc-{backup_name} -l "backupType=vdc"')
+        except Exception as e:
+            raise RuntimeError(f"Failed to create backup due to {str(e)}")
+
+    def restore_backup(self, backup_name):
+        config_path = j.sals.fs.expanduser("~/.kube/config")
+        client = j.sals.kubernetes.Manager(config_path=config_path)
+
+        try:
+            client.execute_native_cmd(
+                f"velero create restore restore-vdc-{backup_name} --from-backup vdc-{backup_name}"
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to restore backup due to {str(e)}")
+
     def test01_vdc_backup(self):
         """Test case for backup and restore a VDC.
 
@@ -89,7 +114,6 @@ class VDCDashboard(VDCBase):
         - Restore backup.
         - Check that cryptpad reachable.
         """
-
         self.info("Deploy a Cryptpad.")
         name = self.random_name().lower()
         cryptpad = deployer.deploy_cryptpad(release_name=name)
@@ -113,26 +137,3 @@ class VDCDashboard(VDCBase):
         self.info("Check that cryptpad has been reachable")
         request = j.tools.http.get(url=f"https://{cryptpad_domain}", timeout=180, verify=False)
         self.assertEqual(request.status_code, 200)
-
-    def create_backup(self, backup_name):
-        config_path = j.sals.fs.expanduser("~/.kube/config")
-        client = j.sals.kubernetes.Manager(config_path=config_path)
-
-        try:
-            client.execute_native_cmd(
-                f"velero create backup config-{backup_name} --include-resources secrets,configmaps"
-            )
-            client.execute_native_cmd(f'velero create backup vdc-{backup_name} -l "backupType=vdc"')
-        except Exception as e:
-            raise RuntimeError(f"Failed to create backup due to {str(e)}")
-
-    def restore_backup(self, backup_name):
-        config_path = j.sals.fs.expanduser("~/.kube/config")
-        client = j.sals.kubernetes.Manager(config_path=config_path)
-
-        try:
-            client.execute_native_cmd(
-                f"velero create restore restore-vdc-{backup_name} --from-backup vdc-{backup_name}"
-            )
-        except Exception as e:
-            raise RuntimeError(f"Failed to restore backup due to {str(e)}")
