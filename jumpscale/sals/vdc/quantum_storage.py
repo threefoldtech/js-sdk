@@ -12,21 +12,18 @@ ZSTORCONF_PATH = "/etc/zstor-default.toml"
 
 class QuantumStorage:
     def __init__(self, vdc, ip_version=4):
-        self._zstor_config = None
         self.vdc = vdc
         self.ip_version = ip_version  # to use in zstor config
 
-    def zstor_config(self, endpoints, prefix="someprefix", etcd_secret=None):
+    def update_zstor_config(self, endpoints, prefix="someprefix", etcd_secret=None):
         from jumpscale.packages.vdc_dashboard.bottle.deployments import _get_zstor_config
 
-        if not self._zstor_config:
-            config = _get_zstor_config(self.ip_version)
-            config["meta"]["config"]["endpoints"] = endpoints
-            config["meta"]["config"]["prefix"] = prefix
-            config["meta"]["config"]["username"] = "root"
-            config["meta"]["config"]["password"] = etcd_secret
-            self._zstor_config = j.data.serializers.toml.dumps(config)
-        return self._zstor_config
+        config = _get_zstor_config(self.ip_version)
+        config["meta"]["config"]["endpoints"] = endpoints
+        config["meta"]["config"]["prefix"] = prefix
+        config["meta"]["config"]["username"] = "root"
+        config["meta"]["config"]["password"] = etcd_secret
+        return j.data.serializers.toml.dumps(config)
 
     def apply(self, mount_location="/home/rancher/mounted"):
         for kubernetes_node in self.vdc.kubernetes:
@@ -89,8 +86,8 @@ class QuantumStorage:
 
             endpoints = [etcd_domain]
             prefix = j.sals.fs.basename(mount_location)
-            zstor_config = self.zstor_config(endpoints, prefix, etcd_secret)
-            ssh_client.sshclient.run(f"sudo echo '''{zstor_config}''' > {ZSTORCONF_PATH}")
+            self.zstor_config = self.update_zstor_config(endpoints, prefix, etcd_secret)
+            ssh_client.sshclient.run(f"sudo echo '''{self.zstor_config}''' > {ZSTORCONF_PATH}")
 
             j.logger.info(f"Starting zdb & zdbfs on: {kubernetes_node.wid}")
             zdb_cmd_args = "--datasize $((32 * 1024 * 1024)) --mode seq --hook /home/rancher/0-db-fs/zdb_hook.sh --data /zdb/data --index /zdb/index"
@@ -121,7 +118,7 @@ class QuantumStorage:
                 ssh_client,
             )
             j.logger.info(f"ZDBFS is running on: {kubernetes_node.wid} on mount location: {mount_location}")
-            return zstor_config
+        return self.zstor_config
 
     def _create_service(self, svc_name, command, command_args, ssh_client):
         template = f"""#!/sbin/openrc-run
