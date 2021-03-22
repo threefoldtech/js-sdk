@@ -124,13 +124,11 @@
 
 <script>
 module.exports = {
-  components: {
-    "enable-quantumstorage": httpVueLoader("./QuantumStorage.vue"),
-  },
   props: ["vdc"],
   mixins: [dialog],
   components: {
     "cancel-zdb": httpVueLoader("./DeleteConfirmation.vue"),
+    "enable-quantumstorage": httpVueLoader("./QuantumStorage.vue"),
   },
   data() {
     return {
@@ -147,9 +145,12 @@ module.exports = {
       dialogs: {
         downloadInfo: false,
         enableQuantum: false,
-        cancelZdb : false
+        cancelZdb: false,
       },
-      deletionMessages:{confirmationMsg:"Are you sure you want to delete the zdb?",successMsg:"ZDB deleted successfully"}
+      deletionMessages: {
+        confirmationMsg: "Are you sure you want to delete the zdb?",
+        successMsg: "ZDB deleted successfully",
+      },
     };
   },
   methods: {
@@ -237,7 +238,7 @@ module.exports = {
       this.dialogs.enableQuantum = true;
     },
     deleteZdb(wid) {
-      this.selectedZdb = wid
+      this.selectedZdb = wid;
       this.dialogs.cancelZdb = true;
     },
     openChatflow(topic) {
