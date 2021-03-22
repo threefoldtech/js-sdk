@@ -54,9 +54,13 @@ class QuantumStorage:
 
             j.logger.info(f"Creating dirs on: {kubernetes_node.wid} ...")
             ssh_client.sshclient.run(f"sudo mkdir -p /zdb/data /zdb/index && sudo chown -R rancher:rancher /zdb")
-            ssh_client.sshclient.run(
-                f"sudo mkdir -p {mount_location} && sudo chown -R rancher:rancher {mount_location} && sudo chmod 777 {mount_location}"
-            )
+
+            try:
+                ssh_client.sshclient.run(
+                    f"sudo mkdir -p {mount_location} && sudo chown -R rancher:rancher {mount_location} && sudo chmod 777 {mount_location}"
+                )
+            except Exception as e:
+                j.logger.warning(f"failed to create directory {mount_location}, exists already")
             j.logger.info(f"Updating fuse config file on: {kubernetes_node.wid}")
             ssh_client.sshclient.run("sudo sed -i /#user_allow_other/c\\user_allow_other /etc/fuse.conf")
 
