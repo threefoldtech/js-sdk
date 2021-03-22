@@ -331,19 +331,12 @@ class TFGridSolutionChatflows(ChatflowsBase):
         **Test Scenario**
 
         - Deploy etcd.
-        - Check that etcd is reachable.
         - Check put a Hello by etcdctl.
         """
         self.info("Deploy etcd")
         name = self.random_name()
         etcd = deployer.deploy_etcd(solution_name=name, pool=self.pool_id, network=self.network_name,)
         self.solution_uuid = etcd.solution_id
-
-        self.info("Check that etcd is reachable")
-        self.assertTrue(
-            self.wait(etcd.ip_addresses[0], port=2379, timeout=self.timeout),
-            f"etcd is not reached after {self.timeout} second",
-        )
 
         self.info("Check put a Hello by etcdctl")
         _, res, _ = j.sals.process.execute(
