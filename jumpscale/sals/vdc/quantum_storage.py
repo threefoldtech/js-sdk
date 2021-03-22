@@ -12,6 +12,7 @@ ZSTORCONF_PATH = "/etc/zstor-default.toml"
 
 class QuantumStorage:
     def __init__(self, vdc, ip_version=4):
+        self.zstor_config = None
         self.vdc = vdc
         self.ip_version = ip_version  # to use in zstor config
 
@@ -86,7 +87,8 @@ class QuantumStorage:
 
             endpoints = [etcd_domain]
             prefix = j.sals.fs.basename(mount_location)
-            self.zstor_config = self.update_zstor_config(endpoints, prefix, etcd_secret)
+            if not self.zstor_config:
+                self.zstor_config = self.update_zstor_config(endpoints, prefix, etcd_secret)
             ssh_client.sshclient.run(f"sudo echo '''{self.zstor_config}''' > {ZSTORCONF_PATH}")
 
             j.logger.info(f"Starting zdb & zdbfs on: {kubernetes_node.wid}")
