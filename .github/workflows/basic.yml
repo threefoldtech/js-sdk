@@ -24,6 +24,10 @@ jobs:
           sudo service nginx stop
           sudo pip3 install poetry
           sudo poetry run pip3 install pytest parameterized selenium pytest-cov python-telegram-bot
+          curl -L https://storage.googleapis.com/etcd/v3.4.10/etcd-v3.4.10-linux-amd64.tar.gz -o /tmp/etcd-v3.4.10-linux-amd64.tar.gz
+          tar xzvf /tmp/etcd-v3.4.10-linux-amd64.tar.gz -C /tmp --strip-components=1
+          sudo mv /tmp/etcd /usr/local/bin
+          sudo mv /tmp/etcdctl /usr/local/bin
       - name: Install
         run: |
           sudo poetry install
