@@ -332,6 +332,7 @@ class TFGridSolutionChatflows(ChatflowsBase):
 
         - Deploy etcd.
         - Check put a Hello by etcdctl.
+        - Check get a Hello by etcdctl.
         """
         self.info("Deploy etcd")
         name = self.random_name()
@@ -339,7 +340,9 @@ class TFGridSolutionChatflows(ChatflowsBase):
         self.solution_uuid = etcd.solution_id
 
         self.info("Check put a Hello by etcdctl")
-        _, res, _ = j.sals.process.execute(
-            f"etcdctl --endpoints=http://{etcd.ip_addresses[0]}:2379 put from:{etcd.ip_addresses[0]} Hello"
-        )
+        _, res, _ = j.sals.process.execute(f"etcdctl --endpoints=http://{etcd.ip_addresses[0]}:2379 put foo Hello")
         self.assertIn("OK", res)
+
+        self.info("Check get a Hello by etcdctl")
+        _, res, _ = j.sals.process.execute(f"etcdctl --endpoints=http://{etcd.ip_addresses[0]}:2379 get foo")
+        self.assertIn("Hello", res)
