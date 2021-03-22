@@ -170,7 +170,10 @@ class Stellar(Client):
             response = accounts_endpoint.call()
             next_link = response["_links"]["next"]["href"]
             next_link_query = parse.urlsplit(next_link).query
-            new_cursor = parse.parse_qs(next_link_query)["cursor"][0]
+
+            if "cursor" in parse.parse_qs(next_link_query):
+                new_cursor = parse.parse_qs(next_link_query)["cursor"][0]
+
             accounts = response["_embedded"]["records"]
             for account in accounts:
                 account_id = account["account_id"]
