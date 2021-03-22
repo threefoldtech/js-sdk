@@ -64,6 +64,17 @@ validators = {
         }
     },
     secret_ask: {
+        no_spaces: (field,identifier) => {
+            if(identifier){
+
+                let errmsg = `Invalid value. Spaces are not allowed`;
+                const regex = /^\S*$/
+                if (!regex.test(field.val)) {
+                    return errmsg;
+                }
+            }
+            return true;
+        },
 
     },
     text_ask: {
