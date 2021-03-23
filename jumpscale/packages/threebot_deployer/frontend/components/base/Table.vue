@@ -40,7 +40,13 @@
         </template>
 
         <template v-slot:item.actions="{ item }">
-          <v-tooltip top v-if="deployed3botsStatus[item.state] == 3">
+          <v-tooltip
+            top
+            v-if="
+              deployed3botsStatus[item.state] == 3 ||
+              deployed3botsStatus[item.state] == 4
+            "
+          >
             <template v-slot:activator="{ on, attrs }">
               <v-btn icon @click.stop="stop3Bot(item)">
                 <v-icon v-bind="attrs" v-on="on" color="#206a5d"
@@ -78,6 +84,7 @@
             </template>
             <span>Show Information</span>
           </v-tooltip>
+
           <v-tooltip top v-if="deployed3botsStatus[item.state] !== 1">
             <template v-slot:activator="{ on, attrs }">
               <v-btn icon @click.stop="delete3Bot(item)">
@@ -88,6 +95,7 @@
             </template>
             <span>Destroy</span>
           </v-tooltip>
+
           <v-tooltip top v-if="deployed3botsStatus[item.state] === 3">
             <template v-slot:activator="{ on, attrs }">
               <v-btn
@@ -102,6 +110,7 @@
             </template>
             <span>Open in browser</span>
           </v-tooltip>
+
           <v-tooltip top v-else-if="deployed3botsStatus[item.state] == 4">
             <template v-slot:activator="{ on, attrs }">
               <v-btn
@@ -120,7 +129,7 @@
             >
           </v-tooltip>
 
-          <v-tooltip top v-if="deployed3botsStatus[item.state] === 2">
+          <v-tooltip top v-if="deployed3botsStatus[item.state] == 2">
             <template v-slot:activator="{ on, attrs }">
               <v-btn icon @click.stop="change3BotLocation(item)">
                 <v-icon v-bind="attrs" v-on="on" color="#206a5d"
@@ -131,7 +140,7 @@
             <span>Change location</span>
           </v-tooltip>
 
-          <v-tooltip top v-if="deployed3botsStatus[item.state] === 2">
+          <v-tooltip top v-if="deployed3botsStatus[item.state] == 2">
             <template v-slot:activator="{ on, attrs }">
               <v-btn icon @click.stop="change3BotSize(item)">
                 <v-icon v-bind="attrs" v-on="on" color="#206a5d"
@@ -141,6 +150,7 @@
             </template>
             <span>Change size</span>
           </v-tooltip>
+
           <v-tooltip top v-if="item.alert === true">
             <template v-slot:activator="{ on, attrs }">
               <v-btn icon>

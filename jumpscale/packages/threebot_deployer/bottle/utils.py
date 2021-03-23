@@ -126,33 +126,26 @@ def list_threebot_solutions(owner):
             return
 
         domain = f"https://{zos.workloads.get(threebot.subdomain_wid).domain}/admin"
+        reachable = j.sals.reservation_chatflow.wait_http_test(domain, timeout=10, verify=not j.config.get("TEST_CERT"))
         if (
-            threebot.state in [ThreebotState.RUNNING, ThreebotState.ERROR]
+            threebot.state in [ThreebotState.RUNNING, ThreebotState.ERROR, ThreebotState.STOPPED]
             and compute_pool.empty_at == 9223372036854775807
         ):
             solution_info["state"] = ThreebotState.STOPPED.value
             threebot.state = ThreebotState.STOPPED
             threebot.save()
         # check it the 3bot is reachable
-        elif threebot.state == ThreebotState.RUNNING and not j.sals.reservation_chatflow.wait_http_test(
-            domain, timeout=10, verify=not j.config.get("TEST_CERT")
-        ):
+        elif threebot.state == ThreebotState.RUNNING and not reachable:
             solution_info["state"] = ThreebotState.ERROR.value
             threebot.state = ThreebotState.ERROR
             threebot.save()
-        elif threebot.state == ThreebotState.ERROR and j.sals.reservation_chatflow.wait_http_test(
-            domain, timeout=10, verify=not j.config.get("TEST_CERT")
-        ):
+        elif threebot.state == ThreebotState.ERROR and reachable:
             solution_info["state"] = ThreebotState.RUNNING.value
             threebot.state = ThreebotState.RUNNING
             threebot.save()
-        elif j.sals.reservation_chatflow.wait_http_test(domain, timeout=10, verify=not j.config.get("TEST_CERT")):
+        elif reachable:
             solution_info["state"] = ThreebotState.RUNNING.value
             threebot.state = ThreebotState.RUNNING
-            threebot.save()
-        else:
-            solution_info["state"] = ThreebotState.DELETED.value
-            threebot.state = ThreebotState.DELETED
             threebot.save()
 
         result.append(solution_info)
