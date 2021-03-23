@@ -27,16 +27,18 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         "choose_name",
         "enter_password",
         "choose_flavor",
-        "new_expiration",
-        "solution_extension",
         "deploy",
         "initializing",
+        "new_expiration",
+        "solution_extension",
         "success",
     ]
 
     @chatflow_step(title="Initializing chatflow")
     def choose_name(self):
         self._init_solution()
+        self.expiration = 60 * 60  # 60 minutes for 3bot
+        self.retry = True
         all_3bot_solutions = list_threebot_solutions(self.threebot_name)
         self.stoped_3bots = [
             threebot for threebot in all_3bot_solutions if threebot["state"] == ThreebotState.STOPPED.value
@@ -53,26 +55,6 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         self.cpu = self.query["cru"]
         self.memory = self.query["mru"] * 1024
         self.disk_size = self.query["sru"] * 1024
-
-    @chatflow_step(title="New Expiration")
-    def new_expiration(self):
-        self.pool = j.sals.zos.get().pools.get(self.pool_id)
-        cloud_units = deployer._calculate_cloud_units(**self.query)
-        cu, su = cloud_units.cu, cloud_units.su
-        # guard in case of extending of 0 will raise zero division
-        if not cu:
-            cu = 1
-        if not su:
-            expiration_time = self.pool.cus / cu
-        else:
-            expiration_time = min(self.pool.cus / cu, self.pool.sus / su)
-        if expiration_time < 60 * 60:
-            default_time = j.data.time.utcnow().timestamp + 1209600
-            self.expiration = deployer.ask_expiration(
-                self, default_time, pool_empty_at=j.data.time.utcnow().timestamp + expiration_time
-            )
-        else:
-            self.expiration = 0
 
     def _verify_password(self, password):
         instance = USER_THREEBOT_FACTORY.get(f"threebot_{self.threebot_info['solution_uuid']}")
