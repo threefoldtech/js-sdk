@@ -91,10 +91,10 @@
     >
       <template #default>
         <p v-if="downloadType === 'zdbs'">
-          WARINING: Please keep the storage nodes Information safe and secure.
+          WARNING: Please keep the storage nodes Information safe and secure.
         </p>
         <p v-else-if="downloadType === 'zstor'">
-          WARINING: You should update the TOML file with your custom
+          WARNING: You should update the TOML file with your custom
           configurations as documented
           <a
             href="https://github.com/threefoldtech/0-stor_v2#config-file"
