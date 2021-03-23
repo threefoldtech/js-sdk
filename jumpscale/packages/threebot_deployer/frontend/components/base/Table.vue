@@ -54,8 +54,8 @@
           <v-tooltip
             top
             v-if="
-              deployed3botsStatus[item.state] !== 3 ||
-              deployed3botsStatus[item.state] !== 4
+              deployed3botsStatus[item.state] == 1 ||
+              deployed3botsStatus[item.state] == 2
             "
           >
             <template v-slot:activator="{ on, attrs }">
@@ -67,6 +67,7 @@
             </template>
             <span>Start</span>
           </v-tooltip>
+
           <v-tooltip top>
             <template v-slot:activator="{ on, attrs }">
               <v-btn icon @click.stop="open(item)">
