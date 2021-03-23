@@ -120,6 +120,8 @@ class Stellar(Client):
     def _get_unlockhash_transaction(self, unlockhash):
         data = {"unlockhash": unlockhash}
         resp = j.tools.http.post(self._get_url("GET_UNLOCK"), json={"args": data})
+        if resp.status_code ==j.tools.http.status_codes.codes.NOT_FOUND:
+            return None
         resp.raise_for_status()
         return resp.json()
 
