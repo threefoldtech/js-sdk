@@ -22,8 +22,7 @@ class StellarFactory(StoredFactory):
         return instance
 
     def check_stellar_service(self):
-        """This method will check if stellar and token service is up or not
-        """
+        """This method will check if stellar and token service is up or not"""
         _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
             "TEST": "https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction",
             "STD": "https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction",
