@@ -132,8 +132,8 @@ class VDCDashboard(VDCBase):
         kube_manager.execute_native_cmd(f"kubectl delete ns {cryptpad.chart_name}-{cryptpad.release_name}")
 
         self.info("Restore backup")
-        self.restore_backup(backup_name=backup_name)
+        self.restore_backup(backup_name)
 
         self.info("Check that cryptpad has been reachable")
-        request = j.tools.http.get(url=f"https://{cryptpad_domain}", timeout=180, verify=False)
+        request = j.tools.http.get(url=f"https://{cryptpad_domain}", timeout=600, verify=False)
         self.assertEqual(request.status_code, 200)
