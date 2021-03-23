@@ -7,7 +7,6 @@ from textwrap import dedent
 from jumpscale.sals.vdc.scheduler import GlobalCapacityChecker
 from urllib.parse import urlparse
 import math
-import hashlib
 
 
 MINIMUM_ACTIVATION_XLMS = 0
@@ -167,7 +166,7 @@ class VDCDeploy(GedisChatBot):
             self.backup_config = {}
             return
 
-        self.password_hash = hashlib.md5(self.vdc_secret.encode()).hexdigest()
+        self.password_hash = j.data.hash.md5(self.vdc_secret)
         alias = j.sals.minio_admin.get_alias(
             "vdc", backup_config["S3_URL"], backup_config["S3_AK"], backup_config["S3_SK"]
         )
