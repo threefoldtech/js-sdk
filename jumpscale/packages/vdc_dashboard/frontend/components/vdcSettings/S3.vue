@@ -32,7 +32,8 @@
         text
         @click.stop="enableQuantumStorage"
       >
-        <v-icon left>mdi-folder-key-network</v-icon>Enable Quantum Storage
+        <v-icon left>mdi-folder-key-network</v-icon>Quantum Storage
+        Configurations
       </v-btn>
       <v-btn
         v-if="S3URL"
