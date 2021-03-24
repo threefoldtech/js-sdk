@@ -71,29 +71,6 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 )
                 break
 
-    def _choose_flavor(self, chart_limits=None, resource_template=RESOURCE_VALUE_TEMPLATE):
-        chart_limits = chart_limits or CHART_LIMITS
-        messages = []
-        for flavor in chart_limits:
-            flavor_specs = ""
-            for key in chart_limits[flavor]:
-                flavor_specs += f"{resource_template[key].format(chart_limits[flavor][key])} - "
-            msg = f"{flavor} ({flavor_specs[:-3]})"
-            messages.append(msg)
-        chosen_flavor = self.single_choice(
-            "Please choose the flavor you want to use (helm chart limits define how much resources the deployed solution will use)",
-            options=messages,
-            required=True,
-            default=messages[0],
-        )
-        flavor = chosen_flavor.split()[0]
-        self.resources_limits = chart_limits[flavor]
-        no_nodes = int(self.resources_limits.get("no_nodes", 1))
-        memory = int(self.resources_limits["memory"][:-2])
-        cpu = int(self.resources_limits["cpu"][:-1])
-
-        self._validate_resource_limits(cpu, memory, no_nodes)
-
     def _validate_resource_limits(self, cpu, memory, no_nodes=1):
         queries = [{"cpu": cpu, "memory": memory}] * no_nodes
         if self.ADDITIONAL_QUERIES:
@@ -359,6 +336,38 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self.release_name = self.string_ask(
             message, required=True, is_identifier=True, not_exist=["solution name", releases], md=True, max_length=20
         )
+
+    @chatflow_step(title="Solution Flavor")
+    def choose_flavor(self):
+        if hasattr(self, "CHART_LIMITS"):
+            chart_limits = self.CHART_LIMITS
+        else:
+            chart_limits = CHART_LIMITS
+        if hasattr(self, "RESOURCE_VALUE_TEMPLATE"):
+            resource_template = self.RESOURCE_VALUE_TEMPLATE
+        else:
+            resource_template = RESOURCE_VALUE_TEMPLATE
+
+        messages = []
+        for flavor in chart_limits:
+            flavor_specs = ""
+            for key in chart_limits[flavor]:
+                flavor_specs += f"{resource_template[key].format(chart_limits[flavor][key])} - "
+            msg = f"{flavor} ({flavor_specs[:-3]})"
+            messages.append(msg)
+        chosen_flavor = self.single_choice(
+            "Please choose the flavor you want to use (helm chart limits define how much resources the deployed solution will use)",
+            options=messages,
+            required=True,
+            default=messages[0],
+        )
+        flavor = chosen_flavor.split()[0]
+        self.resources_limits = chart_limits[flavor]
+        no_nodes = int(self.resources_limits.get("no_nodes", 1))
+        memory = int(self.resources_limits["memory"][:-2])
+        cpu = int(self.resources_limits["cpu"][:-1])
+
+        self._validate_resource_limits(cpu, memory, no_nodes)
 
     @chatflow_step(title="Create subdomain")
     def create_subdomain(self):
