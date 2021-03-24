@@ -8,6 +8,7 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
     HELM_REPO_NAME = "marketplace"
     steps = [
         "get_release_name",
+        "choose_flavor",
         "create_subdomain",
         "set_config",
         "install_chart",
@@ -18,7 +19,6 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
     @chatflow_step(title="Configurations")
     def set_config(self):
         # TODO: get config from user
-        self._choose_flavor()
         choices = ["10", "15", "20"]
         self.volume_size = self.single_choice(
             "Please select your storage size (in GBs)", choices, required=True, default="10",
