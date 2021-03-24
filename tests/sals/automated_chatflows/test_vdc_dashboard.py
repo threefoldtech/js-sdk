@@ -67,7 +67,7 @@ class VDCDashboard(VDCBase):
         kubernetes.size = VDC_SIZE.K8SNodeFlavor.MEDIUM.value
         # It will be deployed for an hour.
         zos = j.sals.zos.get()
-        farm_name = self.get_farm_name()
+        farm_name = cls.get_farm_name()
         farm_id = zos._explorer.farms.get(farm_name=farm_name).id
         price = j.tools.zos.consumption.cost(kubernetes, 60 * 60, farm_id) + TRANSACTION_FEES  # transactions fees.
         cls.vdc.transfer_to_provisioning_wallet(round(price, 6), "test_wallet")
