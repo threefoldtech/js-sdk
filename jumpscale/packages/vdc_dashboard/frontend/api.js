@@ -121,6 +121,11 @@ const apiClient = {
         method: "get"
       })
     },
+    getSDKVersion: () => {
+      return axios({
+        url: `${baseURL}/get_sdk_version`
+      })
+    },
   },
   wallets: {
     walletQRCodeImage: (address, amount, scale) => {
