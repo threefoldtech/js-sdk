@@ -207,7 +207,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 description=self.vdc_deployer.description,
                 public_ip_wid=public_ip_wid,
                 datastore_endpoint=datastore_endpoint,
-                disable_default_ingress=not self.vdc_deployer.restore,
+                disable_default_ingress=False,
             )
             self.vdc_deployer.info(f"kubernetes master wid: {wid}")
             try:
@@ -443,7 +443,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             "traefik/traefik",
             "kube-system",
             chart_values_file="""<(echo -e 'image:
-  tag: "2.3.3"
+  tag: "2.4.8"
 additionalArguments:
   - "--certificatesresolvers.default.acme.tlschallenge"
   - "--certificatesresolvers.default.acme.email=dsafsdajfksdhfkjadsfoo@you.com"
