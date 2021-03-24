@@ -7,7 +7,15 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "digibyte"
     title = "DigiByte"
     HELM_REPO_NAME = "marketplace"
-    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    steps = [
+        "get_release_name",
+        "choose_flavor",
+        "create_subdomain",
+        "set_config",
+        "install_chart",
+        "initializing",
+        "success",
+    ]
 
     CHART_LIMITS = {
         "Silver": {"cpu": "2000m", "memory": "2024Mi"},
@@ -37,7 +45,6 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
     @chatflow_step(title="Node Configuration")
     def set_config(self):
         self._enter_credentials()
-        self._choose_flavor(self.CHART_LIMITS)
         self.vdc.get_deployer().kubernetes.add_traefik_entrypoints(
             {"digibyte-p2p": {"port": "12024"}, "digibyte-rpc": {"port": "14022"}}
         )

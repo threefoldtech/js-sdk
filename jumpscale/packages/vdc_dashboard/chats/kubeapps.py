@@ -12,6 +12,7 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
     steps = [
         "check_already_deployed",
         "get_release_name",
+        "choose_flavor",
         "create_subdomain",
         "set_config",
         "install_chart",
@@ -41,8 +42,6 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
-        self._choose_flavor()
-
         self.chart_config.update(
             {
                 "ingress.hostname": self.domain,

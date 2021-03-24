@@ -6,7 +6,15 @@ class PeertubeDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "peertube"
     title = "Peertube"
     HELM_REPO_NAME = "marketplace"
-    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    steps = [
+        "get_release_name",
+        "choose_flavor",
+        "create_subdomain",
+        "set_config",
+        "install_chart",
+        "initializing",
+        "success",
+    ]
     ADDITIONAL_QUERIES = [{"cpu": 250, "memory": 256}]  # postgres
 
     def _get_smtp(self):
@@ -30,7 +38,6 @@ class PeertubeDeploy(SolutionsChatflowDeploy):
         user_info = self.user_info()
         self.user_email = user_info["email"]
 
-        self._choose_flavor()
         self.chart_config.update(
             {
                 "webserver.hostname": self.domain,

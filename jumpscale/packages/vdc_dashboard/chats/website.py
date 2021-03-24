@@ -11,8 +11,6 @@ class WebsiteDeploy(Publisher):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
-        self._choose_flavor()
-
         form = self.new_form()
         url = form.string_ask("Repository URL", required=True, is_git_url=True)
         branch = form.string_ask("Branch", required=True)

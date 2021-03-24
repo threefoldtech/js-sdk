@@ -7,7 +7,15 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "discourse"
     title = "Discourse"
     HELM_REPO_NAME = "marketplace"
-    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    steps = [
+        "get_release_name",
+        "choose_flavor",
+        "create_subdomain",
+        "set_config",
+        "install_chart",
+        "initializing",
+        "success",
+    ]
     ADDITIONAL_QUERIES = [{"cpu": 250, "memory": 256}]  # postgres
 
     def _configure_admin_username_password(self):
@@ -28,7 +36,6 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
-        self._choose_flavor()
         self._configure_admin_username_password()
         self._ask_smtp_settings()
 

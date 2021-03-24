@@ -8,6 +8,7 @@ class MattermostDeploy(SolutionsChatflowDeploy):
     HELM_REPO_NAME = "marketplace"
     steps = [
         "get_release_name",
+        "choose_flavor",
         "create_subdomain",
         "set_config",
         "install_chart",
@@ -32,7 +33,6 @@ class MattermostDeploy(SolutionsChatflowDeploy):
         )  # TODO: need to check a valid password
         form.ask()
 
-        self._choose_flavor()
         self.chart_config.update(
             {
                 "ingress.host": self.domain,

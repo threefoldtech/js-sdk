@@ -7,7 +7,15 @@ class MaticDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "matic"
     title = "Matic"
     HELM_REPO_NAME = "marketplace"
-    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    steps = [
+        "get_release_name",
+        "choose_flavor",
+        "create_subdomain",
+        "set_config",
+        "install_chart",
+        "initializing",
+        "success",
+    ]
 
     CHART_LIMITS = {
         "Silver": {"cpu": "2000m", "memory": "2024Mi"},
@@ -39,7 +47,6 @@ class MaticDeploy(SolutionsChatflowDeploy):
     def set_config(self):
         self._enter_access_code()
         self._enter_rpc_url()
-        self._choose_flavor(self.CHART_LIMITS)
         self.vdc.get_deployer().kubernetes.add_traefik_entrypoints(
             {"matic-bor": {"port": "30303"}, "matic-heimdall": {"port": "26656"}}
         )

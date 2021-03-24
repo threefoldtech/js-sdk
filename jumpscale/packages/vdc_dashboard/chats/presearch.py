@@ -7,7 +7,15 @@ class PresearchDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "presearch"
     title = "Presearch"
     HELM_REPO_NAME = "marketplace"
-    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    steps = [
+        "get_release_name",
+        "choose_flavor",
+        "create_subdomain",
+        "set_config",
+        "install_chart",
+        "initializing",
+        "success",
+    ]
 
     CHART_LIMITS = {
         "Silver": {"cpu": "400m", "memory": "300Mi"},
@@ -30,7 +38,6 @@ class PresearchDeploy(SolutionsChatflowDeploy):
     @chatflow_step(title="Node Configuration")
     def set_config(self):
         self._enter_registration_code()
-        self._choose_flavor(self.CHART_LIMITS)
 
         self.chart_config.update(
             {

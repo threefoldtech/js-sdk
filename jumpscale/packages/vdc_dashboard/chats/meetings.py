@@ -10,6 +10,7 @@ class Meetings(SolutionsChatflowDeploy):
     HELM_REPO_NAME = "marketplace"
     steps = [
         "get_release_name",
+        "choose_flavor",
         "create_subdomain",
         "set_config",
         "install_chart",
@@ -19,8 +20,6 @@ class Meetings(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
-        self._choose_flavor()
-
         self.chart_config.update(
             {
                 "ingress.hosts[0]": self.domain,

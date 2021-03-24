@@ -5,25 +5,32 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy, POD_INITIALIZING_TIMEOUT
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
 
-CHART_LIMITS = {
-    "Silver": {"cpu": "100m", "memory": "128Mi", "no_nodes": "1", "volume_size": "2Gi"},
-    "Gold": {"cpu": "100m", "memory": "128Mi", "no_nodes": "3", "volume_size": "4Gi"},
-    "Platinum": {"cpu": "250m", "memory": "256Mi", "no_nodes": "3", "volume_size": "8Gi"},
-}
-
-RESOURCE_VALUE_TEMPLATE = {
-    "cpu": "CPU {}",
-    "memory": "Memory {}",
-    "no_nodes": "Number of Nodes {}",
-    "volume_size": "Volume {}",
-}
-
 
 class EtcdDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "etcd"
     title = "ETCD"
     HELM_REPO_NAME = "marketplace"
-    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    steps = [
+        "get_release_name",
+        "choose_flavor",
+        "create_subdomain",
+        "set_config",
+        "install_chart",
+        "initializing",
+        "success",
+    ]
+    CHART_LIMITS = {
+        "Silver": {"cpu": "100m", "memory": "128Mi", "no_nodes": "1", "volume_size": "2Gi"},
+        "Gold": {"cpu": "100m", "memory": "128Mi", "no_nodes": "3", "volume_size": "4Gi"},
+        "Platinum": {"cpu": "250m", "memory": "256Mi", "no_nodes": "3", "volume_size": "8Gi"},
+    }
+
+    RESOURCE_VALUE_TEMPLATE = {
+        "cpu": "CPU {}",
+        "memory": "Memory {}",
+        "no_nodes": "Number of Nodes {}",
+        "volume_size": "Volume {}",
+    }
 
     @chatflow_step(title="Configurations")
     def set_config(self):
@@ -32,7 +39,6 @@ class EtcdDeploy(SolutionsChatflowDeploy):
         if not get_deployments(self.SOLUTION_TYPE, username):
             self.vdc.get_deployer().kubernetes.add_traefik_entrypoint("etcd", "2379")
 
-        self._choose_flavor(CHART_LIMITS, RESOURCE_VALUE_TEMPLATE)
         self.chart_config.update(
             {
                 "statefulset.replicaCount": self.resources_limits["no_nodes"],

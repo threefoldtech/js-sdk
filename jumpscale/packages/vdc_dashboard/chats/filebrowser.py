@@ -10,6 +10,7 @@ class FileBrowser(SolutionsChatflowDeploy):
     HELM_REPO_NAME = "marketplace"
     steps = [
         "get_release_name",
+        "choose_flavor",
         "create_subdomain",
         "get_documentserver_value",
         "set_config",
@@ -25,8 +26,6 @@ class FileBrowser(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
-        self._choose_flavor()
-
         self.chart_config.update(
             {
                 "extraEnvVars[0].name": "DOCUMENTSERVER_URL",

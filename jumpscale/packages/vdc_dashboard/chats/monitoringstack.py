@@ -20,6 +20,7 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
     steps = [
         "check_already_deployed",
         "get_release_name",
+        "choose_flavor",
         "create_prometheus_subdomain",
         "create_grafane_subdomain",
         "set_config",
@@ -74,7 +75,6 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
-        self._choose_flavor(chart_limits=self.CHART_LIMITS)
         self.chart_config.update(
             {
                 "prometheus.ingress.hosts[0]": self.domain,

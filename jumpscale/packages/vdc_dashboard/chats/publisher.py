@@ -13,7 +13,15 @@ class Publisher(SolutionsChatflowDeploy):
     DOC_URL = "https://now.threefold.io/now/docs/publishing-tool/#repository-examples"
 
     title = "Publisher"
-    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    steps = [
+        "get_release_name",
+        "choose_flavor",
+        "create_subdomain",
+        "set_config",
+        "install_chart",
+        "initializing",
+        "success",
+    ]
 
     def get_mdconfig_msg(self):
         msg = dedent(
@@ -32,8 +40,6 @@ class Publisher(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
-        self._choose_flavor()
-
         form = self.new_form()
         site_type = form.single_choice(
             "Choose the publication type", options=["wiki", "www", "blog"], default="wiki", required=True
