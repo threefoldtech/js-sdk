@@ -34,6 +34,8 @@ class ExtendKubernetesCluster(GedisChatBot):
 
     @chatflow_step(title="Adding node")
     def add_node(self):
+        if not j.sals.vdc.list_all():
+            self.stop("Couldn't find any vdcs on this machine, Please make sure to have it configured properly")
         self.vdc_name = list(j.sals.vdc.list_all())[0]
         self.vdc = j.sals.vdc.get(name=self.vdc_name)
         if not self.vdc:

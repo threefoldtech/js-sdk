@@ -20,6 +20,8 @@ app = Bottle()
 
 
 def _get_zstor_config(ip_version=6):
+    if not j.sals.vdc.list_all():
+        abort(500, "Couldn't find any vdcs on this machine, Please make sure to have it configured properly")
     vdc_full_name = list(j.sals.vdc.list_all())[0]
     vdc = j.sals.vdc.find(vdc_full_name, load_info=True)
     vdc_zdb_monitor = vdc.get_zdb_monitor()
