@@ -7,3 +7,11 @@
 .theme--light.v-tabs-items {
     background-color: #FBFCFC !important;
 }
+
+.version {
+    position: fixed;
+    bottom: 20px;
+    right: 10px;
+    font-size: small;
+    color: grey;
+}

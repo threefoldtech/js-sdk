@@ -396,4 +396,18 @@ def enable_quantumstorage():
         )
 
 
+@app.route("/api/get_sdk_version", method="GET")
+@login_required
+def get_sdk_version():
+    import importlib_metadata as metadata
+
+    packages = ["js-ng", "js-sdk"]
+    data = {}
+    for package in packages:
+        data[package] = metadata.version(package)
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"data": data}), status=200, headers={"Content-Type": "application/json"},
+    )
+
+
 app = SessionMiddleware(app, SESSION_OPTS)
