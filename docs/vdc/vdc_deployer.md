@@ -1,20 +1,20 @@
 # VDC Deployer
 
-This manual will go through setting up an environment for vdc deployments and quick walk through the sals
+This manual will go through setting up an environment for vdc deployments and a quick walk through the sals.
 
 ## Requirments
 
 - JS-SDK
 - Machine with a domain
 - Stellar wallets
-  - vdc_init: Used to fund the initialization of vdcs to make sure it's working to save users money, also it's used to fund the plan differences. (Required asset: TFTs)
-  - grace_period: Used to fund the 2 weeks grace period. (Required asset: TFTs)
-  - activation_wallet: Used to activate vdc wallets (provisioning_wallet & prepaid_wallet) in case of threefold service failed to activate. (Required asset: XLMs)
+  - **vdc_init**: Used to fund the initialization of vdcs to make sure it's working to save users money, also it's used to fund the plan differences. (Required asset: TFTs)
+  - **grace_period**: Used to fund the 2 weeks grace period. (Required asset: TFTs)
+  - **activation_wallet**: Used to activate vdc wallets (provisioning_wallet & prepaid_wallet) in case of threefold service failed to activate. (Required asset: XLMs)
 
 ## Setup
 
 - Install [JS-SDK](https://threefoldtech.github.io/js-sdk/wiki/#/./quick_start)
-- Create/Import the required wallets as in requirments through `jsng` shell
+- Create/Import the required wallets mentioned in the previous requirements through `jsng` shell
 
   ```bash
   # activation wallet
