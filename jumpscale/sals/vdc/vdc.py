@@ -142,14 +142,23 @@ class UserVDC(Base):
             restore=restore,
         )
 
-    def validate_password(self, password):
-        password_hash = hashlib.md5(password.encode()).hexdigest()
+    def get_password(self):
         identity = self._get_identity(default=False)
         if not identity:
+            j.logger.error("Couldn't find identity")
+            return
+        password_hash = j.data.encryption.mnemonic_to_key(identity.words)
+        return password_hash.decode()
+
+    def validate_password(self, password):
+
+        identity = self._get_identity(default=False)
+        vdc_password = self.get_password()
+        if not vdc_password:
             # identity was not generated for this vdc instance
             return True
-        words = j.data.encryption.key_to_mnemonic(password_hash.encode())
-        if identity.words == words:
+
+        if password == vdc_password:
             return True
         return False
 

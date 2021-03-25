@@ -97,10 +97,14 @@ class ZDBMonitor:
             if not metadata_dict.get("password"):
                 continue
             return metadata_dict["password"]
+        else:
+            password = self.vdc_instance.get_password()
+            if password:
+                return password
         raise j.exceptions.Runtime("couldn't get password for any zdb of vdc")
 
     def extend(self, required_capacity, farm_names, wallet_name="provision_wallet", extension_size=10):
-        password = self.get_password()
+        password = self.vdc_instance.get_password_hash()
         no_zdbs = math.floor(required_capacity / extension_size)
         if no_zdbs < 1:
             return
