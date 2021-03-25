@@ -104,7 +104,7 @@ class ZDBMonitor:
         raise j.exceptions.Runtime("couldn't get password for any zdb of vdc")
 
     def extend(self, required_capacity, farm_names, wallet_name="provision_wallet", extension_size=10):
-        password = self.vdc_instance.get_password_hash()
+        password = self.get_password()
         no_zdbs = math.floor(required_capacity / extension_size)
         if no_zdbs < 1:
             return
