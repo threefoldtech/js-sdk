@@ -15,8 +15,8 @@ MINIMUM_ACTIVATION_XLMS = 0
 class VDCDeploy(GedisChatBot):
     title = "VDC"
     steps = ["vdc_info", "storage_farms_selection", "deploy", "initializing", "success"]
-    VDC_INIT_WALLET_NAME = "vdc_init"
-    GRACE_PERIOD_WALLET_NAME = "grace_period"
+    VDC_INIT_WALLET_NAME = j.config.get("VDC_INITIALIZATION_WALLET", "vdc_init")
+    GRACE_PERIOD_WALLET_NAME = j.config.get("GRACE_PERIOD_WALLET", "grace_period")
 
     def _init(self):
         self.md_show_update("It will take a few seconds to be ready to help you ...")
