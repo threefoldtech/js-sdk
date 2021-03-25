@@ -564,14 +564,14 @@ class VDCDeployer:
             if not deployment_threads[-1].value:
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to k8s")
+                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy kubernetes cluster")
 
             for thread in deployment_threads[:-1]:
                 if thread.value:
                     continue
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to zdb")
+                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy zdb")
 
             # zdb_wids = deployment_threads[0].value + deployment_threads[1].value
             # scheduler = Scheduler(farm_name)
