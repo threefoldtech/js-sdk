@@ -128,16 +128,3 @@ class ZDBMonitor:
         if len(wids) != no_zdbs:
             j.logger.error(f"AUTO_TOPUP: couldn't deploy all required zdbs. successful workloads {wids}")
         return wids
-
-    def get_zdb_farm_names(self):
-        pool_ids = set()
-        farm_names = []
-        for zdb in self.vdc_instance.s3.zdbs:
-            if zdb.pool_id in pool_ids:
-                continue
-            pool_ids.add(zdb.pool_id)
-            farm_id = deployer.get_pool_farm_id(zdb.pool_id)
-            farm_name = deployer._explorer.farms.get(farm_id).name
-            farm_names.append(farm_name)
-
-        return farm_names
