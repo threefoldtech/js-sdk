@@ -1,5 +1,4 @@
 from collections import defaultdict
-import hashlib
 from jumpscale.clients.explorer.models import WorkloadType, ZdbNamespace, K8s, Volume, Container, DiskType
 import uuid
 
