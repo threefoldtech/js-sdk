@@ -9,7 +9,7 @@ This manual will go through setting up an environment for vdc deployments and a 
 - Stellar wallets
   - **vdc_init**: Used to fund the initialization of vdcs to make sure it's working to save users money, also it's used to fund the plan differences. (Required asset: TFTs)
   - **grace_period**: Used to fund the 2 weeks grace period. (Required asset: TFTs)
-  - **activation_wallet**: Used to activate vdc wallets (provisioning_wallet & prepaid_wallet) in case of threefold service failed to activate. (Required asset: XLMs)
+  - **activation_wallet**: Used to activate vdc wallets (provisioning_wallet & prepaid_wallet). (Required asset: XLMs)
 
 ## Setup
 
