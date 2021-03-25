@@ -15,6 +15,8 @@ class ExtendKubernetesCluster(GedisChatBot):
         # check stellar service
         if not j.clients.stellar.check_stellar_service():
             raise StopChatFlow("Payment service is currently down, try again later")
+        if not j.sals.vdc.list_all():
+            self.stop("Couldn't find any vdcs on this machine, Please make sure to have it configured properly")
         self.vdc_name = list(j.sals.vdc.list_all())[0]
         self.vdc = j.sals.vdc.get(name=self.vdc_name)
         if not self.vdc:
