@@ -10,6 +10,7 @@ This manual will go through setting up an environment for vdc deployments and a 
   - **vdc_init**: Used to fund the initialization of vdcs to make sure it's working to save users money, also it's used to fund the plan differences. (Required asset: TFTs)
   - **grace_period**: Used to fund the 2 weeks grace period. (Required asset: TFTs)
   - **activation_wallet**: Used to activate vdc wallets (provisioning_wallet & prepaid_wallet). (Required asset: XLMs)
+- S3 server for backup and restore
 
 ## Setup
 
@@ -39,6 +40,15 @@ This manual will go through setting up an environment for vdc deployments and a 
   ```bash
   domain = "<your domain>"
   letsencryptemail = "<your email>"
+  ```
+
+- Configure S3 backup server
+
+  ```bash
+  # bucket in [vdc-devnet, vdc-testnet, vdc-mainnet] according to setup
+  s3_config = {"S3_URL": "<your-s3-url>", "S3_BUCKET": "<your-bucketname>", "S3_AK": "<your-access-key>", "S3_SK": "<your-secret-key>"}
+
+  j.core.config.set("VDC_S3_CONFIG", s3_config)
   ```
 
 - Install `vdc` and `billing` packages through admin dashboard or server shell
