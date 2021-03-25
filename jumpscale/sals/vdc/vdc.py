@@ -151,8 +151,7 @@ class UserVDC(Base):
         return password_hash.decode()
 
     def validate_password(self, password):
-
-        identity = self._get_identity(default=False)
+        password = j.data.hash.md5(password)
         vdc_password = self.get_password()
         if not vdc_password:
             # identity was not generated for this vdc instance
