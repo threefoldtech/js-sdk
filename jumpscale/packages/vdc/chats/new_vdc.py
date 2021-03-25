@@ -15,6 +15,8 @@ MINIMUM_ACTIVATION_XLMS = 0
 class VDCDeploy(GedisChatBot):
     title = "VDC"
     steps = ["vdc_info", "storage_farms_selection", "deploy", "initializing", "success"]
+    VDC_INIT_WALLET_NAME = j.config.get("VDC_INITIALIZATION_WALLET", "vdc_init")
+    GRACE_PERIOD_WALLET_NAME = j.config.get("GRACE_PERIOD_WALLET", "grace_period")
 
     def _init(self):
         self.md_show_update("It will take a few seconds to be ready to help you ...")
@@ -36,7 +38,7 @@ class VDCDeploy(GedisChatBot):
                 j.logger.info(f"this system doesn't have {wname} configured")
 
         # tft wallets check
-        for wname in ["vdc_init", "grace_period"]:
+        for wname in [self.VDC_INIT_WALLET_NAME, self.GRACE_PERIOD_WALLET_NAME]:
             try:
                 w = j.clients.stellar.get(wname)
                 if w.get_balance_by_asset() < 50:
@@ -94,6 +96,8 @@ class VDCDeploy(GedisChatBot):
         # self.deployment_logs = form.single_choice("Enable extensive deployment logs?", ["Yes", "No"], default="No")
         form.ask()
         self.vdc_secret = self.vdc_secret.value
+        self.password = j.data.hash.md5(self.vdc_secret)
+
         self.restore = False
         self.vdc_flavor = self.vdc_flavor.value.split(":")[0]
 
@@ -106,6 +110,7 @@ class VDCDeploy(GedisChatBot):
                     min_length=8,
                     required=True,
                 )
+
             self.restore = True
             j.logger.info(f"deleting empty vdc instance: {vdc.instance_name} with uuid: {vdc.solution_uuid}")
             j.sals.vdc.delete(vdc.instance_name)
@@ -166,11 +171,10 @@ class VDCDeploy(GedisChatBot):
             self.backup_config = {}
             return
 
-        self.password_hash = j.data.hash.md5(self.vdc_secret)
         alias = j.sals.minio_admin.get_alias(
             "vdc", backup_config["S3_URL"], backup_config["S3_AK"], backup_config["S3_SK"]
         )
-        alias.add_user(f"{self.username}-{self.vdc_name.value}", self.password_hash)
+        alias.add_user(f"{self.username}-{self.vdc_name.value}", self.password)
         alias.allow_user_to_bucket(
             f"{self.username}-{self.vdc_name.value}",
             backup_config["S3_BUCKET"],
@@ -178,7 +182,7 @@ class VDCDeploy(GedisChatBot):
         )
         self.backup_config = {
             "ak": f"{self.username}-{self.vdc_name.value}",
-            "sk": self.password_hash,
+            "sk": self.password,
             "region": "minio",
             "url": backup_config.get("S3_URL", ""),
             "bucket": backup_config.get("S3_BUCKET", ""),
@@ -238,7 +242,7 @@ class VDCDeploy(GedisChatBot):
             self.stop(f"failed to initialize VDC wallets. please try again later")
 
         try:
-            self.deployer = self.vdc.get_deployer(password=self.vdc_secret, bot=self, restore=self.restore)
+            self.deployer = self.vdc.get_deployer(password=self.password, bot=self, restore=self.restore)
         except Exception as e:
             j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
             self._rollback()
@@ -274,8 +278,7 @@ class VDCDeploy(GedisChatBot):
         self.md_show_update("Payment successful")
 
         self.md_show_update("Deploying your VDC...")
-        initialization_wallet_name = j.core.config.get("VDC_INITIALIZATION_WALLET")
-        old_wallet = self.deployer._set_wallet(initialization_wallet_name)
+        old_wallet = self.deployer._set_wallet(self.VDC_INIT_WALLET_NAME)
         try:
             self.config = self.deployer.deploy_vdc(
                 minio_ak=None, minio_sk=None, s3_backup_config=self.backup_config, zdb_farms=self.zdb_farms
@@ -299,14 +302,14 @@ class VDCDeploy(GedisChatBot):
             j.logger.error(f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}.")
             raise StopChatFlow(f"failed to fund provisioning wallet due to error {str(e)}")
 
-        if initialization_wallet_name:
+        if self.VDC_INIT_WALLET_NAME:
             try:
-                self.vdc.pay_initialization_fee(initial_transaction_hashes, initialization_wallet_name)
+                self.vdc.pay_initialization_fee(initial_transaction_hashes, self.VDC_INIT_WALLET_NAME)
             except Exception as e:
                 j.logger.critical(f"failed to pay initialization fee for vdc: {self.vdc.solution_uuid}")
         self.deployer._set_wallet(old_wallet)
         self.md_show_update("Funding difference...")
-        self.vdc.fund_difference(initialization_wallet_name)
+        self.vdc.fund_difference(self.VDC_INIT_WALLET_NAME)
         self.md_show_update("Updating expiration...")
         self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
 
