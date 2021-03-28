@@ -182,6 +182,7 @@ class HardwareProof(Base):
 
 class Node(Base):
     node_id = fields.String(default="")
+    hostname = fields.String(default="")
     node_id_v1 = fields.String(default="")
     farm_id = fields.Integer()
     os_version = fields.String(default="")
