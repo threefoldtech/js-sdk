@@ -27,7 +27,7 @@
       :sort-by.sync="sortBy"
       class="elevation-1"
     >
-      <template slot="no-data">No VDC instances available</template>
+      <template slot="no-data">No backups yet</template>
       <template v-slot:item.name="{ item }">
         <div>{{ item.name }}</div>
       </template>
