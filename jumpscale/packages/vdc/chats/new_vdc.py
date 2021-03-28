@@ -284,14 +284,16 @@ class VDCDeploy(GedisChatBot):
                 minio_ak=None, minio_sk=None, s3_backup_config=self.backup_config, zdb_farms=self.zdb_farms
             )
             if not self.config:
-                raise StopChatFlow("Failed to deploy VDC due to invalid kube config. please try again later")
+                raise StopChatFlow(
+                    f"Failed to deploy VDC with uuid: {self.vdc.solution_uuid} due to invalid kube config. please try again later"
+                )
             self.public_ip = self.vdc.kubernetes[0].public_ip
         except Exception as err:
             j.logger.error(str(err))
             self.deployer.rollback_vdc_deployment()
             j.sals.billing.issue_refund(payment_id)
             self._rollback()
-            self.stop(str(err))
+            self.stop(f"{str(err)}. VDC uuid: {self.vdc.solution_uuid}")
         self.md_show_update("Adding funds to provisioning wallet...")
         initial_transaction_hashes = self.deployer.transaction_hashes
         try:
@@ -300,7 +302,9 @@ class VDCDeploy(GedisChatBot):
             j.sals.billing.issue_refund(payment_id)
             self._rollback()
             j.logger.error(f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}.")
-            raise StopChatFlow(f"failed to fund provisioning wallet due to error {str(e)}")
+            raise StopChatFlow(
+                f"failed to fund provisioning wallet due to error {str(e)}. VDC uuid: {self.vdc.solution_uuid}"
+            )
 
         if self.VDC_INIT_WALLET_NAME:
             try:
