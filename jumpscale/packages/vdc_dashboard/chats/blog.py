@@ -8,7 +8,6 @@ class BlogDeploy(Publisher):
     SOLUTION_TYPE = "blog"
     EXAMPLE_URL = "https://github.com/threefoldfoundation/blog_example"
     DOC_URL = "https://wiki.cloud.threefold.io/#/evdc_blog"
-    DOMAIN_KEY_IN_CHART_VALUES = "ingress.host"
     title = "Blog"
 
     def get_config(self):

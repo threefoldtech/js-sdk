@@ -6,7 +6,6 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "cryptpad"
     title = "Cryptpad"
     HELM_REPO_NAME = "marketplace"
-    DOMAIN_KEY_IN_CHART_VALUES = "ingress.host"
     steps = [
         "init_chatflow",
         "get_release_name",
@@ -18,7 +17,7 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
         "success",
     ]
 
-    def get_extra_config(self):
+    def get_config(self):
         return {
             "ingress.host": self.config.chart_config.domain,
             "volume.size": self.config.chart_config.volume_size,
