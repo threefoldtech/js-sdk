@@ -32,7 +32,7 @@ class ChartConfig(Base):
     cert_resolver = fields.String(default="le")
     domain = fields.String(default=None)
     domain_type = fields.String()
-    resources_limits = fields.Typed(dict)
+    resources_limits = fields.Typed(dict, default={})
     backup = fields.String(default="vdc")
     ip_version = fields.String(default="IPv6")
 
@@ -175,11 +175,11 @@ class SolutionsChatflowDeploy(GedisChatBot):
         gateways = {}
 
         # try preferred farm gateways first
-        gateways = deployer.list_all_gateways(self.username, PREFERRED_FARM, identity_name=self.identity_name)
+        gateways = deployer.list_all_gateways(self.config.username, PREFERRED_FARM, identity_name=self.identity_name)
         if not gateways:
             self.preferred_farm_gw = False
             gateways = deployer.list_all_gateways(
-                self.username, self.vdc_info["farm_name"], identity_name=self.identity_name
+                self.config.username, self.vdc_info["farm_name"], identity_name=self.identity_name
             )
             if not gateways:
                 raise StopChatFlow(
@@ -217,7 +217,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 managed_domain = domain
 
                 release_name = self.config.release_name.replace("_", "-")
-                owner_prefix = self.username.replace(".3bot", "").replace(".", "").replace("_", "-")
+                owner_prefix = self.config.username.replace(".3bot", "").replace(".", "").replace("_", "-")
                 solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
                 # check if domain name is free or append random number
 
@@ -229,7 +229,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 else:
                     full_domain = f"{owner_prefix}-{solution_type}-{release_name}.{managed_domain}"
 
-                metafilter = lambda metadata: metadata.get("owner") == self.username
+                metafilter = lambda metadata: metadata.get("owner") == self.config.username
                 # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
                 user_subdomains = {}
                 all_domains = solutions._list_subdomain_workloads(
