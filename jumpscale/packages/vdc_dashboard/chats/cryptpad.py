@@ -6,31 +6,31 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "cryptpad"
     title = "Cryptpad"
     HELM_REPO_NAME = "marketplace"
+    DOMAIN_KEY_IN_CHART_VALUES = "ingress.host"
     steps = [
+        "init_chatflow",
         "get_release_name",
         "choose_flavor",
-        "create_subdomain",
         "set_config",
+        "create_subdomain",
         "install_chart",
         "initializing",
         "success",
     ]
 
+    def get_extra_config(self):
+        return {
+            "ingress.host": self.config.chart_config.domain,
+            "volume.size": self.config.chart_config.volume_size,
+            "volume.hostPath": f"/cryptpad/{self.config.release_name}",
+        }
+
     @chatflow_step(title="Configurations")
     def set_config(self):
         # TODO: get config from user
         choices = ["10", "15", "20"]
-        self.volume_size = self.single_choice(
+        self.config.chart_config.volume_size = self.single_choice(
             "Please select your storage size (in GBs)", choices, required=True, default="10",
-        )
-        self.chart_config.update(
-            {
-                "ingress.host": self.domain,
-                "volume.size": self.volume_size,
-                "volume.hostPath": f"/cryptpad/{self.release_name}",
-                "resources.limits.cpu": self.resources_limits["cpu"],
-                "resources.limits.memory": self.resources_limits["memory"],
-            }
         )
 
 

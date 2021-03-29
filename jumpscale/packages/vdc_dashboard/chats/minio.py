@@ -14,6 +14,7 @@ class MinioDeploy(SolutionsChatflowDeploy):
     title = "Minio Quantum Storage"
     HELM_REPO_NAME = "marketplace"
     steps = [
+        "init_chatflow",
         "get_release_name",
         "create_subdomain",
         "set_config",
@@ -23,9 +24,17 @@ class MinioDeploy(SolutionsChatflowDeploy):
         "success",
     ]
 
+    def get_config(self):
+        return {
+            "ingress.host": self.config.chart_config.domain,
+            "accessKey": self.config.chart_config.accesskey,
+            "secretKey": self.config.chart_config.secret,
+            "volume.hostPath": self.config.chart_config.path,
+        }
+
     @chatflow_step(title="Configurations")
     def set_config(self):
-        self.path = f"/home/rancher/{self.chart_name}{self.release_name}"
+        self.config.chart_config.path = f"/home/rancher/{self.chart_name}{self.config.release_name}"
 
         form = self.new_form()
         accesskey = form.string_ask(
@@ -39,15 +48,8 @@ class MinioDeploy(SolutionsChatflowDeploy):
             required=True,
         )
         form.ask()
-
-        self.chart_config.update(
-            {
-                "ingress.host": self.domain,
-                "accessKey": accesskey.value,
-                "secretKey": secret.value,
-                "volume.hostPath": self.path,
-            }
-        )
+        self.config.chart_config.accesskey = accesskey.value
+        self.config.chart_config.secret = secret.value
 
     @chatflow_step(title="Quantum Storage")
     def quantum_storage(self):
@@ -59,8 +61,8 @@ class MinioDeploy(SolutionsChatflowDeploy):
     def initializing(self, timeout=300):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
         domain_message = ""
-        if self._has_domain():
-            domain_message = f"Domain: {self.domain}"
+        if self.config.chart_config.domain():
+            domain_message = f"Domain: {self.config.chart_config.domain}"
         error_message_template = f"""\
                 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
 
@@ -79,11 +81,14 @@ class MinioDeploy(SolutionsChatflowDeploy):
             stop_message = error_message_template.format(
                 reason="Couldn't find resources in the cluster for the solution"
             )
-            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.release_name}")
+            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.config.release_name}")
             self.stop(dedent(stop_message))
 
-        if self._has_domain() and not j.sals.reservation_chatflow.wait_http_test(
-            f"https://{self.domain}", timeout=timeout - POD_INITIALIZING_TIMEOUT, verify=False, status_code=403
+        if self.config.chart_config.domain() and not j.sals.reservation_chatflow.wait_http_test(
+            f"https://{self.config.chart_config.domain}",
+            timeout=timeout - POD_INITIALIZING_TIMEOUT,
+            verify=False,
+            status_code=403,
         ):
             stop_message = error_message_template.format(reason="Couldn't reach the website after deployment")
             self.stop(dedent(stop_message))

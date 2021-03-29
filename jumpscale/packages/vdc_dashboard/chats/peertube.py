@@ -7,15 +7,27 @@ class PeertubeDeploy(SolutionsChatflowDeploy):
     title = "Peertube"
     HELM_REPO_NAME = "marketplace"
     steps = [
+        "init_chatflow",
         "get_release_name",
         "choose_flavor",
         "create_subdomain",
-        "set_config",
+        # "set_config",
         "install_chart",
         "initializing",
         "success",
     ]
     ADDITIONAL_QUERIES = [{"cpu": 250, "memory": 256}]  # postgres
+
+    def get_config(self):
+        return {
+            "webserver.hostname": self.config.chart_config.domain,
+            "postgresql.fullnameOverride": f"peertube-postgresql-{self.config.release_name}",
+            "redis.fullnameOverride": f"peertube-redis-{self.config.release_name}",
+            "deps.smtp.hostname": None,
+            "deps.smtp.username": None,
+            "deps.smtp.password": None,
+            "deps.smtp.from": None,
+        }
 
     def _get_smtp(self):
         form = self.new_form()
@@ -35,22 +47,9 @@ class PeertubeDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
+        # TODO:
         user_info = self.user_info()
         self.user_email = user_info["email"]
-
-        self.chart_config.update(
-            {
-                "webserver.hostname": self.domain,
-                "postgresql.fullnameOverride": f"peertube-postgresql-{self.release_name}",
-                "redis.fullnameOverride": f"peertube-redis-{self.release_name}",
-                "deps.smtp.hostname": None,
-                "deps.smtp.username": None,
-                "deps.smtp.password": None,
-                "deps.smtp.from": None,
-                "resources.limits.cpu": self.resources_limits["cpu"],
-                "resources.limits.memory": self.resources_limits["memory"],
-            }
-        )
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

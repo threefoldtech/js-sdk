@@ -14,6 +14,7 @@ class Publisher(SolutionsChatflowDeploy):
 
     title = "Publisher"
     steps = [
+        "init_chatflow",
         "get_release_name",
         "choose_flavor",
         "create_subdomain",
@@ -22,6 +23,15 @@ class Publisher(SolutionsChatflowDeploy):
         "initializing",
         "success",
     ]
+
+    def get_config(self):
+        return {
+            "env.type": self.config.chart_config.site_type,
+            "env.url": self.config.chart_config.url,
+            "env.branch": self.config.chart_config.branch,
+            "env.srcdir": self.config.chart_config.srcdir,
+            "ingress.host": self.config.chart_config.domain,
+        }
 
     def get_mdconfig_msg(self):
         msg = dedent(
@@ -49,17 +59,11 @@ class Publisher(SolutionsChatflowDeploy):
         srcdir = form.string_ask("Source directory", required=False, default="")
         msg = self.get_mdconfig_msg()
         form.ask(msg, md=True)
-        self.chart_config.update(
-            {
-                "env.type": site_type.value,
-                "env.url": url.value,
-                "env.branch": branch.value,
-                "env.srcdir": srcdir.value,
-                "ingress.host": self.domain,
-                "resources.limits.cpu": self.resources_limits["cpu"],
-                "resources.limits.memory": self.resources_limits["memory"],
-            }
-        )
+
+        self.config.chart_config.site_type = site_type.value
+        self.config.chart_config.url = url.value
+        self.config.chart_config.branch = branch.value
+        self.config.chart_config.srcdir = srcdir.value
 
 
 chat = Publisher

@@ -7,6 +7,7 @@ from textwrap import dedent
 from time import time
 
 from jumpscale.loader import j
+from jumpscale.core.base import Base, fields
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow import deployment_context, DeploymentFailed
 from jumpscale.sals.marketplace import deployer, solutions
@@ -27,25 +28,37 @@ PREFERRED_FARM = "csfarmer"
 POD_INITIALIZING_TIMEOUT = 120
 
 
+class ChartConfig(Base):
+    cert_resolver = fields.String(default="le")
+    domain = fields.String(default=None)
+    domain_type = fields.String()
+    resources_limits = fields.Typed(dict)
+    backup = fields.String(default="vdc")
+    ip_version = fields.String(default="IPv6")
+
+
+class DeploymentConfig(Base):
+    username = fields.String()
+    release_name = fields.String()
+    chart_config = fields.Object(ChartConfig)
+
+
 class SolutionsChatflowDeploy(GedisChatBot):
     CHART_NAME = None
     ADDITIONAL_QUERIES = None  # list of {"cpu": x(m), "memory": x(Mi)} used by chart dependencies
 
-    def _init_solution(self):
-        # TODO: te be removed
-        self.user_info_data = self.user_info()
-        self.username = self.user_info_data["username"]
-        self.solution_id = uuid.uuid4().hex
-        self.ip_version = "IPv6"
-        self.chart_config = {"threefoldVdc.backup": "vdc"}
+    @property
+    def chart_name(self):
+        return self.CHART_NAME or self.SOLUTION_TYPE
 
-    @chatflow_step(title="Chart Backup")
-    def ask_backup(self):
-        self.backup = self.single_choice(
-            "Do you want to enable backup for this solution?", ["Yes", "No"], default="Yes", required=True
-        )
-        if self.backup == "No":
-            self.chart_config["threefoldVdc.backup"] = ""
+    def get_config(self):
+        return {}  # to be overridden in the chart chatflow
+
+    def _init_solution(self):
+        user_info_data = self.user_info()
+        self.config = DeploymentConfig()
+        self.config.username = user_info_data["username"]
+        self.solution_id = uuid.uuid4().hex
 
     def _get_kube_config(self):
         if j.sals.vdc.list_all():
@@ -131,7 +144,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                     command_background=true
                     """
                     template = dedent(template)
-                    file_name = f"{self.release_name}-socat-{service}"
+                    file_name = f"{self.config.release_name}-socat-{service}"
                     rc, out, err = ssh_client.sshclient.run(
                         f"sudo touch /etc/init.d/{file_name} && sudo chmod 777 /etc/init.d/{file_name} &&  echo '{template}' >> /etc/init.d/{file_name} && sudo rc-service {file_name} start",
                         warn=True,
@@ -203,12 +216,12 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 self.gateway = gw_dict["gateway"]
                 managed_domain = domain
 
-                release_name = self.release_name.replace("_", "-")
+                release_name = self.config.release_name.replace("_", "-")
                 owner_prefix = self.username.replace(".3bot", "").replace(".", "").replace("_", "-")
                 solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
                 # check if domain name is free or append random number
 
-                if self.domain_type == "Choose a custom subdomain on a gateway":
+                if self.config.chart_config.domain_type == "Choose a custom subdomain on a gateway":
                     self.custom_subdomain = self.string_ask(
                         f"Please enter a subdomain to be added to {managed_domain}", required=True, is_identifier=True
                     )
@@ -242,10 +255,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
                                 solutions.cancel_solution_by_uuid(sol_uuid)
 
                     if j.tools.dnstool.is_free(full_domain):
-                        self.domain = full_domain
+                        self.config.chart_config.domain = full_domain
                         break
                     else:
-                        if self.domain_type == "Choose a custom subdomain on a gateway":
+                        if self.config.chart_config.domain_type == "Choose a custom subdomain on a gateway":
                             self.custom_subdomain = self.string_ask(
                                 f"Please enter another subdomain as {self.custom_subdomain} is unavailable on {managed_domain}",
                                 required=True,
@@ -265,7 +278,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                         j.logger.error(f"Failed to resolve DNS {ns}, this gateway will be skipped")
                 if not self.addresses:
                     continue
-                return self.domain
+                return self.config.chart_config.domain
 
         if not is_managed_domains:
             raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
@@ -291,20 +304,20 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 self.md_show(f"The domain {custom_domain} doesn't point to {cluster_ip}.")
             else:
                 valid = True
-                self.domain = custom_domain
+                self.config.chart_config.domain = custom_domain
 
     @deployment_context()
     def _create_subdomain(self):
         self.workload_ids = []
         metadata = {
-            "name": self.release_name,
-            "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.release_name},
+            "name": self.config.release_name,
+            "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.config.release_name},
         }
         self.workload_ids.append(
             deployer.create_subdomain(
                 pool_id=self.gateway_pool.pool_id,
                 gateway_id=self.gateway.node_id,
-                subdomain=self.domain,
+                subdomain=self.config.chart_config.domain,
                 addresses=[self.vdc_info["public_ip"]],
                 solution_uuid=self.solution_id,
                 identity_name=self.identity_name,
@@ -314,11 +327,12 @@ class SolutionsChatflowDeploy(GedisChatBot):
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.",
+                f"Failed to create subdomain {self.config.chart_config.domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.",
                 wid=self.workload_ids[0],
             )
 
-    def _get_vdc_info(self):
+    @chatflow_step(title="Preparing The Chatflow")
+    def init_chatflow(self):
         self.md_show_update("Preparing the chatflow...")
         self._init_solution()
         self._get_kube_config()
@@ -326,14 +340,13 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     @chatflow_step(title="Solution Name")
     def get_release_name(self):
-        self._get_vdc_info()
         message = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
         releases = [
             release["name"]
             for release in self.k8s_client.list_deployed_releases()
             if release["namespace"].startswith(self.chart_name)
         ]
-        self.release_name = self.string_ask(
+        self.config.release_name = self.string_ask(
             message, required=True, is_identifier=True, not_exist=["solution name", releases], md=True, max_length=20
         )
 
@@ -362,10 +375,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
             default=messages[0],
         )
         flavor = chosen_flavor.split()[0]
-        self.resources_limits = chart_limits[flavor]
-        no_nodes = int(self.resources_limits.get("no_nodes", 1))
-        memory = int(self.resources_limits["memory"][:-2])
-        cpu = int(self.resources_limits["cpu"][:-1])
+        self.config.chart_config.resources_limits.update(chart_limits[flavor])
+        no_nodes = int(self.config.chart_config.resources_limits.get("no_nodes", 1))
+        memory = int(self.config.chart_config.resources_limits["memory"][:-2])
+        cpu = int(self.config.chart_config.resources_limits["cpu"][:-1])
 
         self._validate_resource_limits(cpu, memory, no_nodes)
 
@@ -376,25 +389,29 @@ class SolutionsChatflowDeploy(GedisChatBot):
             "Choose a custom subdomain on a gateway",
             "Choose a custom domain",
         ]
-        self.domain_type = self.single_choice(
+        self.config.chart_config.domain_type = self.single_choice(
             "Select the domain type", choices, default="Choose subdomain for me on a gateway"
         )
-        custom_domain = self.domain_type == "Choose a custom domain"
-        # get self.domain
+        custom_domain = self.config.chart_config.domain_type == "Choose a custom domain"
+        # get self.config.chart_config.domain
         if custom_domain:
             self._get_custom_domain()
         else:
             self._get_domain()
             self._create_subdomain()
         if custom_domain:
-            self.chart_config.update({"global.ingress.certresolver": "le"})
+            self.config.chart_config.cert_resolver = "le"
         elif self.preferred_farm_gw:
             # subdomain selected on gateway on preferred farm
-            self.chart_config.update({"global.ingress.certresolver": "gridca"})
+            self.config.chart_config.cert_resolver = "gridca"
 
-    @property
-    def chart_name(self):
-        return self.CHART_NAME or self.SOLUTION_TYPE
+    @chatflow_step(title="Chart Backup")
+    def ask_backup(self):
+        self.backup = self.single_choice(
+            "Do you want to enable backup for this solution?", ["Yes", "No"], default="Yes", required=True
+        )
+        if self.backup == "No":
+            self.config.chart_config.backup = ""
 
     @chatflow_step(title="Installation")
     def install_chart(self):
@@ -408,29 +425,33 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 HELM_REPOS[self.HELM_REPO_NAME]["name"], HELM_REPOS[self.HELM_REPO_NAME]["url"]
             )
         self.k8s_client.update_repos()
-        self.chart_config.update({"solution_uuid": self.solution_id})
-
+        chart_config = {
+            "solution_uuid": self.solution_id,
+            "threefoldVdc.backup": self.config.chart_config.backup,
+            "global.ingress.certresolver": self.config.chart_config.cert_resolver,
+            "resources.limits.cpu": self.config.chart_config.resources_limits["cpu"],
+            "resources.limits.memory": self.config.chart_config.resources_limits["memory"],
+        }
+        custom_config = self.get_config()
+        chart_config.update(custom_config)
         self.k8s_client.install_chart(
-            release=self.release_name,
+            release=self.config.release_name,
             chart_name=f"{self.HELM_REPO_NAME}/{self.chart_name}",
-            namespace=f"{self.chart_name}-{self.release_name}",
-            extra_config=self.chart_config,
+            namespace=f"{self.chart_name}-{self.config.release_name}",
+            extra_config=chart_config,
         )
 
     def chart_pods_started(self):
         pods_status_info = self.k8s_client.execute_native_cmd(
-            cmd=f"kubectl --namespace {self.chart_name}-{self.release_name} get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.containerStatuses[*].ready}}'"
+            cmd=f"kubectl --namespace {self.chart_name}-{self.config.release_name} get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.config.release_name} -o=jsonpath='{{.items[*].status.containerStatuses[*].ready}}'"
         )
         if "false" in pods_status_info or pods_status_info == "":
             return False
         return True
 
-    def _has_domain(self):
-        return getattr(self, "domain", None) is not None
-
     def chart_resource_failure(self):
         pods_info = self.k8s_client.execute_native_cmd(
-            cmd=f"kubectl --namespace {self.chart_name}-{self.release_name} get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.release_name} -o=jsonpath='{{.items[*].status.conditions[*].message}}'"
+            cmd=f"kubectl --namespace {self.chart_name}-{self.config.release_name} get pods -l app.kubernetes.io/name={self.chart_name} -l app.kubernetes.io/instance={self.config.release_name} -o=jsonpath='{{.items[*].status.conditions[*].message}}'"
         )  # Gets the last event message
         if "Insufficient" in pods_info:
             return True
@@ -440,11 +461,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def initializing(self, timeout=300):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
         domain_message = ""
-        if self._has_domain():
-            domain_message = f"Domain: {self.domain}"
+        if self.config.chart_config.domain:
+            domain_message = f"Domain: {self.config.chart_config.domain}"
         error_message_template = f"""\
                 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
-
                 {domain_message}
                 VDC Name: {self.vdc_name}
                 Farm name: {self.vdc_info["farm_name"]}
@@ -460,11 +480,11 @@ class SolutionsChatflowDeploy(GedisChatBot):
             stop_message = error_message_template.format(
                 reason="Couldn't find resources in the cluster for the solution"
             )
-            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.release_name}")
+            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.config.release_name}")
             self.stop(dedent(stop_message))
 
-        if self._has_domain() and not j.sals.reservation_chatflow.wait_http_test(
-            f"https://{self.domain}", timeout=timeout - POD_INITIALIZING_TIMEOUT, verify=False
+        if self.config.chart_config.domain and not j.sals.reservation_chatflow.wait_http_test(
+            f"https://{self.config.chart_config.domain}", timeout=timeout - POD_INITIALIZING_TIMEOUT, verify=False
         ):
             stop_message = error_message_template.format(reason="Couldn't reach the website after deployment")
             self.stop(dedent(stop_message))
@@ -473,10 +493,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self, extra_info=""):
         domain_message = ""
-        if self._has_domain():
-            domain_message = f'- You can access it via the browser using: <a href="https://{self.domain}" target="_blank">https://{self.domain}</a><br />\n'
+        if self.config.chart_config.domain():
+            domain_message = f'- You can access it via the browser using: <a href="https://{self.config.chart_config.domain}" target="_blank">https://{self.config.chart_config.domain}</a><br />\n'
         message = f"""\
-        # You deployed a new instance {self.release_name} of {self.SOLUTION_TYPE}
+        # You deployed a new instance {self.config.release_name} of {self.SOLUTION_TYPE}
         <br />\n
         {domain_message}
         {extra_info}
@@ -487,7 +507,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         if not kwargs:
             return
         resources = resources or "deployment,rs,svc,sts,ds,cm,secret,ing,pv,pvc,sc"
-        namespace = f"{self.chart_name}-{self.release_name}"
+        namespace = f"{self.chart_name}-{self.config.release_name}"
         all_resources_json = self.k8s_client.execute_native_cmd(f"kubectl get {resources} -n {namespace} -o json")
         all_resources = j.data.serializers.json.loads(all_resources_json)
         for resource in all_resources.get("items", []):

@@ -7,10 +7,10 @@ class TaigaDeploy(SolutionsChatflowDeploy):
     title = "Taiga"
     HELM_REPO_NAME = "marketplace"
     steps = [
+        "init_chatflow",
         "get_release_name",
         "choose_flavor",
         "create_subdomain",
-        "set_config",
         "install_chart",
         "initializing",
         "success",
@@ -21,16 +21,12 @@ class TaigaDeploy(SolutionsChatflowDeploy):
         "Platinum": {"cpu": "5000m", "memory": "5120Mi"},
     }
 
-    @chatflow_step(title="Configurations")
-    def set_config(self):
-
-        self.chart_config.update(
-            {
-                "ingress.host": self.domain,
-                "resources.cpu": self.resources_limits["cpu"][:-1],  # remove units added in chart
-                "resources.memory": self.resources_limits["memory"][:-2],  # remove units added in chart
-            }
-        )
+    def get_config(self):
+        return {
+            "ingress.host": self.config.chart_config.domain,
+            "resources.cpu": self.config.chart_config.resources_limits["cpu"][:-1],  # remove units added in chart
+            "resources.memory": self.config.chart_config.resources_limits["memory"][:-2],  # remove units added in chart
+        }
 
 
 chat = TaigaDeploy

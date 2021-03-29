@@ -7,6 +7,7 @@ class MattermostDeploy(SolutionsChatflowDeploy):
     title = "Mattermost"
     HELM_REPO_NAME = "marketplace"
     steps = [
+        "init_chatflow",
         "get_release_name",
         "choose_flavor",
         "create_subdomain",
@@ -20,29 +21,28 @@ class MattermostDeploy(SolutionsChatflowDeploy):
         {"cpu": 10, "memory": 10},  # initContainer.remove-lost-found
     ]
 
+    def get_config(self):
+        return {
+            "ingress.host": self.config.chart_config.domain,
+            "mysql.mysqlUser": self.config.chart_config.mysql_user.value,
+            "mysql.mysqlPassword": self.config.chart_config.mysql_password.value,
+            "mysql.mysqlRootPassword": self.config.chart_config.mysql_root_password.value,
+        }
+
     @chatflow_step(title="Configurations")
     def set_config(self):
 
         form = self.new_form()
-        mysql_user = form.string_ask("Enter mysql user name", default="mysql", min_length=3, required=True,)
-        mysql_password = form.secret_ask(
+        self.config.chart_config.mysql_user = form.string_ask(
+            "Enter mysql user name", default="mysql", min_length=3, required=True,
+        )
+        self.config.chart_config.mysql_password = form.secret_ask(
             "Enter mysql password", default="mySqlPassword", min_length=8, required=True,
         )  # TODO: need to check a valid password
-        mysql_root_password = form.secret_ask(
+        self.config.chart_config.mysql_root_password = form.secret_ask(
             "Enter mysql password for root user", default="mySqlRootPassword", min_length=8, required=True,
         )  # TODO: need to check a valid password
         form.ask()
-
-        self.chart_config.update(
-            {
-                "ingress.host": self.domain,
-                "mysql.mysqlUser": mysql_user.value,
-                "mysql.mysqlPassword": mysql_password.value,
-                "mysql.mysqlRootPassword": mysql_root_password.value,
-                "resources.limits.cpu": self.resources_limits["cpu"],
-                "resources.limits.memory": self.resources_limits["memory"],
-            }
-        )
 
 
 chat = MattermostDeploy

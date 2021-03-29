@@ -8,8 +8,17 @@ class BlogDeploy(Publisher):
     SOLUTION_TYPE = "blog"
     EXAMPLE_URL = "https://github.com/threefoldfoundation/blog_example"
     DOC_URL = "https://wiki.cloud.threefold.io/#/evdc_blog"
-
+    DOMAIN_KEY_IN_CHART_VALUES = "ingress.host"
     title = "Blog"
+
+    def get_config(self):
+        return {
+            "env.type": "blog",
+            "env.url": self.config.chart_config.url,
+            "env.branch": self.config.chart_config.branch,
+            "ingress.host": self.config.chart_config.domain,
+            "nameOverride": self.SOLUTION_TYPE,
+        }
 
     def get_mdconfig_msg(self):
         # blog does not need a source directory
@@ -30,20 +39,11 @@ class BlogDeploy(Publisher):
     def set_config(self):
         form = self.new_form()
         url = form.string_ask("Repository URL", required=True, is_git_url=True)
+        self.config.chart_config.url = url.value
         branch = form.string_ask("Branch", required=True)
+        self.config.chart_config.branch = branch.value
         msg = self.get_mdconfig_msg()
         form.ask(msg, md=True)
-        self.chart_config.update(
-            {
-                "env.type": "blog",
-                "env.url": url.value,
-                "env.branch": branch.value,
-                "ingress.host": self.domain,
-                "resources.limits.cpu": self.resources_limits["cpu"],
-                "resources.limits.memory": self.resources_limits["memory"],
-                "nameOverride": self.SOLUTION_TYPE,
-            }
-        )
 
 
 chat = BlogDeploy

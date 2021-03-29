@@ -9,6 +9,16 @@ class WebsiteDeploy(Publisher):
 
     title = "Website"
 
+    def get_config(self):
+        return {
+            "env.type": "www",
+            "env.url": self.config.chart_config.url,
+            "env.branch": self.config.chart_config.branch,
+            "env.srcdir": self.config.chart_config.srcdir,
+            "ingress.host": self.config.chart_config.domain,
+            "nameOverride": self.SOLUTION_TYPE,
+        }
+
     @chatflow_step(title="Configurations")
     def set_config(self):
         form = self.new_form()
@@ -17,18 +27,10 @@ class WebsiteDeploy(Publisher):
         srcdir = form.string_ask("Source directory", required=False, default="html")
         msg = self.get_mdconfig_msg()
         form.ask(msg, md=True)
-        self.chart_config.update(
-            {
-                "env.type": "www",
-                "env.url": url.value,
-                "env.branch": branch.value,
-                "env.srcdir": srcdir.value,
-                "ingress.host": self.domain,
-                "resources.limits.cpu": self.resources_limits["cpu"],
-                "resources.limits.memory": self.resources_limits["memory"],
-                "nameOverride": self.SOLUTION_TYPE,
-            }
-        )
+
+        self.config.chart_config.url = url.value
+        self.config.chart_config.branch = branch.value
+        self.config.chart_config.srcdir = srcdir.value
 
 
 chat = WebsiteDeploy
