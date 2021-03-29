@@ -42,6 +42,8 @@ class MaticDeploy(SolutionsChatflowDeploy):
     def get_release_name(self):
         self._check_uniqueness()
         super().get_release_name()
+        if len(self.release_name) > 10:
+            raise StopChatFlow("Solution Name should not be more than 10 characters")
 
     def _enter_access_code(self):
         self.access_code = self.secret_ask(
@@ -75,8 +77,8 @@ class MaticDeploy(SolutionsChatflowDeploy):
 
     def _enter_sentry_info(self):
         form = self.new_form()
-        self.sentry_nodeid = form.string_ask("Please enter your sentry node's NodeID for heimdall", required=True)
-        self.sentry_enodeid = form.string_ask("Please enter your sentry node's EnodeID for Bor", required=True)
+        self.sentry_nodeid = form.string_ask("Please enter your sentry node's NodeID for heimdall")
+        self.sentry_enodeid = form.string_ask("Please enter your sentry node's EnodeID for Bor")
         form.ask()
         self.sentry_nodeid = self.sentry_nodeid.value
         self.sentry_enodeid = self.sentry_enodeid.value
@@ -95,6 +97,7 @@ class MaticDeploy(SolutionsChatflowDeploy):
             {
                 "access_code": self.access_code,
                 "global.ingress.host": self.domain,
+                "env.moniker": self.release_name,
                 "env.node_ingress_ip": self.vdc_info["public_ip"],
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
