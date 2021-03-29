@@ -24,25 +24,27 @@ class MattermostDeploy(SolutionsChatflowDeploy):
     def get_config(self):
         return {
             "ingress.host": self.config.chart_config.domain,
-            "mysql.mysqlUser": self.config.chart_config.mysql_user.value,
-            "mysql.mysqlPassword": self.config.chart_config.mysql_password.value,
-            "mysql.mysqlRootPassword": self.config.chart_config.mysql_root_password.value,
+            "mysql.mysqlUser": self.config.chart_config.mysql_user,
+            "mysql.mysqlPassword": self.config.chart_config.mysql_password,
+            "mysql.mysqlRootPassword": self.config.chart_config.mysql_root_password,
         }
 
     @chatflow_step(title="Configurations")
     def set_config(self):
 
         form = self.new_form()
-        self.config.chart_config.mysql_user = form.string_ask(
-            "Enter mysql user name", default="mysql", min_length=3, required=True,
-        )
-        self.config.chart_config.mysql_password = form.secret_ask(
+        mysql_user = form.string_ask("Enter mysql user name", default="mysql", min_length=3, required=True,)
+        mysql_password = form.secret_ask(
             "Enter mysql password", default="mySqlPassword", min_length=8, required=True,
         )  # TODO: need to check a valid password
-        self.config.chart_config.mysql_root_password = form.secret_ask(
+        mysql_root_password = form.secret_ask(
             "Enter mysql password for root user", default="mySqlRootPassword", min_length=8, required=True,
         )  # TODO: need to check a valid password
         form.ask()
+
+        self.config.chart_config.mysql_user = mysql_user
+        self.config.chart_config.mysql_password = mysql_password
+        self.config.chart_config.mysql_root_password = mysql_root_password
 
 
 chat = MattermostDeploy

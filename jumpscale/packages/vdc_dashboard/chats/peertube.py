@@ -47,7 +47,7 @@ class PeertubeDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Configurations")
     def set_config(self):
-        # TODO:
+        # TODO: call _get_smtp function
         user_info = self.user_info()
         self.user_email = user_info["email"]
 

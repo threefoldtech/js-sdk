@@ -38,11 +38,12 @@ class BlogDeploy(Publisher):
     def set_config(self):
         form = self.new_form()
         url = form.string_ask("Repository URL", required=True, is_git_url=True)
-        self.config.chart_config.url = url.value
         branch = form.string_ask("Branch", required=True)
-        self.config.chart_config.branch = branch.value
         msg = self.get_mdconfig_msg()
         form.ask(msg, md=True)
+
+        self.config.chart_config.url = url.value
+        self.config.chart_config.branch = branch.value
 
 
 chat = BlogDeploy
