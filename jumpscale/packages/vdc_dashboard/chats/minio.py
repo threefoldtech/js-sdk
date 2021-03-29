@@ -16,8 +16,8 @@ class MinioDeploy(SolutionsChatflowDeploy):
     steps = [
         "init_chatflow",
         "get_release_name",
-        "create_subdomain",
         "set_config",
+        "create_subdomain",
         "quantum_storage",
         "install_chart",
         "initializing",
