@@ -5,7 +5,7 @@ from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deploym
 
 class MaticDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "matic"
-    title = "Polygon"
+    title = "Polygon (Matic)"
     HELM_REPO_NAME = "marketplace"
     steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
 
@@ -30,6 +30,8 @@ class MaticDeploy(SolutionsChatflowDeploy):
             self._enter_sentry_info()
         else:
             pass
+
+        self.chart_config.update({"env.node_type": self.node_type})
 
     def _check_uniqueness(self):
         username = self.user_info()["username"]
@@ -63,6 +65,13 @@ class MaticDeploy(SolutionsChatflowDeploy):
         self.eth_privkey = self.eth_privkey.value
         self.eth_key_passphrase = self.eth_key_passphrase.value
         self.eth_walletaddr = self.eth_walletaddr.value
+        self.chart_config.update(
+            {
+                "eth_privkey": self.eth_privkey,
+                "eth_key_passphrase": self.eth_key_passphrase,
+                "env.eth_walletaddr": self.eth_walletaddr,
+            }
+        )
 
     def _enter_sentry_info(self):
         form = self.new_form()
@@ -71,6 +80,7 @@ class MaticDeploy(SolutionsChatflowDeploy):
         form.ask()
         self.sentry_nodeid = self.sentry_nodeid.value
         self.sentry_enodeid = self.sentry_enodeid.value
+        self.chart_config.update({"env.sentry_nodeid": self.sentry_nodeid, "env.sentry_enodeid": self.sentry_enodeid})
 
     @chatflow_step(title="Node Configuration")
     def set_config(self):
