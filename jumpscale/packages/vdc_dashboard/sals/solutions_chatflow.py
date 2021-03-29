@@ -163,10 +163,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
         smtp_username = form.string_ask("Email (SMTP username)", required=True)
         smtp_password = form.secret_ask("Email Password", required=True)
         form.ask()
-        self.smtp_host = smtp_host.value
-        self.smtp_port = f'"{smtp_port.value}"'
-        self.smtp_username = smtp_username.value
-        self.smtp_password = smtp_password.value
+        self.config.chart_config.smtp_host = smtp_host.value
+        self.config.chart_config.smtp_port = f'"{smtp_port.value}"'
+        self.config.chart_config.smtp_username = smtp_username.value
+        self.config.chart_config.smtp_password = smtp_password.value
 
     def _get_domain(self):
         # get domain for the ip address
