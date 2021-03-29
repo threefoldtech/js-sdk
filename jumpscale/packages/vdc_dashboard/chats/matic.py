@@ -95,6 +95,7 @@ class MaticDeploy(SolutionsChatflowDeploy):
             {
                 "access_code": self.access_code,
                 "global.ingress.host": self.domain,
+                "env.node_ingress_ip": self.vdc_info["public_ip"],
                 "resources.limits.cpu": self.resources_limits["cpu"],
                 "resources.limits.memory": self.resources_limits["memory"],
             }
