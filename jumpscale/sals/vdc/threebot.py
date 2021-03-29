@@ -64,7 +64,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "BACKUP_CONFIG": j.data.serializers.json.dumps(backup_config),
             "VDC_OWNER_TNAME": self.vdc_deployer.tname,
             "VDC_EMAIL": self.vdc_deployer.email,
-            "VDC_PASSWORD_HASH": self.vdc_deployer.password_hash,
+            "VDC_PASSWORD_HASH": self.vdc_deployer.password,
             "KUBE_CONFIG": kube_config,
             "PROVISIONING_WALLET_SECRET": self.vdc_deployer.vdc_instance.provision_wallet.secret,
             "PREPAID_WALLET_SECRET": self.vdc_deployer.vdc_instance.prepaid_wallet.secret,

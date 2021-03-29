@@ -120,6 +120,8 @@ class Stellar(Client):
     def _get_unlockhash_transaction(self, unlockhash):
         data = {"unlockhash": unlockhash}
         resp = j.tools.http.post(self._get_url("GET_UNLOCK"), json={"args": data})
+        if resp.status_code == j.tools.http.status_codes.codes.NOT_FOUND:
+            return None
         resp.raise_for_status()
         return resp.json()
 
@@ -147,8 +149,7 @@ class Stellar(Client):
         self._create_unlockhash_transaction(unlock_hash=unlock_hash, transaction_xdr=txe.to_xdr())
 
     def get_balance(self, address=None):
-        """Gets the balances for a stellar address
-        """
+        """Gets the balances for a stellar address"""
         if address is None:
             address = self.address
         all_balances = self._get_free_balances(address)
@@ -170,7 +171,10 @@ class Stellar(Client):
             response = accounts_endpoint.call()
             next_link = response["_links"]["next"]["href"]
             next_link_query = parse.urlsplit(next_link).query
-            new_cursor = parse.parse_qs(next_link_query)["cursor"][0]
+            cursor = parse.parse_qs(next_link_query).get("cursor")
+            if not cursor:
+                break
+            new_cursor = cursor[0]
             accounts = response["_embedded"]["records"]
             for account in accounts:
                 account_id = account["account_id"]
@@ -249,8 +253,7 @@ class Stellar(Client):
         server.submit_transaction(transaction)
 
     def activate_through_friendbot(self):
-        """Activates and funds a testnet account using friendbot
-        """
+        """Activates and funds a testnet account using friendbot"""
         if self.network.value != "TEST":
             raise Exception("Account activation through friendbot is only available on testnet")
 
@@ -281,8 +284,7 @@ class Stellar(Client):
             )
 
     def activate_through_activation_wallet(self, wallet_name="activation_wallet"):
-        """Activate your wallet through activation wallet.
-        """
+        """Activate your wallet through activation wallet."""
         if wallet_name in j.clients.stellar.list_all() and self.instance_name != wallet_name:
             j.logger.info(f"trying to fund the wallet ourselves with the activation wallet")
             j.logger.info(f"activation wallet {self.instance_name}")
@@ -820,7 +822,7 @@ class Stellar(Client):
             return tx.to_xdr()
 
     def sign(self, tx_xdr: str, submit: bool = True):
-        """ sign signs a transaction xdr and optionally submits it to the network
+        """sign signs a transaction xdr and optionally submits it to the network
 
         Args:
             tx_xdr (str): transaction to sign in xdr format
@@ -941,9 +943,7 @@ class Stellar(Client):
             asset_issuer = _NETWORK_KNOWN_TRUSTS[network].get(code, None)
             return Asset(code, asset_issuer)
 
-    def cancel_sell_order(
-        self, offer_id, selling_asset: str, buying_asset: str, price: Union[str, decimal.Decimal],
-    ):
+    def cancel_sell_order(self, offer_id, selling_asset: str, buying_asset: str, price: Union[str, decimal.Decimal]):
         """Deletes a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
 
         Args:
@@ -1052,7 +1052,7 @@ class Stellar(Client):
         base_fee = horizon_server.fetch_base_fee()
         transaction = (
             stellar_sdk.TransactionBuilder(
-                source_account=account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value], base_fee=base_fee,
+                source_account=account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value], base_fee=base_fee
             )
             .append_manage_data_op(name, value)
             .set_timeout(30)

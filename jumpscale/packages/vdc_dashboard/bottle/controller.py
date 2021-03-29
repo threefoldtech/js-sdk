@@ -120,6 +120,9 @@ def delete_node():
     vdc.load_info()
     deployer = vdc.get_deployer(password=vdc_password)
 
+    if vdc.kubernetes[0].wid == wid:
+        abort(400, "Error: Can not delete master node")
+
     try:
         deployer.delete_k8s_node(wid)
     except Exception as e:
@@ -171,11 +174,12 @@ def add_zdb():
     vdc = get_vdc()
     vdc.load_info()
 
-    zdb_monitor = vdc.get_zdb_monitor()
     if not farm:
-        zdb_farms = zdb_monitor.get_zdb_farm_names()
+        zdb_config = j.config.get("S3_AUTO_TOP_SOLUTIONS")
+        zdb_farms = zdb_config.get("farm_names")
         farm = random.choice(zdb_farms)
     try:
+        zdb_monitor = vdc.get_zdb_monitor()
         wids = zdb_monitor.extend(required_capacity=capacity, farm_names=[farm], wallet_name="prepaid_wallet")
         return HTTPResponse(
             j.data.serializers.json.dumps(wids), status=201, headers={"Content-Type": "application/json"}

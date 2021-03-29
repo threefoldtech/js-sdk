@@ -1,7 +1,7 @@
 <template>
   <base-dialog title="Download kubeconfig file" v-model="dialog">
     <template #default>
-      WARINING: Please keep the kubeconfig file safe and secure. Anyone who has
+      WARNING: Please keep the kubeconfig file safe and secure. Anyone who has
       this file can access the kubernetes cluster Are you sure to continue
       downloading?
     </template>

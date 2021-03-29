@@ -32,7 +32,8 @@
         text
         @click.stop="enableQuantumStorage"
       >
-        <v-icon left>mdi-folder-key-network</v-icon>Enable Quantum Storage
+        <v-icon left>mdi-folder-key-network</v-icon>Quantum Storage
+        Configurations
       </v-btn>
       <v-btn
         v-if="S3URL"
@@ -91,10 +92,10 @@
     >
       <template #default>
         <p v-if="downloadType === 'zdbs'">
-          WARINING: Please keep the storage nodes Information safe and secure.
+          WARNING: Please keep the storage nodes Information safe and secure.
         </p>
         <p v-else-if="downloadType === 'zstor'">
-          WARINING: You should update the TOML file with your custom
+          WARNING: You should update the TOML file with your custom
           configurations as documented
           <a
             href="https://github.com/threefoldtech/0-stor_v2#config-file"
@@ -124,13 +125,11 @@
 
 <script>
 module.exports = {
-  components: {
-    "enable-quantumstorage": httpVueLoader("./QuantumStorage.vue"),
-  },
   props: ["vdc"],
   mixins: [dialog],
   components: {
     "cancel-zdb": httpVueLoader("./DeleteConfirmation.vue"),
+    "enable-quantumstorage": httpVueLoader("./QuantumStorage.vue"),
   },
   data() {
     return {
@@ -147,9 +146,12 @@ module.exports = {
       dialogs: {
         downloadInfo: false,
         enableQuantum: false,
-        cancelZdb : false
+        cancelZdb: false,
       },
-      deletionMessages:{confirmationMsg:"Are you sure you want to delete the zdb?",successMsg:"ZDB deleted successfully"}
+      deletionMessages: {
+        confirmationMsg: "Are you sure you want to delete the zdb?",
+        successMsg: "ZDB deleted successfully",
+      },
     };
   },
   methods: {
@@ -237,7 +239,7 @@ module.exports = {
       this.dialogs.enableQuantum = true;
     },
     deleteZdb(wid) {
-      this.selectedZdb = wid
+      this.selectedZdb = wid;
       this.dialogs.cancelZdb = true;
     },
     openChatflow(topic) {

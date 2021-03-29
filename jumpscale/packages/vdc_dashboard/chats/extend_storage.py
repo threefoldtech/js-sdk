@@ -2,6 +2,7 @@ from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.vdc.scheduler import CapacityChecker, GlobalCapacityChecker
 from jumpscale.sals.vdc.size import VDC_SIZE, ZDB_STARTING_SIZE
+import random
 
 
 class ExtendKubernetesCluster(GedisChatBot):
@@ -34,17 +35,19 @@ class ExtendKubernetesCluster(GedisChatBot):
 
     @chatflow_step(title="Adding node")
     def add_node(self):
+        if not j.sals.vdc.list_all():
+            self.stop("Couldn't find any vdcs on this machine, Please make sure to have it configured properly")
         self.vdc_name = list(j.sals.vdc.list_all())[0]
         self.vdc = j.sals.vdc.get(name=self.vdc_name)
         if not self.vdc:
             self.stop(f"VDC {self.vdc_name} doesn't exist")
         self.vdc.load_info()
-        zdb_monitor = self.vdc.get_zdb_monitor()
 
         # check for capacity before deploying
         if not self.farm_name:
-            farm_names = zdb_monitor.get_zdb_farm_names()
-            self.farm_name = farm_names[0]
+            zdb_config = j.config.get("S3_AUTO_TOP_SOLUTIONS")
+            farm_names = zdb_config.get("farm_names")
+            self.farm_name = random.choice(farm_names)
         cc = CapacityChecker(self.farm_name)
         if not cc.add_query(hru=ZDB_STARTING_SIZE, ip_version="IPv6"):
             self.stop(f"There's no enough capacity in farm {self.farm_name} for adding storage node")
@@ -56,6 +59,7 @@ class ExtendKubernetesCluster(GedisChatBot):
 
         self.md_show_update("Payment successful")
         try:
+            zdb_monitor = self.vdc.get_zdb_monitor()
             self.md_show_update("Deploying 1 Storage Node")
             zdb_monitor.extend(
                 required_capacity=ZDB_STARTING_SIZE, farm_names=[self.farm_name], wallet_name="prepaid_wallet"

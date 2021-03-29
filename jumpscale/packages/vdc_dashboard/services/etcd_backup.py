@@ -18,6 +18,10 @@ class ETCDBackupService(BackgroundService):
         if not all([url, bucket]):
             j.logger.warning(f"etcd backup is not configured. url: {url}, bucket: {bucket}")
             return
+        if not j.sals.vdc.list_all():
+            raise j.exceptions.Value(
+                "Couldn't find any vdcs on this machine, Please make sure to have it configured properly"
+            )
         vdc = j.sals.vdc.get(list(j.sals.vdc.list_all())[0])
         vdc.load_info()
         snapshot_path = "/tmp/vdc_etcd.db"
