@@ -493,7 +493,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self, extra_info=""):
         domain_message = ""
-        if self.config.chart_config.domain():
+        if self.config.chart_config.domain:
             domain_message = f'- You can access it via the browser using: <a href="https://{self.config.chart_config.domain}" target="_blank">https://{self.config.chart_config.domain}</a><br />\n'
         message = f"""\
         # You deployed a new instance {self.config.release_name} of {self.SOLUTION_TYPE}

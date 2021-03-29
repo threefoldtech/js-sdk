@@ -61,7 +61,7 @@ class MinioDeploy(SolutionsChatflowDeploy):
     def initializing(self, timeout=300):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
         domain_message = ""
-        if self.config.chart_config.domain():
+        if self.config.chart_config.domain:
             domain_message = f"Domain: {self.config.chart_config.domain}"
         error_message_template = f"""\
                 Failed to initialize {self.SOLUTION_TYPE}, please contact support with this information:
@@ -84,7 +84,7 @@ class MinioDeploy(SolutionsChatflowDeploy):
             self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.config.release_name}")
             self.stop(dedent(stop_message))
 
-        if self.config.chart_config.domain() and not j.sals.reservation_chatflow.wait_http_test(
+        if self.config.chart_config.domain and not j.sals.reservation_chatflow.wait_http_test(
             f"https://{self.config.chart_config.domain}",
             timeout=timeout - POD_INITIALIZING_TIMEOUT,
             verify=False,
