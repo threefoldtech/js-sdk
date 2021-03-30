@@ -134,7 +134,7 @@ class VDCS3Deployer(VDCBaseComponent):
             deployment_nodes = []
         self.vdc_deployer.error("no nodes available to deploy zdb")
 
-    def expose_zdbs(self, starting_port=9900):
+    def expose_zdbs(self, starting_port=9910):
         if not self.vdc_instance.s3.zdbs:
             self.vdc_instance.load_info(load_proxy=True)
         for zdb in self.vdc_instance.s3.zdbs:

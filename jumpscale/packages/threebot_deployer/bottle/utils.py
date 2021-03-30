@@ -124,19 +124,26 @@ def list_threebot_solutions(owner):
         solution_info["expiration"] = compute_pool.empty_at
         if not compute_pool:
             return
-        if threebot.state == ThreebotState.RUNNING and compute_pool.empty_at == 9223372036854775807:
+
+        domain = f"https://{zos.workloads.get(threebot.subdomain_wid).domain}/admin"
+        reachable = j.sals.reservation_chatflow.wait_http_test(domain, timeout=10, verify=not j.config.get("TEST_CERT"))
+        if (
+            threebot.state in [ThreebotState.RUNNING, ThreebotState.ERROR, ThreebotState.STOPPED]
+            and compute_pool.empty_at == 9223372036854775807
+        ):
             solution_info["state"] = ThreebotState.STOPPED.value
             threebot.state = ThreebotState.STOPPED
             threebot.save()
         # check it the 3bot is reachable
-        domain = f"https://{zos.workloads.get(threebot.subdomain_wid).domain}/admin"
-        if threebot.state == ThreebotState.RUNNING and not j.sals.reservation_chatflow.wait_http_test(
-            domain, timeout=10, verify=not j.config.get("TEST_CERT")
-        ):
+        elif threebot.state == ThreebotState.RUNNING and not reachable:
             solution_info["state"] = ThreebotState.ERROR.value
             threebot.state = ThreebotState.ERROR
             threebot.save()
-        elif j.sals.reservation_chatflow.wait_http_test(domain, timeout=10, verify=not j.config.get("TEST_CERT")):
+        elif threebot.state == ThreebotState.ERROR and reachable:
+            solution_info["state"] = ThreebotState.RUNNING.value
+            threebot.state = ThreebotState.RUNNING
+            threebot.save()
+        elif reachable:
             solution_info["state"] = ThreebotState.RUNNING.value
             threebot.state = ThreebotState.RUNNING
             threebot.save()
@@ -193,7 +200,7 @@ def generate_user_identity(threebot, password, zos):
     return identity
 
 
-def stop_threebot_solution(owner, solution_uuid, password):
+def stop_threebot_solution(owner, solution_uuid, password, timeout=20):
     owner = text.removesuffix(owner, ".3bot")
     threebot = get_threebot_config_instance(owner, solution_uuid)
     if not threebot.verify_secret(password):
@@ -206,6 +213,17 @@ def stop_threebot_solution(owner, solution_uuid, password):
         for workload in solution_workloads:
             if workload.info.next_action == NextAction.DEPLOY:
                 zos.workloads.decomission(workload.id)
+                # wait for workload to decommision
+                expiration = j.data.time.get().timestamp + timeout
+                while j.data.time.get().timestamp < expiration:
+                    if workload.info.next_action != NextAction.DELETED:
+                        break
+                    gevent.sleep(1)
+                else:
+                    raise j.exceptions.Runtime(
+                        f"Couldn't stop the workload: {workload.id}, Please try again later or contact support."
+                    )
+
         threebot.state = ThreebotState.STOPPED
         threebot.save()
     return threebot

@@ -129,7 +129,10 @@ class TestVDC(VDCBase):
         kubernetes = K8s()
         kubernetes.size = VDC_SIZE.K8SNodeFlavor.MEDIUM.value
         # It will be deployed for an hour.
-        price = j.tools.zos.consumption.cost(kubernetes, 60 * 60) + TRANSACTION_FEES  # transactions fees.
+        zos = j.sals.zos.get()
+        farm_name = self.get_farm_name()
+        farm_id = zos._explorer.farms.get(farm_name=farm_name).id
+        price = j.tools.zos.consumption.cost(kubernetes, 60 * 60, farm_id) + TRANSACTION_FEES  # transactions fees.
         self.vdc.transfer_to_provisioning_wallet(round(price, 6), "test_wallet")
 
         self.info("Add kubernetes node")
@@ -236,7 +239,10 @@ class TestVDC(VDCBase):
         zdb = ZdbNamespace()
         zdb.size = 10
         # In case of all tests runs, it will be deployed for an hour and renewed by a day.
-        price = j.tools.zos.consumption.cost(zdb, 25 * 60 * 60) + TRANSACTION_FEES  # transactions fees.
+        zos = j.sals.zos.get()
+        farm_name = self.get_farm_name()
+        farm_id = zos._explorer.farms.get(farm_name=farm_name).id
+        price = j.tools.zos.consumption.cost(zdb, 25 * 60 * 60, farm_id) + TRANSACTION_FEES  # transactions fees.
         self.vdc.transfer_to_provisioning_wallet(round(price, 6), "test_wallet")
 
         self.info("Extend zdbs")

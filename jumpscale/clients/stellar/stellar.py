@@ -120,6 +120,8 @@ class Stellar(Client):
     def _get_unlockhash_transaction(self, unlockhash):
         data = {"unlockhash": unlockhash}
         resp = j.tools.http.post(self._get_url("GET_UNLOCK"), json={"args": data})
+        if resp.status_code == j.tools.http.status_codes.codes.NOT_FOUND:
+            return None
         resp.raise_for_status()
         return resp.json()
 
@@ -147,8 +149,7 @@ class Stellar(Client):
         self._create_unlockhash_transaction(unlock_hash=unlock_hash, transaction_xdr=txe.to_xdr())
 
     def get_balance(self, address=None):
-        """Gets the balances for a stellar address
-        """
+        """Gets the balances for a stellar address"""
         if address is None:
             address = self.address
         all_balances = self._get_free_balances(address)
@@ -252,8 +253,7 @@ class Stellar(Client):
         server.submit_transaction(transaction)
 
     def activate_through_friendbot(self):
-        """Activates and funds a testnet account using friendbot
-        """
+        """Activates and funds a testnet account using friendbot"""
         if self.network.value != "TEST":
             raise Exception("Account activation through friendbot is only available on testnet")
 
@@ -284,8 +284,7 @@ class Stellar(Client):
             )
 
     def activate_through_activation_wallet(self, wallet_name="activation_wallet"):
-        """Activate your wallet through activation wallet.
-        """
+        """Activate your wallet through activation wallet."""
         if wallet_name in j.clients.stellar.list_all() and self.instance_name != wallet_name:
             j.logger.info(f"trying to fund the wallet ourselves with the activation wallet")
             j.logger.info(f"activation wallet {self.instance_name}")
@@ -823,7 +822,7 @@ class Stellar(Client):
             return tx.to_xdr()
 
     def sign(self, tx_xdr: str, submit: bool = True):
-        """ sign signs a transaction xdr and optionally submits it to the network
+        """sign signs a transaction xdr and optionally submits it to the network
 
         Args:
             tx_xdr (str): transaction to sign in xdr format

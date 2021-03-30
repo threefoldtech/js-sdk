@@ -27,15 +27,17 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         "choose_name",
         "enter_password",
         "choose_flavor",
-        "new_expiration",
-        "solution_extension",
         "deploy",
         "initializing",
+        "new_expiration",
+        "solution_extension",
         "success",
     ]
 
     @chatflow_step(title="Initializing chatflow")
     def choose_name(self):
+        self.expiration = 10 * 60  # 10 minutes for 3bot
+        self.retry = True
         self._init_solution()
         all_3bot_solutions = list_threebot_solutions(self.threebot_name)
         self.stoped_3bots = [

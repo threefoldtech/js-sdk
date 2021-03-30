@@ -32,7 +32,8 @@
         text
         @click.stop="enableQuantumStorage"
       >
-        <v-icon left>mdi-folder-key-network</v-icon>Enable Quantum Storage
+        <v-icon left>mdi-folder-key-network</v-icon>Quantum Storage
+        Configurations
       </v-btn>
       <v-btn
         v-if="S3URL"
@@ -91,10 +92,10 @@
     >
       <template #default>
         <p v-if="downloadType === 'zdbs'">
-          WARINING: Please keep the storage nodes Information safe and secure.
+          WARNING: Please keep the storage nodes Information safe and secure.
         </p>
         <p v-else-if="downloadType === 'zstor'">
-          WARINING: You should update the TOML file with your custom
+          WARNING: You should update the TOML file with your custom
           configurations as documented
           <a
             href="https://github.com/threefoldtech/0-stor_v2#config-file"

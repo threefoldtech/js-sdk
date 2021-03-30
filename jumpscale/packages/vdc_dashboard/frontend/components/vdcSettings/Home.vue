@@ -39,6 +39,7 @@
         </v-card>
       </v-tab-item>
     </v-tabs>
+    <div class="version">JS-NG v{{ NGVersion }}, JS-SDK v{{ SDKVersion }}</div>
 
     <v-dialog v-if="dialog.expiration" v-model="dialog.expiration" width="400">
       <v-card
@@ -122,6 +123,8 @@ module.exports = {
         { icon: "mdi-backup-restore", title: "Backup & Restore" },
       ],
       activeTab: null,
+      NGVersion: null,
+      SDKVersion: null,
     };
   },
   methods: {
@@ -156,8 +159,16 @@ module.exports = {
         }
       });
     },
+    getSDKVersion() {
+      this.$api.version.getSDKVersion().then((response) => {
+        const versions = response.data.data;
+        this.NGVersion = versions["js-ng"];
+        this.SDKVersion = versions["js-sdk"];
+      });
+    },
   },
   mounted() {
+    this.getSDKVersion();
     this.vdcInfo();
     this.checkDashboardUpdates();
   },

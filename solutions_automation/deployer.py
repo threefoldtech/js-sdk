@@ -8,6 +8,7 @@ from solutions_automation.dashboard_solutions.network import NetworkDeployAutoma
 from solutions_automation.dashboard_solutions.pools import PoolAutomated
 from solutions_automation.dashboard_solutions.extend_pools import PoolExtendAutomated
 from solutions_automation.dashboard_solutions.four_to6gw import FourToSixGatewayAutomated
+from solutions_automation.dashboard_solutions.etcd import EtcdAutomated
 from solutions_automation.dashboard_solutions.ubuntu import UbuntuAutomated
 from solutions_automation.marketplace.blog import BlogAutomated
 from solutions_automation.marketplace.cryptpad import CryptpadAutomated
@@ -195,6 +196,32 @@ def deploy_minio(
 
 def deploy_4to6gw(public_key="", gateway="choose_random", debug=True):
     return FourToSixGatewayAutomated(public_key=public_key, gateway=gateway, debug=debug)
+
+
+def deploy_etcd(
+    solution_name,
+    network="choose_random",
+    etcd_nodes=1,
+    cpu=1,
+    memory=1024,
+    disk_size=1024,
+    pool="choose_random",
+    ipv6="NO",
+    node_automatic="YES",
+    address_etcd_node="choose_random",
+):
+    return EtcdAutomated(
+        solution_name=solution_name,
+        network=network,
+        etcd_nodes=etcd_nodes,
+        cpu=cpu,
+        memory=memory,
+        disk_size=disk_size,
+        pool=pool,
+        ipv6=ipv6,
+        node_automatic=node_automatic,
+        address_etcd_node=address_etcd_node,
+    )
 
 
 def delegated_domain(domain, gateway="choose_random", debug=True):

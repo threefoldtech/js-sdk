@@ -18,13 +18,13 @@ class Pools(Base):
         table_box = self.driver.find_element_by_class_name("v-data-table")
         table = table_box.find_element_by_tag_name("table")
         rows = table.find_elements_by_tag_name("tr")
-        # the row header: ID Name Farm Expiration Compute-Units Storage-Unit ....
-        # and we need to return Name(index of 1), CU(index of 4) and SU(index of 5)
+        # the row header: ID Name Farm Expiration Active CUs/Total CUs Active SUs/Total SUs ....
+        # and we need to return Name(index of 1), CU(index of 6) and SU(index of 9)
         # and ignore the the header row
         return [
-            (row.text.split()[1], float(row.text.split()[4]), float(row.text.split()[5]))
+            (row.text.split()[1], float(row.text.split()[6]), float(row.text.split()[9]))
             for row in rows
-            if row.text.split()[4] != "Compute"
+            if row.text.split()[4] != "Active"
         ]
 
     def hide_pool(self, name):

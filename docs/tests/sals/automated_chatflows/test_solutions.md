@@ -66,4 +66,14 @@ Test case for deploying a 4to6 GW.
 - Deploy a 4to6 GW.
 - Get and up wireguard.
 - Check that the 4to6 GW is reachable.
-- Check that the ip6 GW is reachable.
+- Check that the ipv6 GW is reachable.
+
+### test08_etcd
+
+Test case for deploying etcd.
+
+**Test Scenario**
+
+- Deploy etcd.
+- Check that etcd is reachable.
+- Check put a Hello by etcdctl.

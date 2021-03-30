@@ -20,6 +20,8 @@ app = Bottle()
 
 
 def _get_zstor_config(ip_version=6):
+    if not j.sals.vdc.list_all():
+        abort(500, "Couldn't find any vdcs on this machine, Please make sure to have it configured properly")
     vdc_full_name = list(j.sals.vdc.list_all())[0]
     vdc = j.sals.vdc.find(vdc_full_name, load_info=True)
     vdc_zdb_monitor = vdc.get_zdb_monitor()
@@ -394,6 +396,20 @@ def enable_quantumstorage():
         return HTTPResponse(
             "Failed to enable quantum storage on your vdc", status=500, headers={"Content-Type": "application/json"}
         )
+
+
+@app.route("/api/get_sdk_version", method="GET")
+@login_required
+def get_sdk_version():
+    import importlib_metadata as metadata
+
+    packages = ["js-ng", "js-sdk"]
+    data = {}
+    for package in packages:
+        data[package] = metadata.version(package)
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"data": data}), status=200, headers={"Content-Type": "application/json"},
+    )
 
 
 app = SessionMiddleware(app, SESSION_OPTS)
