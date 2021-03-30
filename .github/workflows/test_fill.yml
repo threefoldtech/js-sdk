@@ -1,3 +1,8 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: js-sdk_test
+
 
 on:
   push:
@@ -7,15 +12,18 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@master
-      - name: Gathering deps
+      - uses: actions/checkout@v2
+        with:
+          ref: development_vdc_test_backup
+      - uses: nanasess/setup-chromedriver@master
+      - name: Gathering dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git python3-pip python3-venv python3-setuptools tmux redis restic nginx cron
+          sudo apt-get install -y python3-pip python3-venv python3-setuptools git tmux redis restic nginx cron wireguard unzip
           sudo service redis stop
           sudo service nginx stop
           sudo pip3 install poetry
-          sudo poetry run pip3 install pytest selenium
+          sudo poetry run pip3 install pytest parameterized selenium pytest-cov
       - name: Install
         run: |
           sudo poetry install
@@ -34,5 +42,11 @@ jobs:
           FAKE_EMAIL: ${{ secrets.FAKE_EMAIL }}
           FAKE_GITHUB_TOKEN: ${{ secrets.FAKE_GITHUB_TOKEN }}
         run: |
-          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN --preserve-env=S3_URL --preserve-env=S3_BUCKET --preserve-env=S3_AK --preserve-env=S3_SK \
-          poetry run pytest tests -sv tests/sals/vdc/test_vdc_backup.py
+          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=S3_URL --preserve-env=S3_BUCKET --preserve-env=S3_AK --preserve-env=S3_SK --preserve-env=WALLET_SECRET --preserve-env=SOURCE_WALLET_SECRET \
+          --preserve-env=DESTINATION_WALLET_SECRET --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN \
+          poetry run pytest -sv tests/sals/vdc/test_vdc_backup.py
+      - name: Upload coverage to Codecov
+        if: success()
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
