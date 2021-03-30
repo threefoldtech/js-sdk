@@ -22,6 +22,7 @@ from contextlib import ContextDecorator
 from jumpscale.sals.zos.billing import InsufficientFunds
 import os
 
+SSH_KEY_PREFIX = "ssh_"
 VDC_IDENTITY_FORMAT = "vdc_{}_{}_{}"  # tname, vdc_name, vdc_uuid
 IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
@@ -185,7 +186,7 @@ class VDCDeployer:
     @property
     def ssh_key(self):
         if not self._ssh_key:
-            self._ssh_key = j.clients.sshkey.get(self.vdc_name)
+            self._ssh_key = j.clients.sshkey.get(SSH_KEY_PREFIX + self.vdc_name)
             KEYS_DIR_PATH = self.ssh_key_path or f"{j.core.dirs.CFGDIR}/vdc/keys/{self.tname}/{self.vdc_name}"
             self._ssh_key.private_key_path = f"{KEYS_DIR_PATH}/id_rsa"
             if not j.sals.fs.exists(f"{KEYS_DIR_PATH}/id_rsa"):

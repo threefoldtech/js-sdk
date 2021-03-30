@@ -28,6 +28,8 @@ VDC_WORKLOAD_TYPES = [
     WorkloadType.Reverse_proxy,
 ]
 
+SSH_KEY_PREFIX = "ssh_"
+
 
 class UserVDC(Base):
     vdc_name = fields.String()
@@ -386,7 +388,7 @@ class UserVDC(Base):
             ip_address = k8s.public_ip
             if ip_address == "::/128":
                 continue
-            ssh_key = j.clients.sshkey.get(self.vdc_name)
+            ssh_key = j.clients.sshkey.get(SSH_KEY_PREFIX + self.vdc_name)
             PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
             if not j.sals.fs.exists(PRIV_KEY_PATH):
                 raise j.exceptions.NotFound(f"Can not find ssh key for vdc {self.vdc_name} in {PRIV_KEY_PATH}")
@@ -428,7 +430,7 @@ class UserVDC(Base):
             ip_address = k8s.public_ip
             if ip_address == "::/128":
                 continue
-            ssh_key = j.clients.sshkey.get(self.vdc_name)
+            ssh_key = j.clients.sshkey.get(SSH_KEY_PREFIX + self.vdc_name)
             PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
             if not j.sals.fs.exists(PRIV_KEY_PATH):
                 raise j.exceptions.NotFound(f"Can not find ssh key for vdc {self.vdc_name} in {PRIV_KEY_PATH}")
@@ -754,7 +756,7 @@ class UserVDC(Base):
             raise j.exceptions.Input(f"couldn't find key at default locations")
         j.logger.info(f"getting ssh_client to: {user}@{ip_address} using key: {private_key_path}")
         j.clients.sshkey.delete(name)
-        ssh_key = j.clients.sshkey.get(name)
+        ssh_key = j.clients.sshkey.get(SSH_KEY_PREFIX + name)
         ssh_key.private_key_path = private_key_path
         ssh_key.load_from_file_system()
         j.clients.sshclient.delete(name)
