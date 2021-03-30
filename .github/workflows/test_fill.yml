@@ -48,7 +48,7 @@ jobs:
         run: |
           sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=S3_URL --preserve-env=S3_BUCKET --preserve-env=S3_AK --preserve-env=S3_SK --preserve-env=WALLET_SECRET --preserve-env=SOURCE_WALLET_SECRET \
           --preserve-env=DESTINATION_WALLET_SECRET --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN \
-          poetry run pytest tests/frontend/tests/ -sv --cov=jumpscale --cov-report=xml --ignore=tests/clients/digitalocean --ignore=tests/clients/sendgrid
+          poetry run pytest tests/sals/vdc/test_vdc_backup.py -sv --cov=jumpscale --cov-report=xml --ignore=tests/clients/digitalocean --ignore=tests/clients/sendgrid
       - name: Upload coverage to Codecov
         if: success()
         uses: codecov/codecov-action@v1
