@@ -2,7 +2,7 @@
 
 This manual will go through setting up an environment for vdc deployments and a quick walk through the sals.
 
-## Requirments
+## Requirements
 
 - JS-SDK
 - Machine with a domain
@@ -23,7 +23,7 @@ This manual will go through setting up an environment for vdc deployments and a 
   activation_wallet.activate_through_threefold_service()
   activation.save()
 
-  # initalization wallet
+  # initialization wallet
   vdc_init = j.clients.stellar.new("vdc_init") # you can pass the secret if you have a wallet already, and skip the activation step
   vdc_init.activate_through_activation_wallet() # we can use `activate_through_threefold_service() too but not available all the time
   vdc_init.save()
