@@ -31,6 +31,7 @@ class VDCDashboard(VDCBase):
             setattr(cls, var, value)
         s3_local_config = {"S3_URL": cls.S3_URL, "S3_BUCKET": cls.S3_BUCKET, "S3_AK": cls.S3_AK, "S3_SK": cls.S3_SK}
         j.config.set("VDC_S3_CONFIG", s3_local_config)
+        cls.vdc = ""
 
     @classmethod
     def tearDownClass(cls):
@@ -53,28 +54,16 @@ class VDCDashboard(VDCBase):
 
         super().tearDown()
 
-    def create_backup(self, backup_name):
-        config_path = j.sals.fs.expanduser("~/.kube/config")
-        client = j.sals.kubernetes.Manager(config_path=config_path)
+    def create_backup(self, backup_name, localclient):
+        _, res, _ = localclient.sshclient.run(
+            f"velero create backup config-{backup_name} --include-resources secrets,configmaps"
+        )
+        _, res, _ = localclient.sshclient.run(f'velero create backup vdc-{backup_name} -l "backupType=vdc"')
 
-        try:
-            client.execute_native_cmd(
-                f"velero create backup config-{backup_name} --include-resources secrets,configmaps"
-            )
-            client.execute_native_cmd(f'velero create backup vdc-{backup_name} -l "backupType=vdc"')
-        except Exception as e:
-            raise RuntimeError(f"Failed to create backup due to {str(e)}")
-
-    def restore_backup(self, backup_name):
-        config_path = j.sals.fs.expanduser("~/.kube/config")
-        client = j.sals.kubernetes.Manager(config_path=config_path)
-
-        try:
-            client.execute_native_cmd(
-                f"velero create restore restore-vdc-{backup_name} --from-backup vdc-{backup_name}"
-            )
-        except Exception as e:
-            raise RuntimeError(f"Failed to restore backup due to {str(e)}")
+    def restore_backup(self, backup_name, localclient):
+        _, res, _ = localclient.sshclient.run(
+            f"velero create restore restore-vdc-{backup_name} --from-backup vdc-{backup_name}"
+        )
 
     def test01_vdc_backup(self):
         """Test case for backup and restore a VDC.
@@ -121,25 +110,20 @@ class VDCDashboard(VDCBase):
         )
         sleep(5)
 
-        self.info("Backup a VDC")
         localclient = j.clients.sshclient.get(self.ssh_client_name)
         localclient.sshkey = self.ssh_client_name
         localclient.host = threebot.ip_address
         localclient.save()
 
+        self.info("Backup a VDC")
         backup_name = self.random_name().lower()
-        _, res, _ = localclient.sshclient.run(
-            f"velero create backup config-{backup_name} --include-resources secrets,configmaps"
-        )
-        _, res, _ = localclient.sshclient.run(f'velero create backup vdc-{backup_name} -l "backupType=vdc"')
+        self.create_backup(backup_name, localclient)
 
         self.info("Delete this cryptpad")
         _, res, _ = localclient.sshclient.run(f"kubectl delete ns cryptpad-{cryptpad.release_name}")
 
         self.info("Restore backup")
-        _, res, _ = localclient.sshclient.run(
-            f"velero create restore restore-vdc-{backup_name} --from-backup vdc-{backup_name}"
-        )
+        self.restore_backup(backup_name, localclient)
 
         self.info("Check that cryptpad has been reachable")
         request = j.tools.http.get(url=f"https://{cryptpad_domain}", timeout=600, verify=False)
