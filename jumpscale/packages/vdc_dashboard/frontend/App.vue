@@ -156,8 +156,7 @@ module.exports = {
           .then(() => {
             console.log("server started");
             // refresh the page
-            this.$router.go(0);
-            return;
+            location.reload(true);
           })
           .catch(() => {
             console.log("server is restarting...");
