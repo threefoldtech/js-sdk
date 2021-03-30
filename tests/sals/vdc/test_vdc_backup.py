@@ -81,8 +81,8 @@ class VDCDashboard(VDCBase):
 
         **Test Scenario**
 
-        - Prepare ssh key
         - Deploy VDC.
+        - Prepare ssh key
         - Deploy a cryptpad.
         - Check that cryptpad has been reachable.
         - Up wireguard
@@ -92,20 +92,18 @@ class VDCDashboard(VDCBase):
         - Check that cryptpad reachable.
         """
 
-        self.info("Prepare ssh key")
-        self.ssh_client_name = self.random_name()
-        if not j.sals.fs.exists("/tmp/.ssh"):
-            j.core.executors.run_local('mkdir /tmp/.ssh && ssh-keygen -t rsa -f /tmp/.ssh/id_rsa -q -N "" ')
-        self.ssh_cl = j.clients.sshkey.get(self.ssh_client_name)
-        self.ssh_cl.private_key_path = "/tmp/.ssh/id_rsa"
-        self.ssh_cl.load_from_file_system()
-        self.ssh_cl.save()
-
         self.info("Deploy a VDC")
         self.vdc_name = self.random_name().lower()
         password = self.random_string()
         flavor = "silver"
         self.vdc = deployer.deploy_vdc(self.vdc_name, password, flavor.upper())
+
+        self.info("Prepare ssh key")
+        self.ssh_client_name = self.random_name()
+        self.ssh_cl = j.clients.sshkey.get(self.ssh_client_name)
+        self.ssh_cl.private_key_path = f"~/sandbox/cfg/vdc/keys/{self.tname}/{self.vdc_name}/id_rsa"
+        self.ssh_cl.load_from_file_system()
+        self.ssh_cl.save()
 
         self.info("Deploy a Cryptpad.")
         name = self.random_name().lower()
@@ -118,9 +116,9 @@ class VDCDashboard(VDCBase):
 
         self.info("Up wireguard")
         threebot = self.vdc.vdc.threebot
-        self.wg_conf_paths.append(f"/tmp/{self.random_name()}.conf")
-        j.sals.fs.write_file(self.wg_conf_paths[-1], threebot.wgcfg)
-        rc, out, err = j.sals.process.execute(f"sudo wg-quick up {self.wg_conf_paths[-1]}")
+        rc, out, err = j.sals.process.execute(
+            f"sudo wg-quick up ~/sandbox/cfg/vdc/wireguard/{self.tname}/{self.vdc_name}.conf"
+        )
         sleep(5)
 
         self.info("Backup a VDC")
@@ -136,7 +134,7 @@ class VDCDashboard(VDCBase):
         _, res, _ = localclient.sshclient.run(f'velero create backup vdc-{backup_name} -l "backupType=vdc"')
 
         self.info("Delete this cryptpad")
-        # how delete cryptpad
+        _, res, _ = localclient.sshclient.run(f"kubectl delete ns cryptpad-{cryptpad.release_name}")
 
         self.info("Restore backup")
         _, res, _ = localclient.sshclient.run(
