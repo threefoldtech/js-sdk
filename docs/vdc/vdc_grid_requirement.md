@@ -44,7 +44,7 @@ Changes needed to be done in the code to use this farm in [size.py](https://gith
 - PROXY_FARM
 
 **Example**
-Change network farm to `myfarm` on all explorer.
+Change network farm to `myfarm` on all explorers.
 
 ```python
 class NETWORK_FARM(FarmConfigBase):
