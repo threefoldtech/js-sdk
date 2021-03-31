@@ -37,6 +37,7 @@ jobs:
           sudo pip3 install poetry
           sudo poetry run pip3 install pytest selenium
           wget https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
       - name: Install
         run: |
           sudo poetry install
