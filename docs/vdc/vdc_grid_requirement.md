@@ -1,6 +1,6 @@
 # Grid Requirement
 
-## VDC Deployer
+## VDC Capacity Provider
 
 ### Farm Resources
 
@@ -25,9 +25,6 @@ To have a VDC deployer, it needs a farm with the following resources:
 - Nodes with IPv6 interface and HDD disks
 
     These nodes will be used to deploy ZDBs that used as storage nodes.
-
-- Gateway
-    This gateway will be used for create subdomains for VDC Dashboards. [create a gateway?](https://github.com/threefoldtech/tfgateway/blob/master/README.md)
 
 **Important Notes:**
 
