@@ -39,8 +39,9 @@ jobs:
       - name: Install
         run: |
           sudo poetry install
-          wget https://dl.min.io/client/mc/release/linux-amd64/mc
-          chmod +x mc
+          sudo wget https://dl.min.io/client/mc/release/linux-amd64/mc
+          sudo chmod +x mc
+          sudo cp mc /bin
       - name: Run tests
         env:
           TNAME: ${{ secrets.TNAME }}
