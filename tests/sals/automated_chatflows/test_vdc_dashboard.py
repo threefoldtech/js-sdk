@@ -28,9 +28,6 @@ class VDCDashboard(VDCBase):
         if not cls.kube_config:
             raise RuntimeError("VDC is not deployed")
 
-        if not cls.kube_config:
-            raise RuntimeError("VDC is not deployed")
-
         j.sals.fs.copy_file(
             f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml",
             j.sals.fs.expanduser("~/.kube/config"),
