@@ -57,6 +57,7 @@ This manual will go through setting up an environment for vdc deployments and a 
   ```python
   log_config = {"channel_type": "redis", "channel_host": <redis host>, "channel_port": <redis port>}
   j.core.config.set("VDC_LOG_CONFIG", log_config)
+  ```
 
 - Install `vdc` and `billing` packages through admin dashboard or server shell
 - Now visit the domain and you are ready to deploy your first VDC
