@@ -47,7 +47,7 @@ class StellarFactory(StoredFactory):
 
         # check token services
         try:
-            j.tools.http.get(tokenservices_url)
+            j.tools.http.options(tokenservices_url)
         except:
             services_status = False
 
