@@ -43,13 +43,20 @@ This manual will go through setting up an environment for vdc deployments and a 
   ```
 
 - Configure S3 backup server
+  Install [mc](https://docs.min.io/docs/minio-client-quickstart-guide.html) (minio client).
 
-  ```bash
+  ```python
   # bucket in [vdc-devnet, vdc-testnet, vdc-mainnet] according to setup
   s3_config = {"S3_URL": "<your-s3-url>", "S3_BUCKET": "<your-bucketname>", "S3_AK": "<your-access-key>", "S3_SK": "<your-secret-key>"}
 
   j.core.config.set("VDC_S3_CONFIG", s3_config)
   ```
+
+- Enable logs for VDC Dashboards to existing Redis server.
+
+  ```python
+  log_config = {"channel_type": "redis", "channel_host": <redis host>, "channel_port": <redis port>}
+  j.core.config.set("VDC_LOG_CONFIG", log_config)
 
 - Install `vdc` and `billing` packages through admin dashboard or server shell
 - Now visit the domain and you are ready to deploy your first VDC
