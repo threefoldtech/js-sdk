@@ -20,12 +20,13 @@ class VDCDashboard(VDCBase):
         no_deployment = "single"
         cls.flavor = "platinum"
 
-        cls.vdc_name = cls.random_name().lower()
-        cls.password = cls.random_string()
         if cls.no_deployment == "single":
-            cls.kube_config = cls.deploy_vdc(cls.vdc_name, cls.password)
+            cls.kube_config = cls.deploy_vdc()
         else:
-            cls.kube_config = cls.deploy_vdc(cls.vdc_name, cls.password, hours=2)
+            cls.kube_config = cls.deploy_vdc(hours=2)
+
+        if not cls.kube_config:
+            raise RuntimeError("VDC is not deployed")
 
         if not cls.kube_config:
             raise RuntimeError("VDC is not deployed")

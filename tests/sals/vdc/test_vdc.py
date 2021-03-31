@@ -15,9 +15,7 @@ class TestVDC(VDCBase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.vdc_name = cls.random_name().lower()
-        cls.password = cls.random_string()
-        cls.kube_config = cls.deploy_vdc(cls.vdc_name, cls.password)
+        cls.kube_config = cls.deploy_vdc()
         if not cls.kube_config:
             raise RuntimeError("VDC is not deployed")
 

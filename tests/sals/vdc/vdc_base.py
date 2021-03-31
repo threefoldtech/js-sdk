@@ -11,14 +11,14 @@ class VDCBase(BaseTests):
     def setUpClass(cls):
         cls._get_env_vars()
         cls._import_wallet("test_wallet")
-        # cls._import_wallet("activation_wallet")
+        cls._import_wallet("activation_wallet")
         cls._prepare_identity()
-        # cls._start_threebot_server()
+        cls._start_threebot_server()
 
     @classmethod
     def tearDownClass(cls):
         # Stop threebot server and the testing identity.
-        # cls.server.stop()
+        cls.server.stop()
         j.core.identity.delete(cls.identity_name)
 
         # Restore the user identity
@@ -50,7 +50,7 @@ class VDCBase(BaseTests):
             cls.me = j.core.identity.me
 
         # Configure test identity and start threebot server.
-        cls.explorer_url = "https://explorer.devnet.grid.tf/api/v1"
+        cls.explorer_url = "https://explorer.testnet.grid.tf/api/v1"
         cls.identity_name = j.data.random_names.random_name()
         identity = j.core.identity.new(
             cls.identity_name, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url
@@ -66,9 +66,11 @@ class VDCBase(BaseTests):
         cls.server.start()
 
     @classmethod
-    def deploy_vdc(cls, vdc_name, password, hours=1):
+    def deploy_vdc(cls, hours=1):
 
-        cls.vdc = j.sals.vdc.new(vdc_name, cls.tname, cls.flavor)
+        cls.vdc_name = cls.random_name().lower()
+        cls.password = cls.random_string()
+        cls.vdc = j.sals.vdc.new(cls.vdc_name, cls.tname, cls.flavor)
         cls.info(f"Transfer needed TFT to deploy vdc for {hours} hour/s to the provisioning wallet.")
         cls.vdc_price = j.tools.zos.consumption.calculate_vdc_price(cls.flavor)
         extension_fees = TRANSACTION_FEES if hours > 1 else 0
@@ -77,7 +79,7 @@ class VDCBase(BaseTests):
         cls.vdc.transfer_to_provisioning_wallet(needed_tft, "test_wallet")
 
         cls.info(f"Deploy VDC for {hours} hours.")
-        cls.deployer = cls.vdc.get_deployer(password=password)
+        cls.deployer = cls.vdc.get_deployer(password=cls.password)
         minio_ak = cls.random_name().lower()
         minio_sk = cls.random_string()
         cls.timestamp_now = j.data.time.get().utcnow().timestamp

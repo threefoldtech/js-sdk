@@ -5,19 +5,23 @@ name: js-sdk
 
 on:
   push:
-    branches: [ development ]
-    paths:
-    - '**.py'
-    - '.github/workflows/**.yml'
-    - 'pyproject.toml'
-    - 'poetry.lock'
-  pull_request:
-    branches: [ development ]
-    paths:
-    - '**.py'
-    - '.github/workflows/**.yml'
-    - 'pyproject.toml'
-    - 'poetry.lock'
+    branches: [ development_vdc_test_backup ]
+
+# on:
+#   push:
+#     branches: [ development ]
+#     paths:
+#     - '**.py'
+#     - '.github/workflows/**.yml'
+#     - 'pyproject.toml'
+#     - 'poetry.lock'
+#   pull_request:
+#     branches: [ development ]
+#     paths:
+#     - '**.py'
+#     - '.github/workflows/**.yml'
+#     - 'pyproject.toml'
+#     - 'poetry.lock'
 
 jobs:
   build:
@@ -42,6 +46,10 @@ jobs:
           WORDS: ${{ secrets.WORDS }}
           FAKE_EMAIL: ${{ secrets.FAKE_EMAIL }}
           FAKE_GITHUB_TOKEN: ${{ secrets.FAKE_GITHUB_TOKEN }}
+          S3_URL: ${{ secrets.S3_URL }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          S3_AK: ${{ secrets.S3_AK }}
+          S3_SK: ${{ secrets.S3_SK }}
         run: |
-          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN \
+          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN --preserve-env=S3_URL --preserve-env=S3_BUCKET --preserve-env=S3_AK --preserve-env=S3_SK \
           poetry run pytest tests -sv -m "unittests"

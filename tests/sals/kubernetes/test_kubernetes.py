@@ -11,9 +11,7 @@ class TestKubernetes(VDCBase):
     def setUpClass(cls):
         super().setUpClass()
         cls.flavor = "silver"
-        cls.vdc_name = cls.random_name().lower()
-        cls.password = cls.random_string()
-        cls.kube_config = cls.deploy_vdc(cls.vdc_name, cls.password)
+        cls.kube_config = cls.deploy_vdc()
         cls.kube_manager = j.sals.kubernetes.Manager(
             f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{cls.vdc.owner_tname}/{cls.vdc.vdc_name}.yaml"
         )
