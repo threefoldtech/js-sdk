@@ -44,6 +44,7 @@ jobs:
           TNAME: ${{ secrets.TNAME }}
           EMAIL: ${{ secrets.EMAIL }}
           WORDS: ${{ secrets.WORDS }}
+          WALLET_SECRET: ${{ secrets.WALLET_SECRET }}
           FAKE_EMAIL: ${{ secrets.FAKE_EMAIL }}
           FAKE_GITHUB_TOKEN: ${{ secrets.FAKE_GITHUB_TOKEN }}
           S3_URL: ${{ secrets.S3_URL }}
@@ -51,5 +52,5 @@ jobs:
           S3_AK: ${{ secrets.S3_AK }}
           S3_SK: ${{ secrets.S3_SK }}
         run: |
-          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN --preserve-env=S3_URL --preserve-env=S3_BUCKET --preserve-env=S3_AK --preserve-env=S3_SK \
+          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=WALLET_SECRET --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN --preserve-env=S3_URL --preserve-env=S3_BUCKET --preserve-env=S3_AK --preserve-env=S3_SK \
           poetry run pytest tests/sals/vdc/test_vdc_backup.py -sv
