@@ -97,6 +97,14 @@ const DECENTRALIZED_WE = {
             helpLink: "https://now.threefold.io/now/docs/video-sharing/",
             description: "Peertube is an open-source video platform that uses peer-to-peer technologies to reduce load on individual servers when viewing videos."
         },
+        owncloud: {
+            name: "Owncloud",
+            type: "owncloud",
+            image: "./assets/owncloud.png",
+            disable: false,
+            helpLink: "https://now.threefold.io/now/docs/owncloud/",
+            description: "ownCloud is a suite of client–server software for creating and using file hosting services. ownCloud functionally has similarities to the widely used Dropbox."
+        },
         meetings: {
             name: "Video Chat",
             type: "meetings",
