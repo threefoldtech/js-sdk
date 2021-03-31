@@ -418,6 +418,7 @@ class VDCDeployer:
         if no_nodes < 1:
             return [master_ip]
         self.bot_show_update("Deploying Kubernetes Workers...")
+        self.vdc_instance.load_info()
         wids = self.kubernetes.extend_cluster(
             farm_name,
             master_ip,
