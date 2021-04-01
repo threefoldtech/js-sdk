@@ -67,7 +67,7 @@ class QuantumStorage:
             j.logger.info(f"Downloading zdbstor config on: {kubernetes_node.wid} in {ZSTORCONF_PATH}")
 
             deployments = get_deployments(solution_type="etcd", username=self.vdc.owner_tname)
-            etcd_secret = os.environ.get("VDC_PASSWORD_HASH", "etcd_secret")
+            etcd_secret = self.vdc.get_password()
             for deployment in deployments:
                 if "etcdqs" in deployment.get("Release"):
                     domain = deployment.get("Domain")

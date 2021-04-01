@@ -67,9 +67,9 @@ module.exports = {
   },
   methods: {
     timeDifference(ts) {
-      var timestamp = moment.unix(ts);
       var now = new Date();
-      return timestamp.to(now);
+      var timestamp = moment.unix(now / 1000);
+      return timestamp.to(ts * 1000);
     },
   },
   updated() {

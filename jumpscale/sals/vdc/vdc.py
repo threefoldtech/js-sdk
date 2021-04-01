@@ -1,5 +1,4 @@
 import datetime
-import hashlib
 import uuid
 from collections import defaultdict
 
@@ -28,6 +27,8 @@ VDC_WORKLOAD_TYPES = [
     WorkloadType.Subdomain,
     WorkloadType.Reverse_proxy,
 ]
+
+SSH_KEY_PREFIX = "ssh_"
 
 
 class UserVDC(Base):
@@ -142,14 +143,22 @@ class UserVDC(Base):
             restore=restore,
         )
 
-    def validate_password(self, password):
-        password_hash = hashlib.md5(password.encode()).hexdigest()
+    def get_password(self):
         identity = self._get_identity(default=False)
         if not identity:
+            j.logger.error("Couldn't find identity")
+            return
+        password_hash = j.data.encryption.mnemonic_to_key(identity.words)
+        return password_hash.decode()
+
+    def validate_password(self, password):
+        password = j.data.hash.md5(password)
+        vdc_password = self.get_password()
+        if not vdc_password:
             # identity was not generated for this vdc instance
             return True
-        words = j.data.encryption.key_to_mnemonic(password_hash.encode())
-        if identity.words == words:
+
+        if password == vdc_password:
             return True
         return False
 
@@ -379,7 +388,7 @@ class UserVDC(Base):
             ip_address = k8s.public_ip
             if ip_address == "::/128":
                 continue
-            ssh_key = j.clients.sshkey.get(self.vdc_name)
+            ssh_key = j.clients.sshkey.get(SSH_KEY_PREFIX + self.vdc_name)
             PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
             if not j.sals.fs.exists(PRIV_KEY_PATH):
                 raise j.exceptions.NotFound(f"Can not find ssh key for vdc {self.vdc_name} in {PRIV_KEY_PATH}")
@@ -421,7 +430,7 @@ class UserVDC(Base):
             ip_address = k8s.public_ip
             if ip_address == "::/128":
                 continue
-            ssh_key = j.clients.sshkey.get(self.vdc_name)
+            ssh_key = j.clients.sshkey.get(SSH_KEY_PREFIX + self.vdc_name)
             PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
             if not j.sals.fs.exists(PRIV_KEY_PATH):
                 raise j.exceptions.NotFound(f"Can not find ssh key for vdc {self.vdc_name} in {PRIV_KEY_PATH}")
@@ -747,7 +756,7 @@ class UserVDC(Base):
             raise j.exceptions.Input(f"couldn't find key at default locations")
         j.logger.info(f"getting ssh_client to: {user}@{ip_address} using key: {private_key_path}")
         j.clients.sshkey.delete(name)
-        ssh_key = j.clients.sshkey.get(name)
+        ssh_key = j.clients.sshkey.get(SSH_KEY_PREFIX + name)
         ssh_key.private_key_path = private_key_path
         ssh_key.load_from_file_system()
         j.clients.sshclient.delete(name)

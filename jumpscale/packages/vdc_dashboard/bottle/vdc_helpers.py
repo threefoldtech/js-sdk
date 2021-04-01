@@ -1,4 +1,4 @@
-from bottle import HTTPResponse
+from bottle import HTTPResponse, abort
 import math
 from jumpscale.loader import j
 
@@ -38,6 +38,8 @@ def _total_capacity(vdc):
 
 
 def get_vdc():
+    if not j.sals.vdc.list_all():
+        abort(500, "Couldn't find any vdcs on this machine, Please make sure to have it configured properly")
     vdc_full_name = list(j.sals.vdc.list_all())[0]
     return j.sals.vdc.find(vdc_full_name, load_info=True)
 

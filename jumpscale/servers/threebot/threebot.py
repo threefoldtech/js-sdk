@@ -367,7 +367,10 @@ class Package:
 
     def is_valid(self):
         # more constraints, but for now let's say it's not ok if the main files don't exist
-        return self.exists()
+        return self.exists() and not self.is_excluded()
+
+    def is_excluded(self):
+        return self.config.get("excluded", False) == True
 
 
 class PackageManager(Base):
@@ -389,6 +392,7 @@ class PackageManager(Base):
             package_giturl = self.packages[package_name]["giturl"]
             package_kwargs = self.packages[package_name].get("kwargs", {})
             package_admins = self.packages[package_name].get("admins", [])
+
             return Package(
                 path=package_path,
                 default_domain=self.threebot.domain,
@@ -406,6 +410,7 @@ class PackageManager(Base):
         # Add installed packages including outer packages
         for pkg in self.packages:
             package = self.get(pkg)
+
             if package and package.is_valid():
                 if j.sals.fs.exists(package.path):
                     chatflows = True if package.chats_dir else False
@@ -432,10 +437,12 @@ class PackageManager(Base):
                 pkg_path = j.sals.fs.join_paths(path, pkg)
                 pkgtoml_path = j.sals.fs.join_paths(pkg_path, "package.toml")
                 ui_name = pkg
+                excluded = False
                 with open(pkgtoml_path) as f:
                     conf = j.data.serializers.toml.loads(f.read())
                     ui_name = conf.get("ui_name", pkg)
-                if pkg not in self.packages and j.sals.fs.exists(pkgtoml_path):
+                    excluded = conf.get("excluded", False)
+                if pkg not in self.packages and j.sals.fs.exists(pkgtoml_path) and not excluded:
                     all_packages.append(
                         {
                             "name": pkg,

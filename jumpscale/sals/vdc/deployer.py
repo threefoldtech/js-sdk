@@ -1,5 +1,4 @@
 from collections import defaultdict
-import hashlib
 from jumpscale.clients.explorer.models import WorkloadType, ZdbNamespace, K8s, Volume, Container, DiskType
 import uuid
 
@@ -23,6 +22,7 @@ from contextlib import ContextDecorator
 from jumpscale.sals.zos.billing import InsufficientFunds
 import os
 
+SSH_KEY_PREFIX = "ssh_"
 VDC_IDENTITY_FORMAT = "vdc_{}_{}_{}"  # tname, vdc_name, vdc_uuid
 IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
@@ -68,7 +68,6 @@ class VDCDeployer:
         self.bot = bot
         self._identity = identity
         self.password = password
-        self.password_hash = None
         self.email = f"vdc_{self.vdc_instance.solution_uuid}"
         self.wallet_name = self.vdc_instance.provision_wallet.instance_name
         self.proxy_farm_name = proxy_farm_name
@@ -187,7 +186,7 @@ class VDCDeployer:
     @property
     def ssh_key(self):
         if not self._ssh_key:
-            self._ssh_key = j.clients.sshkey.get(self.vdc_name)
+            self._ssh_key = j.clients.sshkey.get(SSH_KEY_PREFIX + self.vdc_name)
             KEYS_DIR_PATH = self.ssh_key_path or f"{j.core.dirs.CFGDIR}/vdc/keys/{self.tname}/{self.vdc_name}"
             self._ssh_key.private_key_path = f"{KEYS_DIR_PATH}/id_rsa"
             if not j.sals.fs.exists(f"{KEYS_DIR_PATH}/id_rsa"):
@@ -205,9 +204,8 @@ class VDCDeployer:
         # create a user identity from an old one or create a new one
         if self._identity:
             return
-        self.password_hash = hashlib.md5(self.password.encode()).hexdigest()
         username = VDC_IDENTITY_FORMAT.format(self.tname, self.vdc_name, self.vdc_uuid)
-        words = j.data.encryption.key_to_mnemonic(self.password_hash.encode())
+        words = j.data.encryption.key_to_mnemonic(self.password.encode())
         identity_name = f"vdc_ident_{self.vdc_uuid}"
         self._identity = j.core.identity.get(
             identity_name, tname=username, email=self.email, words=words, explorer_url=j.core.identity.me.explorer_url
@@ -392,7 +390,7 @@ class VDCDeployer:
             )
         return zdb_threads
 
-    def deploy_vdc_kubernetes(self, farm_name, scheduler, cluster_secret, pub_keys=None):
+    def deploy_vdc_kubernetes(self, farm_name, scheduler, pub_keys=None):
         """
         1- deploy master
         2- extend cluster with the flavor no_nodes
@@ -411,7 +409,7 @@ class VDCDeployer:
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         pub_keys = pub_keys or []
         master_ip = self.kubernetes.deploy_master(
-            master_pool_id, gs, master_size, cluster_secret, pub_keys, self.vdc_uuid, nv, endpoint
+            master_pool_id, gs, master_size, self.password, pub_keys, self.vdc_uuid, nv, endpoint
         )
         if not master_ip:
             self.error("failed to deploy kubernetes master")
@@ -420,11 +418,12 @@ class VDCDeployer:
         if no_nodes < 1:
             return [master_ip]
         self.bot_show_update("Deploying Kubernetes Workers...")
+        self.vdc_instance.load_info()
         wids = self.kubernetes.extend_cluster(
             farm_name,
             master_ip,
             VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"],
-            cluster_secret,
+            self.password,
             [self.ssh_key.public_key.strip()],
             1,
             duration=INITIAL_RESERVATION_DURATION / 24,
@@ -538,7 +537,6 @@ class VDCDeployer:
         """
         farm_name = farm_name or PREFERED_FARM.get()
 
-        cluster_secret = self.password_hash
         self.info(f"deploying VDC flavor: {self.flavor} farm: {farm_name}")
         # if len(minio_ak) < 3 or len(minio_sk) < 8:
         #     raise j.exceptions.Validation(
@@ -562,22 +560,20 @@ class VDCDeployer:
             pub_keys = [self.ssh_key.public_key.strip()]
             # deploy k8s cluster
             self.bot_show_update("Deploying kubernetes cluster")
-            deployment_threads.append(
-                gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, cluster_secret, pub_keys=pub_keys)
-            )
+            deployment_threads.append(gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, pub_keys=pub_keys))
             gevent.joinall(deployment_threads)
 
             if not deployment_threads[-1].value:
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to k8s")
+                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy kubernetes cluster")
 
             for thread in deployment_threads[:-1]:
                 if thread.value:
                     continue
                 self.error(f"failed to deploy VDC. cancelling workloads with uuid {self.vdc_uuid}")
                 self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to zdb")
+                raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy zdb")
 
             # zdb_wids = deployment_threads[0].value + deployment_threads[1].value
             # scheduler = Scheduler(farm_name)
@@ -690,10 +686,7 @@ class VDCDeployer:
         if isinstance(flavor, str):
             flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
         self.vdc_instance.load_info()
-        master_Workload = self.zos.workloads.get(self.vdc_instance.kubernetes[0].wid)
-        metadata = deployer.decrypt_metadata(master_Workload.info.metadata, self.identity.instance_name)
-        meta_dict = j.data.serializers.json.loads(metadata)
-        cluster_secret = meta_dict["secret"]
+        cluster_secret = self.vdc_instance.get_password()
         self.info(f"extending kubernetes cluster on farm: {farm_name}, public_ip: {public_ip}, no_nodes: {no_nodes}")
         master_ip = self.vdc_instance.kubernetes[0].ip_address
         farm_name = farm_name if not public_ip else NETWORK_FARM.get()

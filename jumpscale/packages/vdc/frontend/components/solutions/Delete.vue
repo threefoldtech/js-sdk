@@ -9,7 +9,9 @@
       Are you sure you want to delete this VDC, this action can't be undone?
       <br />
       <strong class="red--text text--lighten-1">
-        WARNING: This action can't be undone.
+        WARNING: This action can't be undone. Please make sure to transfer the
+        tokens left in your wallet before deletion. (Wallet secret is available
+        in your VDC dashboard wallet pane)
       </strong>
       <br /><br />
       Please type <b class="font-weight-black">{{ vdcname }}</b> to confirm.

@@ -391,6 +391,10 @@ def controller_authorized():
     def decorator(function):
         def wrapper(*args, **kwargs):
             # Get vdc instance and password
+            if not j.sals.vdc.list_all():
+                abort(
+                    500, "Couldn't find any vdcs on this machine, Please make sure to have it configured properly",
+                )
             vdc_full_name = list(j.sals.vdc.list_all())[0]
             vdc = j.sals.vdc.get(vdc_full_name)
 

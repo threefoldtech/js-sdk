@@ -5,6 +5,7 @@
           title="App details"
           :jsonobj="data"
           :ignored="KeysIgnored"
+          :typedict="KeysWithTypeDict"
         ></json-renderer>
       </template>
       <template #actions>
@@ -22,6 +23,7 @@ module.exports = {
       },
       tab: 0,
       KeysIgnored: ["Status Details", "User Supplied Values"],
+      KeysWithTypeDict: ["progress"],
     };
   },
   props: { data: Object },

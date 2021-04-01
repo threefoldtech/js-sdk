@@ -96,7 +96,7 @@ const router = new VueRouter({
         { name: "Threefold Wikis", path: '/wikis', component: wikis, meta: { icon: "mdi-book-open-outline", listed: true } },
         { name: "Packages", path: '/packages', component: packages, meta: { icon: "mdi-package-variant-closed", listed: true } },
         { name: "Codeserver", path: '/codeserver', component: codeserver, meta: { icon: "mdi-code-braces", listed: true } },
-        { name: "Notebooks", path: '/notebooks', component: notebooks, meta: { icon: "mdi-language-python", listed: true } },
+        // { name: "Notebooks", path: '/notebooks', component: notebooks, meta: { icon: "mdi-language-python", listed: true } },
         { name: "Logs", path: '/logs', component: logs, meta: { icon: "mdi-text", listed: true } },
         { name: "Alerts", path: '/alerts', component: alerts, meta: { icon: "mdi-alert-outline", listed: true } },
         { name: "Alert", path: '/alerts/:alertID', component: alerts, props: true, meta: { icon: "mdi-alert-outline", listed: false } },
