@@ -16,6 +16,11 @@ class CryptpadDeploy(SolutionsChatflowDeploy):
         "initializing",
         "success",
     ]
+    CHART_LIMITS = {
+        "Silver": {"cpu": "2000m", "memory": "2024Mi"},
+        "Gold": {"cpu": "4000m", "memory": "4096Mi"},
+        "Platinum": {"cpu": "4000m", "memory": "8192Mi"},
+    }
 
     def get_config(self):
         return {
