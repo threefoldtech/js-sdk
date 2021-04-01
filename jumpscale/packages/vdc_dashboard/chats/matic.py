@@ -31,12 +31,12 @@ class MaticDeploy(SolutionsChatflowDeploy):
             "env.moniker": self.config.release_name,
             "env.node_ingress_ip": self.vdc_info["public_ip"],
             "env.node_type": self.config.chart_config.node_type,
-            "env.eth_rpc_url": self.config.chart_config.eth_rpc_url,
-            "eth_privkey": self.config.chart_config.eth_privkey,
-            "eth_key_passphrase": self.config.chart_config.eth_key_passphrase,
-            "env.eth_walletaddr": self.config.chart_config.eth_walletaddr,
-            "env.sentry_nodeid": self.config.chart_config.sentry_nodeid,
-            "env.sentry_enodeid": self.config.chart_config.sentry_enodeid,
+            "env.eth_rpc_url": self.config.chart_config.extra_config.get("eth_rpc_url", ""),
+            "eth_privkey": self.config.chart_config.extra_config.get("eth_privkey", ""),
+            "eth_key_passphrase": self.config.chart_config.extra_config.get("eth_key_passphrase", ""),
+            "env.eth_walletaddr": self.config.chart_config.extra_config.get("eth_walletaddr", ""),
+            "env.sentry_nodeid": self.config.chart_config.extra_config.get("sentry_nodeid", ""),
+            "env.sentry_enodeid": self.config.chart_config.extra_config.get("sentry_enodeid", ""),
         }
 
     def _enter_nodetype(self):
@@ -66,7 +66,7 @@ class MaticDeploy(SolutionsChatflowDeploy):
             raise StopChatFlow("Solution Name should not be more than 10 characters")
 
     def _enter_rpc_url(self):
-        self.config.chart_config.eth_rpc_url = self.string_ask(
+        self.config.chart_config.extra_config["eth_rpc_url"] = self.string_ask(
             "Insert Infura or any full node RPC URL to Ethereum.", required=True,
         )
 
@@ -81,9 +81,9 @@ class MaticDeploy(SolutionsChatflowDeploy):
         eth_walletaddr = form.string_ask("Please enter your ethereum wallet address.", required=True)
         form.ask()
 
-        self.config.chart_config.eth_privkey = eth_privkey.value
-        self.config.chart_config.eth_key_passphrase = eth_key_passphrase.value
-        self.config.chart_config.eth_walletaddr = eth_walletaddr.value
+        self.config.chart_config.extra_config["eth_privkey"] = eth_privkey.value
+        self.config.chart_config.extra_config["eth_key_passphrase"] = eth_key_passphrase.value
+        self.config.chart_config.extra_config["eth_walletaddr"] = eth_walletaddr.value
 
     def _enter_sentry_info(self):
         form = self.new_form()
@@ -91,8 +91,8 @@ class MaticDeploy(SolutionsChatflowDeploy):
         sentry_enodeid = form.string_ask("Please enter your sentry node's EnodeID for Bor")
         form.ask()
 
-        self.config.chart_config.sentry_nodeid = sentry_nodeid.value
-        self.config.chart_config.sentry_enodeid = sentry_enodeid.value
+        self.config.chart_config.extra_config["sentry_nodeid"] = sentry_nodeid.value
+        self.config.chart_config.extra_config["sentry_enodeid"] = sentry_enodeid.value
 
     def _enter_access_code(self):
         self.config.chart_config.access_code = self.secret_ask(

@@ -35,6 +35,7 @@ class ChartConfig(Base):
     resources_limits = fields.Typed(dict, default={})
     backup = fields.String(default="vdc")
     ip_version = fields.String(default="IPv6")
+    extra_config = fields.Typed(dict, default={})
 
 
 class DeploymentConfig(Base):
