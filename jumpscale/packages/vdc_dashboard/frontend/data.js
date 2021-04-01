@@ -102,8 +102,8 @@ const DECENTRALIZED_WE = {
             type: "owncloud",
             image: "./assets/owncloud.png",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/owncloud/",
-            description: "ownCloud is a suite of client–server software for creating and using file hosting services. ownCloud functionally has similarities to the widely used Dropbox."
+            helpLink: "https://doc.owncloud.com/server/10.6/",
+            description: "ownCloud is a suite of client-server software for creating and using file hosting services. ownCloud functionally has similarities to the widely used Dropbox."
         },
         meetings: {
             name: "Video Chat",
