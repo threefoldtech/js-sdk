@@ -95,7 +95,7 @@ class MaticDeploy(SolutionsChatflowDeploy):
         self.config.chart_config.sentry_enodeid = sentry_enodeid.value
 
     def _enter_access_code(self):
-        self.access_code = self.secret_ask(
+        self.config.chart_config.access_code = self.secret_ask(
             "Enter Access Code (This would be used to access your node's web page)", min_length=8, required=True
         )
 
