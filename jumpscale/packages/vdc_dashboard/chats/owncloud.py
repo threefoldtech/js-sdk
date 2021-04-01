@@ -6,22 +6,23 @@ class OwncloudDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "owncloud"
     title = "Owncloud"
     HELM_REPO_NAME = "marketplace"
-    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    steps = [
+        "init_chatflow",
+        "get_release_name",
+        "choose_flavor",
+        "create_subdomain",
+        "install_chart",
+        "initializing",
+        "success",
+    ]
 
-    @chatflow_step(title="Configurations")
-    def set_config(self):
-
-        self._choose_flavor()
-        self.chart_config.update(
-            {
-                "ingress.hostname": self.domain,
-                "resources.limits.cpu": self.resources_limits["cpu"],
-                "resources.limits.memory": self.resources_limits["memory"],
-                "owncloudUsername": "admin",
-                "owncloudPassword": "password",
-                "mariadb.auth.rootPassword": "secretpassword",
-            }
-        )
+    def get_config(self):
+        return {
+            "ingress.hostname": self.config.chart_config.domain,
+            "owncloudUsername": "admin",
+            "owncloudPassword": "password",
+            "mariadb.auth.rootPassword": "secretpassword",
+        }
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
