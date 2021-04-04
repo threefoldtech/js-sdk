@@ -1,8 +1,8 @@
 # VDC Deployer
 
-This manual will go through `VDC_dashboard` package and how to add new solution to its maketplace.
+This manual will go through the `VDC_dashboard` package and how to add new solutions to its marketplace.
 
-- The `VDC dashboard` is the end user interface, in this package the user can interact with his/her VDC Settings and Marketplace.
+- The `VDC dashboard` is the end user interface, where the user can interact with their VDC Settings and Marketplace.
 
 ## The VDC dashboard architecture
 ```
@@ -33,7 +33,7 @@ This manual will go through `VDC_dashboard` package and how to add new solution 
   └── __init__.py
   ```
 ### REST APIs
-- There is a [REST Interfaces](./vdc_dashboard_rest_interface.md) that make the user do some actions to control and monitor the VDC.
+- [REST Interfaces](./vdc_dashboard_rest_interface.md) are available that allow the user to perform VDC related actions to control and monitor their VDC.
 - Some actions can be applied with the REST APIs like:
   - `Get all VDC info`
   - `Get all worker nodes`
@@ -46,27 +46,27 @@ This manual will go through `VDC_dashboard` package and how to add new solution 
   - `Get all used pools`
   - `Get alerts`
 ### The Package Frontend
-- The frontend built with [Vue js](https://vuejs.org/) and use [vuetify js](https://vuetifyjs.com/) some components.
+- The frontend is built with [Vue js](https://vuejs.org/) using some components from [vuetify js](https://vuetifyjs.com/).
 
 - The VDC Marketplace home page:
-  - The user can deploy, list and delete his/her solutions.
+  - The user can deploy, list, and delete their solutions.
 ![vdc_marketplace](./images/vdc_marketplace.png)
 
 - The VDC setting home page:
-  - The default tab represent the `Compute Nodes` for the VDC Kubernetes cluster, The user can Add or remove the nodes.
+  - `Compute Nodes tab` is the default tab for the VDC Kubernetes cluster, where the user can add or remove their VDC's nodes.
   ![vdc_setting](./images/vdc_setting.png)
   - In the `Storage Nodes` tab the user can:
-    - Add/Delete storage node.
+    - Add/Delete storage nodes.
     - Enable quantum storage.
     - Download [Z-stor](https://github.com/threefoldtech/0-stor_v2) configuration.
     - Download ZDBs information.
 
     ![vdc_storage_nodes](./images/vdc_storage_nodes.png)
 
-  - In Wallet Information tab there is the prepaid wallet information.
+  - `Wallet Information tab`: consists of the prepaid wallet information.
 
     ![vdc_storage_nodes](./images/vdc_wallet.png)
 
-  - In the Backup And Restore tab there is a list of backups and the user can create new and restore any of them.
+  - `Backup And Restore tab`: consists of a list of backups. It also enables the user to create new ones or restore any of the previously backed up ones.
 
     ![vdc_storage_nodes](./images/vdc_backup.png)
