@@ -200,7 +200,7 @@ def generate_user_identity(threebot, password, zos):
     return identity
 
 
-def stop_threebot_solution(owner, solution_uuid, password, timeout=20):
+def stop_threebot_solution(owner, solution_uuid, password, timeout=40):
     owner = text.removesuffix(owner, ".3bot")
     threebot = get_threebot_config_instance(owner, solution_uuid)
     if not threebot.verify_secret(password):
@@ -224,8 +224,8 @@ def stop_threebot_solution(owner, solution_uuid, password, timeout=20):
                         f"Couldn't stop the workload: {workload.id}, Please try again later or contact support."
                     )
 
-        threebot.state = ThreebotState.STOPPED
-        threebot.save()
+    threebot.state = ThreebotState.STOPPED
+    threebot.save()
     return threebot
 
 
