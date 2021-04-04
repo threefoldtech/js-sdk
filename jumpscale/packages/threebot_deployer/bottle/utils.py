@@ -216,7 +216,7 @@ def stop_threebot_solution(owner, solution_uuid, password, timeout=40):
                 # wait for workload to decommision
                 expiration = j.data.time.get().timestamp + timeout
                 while j.data.time.get().timestamp < expiration:
-                    if workload.info.next_action != NextAction.DELETED:
+                    if zos.workloads.get(workload.id).info.next_action == NextAction.DELETED:
                         break
                     gevent.sleep(1)
                 else:
