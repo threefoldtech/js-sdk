@@ -4,6 +4,9 @@ This manual will go through the `VDC_dashboard` package and how to add new solut
 
 - The `VDC dashboard` is the end user interface, where the user can interact with their VDC Settings and Marketplace.
 
+## Requirement
+- At lest One VDC instance configured on the machine.
+
 ## The VDC dashboard architecture
 ```
   ├── chats
@@ -32,19 +35,29 @@ This manual will go through the `VDC_dashboard` package and how to add new solut
   ├── package.toml
   └── __init__.py
   ```
+
+### Background Services
+- `domain.py`: This service is responsible for redeploy subdomain.
+- `etcd_backup.py`: This service is responsible for use `etcdctl` to get a snapshot of etcd and back it up using `restic`, *it stopped for now*
+- `k8s_auto_extend.py`: This service is responsible for auto extend the kubernetes cluster to its plan limits if needed.
+- `provisioning_wallet_billing.py`: This service is responsible for extend the VDC pool.
+- `s3_auto_topup.py`: *it stopped for now*
+- `transaction_from_prepain_to_provisioning.py`: This service is responsible for transfer funds from prepaid to provision wallet
+- `zdb_auto_topup.py`: This service is responsible for extend the VDC ZDBs capacity.
+
 ### REST APIs
 - [REST Interfaces](./vdc_dashboard_rest_interface.md) are available that allow the user to perform VDC related actions to control and monitor their VDC.
 - Some actions can be applied with the REST APIs like:
-  - `Get all VDC info`
-  - `Get all worker nodes`
-  - `Add new worker node`
-  - `Delete existing worker node`
-  - `Get all storage nodes`
-  - `Add new storage node`
-  - `Delete storage node`
-  - `Get vdc prepaid wallet info`
-  - `Get all used pools`
-  - `Get alerts`
+  - `Get all VDC info`: `<YOUR_VDC_DOMAIN>/api/controller/vdc`
+  - `Get all worker nodes`: `<YOUR_VDC_DOMAIN>/api/controller/node/list`
+  - `Add new worker node`: `<YOUR_VDC_DOMAIN>/api/controller/node/add`
+  - `Delete existing worker node`: `<YOUR_VDC_DOMAIN>/api/controller/node/delete`
+  - `Get all storage nodes`: `<YOUR_VDC_DOMAIN>/api/controller/zdb/list`
+  - `Add new storage node`: `<YOUR_VDC_DOMAIN>/api/controller/zdb/add`
+  - `Delete storage node`: `<YOUR_VDC_DOMAIN>/api/controller/zdb/delete`
+  - `Get vdc prepaid wallet info`: `<YOUR_VDC_DOMAIN>/api/controller/wallet`
+  - `Get all used pools`: `<YOUR_VDC_DOMAIN>/api/controller/pools`
+  - `Get alerts`: `<YOUR_VDC_DOMAIN>/api/controller/alerts`
 ### The Package Frontend
 - The frontend is built with [Vue js](https://vuejs.org/) using some components from [vuetify js](https://vuetifyjs.com/).
 
@@ -70,3 +83,6 @@ This manual will go through the `VDC_dashboard` package and how to add new solut
   - `Backup And Restore tab`: consists of a list of backups. It also enables the user to create new ones or restore any of the previously backed up ones.
 
     ![vdc_storage_nodes](./images/vdc_backup.png)
+
+### Adding New Solution Chatflow
+- please see this documentation: [Add Marketplace Solution Chatflow](../wiki/tutorials/add_marketplacevdc_chatflow.md)
