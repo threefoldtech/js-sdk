@@ -2,11 +2,11 @@
 
 ## Index
 
-- [The structure of the chatflow file](#The-structure-of-the-chatflow-file)
+- [Chatflow file structure](#Chatflow-file-structure)
 
-## The structure of the chatflow file
-1. Create file with your app name `{app_name}.py` in `packages/vdc_dashboard/chats` directory.
-2. You have to inherit from `SolutionsChatflowDeploy` baseclass.
+## Chatflow file structure
+1. Create a file with your app name `{app_name}.py` in `packages/vdc_dashboard/chats` directory.
+2. Inherit from `SolutionsChatflowDeploy` baseclass.
 
     ```python
     from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
@@ -19,7 +19,7 @@
         HELM_REPO_NAME = "{repo_name}"
         title = "App Title"
     ```
-4. The `CHART_LIMITS` defined in `solutions_chatflow` sals, but it can be overwritten in your chatflow with your custom one like:
+4. The `CHART_LIMITS` default values are defined in `solutions_chatflow` sals, Custom chart limits can be overridden by defining them as follows:
     ```python
         CHART_LIMITS = {
             "Silver": {"cpu": "2000m", "memory": "2024Mi"},
@@ -42,9 +42,9 @@
         ]
     ```
     - All steps methods should be decorated with `@chatflow_step(title="")`
-    - We defined some required steps in chatflow baseclass, you have to put them in your steps `[ "init_chatflow", "get_release_name", "choose_flavor", "create_subdomain", "install_chart", "success"]`.
+    - Required steps that need to be added from the chatflow baseclass are `[ "init_chatflow", "get_release_name", "choose_flavor", "create_subdomain", "install_chart", "success"]`.
     - Before the `install_chart` step additional steps like `set_config`, they can be addded to update `self.config.chart_config` object with your optional configurations.
-5. Every deployment will has its own config instance from the start to the end fo the chatflow.
+5. Every deployment will have its own config instance from the start to the end of the chatflow.
     - This `config` instance will be structured like:
     ```python
     class ChartConfig(Base):
@@ -66,7 +66,7 @@
     ```python
     self.config = DeploymentConfig()
     ```
-6. In the `Install_chart` step, the `chart_config` variable defined with default configuration and will be updated with the result of `get_config()` function.
+6. In the `Install_chart` step, the `chart_config` variable will be defined as default configuration and will be updated with the result of `get_config()` function.
     - The default `config_chart` will be:
     ```python
     chart_config = {
@@ -77,7 +77,7 @@
         "resources.limits.memory": self.config.chart_config.resources_limits["memory"],
     }
     ```
-    - *HINT:* You can overwrite `get_config` function to return your chart custom configuration as `dict` and the `chart_config` will be updated with before the installation.
+    - *HINT:* You can override `get_config` function to return your chart custom configuration as `dict` and the `chart_config` will be updated with before the installation.
 
 7. At the end of the file, you have to add reference for your chat class with reference name `chat`
 
