@@ -41,7 +41,7 @@ This manual will go through the `VDC_dashboard` package and how to add new solut
 - `etcd_backup.py`: This service is responsible for backup using `etcdctl` to get a snapshot of etcd and backing it up using `restic`. [currently disabled]
 - `k8s_auto_extend.py`: This service is responsible for auto extending the kubernetes cluster to its plan limits if needed.
 - `provisioning_wallet_billing.py`: This service is responsible for extending the VDC pool.
-- `s3_auto_topup.py`: *it stopped for now*
+- `s3_auto_topup.py`: *[currently disabled]*
 - `transaction_from_prepain_to_provisioning.py`: This service is responsible for transfering funds from the prepaid to the provision wallet
 - `zdb_auto_topup.py`: This service is responsible for extending the VDC ZDB's capacity.
 
