@@ -38,7 +38,7 @@ This manual will go through the `VDC_dashboard` package and how to add new solut
 
 ### Background Services
 - `domain.py`: This service is responsible for redeploying subdomains.
-- `etcd_backup.py`: This service is responsible for use `etcdctl` to get a snapshot of etcd and back it up using `restic`, *it stopped for now*
+- `etcd_backup.py`: This service is responsible for backup using `etcdctl` to get a snapshot of etcd and backing it up using `restic`. [currently disabled]
 - `k8s_auto_extend.py`: This service is responsible for auto extending the kubernetes cluster to its plan limits if needed.
 - `provisioning_wallet_billing.py`: This service is responsible for extending the VDC pool.
 - `s3_auto_topup.py`: *it stopped for now*
