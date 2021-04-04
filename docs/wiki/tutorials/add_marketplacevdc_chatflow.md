@@ -62,7 +62,7 @@
         release_name = fields.String()
         chart_config = fields.Object(ChartConfig)
     ```
-    - In the `init_chatflow` step it will be define:
+    - In the `init_chatflow` step it will be defined:
     ```python
     self.config = DeploymentConfig()
     ```
