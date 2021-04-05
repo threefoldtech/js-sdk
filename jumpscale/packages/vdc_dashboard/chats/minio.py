@@ -55,7 +55,7 @@ class MinioDeploy(SolutionsChatflowDeploy):
     def quantum_storage(self):
         self.md_show_update("Initializing Quantum Storage, This may take few seconds ...")
         qs = self.vdc.get_quantumstorage_manager()
-        qs.apply(self.path)
+        qs.apply(self.config.chart_config.path)
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self, timeout=300):
