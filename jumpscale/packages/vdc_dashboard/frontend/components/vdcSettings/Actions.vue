@@ -55,12 +55,12 @@ module.exports = {
     };
   },
   mixins: [dialog],
-  props: ["name", "title"],
+  props: ["name", "title", "vdcbackup", "configbackup"],
   methods: {
     del() {
       this.loading = true;
       return this.$api.backup
-        .delete(this.name)
+        .delete(this.vdcbackup, this.configbackup)
         .then((response) => {
           this.show = true;
           this.msg = response.data;
