@@ -16,7 +16,6 @@ class MinioDeploy(SolutionsChatflowDeploy):
     steps = [
         "init_chatflow",
         "get_release_name",
-        "choose_flavor",
         "set_config",
         "create_subdomain",
         "quantum_storage",
@@ -36,6 +35,8 @@ class MinioDeploy(SolutionsChatflowDeploy):
     @chatflow_step(title="Configurations")
     def set_config(self):
         self.config.chart_config.path = f"/home/rancher/{self.chart_name}{self.config.release_name}"
+        self.config.chart_config.resources_limits["cpu"] = "512m"
+        self.config.chart_config.resources_limits["memory"] = "1Gi"
 
         form = self.new_form()
         accesskey = form.string_ask(
