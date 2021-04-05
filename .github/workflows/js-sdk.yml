@@ -5,23 +5,19 @@ name: js-sdk
 
 on:
   push:
-    branches: [ development_vdc_test_backup ]
-
-# on:
-#   push:
-#     branches: [ development ]
-#     paths:
-#     - '**.py'
-#     - '.github/workflows/**.yml'
-#     - 'pyproject.toml'
-#     - 'poetry.lock'
-#   pull_request:
-#     branches: [ development ]
-#     paths:
-#     - '**.py'
-#     - '.github/workflows/**.yml'
-#     - 'pyproject.toml'
-#     - 'poetry.lock'
+    branches: [ development ]
+    paths:
+    - '**.py'
+    - '.github/workflows/**.yml'
+    - 'pyproject.toml'
+    - 'poetry.lock'
+  pull_request:
+    branches: [ development ]
+    paths:
+    - '**.py'
+    - '.github/workflows/**.yml'
+    - 'pyproject.toml'
+    - 'poetry.lock'
 
 jobs:
   build:
@@ -39,21 +35,13 @@ jobs:
       - name: Install
         run: |
           sudo poetry install
-          sudo wget https://dl.min.io/client/mc/release/linux-amd64/mc
-          sudo chmod +x mc
-          sudo cp mc /bin
       - name: Run tests
         env:
           TNAME: ${{ secrets.TNAME }}
           EMAIL: ${{ secrets.EMAIL }}
           WORDS: ${{ secrets.WORDS }}
-          WALLET_SECRET: ${{ secrets.WALLET_SECRET }}
           FAKE_EMAIL: ${{ secrets.FAKE_EMAIL }}
           FAKE_GITHUB_TOKEN: ${{ secrets.FAKE_GITHUB_TOKEN }}
-          S3_URL: ${{ secrets.S3_URL }}
-          S3_BUCKET: ${{ secrets.S3_BUCKET }}
-          S3_AK: ${{ secrets.S3_AK }}
-          S3_SK: ${{ secrets.S3_SK }}
         run: |
-          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=WALLET_SECRET --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN --preserve-env=S3_URL --preserve-env=S3_BUCKET --preserve-env=S3_AK --preserve-env=S3_SK \
-          poetry run pytest tests/sals/automated_chatflows/test_vdc_chatflows.py -sv
+          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN \
+          poetry run pytest tests -sv -m "unittests"
