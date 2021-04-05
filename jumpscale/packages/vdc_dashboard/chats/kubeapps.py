@@ -56,7 +56,6 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Generating access token")
     def get_access_token(self):
-        self._get_vdc_info()
         # Validate service account
         services = self.k8s_client.execute_native_cmd("kubectl get serviceaccount -o json")
         all_service_account = json.loads(services)
