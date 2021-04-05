@@ -42,9 +42,9 @@ class MattermostDeploy(SolutionsChatflowDeploy):
         )  # TODO: need to check a valid password
         form.ask()
 
-        self.config.chart_config.mysql_user = mysql_user
-        self.config.chart_config.mysql_password = mysql_password
-        self.config.chart_config.mysql_root_password = mysql_root_password
+        self.config.chart_config.mysql_user = mysql_user.value
+        self.config.chart_config.mysql_password = mysql_password.value
+        self.config.chart_config.mysql_root_password = mysql_root_password.value
 
 
 chat = MattermostDeploy
