@@ -12,7 +12,7 @@ from jumpscale.sals.zos import get as get_zos
 from jumpscale.sals.vdc.scheduler import CapacityChecker
 from jumpscale.clients.stellar import TRANSACTION_FEES
 
-from .deployer import VDCDeployer
+from .deployer import VDCDeployer, SSH_KEY_PREFIX
 from .kubernetes_auto_extend import KubernetesMonitor
 from .models import *
 from .size import FARM_DISCOUNT, PROXY_FARM, VDC_SIZE, ZDB_STARTING_SIZE
@@ -27,8 +27,6 @@ VDC_WORKLOAD_TYPES = [
     WorkloadType.Subdomain,
     WorkloadType.Reverse_proxy,
 ]
-
-SSH_KEY_PREFIX = "ssh_"
 
 
 class UserVDC(Base):
@@ -388,16 +386,8 @@ class UserVDC(Base):
             ip_address = k8s.public_ip
             if ip_address == "::/128":
                 continue
-            ssh_key = j.clients.sshkey.get(SSH_KEY_PREFIX + self.vdc_name)
-            PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
-            if not j.sals.fs.exists(PRIV_KEY_PATH):
-                raise j.exceptions.NotFound(f"Can not find ssh key for vdc {self.vdc_name} in {PRIV_KEY_PATH}")
-            ssh_key.private_key_path = PRIV_KEY_PATH
-            ssh_key.load_from_file_system()
             try:
-                ssh_client = j.clients.sshclient.get(
-                    self.instance_name, user="rancher", host=str(ip_address), sshkey=self.vdc_name
-                )
+                ssh_client = self.get_ssh_client(self.instance_name, user="rancher", ip_address=str(ip_address))
                 rc, out, err = ssh_client.sshclient.run("sudo ip link set cni0 down", warn=True)
                 if rc:
                     j.logger.critical(
@@ -430,16 +420,8 @@ class UserVDC(Base):
             ip_address = k8s.public_ip
             if ip_address == "::/128":
                 continue
-            ssh_key = j.clients.sshkey.get(SSH_KEY_PREFIX + self.vdc_name)
-            PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
-            if not j.sals.fs.exists(PRIV_KEY_PATH):
-                raise j.exceptions.NotFound(f"Can not find ssh key for vdc {self.vdc_name} in {PRIV_KEY_PATH}")
-            ssh_key.private_key_path = PRIV_KEY_PATH
-            ssh_key.load_from_file_system()
             try:
-                ssh_client = j.clients.sshclient.get(
-                    self.instance_name, user="rancher", host=str(ip_address), sshkey=self.vdc_name
-                )
+                ssh_client = self.get_ssh_client(self.instance_name, user="rancher", ip_address=str(ip_address))
                 rc, out, err = ssh_client.sshclient.run("sudo ip link set cni0 up", warn=True)
                 if rc:
                     j.logger.critical(
@@ -755,12 +737,13 @@ class UserVDC(Base):
         if not j.sals.fs.exists(private_key_path):
             raise j.exceptions.Input(f"couldn't find key at default locations")
         j.logger.info(f"getting ssh_client to: {user}@{ip_address} using key: {private_key_path}")
-        j.clients.sshkey.delete(name)
-        ssh_key = j.clients.sshkey.get(SSH_KEY_PREFIX + name)
+        client_name = SSH_KEY_PREFIX + name
+        j.clients.sshkey.delete(client_name)
+        ssh_key = j.clients.sshkey.get(client_name)
         ssh_key.private_key_path = private_key_path
         ssh_key.load_from_file_system()
-        j.clients.sshclient.delete(name)
-        ssh_client = j.clients.sshclient.get(name, user=user, host=ip_address, sshkey=self.vdc_name)
+        j.clients.sshclient.delete(client_name)
+        ssh_client = j.clients.sshclient.get(client_name, user=user, host=ip_address, sshkey=client_name)
         return ssh_client
 
     def check_capacity_available(self, flavor, farm_name=None):
