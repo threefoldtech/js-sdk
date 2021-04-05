@@ -27,6 +27,11 @@ class TaigaDeploy(SolutionsChatflowDeploy):
             "resources.cpu": self.config.chart_config.resources_limits["cpu"][:-1],  # remove units added in chart
             "resources.memory": self.config.chart_config.resources_limits["memory"][:-2],  # remove units added in chart
         }
+        
+    @chatflow_step(title="Initializing", disable_previous=True)
+    def initializing(self):
+        super().initializing(timeout=800, pod_initalizing_timout=600)
+
 
 
 chat = TaigaDeploy

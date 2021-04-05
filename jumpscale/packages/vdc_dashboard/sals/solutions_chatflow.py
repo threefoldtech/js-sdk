@@ -490,7 +490,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         return False
 
     @chatflow_step(title="Initializing", disable_previous=True)
-    def initializing(self, timeout=300):
+    def initializing(self, timeout=300, pod_initalizing_timout=POD_INITIALIZING_TIMEOUT):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
         domain_message = ""
         if self.config.chart_config.domain:
@@ -503,16 +503,22 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 Reason: {{reason}}
                 """
         start_time = time()
-        while time() - start_time <= POD_INITIALIZING_TIMEOUT:
+        while time() - start_time <= pod_initalizing_timout:
             if self.chart_pods_started():
                 break
             gevent.sleep(1)
 
-        if not self.chart_pods_started() and self.chart_resource_failure():
+        if self.chart_resource_failure():
             stop_message = error_message_template.format(
                 reason="Couldn't find resources in the cluster for the solution"
             )
             self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.config.release_name}")
+            self.stop(dedent(stop_message))
+
+
+        if not self.chart_pods_started():
+            stop_message = error_message_template.format(reason="Pods initialization timed out")
+            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.release_name}")
             self.stop(dedent(stop_message))
 
         if self.config.chart_config.domain and not j.sals.reservation_chatflow.wait_http_test(
