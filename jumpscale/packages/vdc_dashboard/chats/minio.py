@@ -25,18 +25,20 @@ class MinioDeploy(SolutionsChatflowDeploy):
     ]
 
     def get_config(self):
+        self.config.chart_config.resources_limits["cpu"] = "512m"
+        self.config.chart_config.resources_limits["memory"] = "1Gi"
         return {
             "ingress.host": self.config.chart_config.domain,
             "accessKey": self.config.chart_config.accesskey,
             "secretKey": self.config.chart_config.secret,
             "volume.hostPath": self.config.chart_config.path,
+            "resources.limits.cpu": self.config.chart_config.resources_limits["cpu"],
+            "resources.limits.memory": self.config.chart_config.resources_limits["memory"],
         }
 
     @chatflow_step(title="Configurations")
     def set_config(self):
         self.config.chart_config.path = f"/home/rancher/{self.chart_name}{self.config.release_name}"
-        self.config.chart_config.resources_limits["cpu"] = "512m"
-        self.config.chart_config.resources_limits["memory"] = "1Gi"
 
         form = self.new_form()
         accesskey = form.string_ask(
