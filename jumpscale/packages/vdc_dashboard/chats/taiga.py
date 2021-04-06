@@ -30,7 +30,7 @@ class TaigaDeploy(SolutionsChatflowDeploy):
         
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
-        super().initializing(timeout=800, pod_initalizing_timout=600)
+        super().initializing(timeout=800, pod_initalizing_timeout=600)
 
 
 

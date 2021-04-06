@@ -490,7 +490,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         return False
 
     @chatflow_step(title="Initializing", disable_previous=True)
-    def initializing(self, timeout=300, pod_initalizing_timout=POD_INITIALIZING_TIMEOUT):
+    def initializing(self, timeout=300, pod_initalizing_timeout=POD_INITIALIZING_TIMEOUT):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
         domain_message = ""
         if self.config.chart_config.domain:
@@ -503,7 +503,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 Reason: {{reason}}
                 """
         start_time = time()
-        while time() - start_time <= pod_initalizing_timout:
+        while time() - start_time <= pod_initalizing_timeout:
             if self.chart_pods_started():
                 break
             gevent.sleep(1)
