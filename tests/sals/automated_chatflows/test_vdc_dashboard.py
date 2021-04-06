@@ -574,7 +574,7 @@ class VDCDashboard(VDCBase):
         self.solutions.append(monitoring)
 
         self.info("Check that MonitoringStack is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{monitoring.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{monitoring.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":
