@@ -12,6 +12,7 @@ class VDCBase(BaseTests):
         cls._get_env_vars()
         cls._import_wallet("test_wallet")
         cls._import_wallet("activation_wallet")
+        cls._import_wallet("demos_wallet")
         cls._prepare_identity()
         cls._start_threebot_server()
 
