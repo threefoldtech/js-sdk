@@ -188,7 +188,8 @@ module.exports = {
       this.dialogs.confirmBackup = true;
     },
     reload() {
-      this.list();
+      this.loading = true;
+      setTimeout(()=> {this.list()} , 2000);
     },
     updateStatus(status) {
       if (status === "PartiallyFailed") {
