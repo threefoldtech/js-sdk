@@ -7,11 +7,11 @@ from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, package_authorized
 
 app = Bottle()
 
+VDC_BACKUP_PREFIX = "vdc-"
+CONFIG_BACKUP_PREFIX = "config-"
+
 
 def _extract_name(backup):
-    VDC_BACKUP_PREFIX = "vdc-"
-    CONFIG_BACKUP_PREFIX = "config-"
-
     if backup["metadata"]["name"].startswith(VDC_BACKUP_PREFIX):
         b = backup["metadata"]["name"][len(VDC_BACKUP_PREFIX) :]
     elif backup["metadata"]["name"].startswith(CONFIG_BACKUP_PREFIX):
@@ -52,8 +52,8 @@ def _list():
                 backup_data[f'{backup_2_type["type"]}_backup'] = f'{backup_2_type["type"]}-{backup_2_name}'
             elif backup_1_name == backup_2_name:
                 backup_data["name"] = backup_1_name
-                backup_data["vdc_backup"] = f"vdc-{backup_1_name}"
-                backup_data["config_backup"] = f"config-{backup_1_name}"
+                backup_data["vdc_backup"] = f"{VDC_BACKUP_PREFIX}{backup_1_name}"
+                backup_data["config_backup"] = f"{CONFIG_BACKUP_PREFIX}{backup_1_name}"
             else:
                 j.logger.warning(f"Skipping backup.")
                 continue
@@ -100,8 +100,10 @@ def create_backup():
     config_path = j.sals.fs.expanduser("~/.kube/config")
     client = j.sals.kubernetes.Manager(config_path=config_path)
     try:
-        client.execute_native_cmd(f"velero create backup config-{name} --include-resources secrets,configmaps")
-        client.execute_native_cmd(f'velero create backup vdc-{name} -l "backupType=vdc"')
+        client.execute_native_cmd(
+            f"velero create backup {CONFIG_BACKUP_PREFIX}{name} --include-resources secrets,configmaps"
+        )
+        client.execute_native_cmd(f'velero create backup {VDC_BACKUP_PREFIX}{name} -l "backupType=vdc"')
         return HTTPResponse("Backup created successfully.", status=201, headers={"Content-Type": "application/json"})
     except Exception as e:
         j.logger.warning(f"Failed to create backup due to {str(e)}")
