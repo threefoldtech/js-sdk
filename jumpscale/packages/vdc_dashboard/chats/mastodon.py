@@ -16,8 +16,8 @@ class MastodonDeploy(SolutionsChatflowDeploy):
         self.chart_config.update(
             {
                 "web.ingress.host": self.domain,
-                "resources.limits.cpu": self.resources_limits["cpu"],
-                "resources.limits.memory": self.resources_limits["memory"],
+                # "resources.limits.cpu": self.resources_limits["cpu"],
+                # "resources.limits.memory": self.resources_limits["memory"],
                 "env.smtp.server": self.smtp_host,
                 "env.smtp.port": self.smtp_port,
                 "env.smtp.address": self.smtp_host,
