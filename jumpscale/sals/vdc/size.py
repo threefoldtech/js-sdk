@@ -68,8 +68,8 @@ class ZDB_FARMS(FarmConfigBase):
     mainnet = ["freefarm", "freefarm"]
 
 
-class PREFERED_FARM(FarmConfigBase):
-    KEY = "PREFERED_FARM"
+class PREFERRED_FARM(FarmConfigBase):
+    KEY = "PREFERRED_FARM"
     devnet = "lochristi_dev_lab"
     testnet = "freefarm"
     mainnet = "freefarm"

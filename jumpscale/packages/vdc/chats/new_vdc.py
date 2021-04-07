@@ -1,4 +1,4 @@
-from jumpscale.sals.vdc.size import PREFERED_FARM
+from jumpscale.sals.vdc.size import PREFERRED_FARM
 from jumpscale.loader import j
 from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION, ZDB_STARTING_SIZE
 from jumpscale.sals.vdc.proxy import VDC_PARENT_DOMAIN
@@ -248,7 +248,7 @@ class VDCDeploy(GedisChatBot):
             self._rollback()
             self.stop("failed to initialize VDC deployer. please contact support")
 
-        farm_name = PREFERED_FARM.get()  # TODO: use the selected farm name when users are allowed to select farms
+        farm_name = PREFERRED_FARM.get()  # TODO: use the selected farm name when users are allowed to select farms
         if not self.deployer.check_capacity(farm_name, zdb_farms=self.zdb_farms):
             raise StopChatFlow(
                 f"There are not enough resources available to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."

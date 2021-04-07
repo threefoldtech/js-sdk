@@ -9,7 +9,7 @@
         "testnet": ["freefarm"],
         "mainnet": ["freefarm"]
     },
-    "PREFERED_FARM": {
+    "PREFERRED_FARM": {
         "devnet": "lochristi_dev_lab",
         "testnet": "freefarm",
         "mainnet": "freefarm"

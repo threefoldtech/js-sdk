@@ -32,24 +32,57 @@ To have a VDC deployer, it needs a farm with the following resources:
 
 ### How to use this farm
 
-Changes needed to be done in the code to use this farm in [size.py](https://github.com/threefoldtech/js-sdk/blob/development/jumpscale/sals/vdc/size.py):
+If there are 3 farms called `mydevfarm`, `mytestfarm`, and `myfarm`, then they are needed to be used for devnet, testnet, and mainnet explorers, respectively. The following steps should be done:
 
-- NETWORK_FARM
-- ZDB_FARMS
-- S3_AUTO_TOPUP_FARMS
-- PREFERED_FARM
-- PROXY_FARM
+- A json file should be written as the following
 
-**Example**
-Change network farm to `myfarm` on all explorers.
+  ```json
+         {
+        "NETWORK_FARM": {
+            "devnet": "mydevfarm",
+            "testnet": "mytestfarm",
+            "mainnet": "myfarm"
+        },
+        "PREFERRED_FARM": {
+            "devnet": "mydevfarm",
+            "testnet": "mytestfarm",
+            "mainnet": "myfarm"
+        },
+        "ZDB_FARMS": {
+            "devnet": [
+                "mydevfarm"
+            ],
+            "testnet": [
+                "mytestfarm"
+            ],
+            "mainnet": [
+                "myfarm"
+            ]
+        },
+        "S3_AUTO_TOPUP_FARMS": {
+            "devnet": [
+                "mydevfarm"
+            ],
+            "testnet": [
+                "mytestfarm"
+            ],
+            "mainnet": [
+                "myfarm"
+            ]
+        },
+        "PROXY_FARM": {
+            "devnet": "mytestfarm",
+            "testnet": "mytestfarm",
+            "mainnet": "myfarm"
+        }
+    }
+  ```
 
-```python
-class NETWORK_FARM(FarmConfigBase):
-    KEY = "NETWORK_FARM"
-    devnet = "myfarm"
-    testnet = "myfarm"
-    mainnet = "myfarm"
-```
+- Set the path of the farm's configuration to the json file has been written
+
+  ```python
+  j.config.set("VDC_FARMS_CONFIG", "</path/to/the/json/file>")
+  ```
 
 ## Storage Provider
 

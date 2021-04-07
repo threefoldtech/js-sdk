@@ -535,7 +535,7 @@ class VDCDeployer:
             farm_name: where to initialize the vdc
             s3_backup_config: dict with keys: url, region, bucket, ak, sk
         """
-        farm_name = farm_name or PREFERED_FARM.get()
+        farm_name = farm_name or PREFERRED_FARM.get()
 
         self.info(f"deploying VDC flavor: {self.flavor} farm: {farm_name}")
         # if len(minio_ak) < 3 or len(minio_sk) < 8:
@@ -682,7 +682,7 @@ class VDCDeployer:
         return domain_name
 
     def add_k8s_nodes(self, flavor, farm_name=None, public_ip=False, no_nodes=1, duration=None, external=True):
-        farm_name = farm_name or PREFERED_FARM.get()
+        farm_name = farm_name or PREFERRED_FARM.get()
         if isinstance(flavor, str):
             flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
         self.vdc_instance.load_info()
