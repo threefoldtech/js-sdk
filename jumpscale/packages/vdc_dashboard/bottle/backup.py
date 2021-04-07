@@ -9,10 +9,14 @@ app = Bottle()
 
 
 def _extract_name(backup):
-    if backup["metadata"]["name"].startswith("vdc-"):
-        b = backup["metadata"]["name"][4:]
-    elif backup["metadata"]["name"].startswith("config-"):
-        b = backup["metadata"]["name"][7:]
+    VDC_BACKUP_PREFIX = "vdc-"
+    CONFIG_BACKUP_PREFIX = "config-"
+
+    if backup["metadata"]["name"].startswith(VDC_BACKUP_PREFIX):
+        b = backup["metadata"]["name"][len(VDC_BACKUP_PREFIX) :]
+    elif backup["metadata"]["name"].startswith(CONFIG_BACKUP_PREFIX):
+        b = backup["metadata"]["name"][len(CONFIG_BACKUP_PREFIX) :]
+
     return b
 
 
@@ -38,14 +42,14 @@ def _list():
             backup_data = {}
             backup_1_name = _extract_name(backup_1)
             backup_2_name = _extract_name(backup_2)
-            if _check_sch_type(backup_1)["sch"]:
+
+            backup_1_type = _check_sch_type(backup_1)
+            backup_2_type = _check_sch_type(backup_2)
+
+            if backup_1_type["sch"]:
                 backup_data["name"] = f"schedule-{backup_1_name[:len(backup_1_name) -2]}"
-                backup_data[
-                    f'{_check_sch_type(backup_1)["type"]}_backup'
-                ] = f'{_check_sch_type(backup_1)["type"]}-{backup_1_name}'
-                backup_data[
-                    f'{_check_sch_type(backup_2)["type"]}_backup'
-                ] = f'{_check_sch_type(backup_2)["type"]}-{backup_2_name}'
+                backup_data[f'{backup_1_type["type"]}_backup'] = f'{backup_1_type["type"]}-{backup_1_name}'
+                backup_data[f'{backup_2_type["type"]}_backup'] = f'{backup_2_type["type"]}-{backup_2_name}'
             elif backup_1_name == backup_2_name:
                 backup_data["name"] = backup_1_name
                 backup_data["vdc_backup"] = f"vdc-{backup_1_name}"
