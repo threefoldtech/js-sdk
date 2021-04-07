@@ -42,15 +42,13 @@ class VDCDashboard(VDCBase):
 
     def tearDown(self):
         self.info("Delete a VDC")
-        if self.vdc:
-            vdc = self.vdc.vdc
-        else:
-            vdc = j.sals.vdc.get(f"vdc_{self.vdc_name}_{self.tname}")
+        if not self.vdc:
+            self.vdc = j.sals.vdc.get(f"vdc_{self.vdc_name}_{self.tname}")
 
-        j.sals.vdc.delete(vdc.instance_name)
+        j.sals.vdc.delete(self.vdc.instance_name)
         wallet = j.clients.stellar.get("demos_wallet")
-        vdc.provision_wallet.merge_into_account(wallet.address)
-        vdc.prepaid_wallet.merge_into_account(wallet.address)
+        self.vdc.provision_wallet.merge_into_account(wallet.address)
+        self.vdc.prepaid_wallet.merge_into_account(wallet.address)
 
         super().tearDown()
 
@@ -85,14 +83,22 @@ class VDCDashboard(VDCBase):
         self.vdc_name = self.random_name().lower()
         password = self.random_string()
         flavor = "silver"
-        self.vdc = deployer.deploy_vdc(self.vdc_name, password, flavor.upper())
+        vdc = deployer.deploy_vdc(self.vdc_name, password, flavor.upper())
+        self.vdc = vdc.vdc
 
         self.info("Prepare ssh key")
         self.ssh_client_name = self.random_name()
         self.ssh_cl = j.clients.sshkey.get(self.ssh_client_name)
-        self.ssh_cl.private_key_path = f"~/sandbox/cfg/vdc/keys/{self.tname}/{self.vdc_name}/id_rsa"
+        self.ssh_cl.private_key_path = (
+            f"{j.sals.fs.home()}/sandbox/cfg/vdc/keys/{self.vdc.owner_tname}/{self.vdc_name}/id_rsa"
+        )
         self.ssh_cl.load_from_file_system()
         self.ssh_cl.save()
+
+        j.sals.fs.copy_file(
+            f"{j.sals.fs.home()}/sandbox/cfg/vdc/kube/{self.vdc.owner_tname}/{self.vdc.vdc_name}.yaml",
+            j.sals.fs.expanduser("~/.kube/config"),
+        )
 
         self.info("Deploy a Cryptpad.")
         name = self.random_name().lower()
@@ -104,9 +110,9 @@ class VDCDashboard(VDCBase):
         self.assertEqual(request.status_code, 200)
 
         self.info("Up wireguard")
-        threebot = self.vdc.vdc.threebot
+        threebot = self.vdc.threebot
         rc, out, err = j.sals.process.execute(
-            f"sudo wg-quick up ~/sandbox/cfg/vdc/wireguard/{self.tname}/{self.vdc_name}.conf"
+            f"sudo wg-quick up {j.sals.fs.home()}/sandbox/cfg/vdc/wireguard/{self.vdc.owner_tname}/{self.vdc_name}.conf"
         )
         sleep(5)
 
