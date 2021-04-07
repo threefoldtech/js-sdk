@@ -58,7 +58,7 @@ def _list():
                 j.logger.warning(f"Skipping backup.")
                 continue
 
-            if backup_1["status"]["phase"] != "PartiallyFailed":
+            if backup_1["status"]["phase"] != "Completed":
                 backup = backup_1
             else:
                 backup = backup_2
