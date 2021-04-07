@@ -296,6 +296,14 @@ const BC_SOLUTIONS = {
             helpLink: `${DOCS_BASE_URL}/waykichain`,
             description: "Prominent blockchain platform based in China with a global community."
         },
+        casperlabs: {
+            name: "CasperLabs",
+            type: "casperlabs",
+            image: "./assets/casperlabs.png",
+            disable: true,
+            helpLink: `${DOCS_BASE_URL}/casperlabs`,
+            description: "CasperLabs is the team behind the Casper Network, first blockchain built for enterprise adoption"
+        },
     },
 }
 
