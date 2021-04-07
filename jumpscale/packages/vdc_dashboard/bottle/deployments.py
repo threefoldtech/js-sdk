@@ -13,65 +13,27 @@ from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
 from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper
 from jumpscale.core.base import StoredFactory
 
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
+    get_all_deployments,
+    get_deployments,
+    get_kubeconfig_file,
+    get_zstor_config_file,
+)
 import os
 
 app = Bottle()
 
 
-def _get_zstor_config(ip_version=6):
-    if not j.sals.vdc.list_all():
-        abort(500, "Couldn't find any vdcs on this machine, Please make sure to have it configured properly")
-    vdc_full_name = list(j.sals.vdc.list_all())[0]
-    vdc = j.sals.vdc.find(vdc_full_name, load_info=True)
-    vdc_zdb_monitor = vdc.get_zdb_monitor()
-    password = vdc_zdb_monitor.get_password()
-    encryption_key = password[:32].encode().zfill(32).hex()
-    data = {
-        "data_shards": 2,
-        "parity_shards": 1,
-        "redundant_groups": 0,
-        "redundant_nodes": 0,
-        "encryption": {"algorithm": "AES", "key": encryption_key},
-        "compression": {"algorithm": "snappy"},
-        "meta": {
-            "type": "etcd",
-            "config": {
-                "endpoints": ["http://127.0.0.1:2379", "http://127.0.0.1:22379", "http://127.0.0.1:32379"],
-                "prefix": "someprefix",
-            },
-        },
-        "groups": [],
-    }
-    if ip_version == 4:
-        deployer = vdc.get_deployer()
-        vdc.load_info(load_proxy=True)
-        deployer.s3.expose_zdbs()
-
-    for zdb in vdc.s3.zdbs:
-        if ip_version == 6:
-            zdb_url = f"[{zdb.ip_address}]:{zdb.port}"
-        elif ip_version == 4:
-            zdb_url = zdb.proxy_address
-        else:
-            return
-        data["groups"].append({"backends": [{"address": zdb_url, "namespace": zdb.namespace, "password": password}]})
-    return data
-
-
 @app.route("/api/kube/get")
 @package_authorized("vdc_dashboard")
-def get_kubeconfig() -> str:
-    file_path = j.sals.fs.expanduser("~/.kube/config")
-    if not j.sals.fs.exists(file_path):
-        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
-
-    file_content = j.sals.fs.read_file(file_path)
-
-    if not file_content:
-        return HTTPResponse(status=400, message="Invalid file!", headers={"Content-Type": "application/json"})
-
-    return j.data.serializers.json.dumps({"data": file_content})
+def get_kubeconfig():
+    try:
+        kubeconfig = get_kubeconfig_file()
+        return {"data": kubeconfig}
+    except j.exceptions.NotFound as e:
+        return HTTPResponse(status=404, message=str(e), headers={"Content-Type": "application/json"})
+    except j.exceptions.Value as e:
+        return HTTPResponse(status=400, message=str(e), headers={"Content-Type": "application/json"})
 
 
 @app.route("/api/kube/nodes/delete", method="POST")
@@ -213,12 +175,13 @@ def get_zstor_config():
     except Exception as e:
         j.logger.error(f"couldn't load body due to error: {str(e)}.")
     ip_version = data.get("ip_version", 6)
-    zstor_config = _get_zstor_config(ip_version)
-    if not zstor_config:
-        return HTTPResponse(
-            status=400, message=f"unsupported ip version: {ip_version}", headers={"Content-Type": "application/json"}
-        )
-    return j.data.serializers.json.dumps({"data": j.data.serializers.toml.dumps(zstor_config)})
+    try:
+        zstor_config = get_zstor_config_file(ip_version)
+        return {"data": j.data.serializers.toml.dumps(zstor_config)}
+    except j.exceptions.NotFound as e:
+        return HTTPResponse(status=500, message=str(e), headers={"Content-Type": "application/json"})
+    except j.exceptions.Value as e:
+        return HTTPResponse(status=400, message=str(e), headers={"Content-Type": "application/json"})
 
 
 @app.route("/api/zdb/secret", method="GET")
@@ -408,7 +371,7 @@ def get_sdk_version():
     for package in packages:
         data[package] = metadata.version(package)
     return HTTPResponse(
-        j.data.serializers.json.dumps({"data": data}), status=200, headers={"Content-Type": "application/json"},
+        j.data.serializers.json.dumps({"data": data}), status=200, headers={"Content-Type": "application/json"}
     )
 
 

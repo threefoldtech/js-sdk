@@ -6,6 +6,7 @@ from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, controller_authorized
 from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper
 from jumpscale.sals.vdc.size import VDC_SIZE
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_kubeconfig_file, get_zstor_config_file
 
 
 app = Bottle()
@@ -277,6 +278,51 @@ def list_alerts():
         alerts = [alert.json for alert in j.tools.alerthandler.find() if alert.app_name == app_name]
 
     return HTTPResponse(j.data.serializers.json.dumps(alerts), status=200, headers={"Content-Type": "application/json"})
+
+
+@app.route("/api/controller/kubeconfig", method="POST")
+@controller_authorized()
+def get_kubeconfig():
+    """
+    request body:
+        password
+
+    Returns:
+        kubeconfig: json
+    """
+    try:
+        kubeconfig = get_kubeconfig_file()
+        return {"data": kubeconfig}
+    except j.exceptions.NotFound as e:
+        return HTTPResponse(status=404, message=str(e), headers={"Content-Type": "application/json"})
+    except j.exceptions.Value as e:
+        return HTTPResponse(status=400, message=str(e), headers={"Content-Type": "application/json"})
+
+
+@app.route("/api/controller/zstor_config", method="POST")
+@controller_authorized()
+def get_zstor_config():
+    """
+    request body:
+        password
+        ip_version
+
+    Returns:
+        zstor_config: json
+    """
+    data = dict()
+    try:
+        data = j.data.serializers.json.loads(request.body.read())
+    except Exception as e:
+        j.logger.error(f"couldn't load body due to error: {str(e)}.")
+    ip_version = data.get("ip_version", 6)
+    try:
+        zstor_config = get_zstor_config_file(ip_version)
+        return {"data": j.data.serializers.toml.dumps(zstor_config)}
+    except j.exceptions.NotFound as e:
+        return HTTPResponse(status=500, message=str(e), headers={"Content-Type": "application/json"})
+    except j.exceptions.Value as e:
+        return HTTPResponse(status=400, message=str(e), headers={"Content-Type": "application/json"})
 
 
 app = SessionMiddleware(app, SESSION_OPTS)
