@@ -60,7 +60,7 @@ class VDCDashboard(VDCBase):
 
     def restore_backup(self, backup_name, localclient):
         _, res, _ = localclient.sshclient.run(
-            f"velero create restore restore-vdc-{backup_name} --from-backup vdc-{backup_name}"
+            f"velero create restore restore-{backup_name} --from-backup {backup_name}"
         )
 
     def test01_vdc_backup(self):
@@ -69,7 +69,7 @@ class VDCDashboard(VDCBase):
         **Test Scenario**
 
         - Deploy VDC.
-        - Prepare ssh key
+        - Prepare ssh key.
         - Deploy a cryptpad.
         - Check that cryptpad has been reachable.
         - Up wireguard
