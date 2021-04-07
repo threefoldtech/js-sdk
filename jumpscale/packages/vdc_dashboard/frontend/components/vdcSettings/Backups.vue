@@ -49,7 +49,7 @@
       <template v-slot:item.actions="{ item }">
         <v-tooltip top>
           <template v-slot:activator="{ on, attrs }">
-            <v-btn icon @click.stop="restore(item.name)">
+            <v-btn icon @click.stop="restore(item.name, item.vdc_backup, item.config_backup)">
               <v-icon v-bind="attrs" v-on="on" color="#206a5d"
                 >mdi-backup-restore</v-icon
               >
@@ -70,7 +70,7 @@
 
         <v-tooltip top v-if="item.role !== 'master'">
           <template v-slot:activator="{ on, attrs }">
-            <v-btn icon @click.stop="deleteBackup(item.name)">
+            <v-btn icon @click.stop="deleteBackup(item.name, item.vdc_backup, item.config_backup)">
               <v-icon v-bind="attrs" v-on="on" color="#810000"
                 >mdi-delete</v-icon
               >
@@ -90,10 +90,14 @@
       :title="title"
       v-model="dialogs.actions"
       :name="selectedBackup"
+      :vdcbackup="vdcBackupName"
+      :configbackup="configBackupName"
       @reload-backups="reload"
     ></actions>
     <restore-backup
       :name="selectedBackup"
+      :vdcbackup="vdcBackupName"
+      :configbackup="configBackupName"
       v-model="dialogs.restoreBackup"
       @reload-backups="reload"
     ></restore-backup>
@@ -115,6 +119,8 @@ module.exports = {
       search: "",
       selected: null,
       selectedBackup: null,
+      vdcBackupName: null,
+      configBackupName: null,
       sortBy: "start_timestamp",
       dialogs: {
         info: false,
@@ -152,17 +158,21 @@ module.exports = {
           this.show = false;
         });
     },
-    restore(name) {
+    restore(name, vdcBackup, configBackup) {
+      this.selectedBackup= name
+      this.vdcBackupName = vdcBackup;
+      this.configBackupName = configBackup;
       this.dialogs.restoreBackup = true;
-      this.selectedBackup = name;
     },
     open(record) {
       this.selected = record;
       this.dialogs.info = true;
     },
-    deleteBackup(name) {
+    deleteBackup(name, vdcBackup, configBackup) {
       this.title = "Delete";
       this.selectedBackup = name;
+      this.vdcBackupName = vdcBackup;
+      this.configBackupName = configBackup;
       this.dialogs.actions = true;
     },
     timeDifference(ts) {
@@ -178,7 +188,8 @@ module.exports = {
       this.dialogs.confirmBackup = true;
     },
     reload() {
-      this.list();
+      this.loading = true;
+      setTimeout(()=> {this.list()} , 2000);
     },
     updateStatus(status) {
       if (status === "PartiallyFailed") {

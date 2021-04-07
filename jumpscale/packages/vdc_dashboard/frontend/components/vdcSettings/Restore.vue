@@ -22,13 +22,13 @@ module.exports = {
       msg: null,
     };
   },
-  props: ["name"],
+  props: ["name", "vdcbackup", "configbackup"],
   mixins: [dialog],
   methods: {
     restore() {
       this.loading = true;
       this.$api.backup
-        .restore(this.name)
+        .restore(this.vdcbackup, this.configbackup)
         .then((response) => {
           this.show = true;
           this.msg = response.data;

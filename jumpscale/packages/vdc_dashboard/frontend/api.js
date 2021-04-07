@@ -152,19 +152,19 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    delete: (name) => {
+    delete: (vdcBackup, configBackup) => {
       return axios({
         url: `${baseURL}/backup/delete`,
         method: "post",
-        data: { name: name },
+        data: { vdc_backup_name: vdcBackup, config_backup_name: configBackup },
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    restore: (name) => {
+    restore: (vdcBackup, configBackup) => {
       return axios({
         url: `${baseURL}/backup/restore`,
         method: "post",
-        data: { name: name },
+        data: { vdc_backup_name: vdcBackup, config_backup_name: configBackup },
         headers: { 'Content-Type': 'application/json' }
       })
     },
