@@ -56,15 +56,19 @@ class VDCDashboard(VDCBase):
         _, res, _ = localclient.sshclient.run(
             f"velero create backup config-{backup_name} --include-resources secrets,configmaps"
         )
+        print(f"backup config result: {res}")
         _, res, _ = localclient.sshclient.run(f'velero create backup vdc-{backup_name} -l "backupType=vdc"')
+        print(f"backup vdc result: {res}")
 
     def restore_backup(self, backup_name, localclient):
         _, res, _ = localclient.sshclient.run(
             f"velero create restore restore-{backup_name} --from-backup vdc-{backup_name}"
         )
+        print(f"restore vdc result: {res}")
         _, res, _ = localclient.sshclient.run(
             f"velero create restore restore-config-{backup_name} --from-backup config-{backup_name}"
         )
+        print(f"restore config result: {res}")
 
     def test01_vdc_backup(self):
         """Test case for backup and restore a VDC.
@@ -127,9 +131,12 @@ class VDCDashboard(VDCBase):
         self.info("Backup a VDC")
         backup_name = self.random_name().lower()
         self.create_backup(backup_name, localclient)
+        sleep(20)
 
         self.info("Delete this cryptpad")
         _, res, _ = localclient.sshclient.run(f"kubectl delete ns cryptpad-{cryptpad.release_name}")
+        sleep(20)
+        print(f"delete cryptpad result: {res}")
 
         self.info("Restore backup")
         self.restore_backup(backup_name, localclient)
