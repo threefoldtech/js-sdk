@@ -60,7 +60,10 @@ class VDCDashboard(VDCBase):
 
     def restore_backup(self, backup_name, localclient):
         _, res, _ = localclient.sshclient.run(
-            f"velero create restore restore-{backup_name} --from-backup {backup_name}"
+            f"velero create restore restore-{backup_name} --from-backup vdc-{backup_name}"
+        )
+        _, res, _ = localclient.sshclient.run(
+            f"velero create restore restore-config-{backup_name} --from-backup config-{backup_name}"
         )
 
     def test01_vdc_backup(self):
