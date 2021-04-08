@@ -308,7 +308,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         cluster_ip = self.vdc_info["public_ip"]
         while not valid:
             custom_domain = self.string_ask(
-                f"Please enter the domain name, make sure the domain points to {cluster_ip}.", required=True,
+                f"Please enter the domain name, make sure the domain points to {cluster_ip}.", required=True
             )
             if not self._does_domain_point_to_ip(custom_domain, cluster_ip):
                 self.md_show(f"The domain {custom_domain} doesn't point to {cluster_ip}.")
@@ -418,6 +418,33 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
     def _has_domain(self):
         return getattr(self, "domain", None) is not None
+
+    def get_pods(self, pattern):
+        """Get the pods we need including this pattern
+
+        Args:
+            pattern(string) : pattern used during selecting the desired pod
+        Returns:
+            list(string) : Pods we got with the specified pattern
+        """
+        pods_info = self.k8s_client.execute_native_cmd(
+            f"kubectl get pods --no-headers -o custom-columns=':metadata.name' -n {self.chart_name}-{self.release_name} | grep {pattern}"
+        )
+        return pods_info.splitlines()
+
+    def exec_command_in_pod(self, pod_name, command):
+        """Takes command to be executed on a pod
+
+        Args:
+            pod_name(string) : Name of the pod we want to execute the command on
+            command (string) : Command you want to execute on the specified pod
+        Returns:
+            string : Output of the command
+        """
+
+        return self.k8s_client.execute_native_cmd(
+            f'kubectl -n {self.chart_name}-{self.release_name} exec {pod_name} -- bash -c "{command}"'
+        )
 
     def chart_resource_failure(self):
         pods_info = self.k8s_client.execute_native_cmd(
