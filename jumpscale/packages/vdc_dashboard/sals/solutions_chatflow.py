@@ -419,19 +419,23 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def _has_domain(self):
         return getattr(self, "domain", None) is not None
 
-    def get_pods(self, pattern):
-        """Takes pattern used to grep the pods we need
+    def get_pods(self, subname):
+        """Get the pods we need including this subname
 
         Args:
-            pattern(string) : Pattern used during grep operation to select the desired pod
+            subname(string) : subname used during selecting the desired pod
         Returns:
             list(string) : Pods we got with the specified pattern
         """
         pods_info = self.k8s_client.execute_native_cmd(
-            f"kubectl get pods --no-headers -o custom-columns=':metadata.name' -n {self.chart_name}-{self.release_name} | grep web"
+            f"kubectl get pods --no-headers -o custom-columns=':metadata.name' -n {self.chart_name}-{self.release_name}"
         )
-
-        return pods_info.splitlines()
+        pods = pods_info.splitlines()
+        desired_pods = []
+        for pod_name in pods:
+            if subname in pod_name:
+                desired_pods.append(pod_name)
+        return desired_pods
 
     def exec_command_in_pod(self, pod_name, command):
         """Takes command to be executed on a pod
