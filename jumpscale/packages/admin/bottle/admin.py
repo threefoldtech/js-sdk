@@ -64,4 +64,9 @@ def announce():
     )
 
 
+@app.route("/api/heartbeat", method="GET")
+def heartbeat():
+    return HTTPResponse(status=200)
+
+
 app = SessionMiddleware(app, SESSION_OPTS)
