@@ -45,12 +45,13 @@ class MastodonDeploy(SolutionsChatflowDeploy):
     @chatflow_step(title="Admin Data")
     def get_admin_data(self):
         form = self.new_form()
-        self.admin_name = form.string_ask("Please add Admin Name", required=True).value
-        self.admin_email = form.string_ask("Please add the Admin Email", required=True, md=True).value
+        admin_name = form.string_ask("Please add admin username", required=True, is_identifier=True)
+        admin_email = form.string_ask("Please add the admin email", required=True, md=True)
         form.ask()
+        self.admin_name = admin_name.value
+        self.admin_email = admin_email.value
 
     def create_admin_account(self):
-        #'bin/tootctl accounts create rafyyy --email rafyyy@example.com --confirmed --role admin'
         pod_name = self.get_pods("web")[0]
         command = f"bin/tootctl accounts create {self.admin_name} --email {self.admin_email} --confirmed --role admin"
         result = self.exec_command_in_pod(pod_name=pod_name, command=command)

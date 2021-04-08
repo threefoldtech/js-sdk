@@ -92,10 +92,10 @@ const DECENTRALIZED_WE = {
         mastodon: {
             name: "Mastodon",
             type: "mastodon",
-            image: "./assets/discourse.png",
+            image: "./assets/mastodon.png",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/discourse/",
-            description: "Discourse is an open source Internet forum and mailing list management software application built to educate members about civil community engagement."
+            helpLink: "https://docs.joinmastodon.org/",
+            description: "Similar to how blogging is the act of publishing updates to a website, microblogging is the act of publishing small updates to a stream of updates on your profile. You can publish text posts and optionally attach media such as pictures, audio, video, or polls. Mastodon lets you follow friends and discover new ones."
         },
         peertube: {
             name: "Peertube",
