@@ -218,7 +218,7 @@ class Manager:
             str: output of the kubectl/helm command
         """
         main_command, *sub_commands = cmd.split(" ")
-        cmd = f"{main_command} --kubeconfig {self.config_path} {''.join(sub_commands)}"
+        cmd = f"{main_command} --kubeconfig {self.config_path} {' '.join(sub_commands)}"
         rc, out, err = self._execute(cmd)
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to execute: {cmd}, error was {err}")
