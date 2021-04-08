@@ -37,15 +37,15 @@ class MastodonDeploy(SolutionsChatflowDeploy):
     def create_admin_account(self):
         #'bin/tootctl accounts create rafyyy --email rafyyy@example.com --confirmed --role admin'
         pod_name = self.get_pods("web")[0]
-        command = "bin/tootctl accounts create admin --email admin@example.com --confirmed --role admin"
+        command = "bin/tootctl accounts create mastodonadmin --email mastodonadmin@example.com --confirmed --role admin"
         result = self.exec_command_in_pod(pod_name=pod_name, command=command)
-        self.password = result.splitlines()[-1].split(" ")[-1]
+        return result.splitlines()[-1].split(" ")[-1]
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        self.create_admin_account()
+        password = self.create_admin_account()
         extra_info = f"Admin user credentials for owncloud is: \
-    <br/> Admin Email:admin@example.com <br/> Admin Password: {self.password}<br/>Please consider changing them after login"
+    <br/> Admin Email:mastodonadmin@example.com <br/> Admin Password: {password}<br/>Please consider changing them after login"
         super().success(extra_info=extra_info)
 
 

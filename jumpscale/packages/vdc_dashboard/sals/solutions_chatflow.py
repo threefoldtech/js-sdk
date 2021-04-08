@@ -419,23 +419,18 @@ class SolutionsChatflowDeploy(GedisChatBot):
     def _has_domain(self):
         return getattr(self, "domain", None) is not None
 
-    def get_pods(self, subname):
-        """Get the pods we need including this subname
+    def get_pods(self, pattern):
+        """Get the pods we need including this pattern
 
         Args:
-            subname(string) : subname used during selecting the desired pod
+            pattern(string) : pattern used during selecting the desired pod
         Returns:
             list(string) : Pods we got with the specified pattern
         """
         pods_info = self.k8s_client.execute_native_cmd(
-            f"kubectl get pods --no-headers -o custom-columns=':metadata.name' -n {self.chart_name}-{self.release_name}"
+            f"kubectl get pods --no-headers -o custom-columns=':metadata.name' -n {self.chart_name}-{self.release_name} | grep {pattern}"
         )
-        pods = pods_info.splitlines()
-        desired_pods = []
-        for pod_name in pods:
-            if subname in pod_name:
-                desired_pods.append(pod_name)
-        return desired_pods
+        return pods_info.splitlines()
 
     def exec_command_in_pod(self, pod_name, command):
         """Takes command to be executed on a pod
@@ -448,7 +443,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         """
 
         return self.k8s_client.execute_native_cmd(
-            f'kubectl -n {self.chart_name}-{self.release_name} exec {pod_name} -- bach -c "{command}"'
+            f'kubectl -n {self.chart_name}-{self.release_name} exec {pod_name} -- bash -c "{command}"'
         )
 
     def chart_resource_failure(self):

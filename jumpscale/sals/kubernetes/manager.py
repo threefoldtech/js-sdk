@@ -168,7 +168,7 @@ class Manager:
 
             # Validate service running
             ssh_client = self.get_k8s_sshclient(instance=release, host=k8s_master_ip)
-            rc, out, err = ssh_client.sshclient.run(f"sudo rc-service -l | grep -i '{release}-socat-'", warn=True,)
+            rc, out, err = ssh_client.sshclient.run(f"sudo rc-service -l | grep -i '{release}-socat-'", warn=True)
 
             if rc == 0:
                 results = out.split("\n")
@@ -217,7 +217,8 @@ class Manager:
         Returns:
             str: output of the kubectl/helm command
         """
-        cmd = f"{cmd} --kubeconfig {self.config_path}"
+        main_command, *sub_commands = cmd.split(" ")
+        cmd = f"{main_command} --kubeconfig {self.config_path} {''.join(sub_commands)}"
         rc, out, err = self._execute(cmd)
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to execute: {cmd}, error was {err}")
