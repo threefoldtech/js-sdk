@@ -37,7 +37,7 @@ class MastodonDeploy(SolutionsChatflowDeploy):
                 "env.smtp.address": f"support@{self.domain}",
                 "env.smtp.login": self.smtp_username,
                 "env.smtp.domain": self.domain,
-		"smtpPassword": self.smtp_password,
+                "smtpPassword": self.smtp_password,
                 "env.extraEnvVars[0].name": "THREEBOT_KEY",
                 "env.extraEnvVars[0].value": self.generate_signing_key(),
             }
