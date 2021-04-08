@@ -81,26 +81,51 @@ class EscrowAccount:
         return str(self)
 
 
+class VestingAccount:
+    def __init__(self, address, balances, scheme):
+        self.address = address
+        self.balances = balances
+        self.scheme = scheme
+
+    def __str__(self):
+        representation = f"Vesting Account {self.address}"
+        for balance in self.balances:
+            representation += f"\n- {balance.balance} {balance.asset_code}"
+            if balance.asset_issuer is not None:
+                representation += f":{balance.asset_issuer}"
+        return representation
+
+    def __repr__(self):
+        return str(self)
+
+
 class AccountBalances:
     def __init__(self, address):
         self.address = address
         self.balances = []
         self.escrow_accounts = []
+        self.vesting_accounts = []
 
     def add_balance(self, balance):
         self.balances.append(balance)
 
     def add_escrow_account(self, account):
-        self.escrow_accounts.append(account)
+        if type(account) is VestingAccount:
+            self.vesting_accounts.append(account)
+        else:
+            self.escrow_accounts.append(account)
 
     def __str__(self):
         representation = "Balances"
         for balance in self.balances:
             representation += "\n  " + str(balance)
-        if len(self.escrow_accounts) > 0:
+        for vesting_account in self.vesting_accounts:
+            representation += f"\n{str(vesting_account)}"
+
+        if self.escrow_accounts:
             representation += "\nLocked balances:"
             for escrow_account in self.escrow_accounts:
-                representation += "\n - {account}".format(account=str(escrow_account))
+                representation += f"\n - {str(escrow_account)}"
         return representation
 
     def __repr__(self):
