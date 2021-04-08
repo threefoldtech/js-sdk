@@ -6,7 +6,7 @@ from jumpscale.loader import j
 from tests.base_tests import BaseTests
 
 
-@pytest.mark.skip()
+@pytest.mark.integration()
 class GithubClientTest(BaseTests):
     def setUp(self):
         super().setUp()
