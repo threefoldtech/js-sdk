@@ -61,7 +61,7 @@ class MastodonDeploy(SolutionsChatflowDeploy):
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
         password = self.create_admin_account()
-        extra_info = f"Admin user credentials for owncloud is: \
+        extra_info = f"Admin user credentials for mastodon is: \
     <br/> Admin Email:{self.admin_email} <br/> Admin Password: {password}"
         super().success(extra_info=extra_info)
 
