@@ -7,7 +7,15 @@ class MastodonDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "mastodon"
     title = "Mastodon"
     HELM_REPO_NAME = "marketplace"
-    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    steps = [
+        "get_release_name",
+        "create_subdomain",
+        "set_config",
+        "get_admin_data",
+        "install_chart",
+        "initializing",
+        "success",
+    ]
     CHART_LIMITS = {
         "Silver": {"cpu": "3000m", "memory": "3024Mi"},
         "Gold": {"cpu": "4000m", "memory": "4096Mi"},
@@ -34,10 +42,17 @@ class MastodonDeploy(SolutionsChatflowDeploy):
             }
         )
 
+    @chatflow_step(title="Admin Data")
+    def get_admin_data(self):
+        form = self.new_form()
+        self.admin_name = form.string_ask("Please add Admin Name", required=True).value
+        self.admin_email = form.string_ask("Please add the Admin Email", required=True, md=True).value
+        form.ask()
+
     def create_admin_account(self):
         #'bin/tootctl accounts create rafyyy --email rafyyy@example.com --confirmed --role admin'
         pod_name = self.get_pods("web")[0]
-        command = "bin/tootctl accounts create mastodonadmin --email mastodonadmin@example.com --confirmed --role admin"
+        command = f"bin/tootctl accounts create {self.admin_name} --email {self.admin_email} --confirmed --role admin"
         result = self.exec_command_in_pod(pod_name=pod_name, command=command)
         return result.splitlines()[-1].split(" ")[-1]
 
@@ -45,7 +60,7 @@ class MastodonDeploy(SolutionsChatflowDeploy):
     def success(self):
         password = self.create_admin_account()
         extra_info = f"Admin user credentials for owncloud is: \
-    <br/> Admin Email:mastodonadmin@example.com <br/> Admin Password: {password}<br/>Please consider changing them after login"
+    <br/> Admin Email:{self.admin_email} <br/> Admin Password: {password}"
         super().success(extra_info=extra_info)
 
 
