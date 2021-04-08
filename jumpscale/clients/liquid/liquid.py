@@ -21,6 +21,30 @@ JS-NG> p1.ask
 '0.06943500'
 ```
 
+## Orders
+Here we handle orders on liquid network. The token_id and token_secret should be passed in the client creation
+```
+client = j.clients.liquid.get("test_client",token_id=TOKEN_ID,token_secret=TOKEN_SECRET)
+client.save()
+
+JS-NG> client.create_order(order_type="limit",product_id=637,side="sell",quantity=12,price=50)
+{'id': 4238991143, 'order_type': 'limit', 'quantity': '12.0', 'disc_quantity': '0.0', 'iceberg_total_quantity': '0.0', 'side': 'sell', 'filled_quantity': '0.0', 'price': 50.0, 'created_at': 1617896032, 'updated_at': 1617896032, 'status': 'live', 'leverage_level': 1, 'source_exchange': 'QUOINE', 'product_id': 637, 'margin_type': None, 'take_profit': None, 'stop_loss': None, 'trading_type': 'spot', 'product_code': 'CASH', 'funding_currency': 'BTC', 'crypto_account_id': None, 'currency_pair_code': 'TFTBTC', 'average_price': 0.0, 'target': 'spot', 'order_fee': 0.0, 'source_action': 'manual', 'unwound_trade_id': None, 'trade_id': None, 'client_order_id': None}
+
+JS-NG> client.get_order(4238991143)
+{'id': 4238991143, 'order_type': 'limit', 'quantity': '12.0', 'disc_quantity': '0.0', 'iceberg_total_quantity': '0.0', 'side': 'sell', 'filled_quantity': '0.0', 'price': 50.0, 'created_at': 1617896032, 'updated_at': 1617896032, 'status': 'live', 'leverage_level': 1, 'source_exchange': 'QUOINE', 'product_id': 637, 'margin_type': None, 'take_profit': None, 'stop_loss': None, 'trading_type': 'spot', 'product_code': 'CASH', 'funding_currency': 'BTC', 'crypto_account_id': None, 'currency_pair_code': 'TFTBTC', 'average_price': 0.0, 'target': 'spot', 'order_fee': '0.0', 'source_action': 'manual', 'unwound_trade_id': None, 'trade_id': None, 'client_order_id': None, 'settings': None, 'trailing_stop_type': None, 'trailing_stop_value': None, 'executions': [], 'stop_triggered_time': None}
+
+JS-NG> client.get_orders()
+{'models': [{'id': 4238991143, 'order_type': 'limit', 'quantity': '12.0', 'disc_quantity': '0.0', 'iceberg_total_quantity': '0.0', 'side': 'sell', 'filled_quantity': '0.0', 'price': '50.0', 'created_at': 1617896032, 'updated_at': 1617896032, 'status': 'live', 'leverage_level': 1, 'source_exchange': 0, 'product_id': 637, 'margin_type': None, 'take_profit': None, 'stop_loss': None, 'trading_type': 'spot', 'product_code': 'CASH', 'funding_currency': 'BTC', 'crypto_account_id': None, 'currency_pair_code': 'TFTBTC', 'average_price': '0.0', 'target': 'spot', 'order_fee': '0.0', 'source_action': 'manual', 'unwound_trade_id': None, 'trade_id': None, 'client_order_id': None}], 'total_pages': 1, 'current_page': 1}
+
+JS-NG> client.get_balance()
+[{'currency': 'USD', 'balance': '0.0'}, {'currency': 'TFT', 'balance': '13.0'}, {'currency': 'XLM', 'balance': '0.0'}, {'currency': 'ETH', 'balance': '0.0'}, {'currency': 'BTC', 'balance': '0.0'}]
+
+JS-NG> client.edit_order(order_id=4238991143,price=40)
+{'id': 4238991143, 'order_type': 'limit', 'quantity': '12.0', 'disc_quantity': '0.0', 'iceberg_total_quantity': '0.0', 'side': 'sell', 'filled_quantity': '0.0', 'price': 40.0, 'created_at': 1617896032, 'updated_at': 1617896342, 'status': 'live', 'leverage_level': 1, 'source_exchange': 'QUOINE', 'product_id': 637, 'margin_type': None, 'take_profit': None, 'stop_loss': None, 'trading_type': 'spot', 'product_code': 'CASH', 'funding_currency': 'BTC', 'crypto_account_id': None, 'currency_pair_code': 'TFTBTC', 'average_price': 0.0, 'target': 'spot', 'order_fee': 0.0, 'source_action': 'manual', 'unwound_trade_id': None, 'trade_id': None, 'client_order_id': None}
+
+JS-NG> client.cancel_order(4238991143)
+{'id': 4238991143, 'order_type': 'limit', 'quantity': '12.0', 'disc_quantity': '0.0', 'iceberg_total_quantity': '0.0', 'side': 'sell', 'filled_quantity': '0.0', 'price': 40.0, 'created_at': 1617896032, 'updated_at': 1617897424, 'status': 'cancelled', 'leverage_level': 1, 'source_exchange': 'QUOINE', 'product_id': 637, 'margin_type': None, 'take_profit': None, 'stop_loss': None, 'trading_type': 'spot', 'product_code': 'CASH', 'funding_currency': 'BTC', 'crypto_account_id': None, 'currency_pair_code': 'TFTBTC', 'average_price': 0.0, 'target': 'spot', 'order_fee': 0.0, 'source_action': 'manual', 'unwound_trade_id': None, 'trade_id': None, 'client_order_id': None}
+```
 
 """
 
@@ -40,6 +64,8 @@ class Price(Base):
 class LiquidClient(Client):
     _url = fields.String(default="https://api.liquid.com/")
     _price = fields.Object(Price)
+    token_id = fields.String(default=None)
+    token_secret = fields.Secret(default=None)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -79,15 +105,15 @@ class LiquidClient(Client):
         s = Price(**data)
         return s
 
-    def do_authenticated_request(self, token_id, secret, endpoint, data=None, params=None, request_method="GET"):
+    def do_authenticated_request(self, endpoint, data=None, params=None, request_method="GET"):
 
         path = f"{self._url}{endpoint}"
         payload = {
             "path": path,
             "nonce": j.data.time.get().timestamp * 1000,  # time in milliseconds
-            "token_id": token_id,
+            "token_id": self.token_id,
         }
-        signature = jwt.encode(payload, secret, "HS256")
+        signature = jwt.encode(payload, self.token_secret, "HS256")
         request_headers = {"X-Quoine-API-Version": "2", "X-Quoine-Auth": signature, "Content-Type": "application/json"}
         return self._do_request(
             path, j.exceptions.Input, headers=request_headers, params=params, data=data, request_method=request_method
@@ -95,15 +121,13 @@ class LiquidClient(Client):
 
     def create_order(
         self,
-        token_id,
-        secret,
         order_type,
-        product_id,
         side,
         quantity,
-        price,
-        trailing_stop_type,
-        trailing_stop_value,
+        product_id=637,
+        price=None,
+        trailing_stop_type=None,
+        trailing_stop_value=None,
         trading_type=None,
         margin_type="cross",
         price_range=None,
@@ -114,10 +138,8 @@ class LiquidClient(Client):
         """Create a new order
 
         Args:
-            token_id (str) : liquid account token id,
-            secret (str) : liquid account secret associated with token id ,
             order_type (str) : type of order [limit, market, market_with_range, trailing_stop, limit_post_only, stop],
-            product_id (int) : type of product,
+            product_id (int) : type of product, e.g 637 (TFTBTC) , 638 (TFTUSDT)
             side (str) : supported side of order [buy,sell],
             quantity (str) : quantity to buy or sell,
             price (str) : price per unit of cryptocurrency ,
@@ -165,38 +187,32 @@ class LiquidClient(Client):
                 "stop_loss": stop_loss,
             }
         }
-        return self.do_authenticated_request(token_id, secret, endpoint="orders", request_method="POST", data=data)
+        return self.do_authenticated_request(endpoint="orders", request_method="POST", data=data)
 
-    def get_order(self, token_id, secret, order_id):
+    def get_order(self, order_id):
         """Get an existing order
 
         Args:
-            token_id (str) : liquid account token id,
-            secret (str) : liquid account secret associated with token id ,
             order_id (str): id of order
         Returns:
             Order response: dict
         """
         endpoint = f"orders/{order_id}"
-        return self.do_authenticated_request(token_id, secret, endpoint=endpoint, request_method="GET")
+        return self.do_authenticated_request(endpoint=endpoint, request_method="GET")
 
-    def get_order_trades(self, token_id, secret, order_id):
+    def get_order_trades(self, order_id):
         """Get an existing order's trades
 
         Args:
-            token_id (str) : liquid account token id,
-            secret (str) : liquid account secret associated with token id ,
             order_id (str): id of order
         Returns:
             Order trades response: dict
         """
         endpoint = f"orders/{order_id}/trades"
-        return self.do_authenticated_request(token_id, secret, endpoint=endpoint, request_method="GET")
+        return self.do_authenticated_request(endpoint=endpoint, request_method="GET")
 
     def get_orders(
         self,
-        token_id,
-        secret,
         funding_currency=None,
         product_id=None,
         status=None,
@@ -214,20 +230,18 @@ class LiquidClient(Client):
             "limit": limit,
             "page": page,
         }
-        return self.do_authenticated_request(token_id, secret, endpoint="orders", params=params, request_method="GET")
+        return self.do_authenticated_request(endpoint="orders", params=params, request_method="GET")
 
     def edit_order(
         self,
-        token_id,
-        secret,
         order_id,
-        order_type,
-        product_id,
-        side,
-        quantity,
-        price,
-        trailing_stop_type,
-        trailing_stop_value,
+        order_type=None,
+        product_id=637,
+        side=None,
+        quantity=None,
+        price=None,
+        trailing_stop_type=None,
+        trailing_stop_value=None,
         trading_type=None,
         margin_type=None,
         price_range=None,
@@ -254,8 +268,11 @@ class LiquidClient(Client):
             }
         }
 
-        return self.do_authenticated_request(token_id, secret, endpoint=endpoint, request_method="PUT", data=data)
+        return self.do_authenticated_request(endpoint=endpoint, request_method="PUT", data=data)
 
-    def cancel_order(self, token_id, secret, order_id):
+    def cancel_order(self, order_id):
         endpoint = f"orders/{order_id}/cancel"
-        return self.do_authenticated_request(token_id, secret, endpoint=endpoint, request_method="PUT")
+        return self.do_authenticated_request(endpoint=endpoint, request_method="PUT")
+
+    def get_balance(self):
+        return self.do_authenticated_request(endpoint="accounts/balance", request_method="GET")
