@@ -14,9 +14,11 @@ from jumpscale.loader import j
 from stellar_sdk import Asset, TransactionBuilder
 
 from .wrapped import Account, Server
-from .balance import AccountBalances, Balance, EscrowAccount
+from .balance import AccountBalances, Balance, EscrowAccount, VestingAccount
 from .transaction import Effect, PaymentSummary, TransactionSummary
 from .exceptions import UnAuthorized
+from .vesting import is_vesting_account, VESTING_SCHEME
+
 
 XLM_TRANSACTION_FEES = 0.00001
 ACTIVATION_ADDRESS = "GCKLGWHEYT2V63HC2VDJRDWEY3G54YSHHPOA6Q3HAPQUGA5OZDWZL7KW"
@@ -187,15 +189,24 @@ class Stellar(Client):
                 balances = []
                 for response_balance in account["balances"]:
                     balances.append(Balance.from_horizon_response(response_balance))
-
-                escrow_account = EscrowAccount(
-                    account_id,
-                    preauth_signers,
-                    balances,
+                if is_vesting_account(
+                    account,
+                    address,
+                    self.network.value,
                     _NETWORK_PASSPHRASES[self.network.value],
                     self._get_unlockhash_transaction,
-                )
-                escrow_accounts.append(escrow_account)
+                ):
+                    escrow_accounts.append(VestingAccount(account_id, balances, VESTING_SCHEME))
+                else:
+                    escrow_accounts.append(
+                        EscrowAccount(
+                            account_id,
+                            preauth_signers,
+                            balances,
+                            _NETWORK_PASSPHRASES[self.network.value],
+                            self._get_unlockhash_transaction,
+                        )
+                    )
         return escrow_accounts
 
     def claim_locked_funds(self):
