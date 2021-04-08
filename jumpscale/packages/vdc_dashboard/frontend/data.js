@@ -1,4 +1,4 @@
-const DOCS_BASE_URL = "https://marketplace.threefold.io/marketplace/apps"
+const DOCS_BASE_URL = "https://marketplace.threefold.io/apps"
 
 const DECENTRALIZED_OFFICE = {
     titleToolTip: null,
