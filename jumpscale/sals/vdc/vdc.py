@@ -324,6 +324,9 @@ class UserVDC(Base):
                 self.etcd.append(node)
         elif workload.info.workload_type == WorkloadType.Zdb:
             result_json = j.data.serializers.json.loads(workload.info.result.data_json)
+            if not result_json:
+                j.logger.warning(f"Couldn't get result details for zdb workload: {workload.id}")
+                return
             if "IPs" in result_json:
                 ip = result_json["IPs"][0]
             else:
