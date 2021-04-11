@@ -48,7 +48,7 @@ class ZDBMonitor:
                 j.logger.warning(f"missing data_size and data_limits keys in namespace info for zdb: {zdb}")
                 continue
             zdbs_usage[zdb.wid] = float(nsinfo["data_size_bytes"]) / 1024 ** 3 / zdb.size
-            return zdbs_usage
+        return zdbs_usage
 
     def check_utilization(self):
         """

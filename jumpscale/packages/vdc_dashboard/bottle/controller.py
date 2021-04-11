@@ -59,13 +59,14 @@ def add_node():
     request body:
         password
         flavor
-
+        farm
     Returns:
         wids: list of wids
     """
     data = j.data.serializers.json.loads(request.body.read())
     vdc_password = data.get("password")
     node_flavor = data.get("flavor")
+    farm = data.get("farm")
     if not all([node_flavor]):
         abort(400, "Error: Not all required params were passed.")
 
@@ -80,7 +81,7 @@ def add_node():
     vdc = get_vdc()
     vdc.load_info()
     deployer = vdc.get_deployer(password=vdc_password)
-    capacity_check, farm_name = vdc.check_capacity_available(node_flavor)
+    capacity_check, farm_name = vdc.check_capacity_available(node_flavor, farm)
     if not capacity_check:
         abort(400, f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {node_flavor}")
 
@@ -91,7 +92,7 @@ def add_node():
 
     old_wallet = deployer._set_wallet(vdc.prepaid_wallet.instance_name)
     try:
-        wids = deployer.add_k8s_nodes(node_flavor, public_ip=False)
+        wids = deployer.add_k8s_nodes(node_flavor, farm_name=farm, public_ip=False)
         deployer._set_wallet(old_wallet)
         return HTTPResponse(
             j.data.serializers.json.dumps(wids), status=201, headers={"Content-Type": "application/json"}
@@ -154,8 +155,12 @@ def list_zdbs():
     zdbs_usage = zdb_monitor.get_zdbs_usage()
     zdbs_info = vdc_dict["s3"]["zdbs"]
     for zdb in zdbs_info:
-        zdbs_info["usage"] = zdbs_usage[zdb["wid"]]
-    return zdbs_info
+        zdb_wid = zdb["wid"]
+        zdb["usage"] = zdbs_usage.get(zdb_wid)
+
+    return HTTPResponse(
+        j.data.serializers.json.dumps(zdbs_info), status=200, headers={"Content-Type": "application/json"}
+    )
 
 
 @app.route("/api/controller/zdb/add", method="POST")
