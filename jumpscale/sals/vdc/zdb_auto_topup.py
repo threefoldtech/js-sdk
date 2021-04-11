@@ -32,11 +32,8 @@ class ZDBMonitor:
             return False, util
         return True, util
 
-    def check_utilization(self):
-        """
-        connect to all zdbs and check data utilization
-        """
-        used_size = 0
+    def get_zdbs_usage(self):
+        zdbs_usage = {}
         for zdb in self.zdbs:
             client = j.clients.redis.get(f"zdb_{zdb.wid}")
             client.hostname = zdb.ip_address
@@ -50,8 +47,17 @@ class ZDBMonitor:
             if not all(["data_size_bytes" in nsinfo, "data_limits_bytes" in nsinfo]):
                 j.logger.warning(f"missing data_size and data_limits keys in namespace info for zdb: {zdb}")
                 continue
-            used_size += float(nsinfo["data_size_bytes"]) / 1024 ** 3
-        return used_size / self.zdb_total_size
+            zdbs_usage[zdb.wid] = float(nsinfo["data_size_bytes"]) / 1024 ** 3 / zdb.size
+            return zdbs_usage
+
+    def check_utilization(self):
+        """
+        connect to all zdbs and check data utilization
+        """
+        total_usage = 0
+        for usage in self.get_zdbs_usage().values():
+            total_usage += usage
+        return total_usage
 
     def _parse_info(self, info: str):
         result = {}

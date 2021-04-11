@@ -148,9 +148,14 @@ def list_zdbs():
     data = j.data.serializers.json.loads(request.body.read())
     vdc_dict = _get_vdc_dict()
 
-    return HTTPResponse(
-        j.data.serializers.json.dumps(vdc_dict["s3"]["zdbs"]), status=200, headers={"Content-Type": "application/json"}
-    )
+    vdc = get_vdc()
+    vdc.load_info()
+    zdb_monitor = vdc.get_zdb_monitor()
+    zdbs_usage = zdb_monitor.get_zdbs_usage()
+    zdbs_info = vdc_dict["s3"]["zdbs"]
+    for zdb in zdbs_info:
+        zdbs_info["usage"] = zdbs_usage[zdb["wid"]]
+    return zdbs_info
 
 
 @app.route("/api/controller/zdb/add", method="POST")
