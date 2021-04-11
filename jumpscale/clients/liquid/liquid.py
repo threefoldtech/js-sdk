@@ -53,6 +53,7 @@ import jwt
 from jumpscale.loader import j
 from jumpscale.clients.base import Client, Base
 from jumpscale.core.base import fields
+from urllib.parse import urlencode
 
 
 class Price(Base):
@@ -108,8 +109,9 @@ class LiquidClient(Client):
     def do_authenticated_request(self, endpoint, data=None, params=None, request_method="GET"):
 
         path = f"{self._url}{endpoint}"
+        encoded_query = urlencode(params)
         payload = {
-            "path": path,
+            "path": f"{path}?{encoded_query}",
             "nonce": j.data.time.get().timestamp * 1000,  # time in milliseconds
             "token_id": self.token_id,
         }
@@ -139,7 +141,7 @@ class LiquidClient(Client):
 
         Args:
             order_type (str) : type of order [limit, market, market_with_range, trailing_stop, limit_post_only, stop],
-            product_id (int) : type of product, e.g 637 (TFTBTC) , 638 (TFTUSDT)
+            product_id (int) : type of product, e.g 637 (TFTBTC)
             side (str) : supported side of order [buy,sell],
             quantity (str) : quantity to buy or sell,
             price (str) : price per unit of cryptocurrency ,
@@ -230,6 +232,10 @@ class LiquidClient(Client):
             "limit": limit,
             "page": page,
         }
+        # remove None paramas
+        for key, item in params.copy().items():
+            if not item:
+                params.pop(key)
         return self.do_authenticated_request(endpoint="orders", params=params, request_method="GET")
 
     def edit_order(
