@@ -111,6 +111,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         scheduler.exclude_nodes(*old_node_ids)
         nodes_generator = scheduler.nodes_by_capacity(**VDC_SIZE.K8S_SIZES[k8s_flavor], public_ip=public_ip)
         if nodes_ids:
+            nodes_generator = list(nodes_generator)
             nodes_generator_ids = [node.node_id for node in nodes_generator]
             unavailable_nodes_ids = set(nodes_ids) - set(nodes_generator_ids)
             if unavailable_nodes_ids:

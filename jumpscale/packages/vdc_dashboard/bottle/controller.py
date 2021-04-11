@@ -97,7 +97,7 @@ def add_node():
 
     old_wallet = deployer._set_wallet(vdc.prepaid_wallet.instance_name)
     try:
-        wids = deployer.add_k8s_nodes(node_flavor, farm_name=farm, public_ip=False)
+        wids = deployer.add_k8s_nodes(node_flavor, farm_name=farm, public_ip=False, nodes_ids=nodes_ids)
         deployer._set_wallet(old_wallet)
         return HTTPResponse(
             j.data.serializers.json.dumps(wids), status=201, headers={"Content-Type": "application/json"}
