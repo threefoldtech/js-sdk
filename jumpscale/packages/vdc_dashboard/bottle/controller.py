@@ -60,6 +60,7 @@ def add_node():
         password
         flavor
         farm
+        nodes_ids
     Returns:
         wids: list of wids
     """
@@ -67,6 +68,10 @@ def add_node():
     vdc_password = data.get("password")
     node_flavor = data.get("flavor")
     farm = data.get("farm")
+    nodes_ids = data.get("nodes_ids")
+    if nodes_ids and not farm:
+        abort(400, "Error: Must specify farm with node_ids.")
+
     if not all([node_flavor]):
         abort(400, "Error: Not all required params were passed.")
 

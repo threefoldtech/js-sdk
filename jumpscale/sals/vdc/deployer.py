@@ -681,7 +681,9 @@ class VDCDeployer:
         self.info(f"s3 exposed over domain: {domain_name}")
         return domain_name
 
-    def add_k8s_nodes(self, flavor, farm_name=None, public_ip=False, no_nodes=1, duration=None, external=True):
+    def add_k8s_nodes(
+        self, flavor, farm_name=None, public_ip=False, no_nodes=1, duration=None, external=True, nodes_ids=None
+    ):
         farm_name = farm_name or PREFERED_FARM.get()
         if isinstance(flavor, str):
             flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
@@ -711,6 +713,7 @@ class VDCDeployer:
             solution_uuid=uuid.uuid4().hex,
             public_ip=public_ip,
             external=external,
+            nodes_ids=nodes_ids,
         )
         self.info(f"kubernetes cluster expansion result: {wids}")
         if not wids:
