@@ -462,7 +462,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             list(string) : Pods we got with the specified pattern
         """
         pods_info = self.k8s_client.execute_native_cmd(
-            f"kubectl get pods --no-headers -o custom-columns=':metadata.name' -n {self.chart_name}-{self.release_name} | grep {pattern}"
+            f"kubectl get pods --no-headers -o custom-columns=':metadata.name' -n {self.chart_name}-{self.config.release_name} | grep {pattern}"
         )
         return pods_info.splitlines()
 
@@ -477,7 +477,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         """
 
         return self.k8s_client.execute_native_cmd(
-            f'kubectl -n {self.chart_name}-{self.release_name} exec {pod_name} -- bash -c "{command}"'
+            f'kubectl -n {self.chart_name}-{self.config.release_name} exec {pod_name} -- bash -c "{command}"'
         )
 
     def chart_resource_failure(self):

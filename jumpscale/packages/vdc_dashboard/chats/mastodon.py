@@ -8,9 +8,11 @@ class MastodonDeploy(SolutionsChatflowDeploy):
     title = "Mastodon"
     HELM_REPO_NAME = "marketplace"
     steps = [
+        "init_chatflow",
         "get_release_name",
-        "create_subdomain",
+        "choose_flavor",
         "set_config",
+        "create_subdomain",
         "get_admin_data",
         "install_chart",
         "initializing",
@@ -22,26 +24,22 @@ class MastodonDeploy(SolutionsChatflowDeploy):
         "Platinum": {"cpu": "5000m", "memory": "5120Mi"},
     }
 
+    def get_config(self):
+        return {
+            "web.ingress.host": self.config.chart_config.domain,
+            "env.smtp.server": self.config.chart_config.smtp_host,
+            "env.smtp.port": self.config.chart_config.smtp_port.strip('"'),
+            "env.smtp.address": f"support@{self.config.chart_config.domain}",
+            "env.smtp.login": self.config.chart_config.smtp_username,
+            "env.smtp.domain": self.config.chart_config.domain,
+            "smtpPassword": self.config.chart_config.smtp_password,
+            "env.extraEnvVars[0].name": "THREEBOT_KEY",
+            "env.extraEnvVars[0].value": self.generate_signing_key(),
+        }
+
     @chatflow_step(title="Configurations")
     def set_config(self):
-
-        self._choose_flavor(chart_limits=self.CHART_LIMITS)
         self._ask_smtp_settings()
-        self.chart_config.update(
-            {
-                "web.ingress.host": self.domain,
-                "resources.limits.cpu": self.resources_limits["cpu"][:-1],
-                "resources.limits.memory": self.resources_limits["memory"][:-2],
-                "env.smtp.server": self.smtp_host,
-                "env.smtp.port": self.smtp_port.strip('"'),
-                "env.smtp.address": f"support@{self.domain}",
-                "env.smtp.login": self.smtp_username,
-                "env.smtp.domain": self.domain,
-                "smtpPassword": self.smtp_password,
-                "env.extraEnvVars[0].name": "THREEBOT_KEY",
-                "env.extraEnvVars[0].value": self.generate_signing_key(),
-            }
-        )
 
     @chatflow_step(title="Admin Data")
     def get_admin_data(self):
@@ -49,12 +47,12 @@ class MastodonDeploy(SolutionsChatflowDeploy):
         admin_name = form.string_ask("Please add admin username", required=True, is_identifier=True)
         admin_email = form.string_ask("Please add the admin email", required=True, md=True)
         form.ask()
-        self.admin_name = admin_name.value
-        self.admin_email = admin_email.value
+        self.config.chart_config.admin_name = admin_name.value
+        self.config.chart_config.admin_email = admin_email.value
 
     def create_admin_account(self):
         pod_name = self.get_pods("web")[0]
-        command = f"bin/tootctl accounts create {self.admin_name} --email {self.admin_email} --confirmed --role admin"
+        command = f"bin/tootctl accounts create {self.config.chart_config.admin_name} --email {self.config.chart_config.admin_email} --confirmed --role admin"
         result = self.exec_command_in_pod(pod_name=pod_name, command=command)
         return result.splitlines()[-1].split(" ")[-1]
 
@@ -62,7 +60,7 @@ class MastodonDeploy(SolutionsChatflowDeploy):
     def success(self):
         password = self.create_admin_account()
         extra_info = f"Admin user credentials for mastodon is: \
-    <br/> Admin Email:{self.admin_email} <br/> Admin Password: {password}"
+    <br/> Admin Email:{self.config.chart_config.admin_email} <br/> Admin Password: {password}"
         super().success(extra_info=extra_info)
 
 
