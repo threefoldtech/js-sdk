@@ -35,6 +35,8 @@ class MastodonDeploy(SolutionsChatflowDeploy):
             "smtpPassword": self.config.chart_config.smtp_password,
             "env.extraEnvVars[0].name": "THREEBOT_KEY",
             "env.extraEnvVars[0].value": self.generate_signing_key(),
+            "resources.limits.cpu": self.config.chart_config.resources_limits["cpu"][:-1],
+            "resources.limits.memory": self.config.chart_config.resources_limits["memory"][:-2],
         }
 
     @chatflow_step(title="Configurations")
