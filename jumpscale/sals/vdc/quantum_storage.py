@@ -3,6 +3,7 @@ from textwrap import dedent
 
 from jumpscale.loader import j
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import _get_zstor_config
 
 
 ZDB_HOOK_URL = "https://raw.githubusercontent.com/threefoldtech/quantum-storage/master/lib/zdb-hook.sh"
@@ -17,8 +18,6 @@ class QuantumStorage:
         self.ip_version = ip_version  # to use in zstor config
 
     def update_zstor_config(self, endpoints, prefix="someprefix", etcd_secret=None):
-        from jumpscale.packages.vdc_dashboard.bottle.deployments import _get_zstor_config
-
         config = _get_zstor_config(self.ip_version)
         config["meta"]["config"]["endpoints"] = endpoints
         config["meta"]["config"]["prefix"] = prefix
