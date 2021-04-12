@@ -125,6 +125,7 @@ module.exports = {
         { icon: "mdi-server", title: "Storage Nodes" },
         { icon: "mdi-wallet", title: "Wallet Information" },
         { icon: "mdi-backup-restore", title: "Backup & Restore" },
+        { icon: "mdi-alert-outline", title: "Alerts" },
       ],
       activeTab: null,
       NGVersion: null,
