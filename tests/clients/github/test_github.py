@@ -1,10 +1,12 @@
 from gevent import sleep
 from os import getenv
+import pytest
 
 from jumpscale.loader import j
 from tests.base_tests import BaseTests
 
 
+@pytest.mark.integration()
 class GithubClientTest(BaseTests):
     def setUp(self):
         super().setUp()

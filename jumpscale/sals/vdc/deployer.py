@@ -545,7 +545,7 @@ class VDCDeployer:
 
         # initialize VDC pools
         self.bot_show_update("Initializing VDC")
-        self.init_vdc(farm_name)
+        self.init_vdc(farm_name, zdb_farms)
         self.bot_show_update("Deploying network")
         if not self.deploy_vdc_network():
             self.error("failed to deploy network")
