@@ -32,10 +32,14 @@
           ></wallet>
         </v-card>
       </v-tab-item>
-
       <v-tab-item class="ml-2">
         <v-card flat>
           <backups :vdc="vdc" :loading="loading"></backups>
+        </v-card>
+      </v-tab-item>
+      <v-tab-item class="ml-2">
+        <v-card flat>
+          <alerts></alerts>
         </v-card>
       </v-tab-item>
     </v-tabs>

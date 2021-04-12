@@ -34,6 +34,7 @@ const kubernetes = httpVueLoader('./components/vdcSettings/Kubernetes.vue')
 const backups = httpVueLoader('./components/vdcSettings/Backups.vue')
 const vdcSettings = httpVueLoader('./components/vdcSettings/Home.vue')
 const wallet = httpVueLoader('./components/vdcSettings/Wallet.vue')
+const alerts = httpVueLoader('./components/vdcSettings/alerts/Alerts.vue')
 
 const app = httpVueLoader('./App.vue')
 const marketplaceHome = httpVueLoader('./components/marketplace/Home.vue')
