@@ -4,7 +4,7 @@ import random
 
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, controller_authorized
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper, _list_alerts
 from jumpscale.sals.vdc.size import VDC_SIZE
 
 
@@ -271,12 +271,9 @@ def list_alerts():
     data = j.data.serializers.json.loads(request.body.read())
     app_name = data.get("application")
 
-    if not app_name:
-        alerts = [alert.json for alert in j.tools.alerthandler.find()]
-    else:
-        alerts = [alert.json for alert in j.tools.alerthandler.find() if alert.app_name == app_name]
+    alerts = _list_alerts(app_name)
 
-    return HTTPResponse(j.data.serializers.json.dumps(alerts), status=200, headers={"Content-Type": "application/json"})
+    return HTTPResponse(alerts, status=200, headers={"Content-Type": "application/json"})
 
 
 app = SessionMiddleware(app, SESSION_OPTS)
