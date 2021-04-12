@@ -19,7 +19,7 @@ class MastodonDeploy(SolutionsChatflowDeploy):
         "success",
     ]
     CHART_LIMITS = {
-        "Silver": {"cpu": "3000m", "memory": "3024Mi"},
+        "Silver": {"cpu": "3000m", "memory": "3072Mi"},
         "Gold": {"cpu": "4000m", "memory": "4096Mi"},
         "Platinum": {"cpu": "5000m", "memory": "5120Mi"},
     }
