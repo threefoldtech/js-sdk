@@ -111,8 +111,10 @@ class LiquidClient(Client):
         path = f"{self._url}{endpoint}"
         if params:
             encoded_query = urlencode(params)
+            path = f"{path}?{encoded_query}"
+
         payload = {
-            "path": f"{path}?{encoded_query}" if params else path,
+            "path": path,
             "nonce": j.data.time.get().timestamp * 1000,  # time in milliseconds
             "token_id": self.token_id,
         }
