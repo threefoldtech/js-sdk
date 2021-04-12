@@ -10,7 +10,7 @@
           </tr>
           <tr>
             <td>Application</td>
-            <td>{{ alertdata.appname }}</td>
+            <td>{{ alertdata.app_name }}</td>
           </tr>
           <tr>
             <td>Category</td>
@@ -23,7 +23,7 @@
         </tbody>
         </template>
       </v-simple-table>
-      <code-area v-if="alertdata.tracebacks[0]" mode="python" :content="alertdata.tracebacks[0].raw"></code-area>
+      <code-area v-if="alertdata.tracebacks[0]" class="pa-4" mode="python" :content="alertdata.tracebacks[0].raw"></code-area>
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>

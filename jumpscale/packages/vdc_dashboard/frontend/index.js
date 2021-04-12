@@ -35,6 +35,7 @@ const backups = httpVueLoader('./components/vdcSettings/Backups.vue')
 const vdcSettings = httpVueLoader('./components/vdcSettings/Home.vue')
 const wallet = httpVueLoader('./components/vdcSettings/Wallet.vue')
 const alerts = httpVueLoader('./components/vdcSettings/alerts/Alerts.vue')
+const code = httpVueLoader('./components/base/Code.vue')
 
 const app = httpVueLoader('./App.vue')
 const marketplaceHome = httpVueLoader('./components/marketplace/Home.vue')
@@ -57,6 +58,8 @@ Vue.component("s3", s3)
 Vue.component("kubernetes", kubernetes)
 Vue.component("wallet", wallet)
 Vue.component("backups", backups)
+Vue.component("alerts", alerts)
+Vue.component("code-area", code)
 
 const router = new VueRouter({
     routes: [
