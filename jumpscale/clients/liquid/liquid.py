@@ -109,9 +109,10 @@ class LiquidClient(Client):
     def do_authenticated_request(self, endpoint, data=None, params=None, request_method="GET"):
 
         path = f"{self._url}{endpoint}"
-        encoded_query = urlencode(params)
+        if params:
+            encoded_query = urlencode(params)
         payload = {
-            "path": f"{path}?{encoded_query}",
+            "path": f"{path}?{encoded_query}" if params else path,
             "nonce": j.data.time.get().timestamp * 1000,  # time in milliseconds
             "token_id": self.token_id,
         }
