@@ -116,7 +116,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             unavailable_nodes_ids = set(nodes_ids) - set(nodes_generator_ids)
             if unavailable_nodes_ids:
                 raise j.exceptions.Validation(
-                    f"Some nodes {unavailable_nodes_ids} are not in the farm or don't have capacity"
+                    f"Some nodes: {unavailable_nodes_ids} are not in farm: {farm_name} or don't have capacity"
                 )
             nodes_generator = [node for node in nodes_generator if node.node_id in nodes_ids]
         pool_id = self._preprare_extension_pool(farm_name, k8s_flavor, no_nodes, duration, public_ip)

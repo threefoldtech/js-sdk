@@ -59,8 +59,8 @@ def add_node():
     request body:
         password
         flavor
-        farm
-        nodes_ids
+        farm(optional)
+        nodes_ids(optional)
     Returns:
         wids: list of wids
     """
@@ -70,7 +70,7 @@ def add_node():
     farm = data.get("farm")
     nodes_ids = data.get("nodes_ids")
     if nodes_ids and not farm:
-        abort(400, "Error: Must specify farm with node_ids.")
+        abort(400, "Error: Must specify farm with nodes_ids.")
 
     if not all([node_flavor]):
         abort(400, "Error: Not all required params were passed.")
@@ -176,6 +176,7 @@ def add_zdb():
         password
         capacity
         farm(optional)
+        nodes_ids(optional)
 
     Returns:
         wids: list of wids
@@ -183,6 +184,10 @@ def add_zdb():
     data = j.data.serializers.json.loads(request.body.read())
     capacity = data.get("capacity")
     farm = data.get("farm")
+    nodes_ids = data.get("nodes_ids")
+
+    if nodes_ids and not farm:
+        abort(400, "Error: Must specify farm with nodes_ids.")
 
     if not all([capacity]):
         abort(400, "Error: Not all required params were passed.")
@@ -196,7 +201,9 @@ def add_zdb():
         farm = random.choice(zdb_farms)
     try:
         zdb_monitor = vdc.get_zdb_monitor()
-        wids = zdb_monitor.extend(required_capacity=capacity, farm_names=[farm], wallet_name="prepaid_wallet")
+        wids = zdb_monitor.extend(
+            required_capacity=capacity, farm_names=[farm], wallet_name="prepaid_wallet", nodes_ids=nodes_ids
+        )
         return HTTPResponse(
             j.data.serializers.json.dumps(wids), status=201, headers={"Content-Type": "application/json"}
         )
