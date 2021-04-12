@@ -1,21 +1,28 @@
-import datetime
-import uuid
 from collections import defaultdict
+import datetime
+import random
+import uuid
 
-import netaddr
-from jumpscale.clients.explorer.models import NextAction, WorkloadType, ZdbNamespace, DiskType
-from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
-from jumpscale.sals.vdc.quantum_storage import QuantumStorage
-from jumpscale.sals.zos import get as get_zos
-from jumpscale.sals.vdc.scheduler import CapacityChecker
-from jumpscale.clients.stellar import TRANSACTION_FEES
+import netaddr
 
-from .deployer import VDCDeployer, SSH_KEY_PREFIX
+from jumpscale.clients.explorer.models import (
+    DiskType,
+    NextAction,
+    WorkloadType,
+    ZdbNamespace,
+)
+from jumpscale.clients.stellar import TRANSACTION_FEES
+from jumpscale.clients.stellar import TRANSACTION_FEES
+from jumpscale.sals.vdc.quantum_storage import QuantumStorage
+from jumpscale.sals.vdc.scheduler import CapacityChecker
+from jumpscale.sals.zos import get as get_zos
+
+from .deployer import SSH_KEY_PREFIX, VDCDeployer
 from .kubernetes_auto_extend import KubernetesMonitor
 from .models import *
-from .size import FARM_DISCOUNT, PROXY_FARM, VDC_SIZE, ZDB_STARTING_SIZE
+from .size import FARM_DISCOUNT, PROXY_FARMS, VDC_SIZE, ZDB_STARTING_SIZE
 from .snapshot import SnapshotManager
 from .wallet import VDC_WALLET_FACTORY
 from .zdb_auto_topup import ZDBMonitor
@@ -126,7 +133,7 @@ class UserVDC(Base):
         ssh_key_path=None,
         restore=False,
     ):
-        proxy_farm_name = proxy_farm_name or PROXY_FARM.get()
+        proxy_farm_name = proxy_farm_name or random.choice(PROXY_FARMS.get())
         if not password and not identity:
             identity = self._get_identity()
 

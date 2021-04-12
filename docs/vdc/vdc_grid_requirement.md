@@ -37,16 +37,28 @@ If there are 3 farms called `mydevfarm`, `mytestfarm`, and `myfarm`, then they a
 - A json file should be written as the following
 
   ```json
-         {
-        "NETWORK_FARM": {
-            "devnet": "mydevfarm",
-            "testnet": "mytestfarm",
-            "mainnet": "myfarm"
+    {
+        "NETWORK_FARMS": {
+            "devnet": [
+                "mydevfarm"
+            ],
+            "testnet": [
+                "mytestfarm"
+            ],
+            "mainnet": [
+                "myfarm"
+            ]
         },
-        "PREFERRED_FARM": {
-            "devnet": "mydevfarm",
-            "testnet": "mytestfarm",
-            "mainnet": "myfarm"
+        "COMPUTE_FARMS": {
+            "devnet": [
+                "mydevfarm"
+            ],
+            "testnet": [
+                "mytestfarm"
+            ],
+            "mainnet": [
+                "myfarm"
+            ]
         },
         "ZDB_FARMS": {
             "devnet": [
@@ -70,10 +82,16 @@ If there are 3 farms called `mydevfarm`, `mytestfarm`, and `myfarm`, then they a
                 "myfarm"
             ]
         },
-        "PROXY_FARM": {
-            "devnet": "mytestfarm",
-            "testnet": "mytestfarm",
-            "mainnet": "myfarm"
+        "PROXY_FARMS": {
+            "devnet": [
+                "mytestfarm"
+            ],
+            "testnet": [
+                "mytestfarm"
+            ],
+            "mainnet": [
+                "myfarm"
+            ]
         }
     }
   ```

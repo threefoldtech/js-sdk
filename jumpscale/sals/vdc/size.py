@@ -68,25 +68,25 @@ class ZDB_FARMS(FarmConfigBase):
     mainnet = ["freefarm", "freefarm"]
 
 
-class PREFERRED_FARM(FarmConfigBase):
-    KEY = "PREFERRED_FARM"
-    devnet = "lochristi_dev_lab"
-    testnet = "freefarm"
-    mainnet = "freefarm"
+class COMPUTE_FARMS(FarmConfigBase):
+    KEY = "COMPUTE_FARMS"
+    devnet = ["lochristi_dev_lab"]
+    testnet = ["freefarm"]
+    mainnet = ["freefarm"]
 
 
-class NETWORK_FARM(FarmConfigBase):
+class NETWORK_FARMS(FarmConfigBase):
     KEY = "NETWORK_FARM"
-    devnet = "lochristi_dev_lab"
-    testnet = "freefarm"
-    mainnet = "freefarm"
+    devnet = ["lochristi_dev_lab"]
+    testnet = ["freefarm"]
+    mainnet = ["freefarm"]
 
 
-class PROXY_FARM(FarmConfigBase):
+class PROXY_FARMS(FarmConfigBase):
     KEY = "PROXY_FARM"
-    devnet = "csfarmer"
-    testnet = "csfarmer"
-    mainnet = "csfarmer"
+    devnet = ["csfarmer"]
+    testnet = ["csfarmer"]
+    mainnet = ["csfarmer"]
 
 
 class FARM_DISCOUNT(FarmConfigBase):
