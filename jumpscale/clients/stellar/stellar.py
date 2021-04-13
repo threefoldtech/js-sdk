@@ -755,7 +755,7 @@ class Stellar(Client):
         escrow_account = server.load_account(escrow_kp.public_key)
         escrow_account.increment_sequence_number()
         tx = (
-            stellar_sdk.TransactionBuilder(escrow_account)
+            stellar_sdk.TransactionBuilder(escrow_account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
             .append_set_options_op(master_weight=0, low_threshold=1, med_threshold=1, high_threshold=1)
             .add_time_bounds(unlock_time, 0)
             .build()
@@ -770,7 +770,7 @@ class Stellar(Client):
         else:
             account = server.load_account(address)
         tx = (
-            stellar_sdk.TransactionBuilder(account)
+            stellar_sdk.TransactionBuilder(account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
             .append_pre_auth_tx_signer(preauth_tx_hash, 1)
             .append_ed25519_public_key_signer(public_key_signer, 1)
             .append_set_options_op(master_weight=1, low_threshold=2, med_threshold=2, high_threshold=2)
@@ -807,7 +807,9 @@ class Stellar(Client):
         account = self.load_account()
         source_keypair = stellar_sdk.Keypair.from_secret(self.secret)
 
-        transaction_builder = stellar_sdk.TransactionBuilder(account)
+        transaction_builder = stellar_sdk.TransactionBuilder(
+            account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value]
+        )
         # set the signing options
         transaction_builder.append_set_options_op(
             low_threshold=low_treshold,
@@ -873,7 +875,11 @@ class Stellar(Client):
         """
         server = self._get_horizon_server()
         account = self.load_account()
-        tx = stellar_sdk.TransactionBuilder(account).append_ed25519_public_key_signer(public_key_signer, 0).build()
+        tx = (
+            stellar_sdk.TransactionBuilder(account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
+            .append_ed25519_public_key_signer(public_key_signer, 0)
+            .build()
+        )
 
         source_keypair = stellar_sdk.Keypair.from_secret(self.secret)
 
