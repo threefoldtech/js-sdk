@@ -7,7 +7,16 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "digibyte"
     title = "DigiByte"
     HELM_REPO_NAME = "marketplace"
-    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    steps = [
+        "init_chatflow",
+        "get_release_name",
+        "choose_flavor",
+        "set_config",
+        "create_subdomain",
+        "install_chart",
+        "initializing",
+        "success",
+    ]
 
     CHART_LIMITS = {
         "Silver": {"cpu": "2000m", "memory": "2024Mi"},
@@ -15,10 +24,15 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
         "Platinum": {"cpu": "4000m", "memory": "4096Mi"},
     }
 
+    def get_config(self):
+        return {
+            "env.rpcuser": self.config.chart_config.rpcuser,
+            "env.rpcpasswd": self.config.chart_config.rpcpassword,
+            "global.ingress.host": self.config.chart_config.domain,
+        }
+
     def _check_uniqueness(self):
-        username = self.user_info()["username"]
-        self.md_show_update("Preparing the chatflow...")
-        if get_deployments(self.SOLUTION_TYPE, username):
+        if get_deployments(self.SOLUTION_TYPE, self.config.username):
             raise StopChatFlow("You can only have one Digibyte solution per VDC")
 
     @chatflow_step(title="Solution Name")
@@ -37,28 +51,17 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
 
     def _enter_credentials(self):
         form = self.new_form()
-        self.rpcuser = form.string_ask("RPC Username", required=True)
-        self.rpcpassword = form.secret_ask("RPC Password", required=True)
+        rpcuser = form.string_ask("RPC Username", required=True)
+        rpcpassword = form.secret_ask("RPC Password", required=True)
         form.ask()
-        self.rpcuser = self.rpcuser.value
-        self.rpcpassword = self.rpcpassword.value
+        self.config.chart_config.rpcuser = rpcuser.value
+        self.config.chart_config.rpcpassword = rpcpassword.value
 
     @chatflow_step(title="Node Configuration")
     def set_config(self):
         self._enter_credentials()
-        self._choose_flavor(self.CHART_LIMITS)
         self.vdc.get_deployer().kubernetes.add_traefik_entrypoints(
             {"digibyte-p2p": {"port": "12024"}, "digibyte-rpc": {"port": "14022"}}
-        )
-
-        self.chart_config.update(
-            {
-                "env.rpcuser": self.rpcuser,
-                "env.rpcpasswd": self.rpcpassword,
-                "global.ingress.host": self.domain,
-                "resources.limits.cpu": self.resources_limits["cpu"],
-                "resources.limits.memory": self.resources_limits["memory"],
-            }
         )
 
 

@@ -25,8 +25,8 @@ validators = {
 
 
         },
-        is_identifier: (field,identifier) => {
-            if(identifier){
+        is_identifier: (field, identifier) => {
+            if (identifier) {
 
                 let errmsg = `Invalid value. It should be a valid identifier, all lowercase and starting with a letter, no spaces and no special characters`;
                 const regex = /^[a-z]([a-z0-9]*)$/
@@ -38,6 +38,15 @@ validators = {
         },
         not_exist: (field, args) => {
             let errmsg = `Invalid value. ${args[0]} with this name already exists`;
+
+            if (args[1].includes(field.val)) {
+                return errmsg;
+            }
+
+            return true;
+        },
+        not_allowed: (field, args) => {
+            let errmsg = `Invalid value. ${args[0]} can not be set to ${field.val} please choose another value`;
 
             if (args[1].includes(field.val)) {
                 return errmsg;

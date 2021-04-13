@@ -80,7 +80,7 @@ class QuantumStorage:
                     f"etcdqs-{kubernetes_node.wid}",
                     sub_domain="Choose a custom subdomain on a gateway",
                     custom_sub_domain=f"etcdqs-{kubernetes_node.wid}",
-                ).domain
+                ).config.chart_config.domain
                 etcd_domain = f"https://{domain}:2379"
 
                 j.logger.info(f"Authenticate etcd with username and password")

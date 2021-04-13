@@ -7,9 +7,11 @@ class MattermostDeploy(SolutionsChatflowDeploy):
     title = "Mattermost"
     HELM_REPO_NAME = "marketplace"
     steps = [
+        "init_chatflow",
         "get_release_name",
-        "create_subdomain",
+        "choose_flavor",
         "set_config",
+        "create_subdomain",
         "install_chart",
         "initializing",
         "success",
@@ -18,6 +20,14 @@ class MattermostDeploy(SolutionsChatflowDeploy):
         {"cpu": 100, "memory": 256},  # mysql
         {"cpu": 10, "memory": 10},  # initContainer.remove-lost-found
     ]
+
+    def get_config(self):
+        return {
+            "ingress.host": self.config.chart_config.domain,
+            "mysql.mysqlUser": self.config.chart_config.mysql_user,
+            "mysql.mysqlPassword": self.config.chart_config.mysql_password,
+            "mysql.mysqlRootPassword": self.config.chart_config.mysql_root_password,
+        }
 
     @chatflow_step(title="Configurations")
     def set_config(self):
@@ -32,17 +42,9 @@ class MattermostDeploy(SolutionsChatflowDeploy):
         )  # TODO: need to check a valid password
         form.ask()
 
-        self._choose_flavor()
-        self.chart_config.update(
-            {
-                "ingress.host": self.domain,
-                "mysql.mysqlUser": mysql_user.value,
-                "mysql.mysqlPassword": mysql_password.value,
-                "mysql.mysqlRootPassword": mysql_root_password.value,
-                "resources.limits.cpu": self.resources_limits["cpu"],
-                "resources.limits.memory": self.resources_limits["memory"],
-            }
-        )
+        self.config.chart_config.mysql_user = mysql_user.value
+        self.config.chart_config.mysql_password = mysql_password.value
+        self.config.chart_config.mysql_root_password = mysql_root_password.value
 
 
 chat = MattermostDeploy
