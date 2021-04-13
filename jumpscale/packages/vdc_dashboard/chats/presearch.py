@@ -23,6 +23,8 @@ class PresearchDeploy(SolutionsChatflowDeploy):
     def get_release_name(self):
         self._check_uniqueness()
         super().get_release_name()
+        if len(self.release_name) > 10:
+            raise StopChatFlow("Solution Name should not be more than 10 characters")
 
     def _enter_registration_code(self):
         self.registration_code = self.string_ask("Enter Registration Code", required=True)

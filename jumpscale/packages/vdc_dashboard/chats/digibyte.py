@@ -24,9 +24,10 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
     def get_release_name(self):
         self._check_uniqueness()
         super().get_release_name()
+        if len(self.release_name) > 10:
+            raise StopChatFlow("Solution Name should not be more than 10 characters")
 
     def _enter_credentials(self):
-
         form = self.new_form()
         self.rpcuser = form.string_ask("RPC Username", required=True)
         self.rpcpassword = form.secret_ask("RPC Password", required=True)
