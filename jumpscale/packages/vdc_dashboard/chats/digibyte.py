@@ -23,9 +23,16 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
 
     def get_release_name(self):
         self._check_uniqueness()
-        super().get_release_name()
-        if len(self.release_name) > 10:
-            raise StopChatFlow("Solution Name should not be more than 10 characters")
+        self._get_vdc_info()
+        message = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
+        releases = [
+            release["name"]
+            for release in self.k8s_client.list_deployed_releases()
+            if release["namespace"].startswith(self.chart_name)
+        ]
+        self.release_name = self.string_ask(
+            message, required=True, is_identifier=True, not_exist=["solution name", releases], md=True, max_length=10
+        )
 
     def _enter_credentials(self):
         form = self.new_form()
