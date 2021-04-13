@@ -20,6 +20,7 @@ class PresearchDeploy(SolutionsChatflowDeploy):
         if get_deployments(self.SOLUTION_TYPE, username):
             raise StopChatFlow("You can only have one Presearch solution per VDC")
 
+    @chatflow_step(title="Solution Name")
     def get_release_name(self):
         self._check_uniqueness()
         self._get_vdc_info()
