@@ -23,7 +23,7 @@ class ThreebotServerFactory(StoredFactory):
         """
         return super().get("default", *args, **kwargs)
 
-    def start_default(self, wait=False, local=False, domain=None, email=None):
+    def start_default(self, wait=False, local=False, domain=None, email=None, cert=True):
         PORTS.init_default_ports(local)
         server = self.get("default")
         if not server.domain:
@@ -31,7 +31,7 @@ class ThreebotServerFactory(StoredFactory):
             server.email = email
         server.save()
         create_wallets_if_not_exists()
-        server.start(wait=wait)
+        server.start(wait=wait, cert=cert)
 
 
 def export_module_as():

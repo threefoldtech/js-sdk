@@ -194,7 +194,7 @@ class NginxPackageConfig:
                         loc.package_name = self.package.name
 
                 website.save()
-                website.configure()
+                website.configure(generate_certificates=self.nginx.cert)
                 self.nginx.save()
 
 
@@ -810,7 +810,7 @@ class ThreebotServer(Base):
         if not ret:
             raise j.exceptions.NotFound(f"git is not installed.\n{install_msg}")
 
-    def start(self, wait: bool = False):
+    def start(self, wait: bool = False, cert: bool = True):
         # start default servers in the rack
         # handle signals
         for signal_type in (signal.SIGTERM, signal.SIGINT, signal.SIGKILL):
@@ -824,6 +824,7 @@ class ThreebotServer(Base):
 
         self.redis.start()
         self.nginx.start()
+        j.sals.nginx.get(self.nginx.server_name).cert = cert
         self.rack.start()
         j.logger.register(f"threebot_{self.instance_name}")
         if j.config.get("SEND_REMOTE_ALERTS", False):
