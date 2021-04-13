@@ -46,7 +46,10 @@ class MastodonDeploy(SolutionsChatflowDeploy):
     @chatflow_step(title="Admin Data")
     def get_admin_data(self):
         form = self.new_form()
-        admin_name = form.string_ask("Please add admin username", required=True, is_identifier=True)
+        reserved_names = ["admin", "support", "help", "root", "webmaster", "administrator", "mod", "moderator"]
+        admin_name = form.string_ask(
+            "Please add admin username", required=True, is_identifier=True, not_allowed=["admin user", reserved_names]
+        )
         admin_email = form.string_ask("Please add the admin email", required=True, md=True)
         form.ask()
         self.config.chart_config.admin_name = admin_name.value
