@@ -62,6 +62,18 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
             else:
                 valid_password = True
 
+    def _ask_smtp_settings(self):
+        form = self.new_form()
+        smtp_host = form.string_ask("SMTP Host", default="smtp.gmail.com", required=True)
+        smtp_port = form.string_ask("SMTP Port", default=587, required=True)
+        smtp_username = form.string_ask("Email (SMTP username)", required=True)
+        smtp_password = form.secret_ask("Email Password", required=True, isAlphanumeric=True)
+        form.ask()
+        self.smtp_host = smtp_host.value
+        self.smtp_port = f'"{smtp_port.value}"'
+        self.smtp_username = smtp_username.value
+        self.smtp_password = smtp_password.value
+
     @chatflow_step(title="Configurations")
     def set_config(self):
         self._configure_admin_username_password()
