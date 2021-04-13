@@ -69,7 +69,8 @@ http {
 @click.option(
     "--local/--no-local", default=False, help="run threebot server on none privileged ports instead of 80/443"
 )
-def start(identity=None, background=False, local=False, development=False, domain=None, email=None):
+@click.option("--cert/--no-cert", default=True, help="Generate certificates for ssl virtual hosts")
+def start(identity=None, background=False, local=False, cert=True, development=False, domain=None, email=None):
     """start 3Bot server after making sure identity is ok
     It will start with the default identity in j.me, if you'd like to specify an identity
     please pass the optional arguments
@@ -139,9 +140,7 @@ def start(identity=None, background=False, local=False, development=False, domai
 
     if background:
         cmd = j.tools.startupcmd.get("threebot_default")
-        cmd.start_cmd = (
-            f"jsng 'j.servers.threebot.start_default(wait=True, local={local}, domain={domain}, email={email})'"
-        )
+        cmd.start_cmd = f"jsng 'j.servers.threebot.start_default(wait=True, local={local}, domain={domain}, email={email}, cert={cert})'"
         cmd.process_strings_regex = [".*threebot_default.sh"]
         cmd.ports = [8000, 8999]
         cmd.start()
@@ -158,7 +157,7 @@ def start(identity=None, background=False, local=False, development=False, domai
                 f"{{WHITE}}Visit admin dashboard at: {{GREEN}}http://localhost:{PORTS.HTTP}/\n{{RESET}}"
             )
     else:
-        j.servers.threebot.start_default(wait=True, local=local, domain=domain, email=email)
+        j.servers.threebot.start_default(wait=True, local=local, domain=domain, email=email, cert=cert)
 
 
 @click.command()

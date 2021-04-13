@@ -333,8 +333,9 @@ class Website(Base):
 
         j.sals.fs.write_file(self.cfg_file, self.get_config())
 
-        if generate_certificates and self.ssl:
+        if self.ssl:
             self.generate_self_signed_certificates()
+        if generate_certificates and self.ssl:
             self.generate_certificates()
 
     def clean(self):
@@ -343,6 +344,7 @@ class Website(Base):
 
 class NginxConfig(Base):
     websites = fields.Factory(Website)
+    cert = fields.Boolean(default=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
