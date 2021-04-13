@@ -286,45 +286,43 @@ class VDCDeploy(GedisChatBot):
 
     @chatflow_step(title="Network Farm")
     def network_farm_selection(self):
+        filtered_network_farms = []
         network_farms = NETWORK_FARMS.get()
-        if self.farm_selection.value == "Manually Select Farms" and len(set(network_farms)) > 1:
-            while True:
-                self.network_farm = self.drop_down_choice(f"Please select network farm", network_farms, required=True)
-                if self._check_network_farm_resource(self.network_farm):
-                    break
-                else:
-                    self.md_show(f"There is not enough resources in this farm {self.network_farm}")
+        for farm in network_farms:
+            if self._check_network_farm_resource(farm):
+                filtered_network_farms.append(farm)
+
+        if not filtered_network_farms:
+            raise StopChatFlow(
+                f"There are not enough resources available in network farms: {network_farms} to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
+            )
+
+        if self.farm_selection.value == "Manually Select Farms" and len(set(filtered_network_farms)) > 1:
+            self.network_farm = self.drop_down_choice(
+                f"Please select network farm", filtered_network_farms, required=True
+            )
         else:
-            random.shuffle(network_farms)
-            for farm in network_farms:
-                if self._check_network_farm_resource(farm):
-                    self.network_farm = farm
-                    break
-            else:
-                raise StopChatFlow(
-                    f"There are not enough resources available in networks farms: {network_farms} to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
-                )
+            self.network_farm = random.choice(filtered_network_farms)
 
     @chatflow_step(title="Compute Farm")
     def compute_farm_selection(self):
+        filtered_compute_farms = []
         compute_farms = COMPUTE_FARMS.get()
-        if self.farm_selection.value == "Manually Select Farms" and len(set(compute_farms)) > 1:
-            while True:
-                self.compute_farm = self.drop_down_choice(f"Please select compute farm", compute_farms, required=True)
-                if self._check_compute_farm_resource(self.compute_farm):
-                    break
-                else:
-                    self.md_show(f"There is not enough resources in this farm {self.compute_farm}")
+        for farm in compute_farms:
+            if self._check_compute_farm_resource(farm):
+                filtered_compute_farms.append(farm)
+
+        if not filtered_compute_farms:
+            raise StopChatFlow(
+                f"There are not enough resources available in compute farms: {compute_farms} to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
+            )
+
+        if self.farm_selection.value == "Manually Select Farms" and len(set(filtered_compute_farms)) > 1:
+            self.compute_farm = self.drop_down_choice(
+                f"Please select compute farm", filtered_compute_farms, required=True
+            )
         else:
-            random.shuffle(compute_farms)
-            for farm in compute_farms:
-                if self._check_compute_farm_resource(farm):
-                    self.compute_farm = farm
-                    break
-            else:
-                raise StopChatFlow(
-                    f"There are not enough resources available in compute farms: {compute_farms} to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
-                )
+            self.compute_farm = random.choice(filtered_compute_farms)
 
     @chatflow_step(title="VDC Deployment")
     def deploy(self):
