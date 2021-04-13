@@ -153,7 +153,7 @@ class BTCAlpha(Client):
         }
         """
 
-        return self._query("get", "v1/orderbook/{}/".format(pair), params=kwargs)
+        return self._query("get", f"v1/orderbook/{pair}/", params=kwargs)
 
     def get_charts(self, pair, type, **kwargs):
         """Return data for chart candles
@@ -166,26 +166,17 @@ class BTCAlpha(Client):
             {'volume': 2.16483814, 'high': 911.519, 'low': 909.432, 'close': 910.424, 'time': 1485774000, 'open': 909.433}
         ]
         """
-        return self._query("get", "charts/{}/{}/chart".format(pair, type), params=kwargs)
+        return self._query("get", f"charts/{pair}/{type}/chart", params=kwargs)
 
-    def _query(self, method, base_url, params=None, data=None, auth=False):
-        request_conf = {"method": method, "url": self._url + base_url, "allow_redirects": True}
-
-        if params:
-            request_conf["url"] += "?" + urlencode(params)
-
-        if data:
-            request_conf["data"] = data
-
-        if auth:
-            request_conf["headers"] = self._get_headers(data or {})
-
-        response = requests.request(**request_conf)
+    def _query(self, method, path, params=None, data=None, auth=False):
+        url = f"{self._url}{path}"
+        headers = data and self._get_headers(data)
+        response = requests.request(method=method, url=url, params=params, data=data, auth=auth, headers=headers)
 
         if 300 > response.status_code >= 200:
             return response.json()
         else:
-            raise j.exceptions.Value("Http status {} - {}".format(response.status_code, response.content))
+            raise j.exceptions.Value(f"Http status {response.status_code} - {response.content}")
 
     def _get_headers(self, data):
         msg = self.token_id + urlencode(sorted(data.items(), key=lambda val: val[0]))
