@@ -38,9 +38,14 @@ class FundPricesDifference(BackgroundService):
                 j.logger.info(
                     f"FUND PRICES DIFF: VDC {vdc_instance.instance_name} prepaid wallet has the hour cost but don't have the transaction fees {TRANSACTION_FEES} TFT"
                 )
-                initialization_wallet.transfer(
-                    vdc_instance.prepaid_wallet.address, TRANSACTION_FEES, asset=f"{tft.code}:{tft.issuer}"
-                )
+                try:
+                    initialization_wallet.transfer(
+                        vdc_instance.prepaid_wallet.address, TRANSACTION_FEES, asset=f"{tft.code}:{tft.issuer}"
+                    )
+                except Exception as e:
+                    j.logger.critical(
+                        f"FUND PRICES DIFF: Couldn't transfer {TRANSACTION_FEES} to VDC {vdc_name} due to error: {str(e)}"
+                    )
                 j.logger.info(
                     f"FUND PRICES DIFF: VDC {vdc_instance.instance_name}, funded the transaction fees {TRANSACTION_FEES} TFT to the prepaid wallet"
                 )
@@ -49,9 +54,14 @@ class FundPricesDifference(BackgroundService):
             diff = vdc_real_price - vdc_spec_price + TRANSACTION_FEES
             if diff > 0:
                 # transfer the diff to provisioning wallet
-                initialization_wallet.transfer(
-                    vdc_instance.provision_wallet.address, diff, asset=f"{tft.code}:{tft.issuer}"
-                )
+                try:
+                    initialization_wallet.transfer(
+                        vdc_instance.provision_wallet.address, round(diff, 6), asset=f"{tft.code}:{tft.issuer}"
+                    )
+                except Exception as e:
+                    j.logger.critical(
+                        f"FUND PRICES DIFF: Couldn't transfer {diff} to VDC {vdc_name} due to error: {str(e)}"
+                    )
                 j.logger.info(f"FUND PRICES DIFF: VDC {vdc_instance.instance_name} funded with {diff} TFT")
 
 
