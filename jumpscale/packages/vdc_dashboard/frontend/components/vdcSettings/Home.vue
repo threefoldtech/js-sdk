@@ -39,7 +39,7 @@
       </v-tab-item>
       <v-tab-item class="ml-2">
         <v-card flat>
-          <alerts :alertid="alertid"></alerts>
+          <alerts :alertid="parseInt(alertid)"></alerts>
         </v-card>
       </v-tab-item>
     </v-tabs>
@@ -111,7 +111,7 @@ module.exports = {
       default: 0,
     },
     alertid: {
-      type: Number,
+      type: String,
       default: null
     },
   },
