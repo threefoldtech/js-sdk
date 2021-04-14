@@ -76,7 +76,9 @@
       </template>
     </v-data-table>
 
-    <template v-if="this.vdc && this.vdc.kubernetes.length < this.vdc.total_capacity">
+    <template
+      v-if="this.vdc && this.vdc.kubernetes.length < this.vdc.total_capacity"
+    >
       <p>The VDC will autoscale to the plan limit.</p>
     </template>
 
@@ -92,6 +94,7 @@
       title="Delete Worker"
       :messages="deletionMessages"
       :wid="selectedworker"
+      @reload-vdcinfo="reloadVdcInfo"
     ></cancel-workload>
     <download-kubeconfig v-model="dialogs.downloadKube"></download-kubeconfig>
   </div>
@@ -125,8 +128,10 @@ module.exports = {
         { text: "Actions", value: "actions", sortable: false },
       ],
       kubernetesSizeMap: KUBERNETES_VM_SIZE_MAP,
-      deletionMessages:{confirmationMsg:"Are you sure you want to delete this worker?",successMsg:"Worker deleted successfully"}
-
+      deletionMessages: {
+        confirmationMsg: "Are you sure you want to delete this worker?",
+        successMsg: "Worker deleted successfully",
+      },
     };
   },
   methods: {
@@ -147,6 +152,12 @@ module.exports = {
 
     downloadKubeConfigFile() {
       this.dialogs.downloadKube = true;
+    },
+    reloadVdcInfo() {
+      this.dialogs.cancelWorkload = false;
+      this.$emit("reload-vdcinfo", {
+        message: "VDC info has been reloaded successfully!",
+      });
     },
   },
   computed: {
