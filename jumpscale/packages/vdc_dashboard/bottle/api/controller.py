@@ -1,5 +1,5 @@
 from beaker.middleware import SessionMiddleware
-from bottle import Bottle, request, HTTPResponse, abort
+from bottle import Bottle, parse_auth, request, HTTPResponse, abort
 import random
 
 from jumpscale.loader import j
@@ -22,7 +22,7 @@ def _get_vdc_dict():
 @controller_authorized()
 def threebot_vdc():
     """
-    request body:
+    request header:
         password
 
     Returns:
@@ -35,11 +35,11 @@ def threebot_vdc():
     )
 
 
-@app.route("/api/controller/node/list", method="POST")
+@app.route("/api/controller/node", method="GET")
 @controller_authorized()
 def list_nodes():
     """
-    request body:
+    request header:
         password
 
     Returns:
@@ -51,12 +51,13 @@ def list_nodes():
     )
 
 
-@app.route("/api/controller/node/add", method="POST")
+@app.route("/api/controller/node", method="POST")
 @controller_authorized()
 def add_node():
     """
-    request body:
+    request header:
         password
+    request body:
         flavor
         farm(optional)
         nodes_ids(optional)
@@ -64,7 +65,7 @@ def add_node():
         wids: list of wids
     """
     data = j.data.serializers.json.loads(request.body.read())
-    vdc_password = data.get("password")
+    _, vdc_password = parse_auth(request.headers.get("Authorization"))
     node_flavor = data.get("flavor")
     farm = data.get("farm")
     nodes_ids = data.get("nodes_ids")
@@ -105,19 +106,20 @@ def add_node():
         abort(400, f"failed to add nodes to your cluster. due to error {str(e)}")
 
 
-@app.route("/api/controller/node/delete", method="POST")
+@app.route("/api/controller/node", method="DELETE")
 @controller_authorized()
 def delete_node():
     """
-    request body:
+    request header:
         password
+    request body:
         wid
 
     Returns:
         status
     """
     data = j.data.serializers.json.loads(request.body.read())
-    vdc_password = data.get("password")
+    _, vdc_password = parse_auth(request.headers.get("Authorization"))
     wid = data.get("wid")
     if not all([wid]):
         abort(400, "Error: Not all required params were passed.")
