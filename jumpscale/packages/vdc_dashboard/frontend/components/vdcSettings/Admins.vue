@@ -43,7 +43,7 @@ module.exports = {
       this.$api.admins
         .list()
         .then((response) => {
-          this.admins = JSON.parse(response.data).data;
+          this.admins = response.data.data;
         })
         .finally(() => {
           this.loading.admins = false;
