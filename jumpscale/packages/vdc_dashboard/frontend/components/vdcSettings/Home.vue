@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="grey lighten-5 mt-5">
     <v-tabs
-      v-model="activeTab"
+      v-model="activetab"
       class="text--left"
       background-color="transparent"
       vertical
@@ -40,10 +40,14 @@
           ></wallet>
         </v-card>
       </v-tab-item>
-
       <v-tab-item class="ml-2">
         <v-card flat>
           <backups :vdc="vdc" :loading="tableloading"></backups>
+        </v-card>
+      </v-tab-item>
+      <v-tab-item class="ml-2">
+        <v-card flat>
+          <alerts :alertid="parseInt(alertid)"></alerts>
         </v-card>
       </v-tab-item>
     </v-tabs>
@@ -109,6 +113,12 @@
 
 <script>
 module.exports = {
+  props: {
+    alertid: {
+      type: String,
+      default: null,
+    },
+  },
   data() {
     return {
       tableloading: true,
@@ -129,8 +139,9 @@ module.exports = {
         { icon: "mdi-server", title: "Storage Nodes" },
         { icon: "mdi-wallet", title: "Wallet Information" },
         { icon: "mdi-backup-restore", title: "Backup & Restore" },
+        { icon: "mdi-alert-outline", title: "Alerts" },
       ],
-      activeTab: null,
+      activetab: 0,
       NGVersion: null,
       SDKVersion: null,
     };
@@ -180,6 +191,9 @@ module.exports = {
     this.getSDKVersion();
     this.vdcInfo();
     this.checkDashboardUpdates();
+    if (this.alertid) {
+      this.activetab = 4;
+    }
   },
   updated() {
     if (this.raiseExpirationAlert && this.vdc) {
