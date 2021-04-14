@@ -1,4 +1,4 @@
-from bottle import abort, request
+from bottle import abort, request, parse_auth
 from jumpscale.loader import j
 
 
@@ -13,10 +13,11 @@ def controller_authorized():
             vdc_full_name = list(j.sals.vdc.list_all())[0]
             vdc = j.sals.vdc.get(vdc_full_name)
 
-            # FIXME we should get md5 password from Authorization header with Digest type
-            # Get password from request
-            data = j.data.serializers.json.loads(request.body.read())
-            request_input_password = data.get("password")
+            # Get password from request Authorization header with Basic type
+            auth_header = request.headers.get("Authorization")
+            if not auth_header:
+                return abort(403, "Password not passed in the Authorization header")
+            _, request_input_password = parse_auth(auth_header)
             if not vdc.validate_password(request_input_password):
                 return abort(403, "Wrong password is passed")
             return function(*args, **kwargs)

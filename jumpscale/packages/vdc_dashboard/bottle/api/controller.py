@@ -7,7 +7,7 @@ from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebo
 from jumpscale.sals.vdc.size import VDC_SIZE
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_kubeconfig_file, get_zstor_config_file
 
-from .auth import controller_authorized
+from jumpscale.packages.vdc_dashboard.bottle.api.auth import controller_authorized
 
 app = Bottle()
 
@@ -18,7 +18,7 @@ def _get_vdc_dict():
     return vdc_dict
 
 
-@app.route("/api/controller/vdc", method="POST")
+@app.route("/api/controller/vdc", method="GET")
 @controller_authorized()
 def threebot_vdc():
     """
@@ -46,7 +46,6 @@ def list_nodes():
         kubernetes: string
     """
     vdc_dict = _get_vdc_dict()
-
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict["kubernetes"]), status=200, headers={"Content-Type": "application/json"}
     )
