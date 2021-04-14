@@ -23,6 +23,11 @@ const apiClient = {
         url: "/auth/authenticated/"
       })
     },
+    list: ()=>{
+      return axios({
+        url: `${baseURL}/admin/list_admins`
+    })
+    }
   },
   solutions: {
     getSolutions: (solutionType) => {

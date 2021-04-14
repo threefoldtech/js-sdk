@@ -28,3 +28,25 @@
     </base-section>
   </div>
 </template>
+<script>
+module.exports = {
+  components: {},
+  props: ["vdc", "loading"],
+  methods: {
+    listAdmins() {
+      this.loading.admins = true;
+      this.$api.admins
+        .list()
+        .then((response) => {
+          this.admins = JSON.parse(response.data).data;
+        })
+        .finally(() => {
+          this.loading.admins = false;
+        });
+    },
+  },
+  mounted() {
+    this.listAdmins();
+  },
+};
+</script>
