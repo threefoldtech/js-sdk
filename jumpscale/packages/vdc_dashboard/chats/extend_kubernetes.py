@@ -86,6 +86,9 @@ class ExtendKubernetesCluster(GedisChatBot):
 
         self.md_show_update("Payment successful")
         duration = self.vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
+        two_weeks = 2 * 7 * 24 * 60 * 60
+        if duration > two_weeks:
+            duration = two_weeks
         old_wallet = deployer._set_wallet(self.vdc.prepaid_wallet.instance_name)
         try:
             wids = deployer.add_k8s_nodes(self.node_flavor, farm_name=farm_name, public_ip=self.public_ip)

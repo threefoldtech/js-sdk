@@ -476,6 +476,10 @@ class UserVDC(Base):
 
     def show_external_node_payment(self, bot, farm_name, size, no_nodes=1, expiry=5, wallet_name=None, public_ip=False):
         discount = FARM_DISCOUNT.get()
+        duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
+        month = 60 * 60 * 24 * 30
+        if duration > month:
+            duration = month
 
         zos = j.sals.zos.get()
         farm_id = zos._explorer.farms.get(farm_name=farm_name).id
@@ -483,7 +487,6 @@ class UserVDC(Base):
         if isinstance(size, str):
             size = VDC_SIZE.K8SNodeFlavor[size.upper()].value
         k8s.size = size
-        duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
         amount = j.tools.zos.consumption.cost(k8s, duration, farm_id) + TRANSACTION_FEES
 
         if public_ip:
@@ -525,12 +528,16 @@ class UserVDC(Base):
 
     def show_external_zdb_payment(self, bot, farm_name, size=ZDB_STARTING_SIZE, no_nodes=1, expiry=5, wallet_name=None):
         discount = FARM_DISCOUNT.get()
+        duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
+        month = 60 * 60 * 24 * 30
+        if duration > month:
+            duration = month
+
         zos = j.sals.zos.get()
         farm_id = zos._explorer.farms.get(farm_name=farm_name).id
         zdb = ZdbNamespace()
         zdb.size = size
         zdb.disk_type = DiskType.HDD
-        duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
         amount = j.tools.zos.consumption.cost(zdb, duration, farm_id) + TRANSACTION_FEES
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
