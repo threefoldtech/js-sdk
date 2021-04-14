@@ -29,25 +29,14 @@
 
 <script>
 module.exports = {
-  alertid: {
-    type: Number,
-    default: null
+  props: {
+    alertid: {
+      type: Number,
+      default: null,
+    },
   },
   components: {
     "show-alert": httpVueLoader("./Alert.vue"),
-  },
-  watch: {
-    alertid(val) {
-      if(val){
-        for (let i = 0; i < this.alerts.length; i++) {
-          const alert = this.alerts[i];
-          if(alert.id === val){
-            this.open(alert)
-            return
-          }
-        }
-      }
-    },
   },
   data() {
     return {
@@ -82,6 +71,15 @@ module.exports = {
         .listAlerts()
         .then((response) => {
           this.alerts = response.data;
+          if (this.alertid) {
+            for (let i = 0; i < this.alerts.length; i++) {
+              const alert = this.alerts[i];
+              if (alert.id === this.alertid) {
+                this.open(alert);
+                break;
+              }
+            }
+          }
         })
         .finally(() => {
           this.loading = false;

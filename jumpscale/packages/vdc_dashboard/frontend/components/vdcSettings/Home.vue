@@ -106,13 +106,9 @@
 <script>
 module.exports = {
   props: {
-    activetab: {
-      type: Number,
-      default: 0,
-    },
     alertid: {
       type: String,
-      default: null
+      default: null,
     },
   },
   data() {
@@ -137,16 +133,10 @@ module.exports = {
         { icon: "mdi-backup-restore", title: "Backup & Restore" },
         { icon: "mdi-alert-outline", title: "Alerts" },
       ],
+      activetab: 0,
       NGVersion: null,
       SDKVersion: null,
     };
-  },
-  watch: {
-    alertid(val) {
-      if(val){
-        this.activetab = 4;
-      }
-    },
   },
   methods: {
     vdcInfo() {
@@ -192,6 +182,9 @@ module.exports = {
     this.getSDKVersion();
     this.vdcInfo();
     this.checkDashboardUpdates();
+    if (this.alertid) {
+      this.activetab = 4;
+    }
   },
   updated() {
     if (this.raiseExpirationAlert && this.vdc) {
