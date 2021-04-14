@@ -173,8 +173,12 @@ def add_admin() -> str:
         raise j.exceptions.Value(f"Admin name shouldn't be empty")
     if name in j.core.identity.me.admins:
         raise j.exceptions.Value(f"Admin {name} already exists")
-    j.core.identity.me.admins.append(name)
-    j.core.identity.me.save()
+    # j.core.identity.me.admins.append(name)
+    # j.core.identity.me.save()
+    threebot = j.servers.threebot.get()
+    package = threebot.packages.get("vdc_dashboard")
+    package.admins.append(name)
+    threebot.save()
 
 
 @app.route("/api/admins/remove", method="POST")
@@ -186,8 +190,12 @@ def remove_admin() -> str:
         raise j.exceptions.Value(f"Admin name shouldn't be empty")
     if name not in j.core.identity.me.admins:
         raise j.exceptions.Value(f"Admin {name} does not exist")
-    j.core.identity.me.admins.remove(name)
-    j.core.identity.me.save()
+    # j.core.identity.me.admins.remove(name)
+    # j.core.identity.me.save()
+    threebot = j.servers.threebot.get()
+    package = threebot.packages.get("vdc_dashboard")
+    package.admins.remove(name)
+    threebot.save()
 
 
 @app.route("/api/threebot_vdc", method="GET")
