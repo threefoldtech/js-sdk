@@ -160,7 +160,6 @@ def list_alerts() -> str:
 @app.route("/api/admins/list", method="GET")
 @package_authorized("vdc_dashboard")
 def list_all_admins() -> str:
-    # admins = list(set(j.core.identity.me.admins))
     threebot = j.servers.threebot.get()
     package = threebot.packages.get("vdc_dashboard")
     admins = list(set(package.admins))
@@ -172,14 +171,12 @@ def list_all_admins() -> str:
 def add_admin() -> str:
     data = j.data.serializers.json.loads(request.body.read())
     name = data.get("name")
-    if not name:
-        raise j.exceptions.Value(f"Admin name shouldn't be empty")
-    if name in j.core.identity.me.admins:
-        raise j.exceptions.Value(f"Admin {name} already exists")
-    # j.core.identity.me.admins.append(name)
-    # j.core.identity.me.save()
     threebot = j.servers.threebot.get()
     package = threebot.packages.get("vdc_dashboard")
+    if not name:
+        raise j.exceptions.Value(f"Admin name shouldn't be empty")
+    if name in package.admins:
+        raise j.exceptions.Value(f"Admin {name} already exists")
     package.admins.append(name)
     threebot.save()
 
@@ -189,14 +186,12 @@ def add_admin() -> str:
 def remove_admin() -> str:
     data = j.data.serializers.json.loads(request.body.read())
     name = data.get("name")
-    if not name:
-        raise j.exceptions.Value(f"Admin name shouldn't be empty")
-    if name not in j.core.identity.me.admins:
-        raise j.exceptions.Value(f"Admin {name} does not exist")
-    # j.core.identity.me.admins.remove(name)
-    # j.core.identity.me.save()
     threebot = j.servers.threebot.get()
     package = threebot.packages.get("vdc_dashboard")
+    if not name:
+        raise j.exceptions.Value(f"Admin name shouldn't be empty")
+    if name not in package.admins:
+        raise j.exceptions.Value(f"Admin {name} does not exist")
     package.admins.remove(name)
     threebot.save()
 
