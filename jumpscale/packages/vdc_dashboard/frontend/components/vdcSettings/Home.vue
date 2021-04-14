@@ -146,7 +146,7 @@ module.exports = {
         { icon: "mdi-wallet", title: "Wallet Information" },
         { icon: "mdi-backup-restore", title: "Backup & Restore" },
         { icon: "mdi-alert-outline", title: "Alerts" },
-        { icon: "mdi-backup-restore", title: "Admins" },
+        { icon: "mdi-account-lock", title: "Admins" },
       ],
       activetab: 0,
       NGVersion: null,
