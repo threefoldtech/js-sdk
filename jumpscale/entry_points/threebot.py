@@ -3,7 +3,6 @@ from gevent import monkey
 monkey.patch_all(subprocess=False)  # noqa: E402
 
 import sys
-
 import click
 import tempfile
 import subprocess
@@ -240,6 +239,97 @@ def clean(all=False):
             print(f"exception for debugging {e}")
 
 
+def preprocess_exported_file(temp):
+    project_path = j.sals.fs.parents(j.sals.fs.realpath(__file__))[2]
+    escaped_project_path = project_path.replace("/", "\\\\/")
+    project_files = [
+        "secureconfig/jumpscale/servers/threebot/threebot/ThreebotServer/default/_package_manager/jumpscale/servers/threebot/threebot/PackageManager/default/data"
+    ]
+    for pf in project_files:
+        j.sals.process.execute(
+            ["sed", "-i", f"s/{escaped_project_path}/{{PROJECTPATH}}/g", j.sals.fs.join_paths(temp, pf)]
+        )
+    root_files = ["secureconfig/jumpscale/tools/startupcmd/startupcmd/StartupCmd/nginx_main/data", "config.toml"]
+    home = j.core.dirs.HOMEDIR
+    escaped_home = home.replace("/", "\\\\/")
+    for rf in root_files:
+        j.sals.process.execute(["sed", "-i", f"s/{escaped_home}/{{HOME}}/g", j.sals.fs.join_paths(temp, rf)])
+
+
+def postprocess_imported_file(path):
+    project_path = j.sals.fs.parents(j.sals.fs.realpath(__file__))[2]
+    escaped_project_path = project_path.replace("/", "\\\\/")
+    project_files = [
+        "secureconfig/jumpscale/servers/threebot/threebot/ThreebotServer/default/_package_manager/jumpscale/servers/threebot/threebot/PackageManager/default/data"
+    ]
+    for pf in project_files:
+        j.sals.process.execute(
+            ["sed", "-i", f"s/{{PROJECTPATH}}/{escaped_project_path}/g", j.sals.fs.join_paths(path, pf)]
+        )
+    root_files = ["secureconfig/jumpscale/tools/startupcmd/startupcmd/StartupCmd/nginx_main/data", "config.toml"]
+    home = j.core.dirs.HOMEDIR
+    escaped_home = home.replace("/", "\\\\/")
+    for rf in root_files:
+        j.sals.process.execute(["sed", "-i", f"s/{{HOME}}/{escaped_home}/g", j.sals.fs.join_paths(path, rf)])
+
+
+@click.command()
+@click.option("-o", "--output", default="export.tar.gz", help="exported output file")
+def export(output):
+    home = j.core.dirs.HOMEDIR
+    if home is None:
+        j.tools.console.printcolors("Error: {RED}Home dir is not found{RESET}")
+        return
+    config_path = j.sals.fs.join_paths(home, ".config", "jumpscale")
+    preprocessing_path = tempfile.mkdtemp()
+    tmp_file = tempfile.mkstemp()[1]
+    target_file = tmp_file
+    try:
+        j.sals.fs.copy_tree(config_path, j.sals.fs.join_paths(preprocessing_path, "jumpscale"))
+        preprocess_exported_file(j.sals.fs.join_paths(preprocessing_path, "jumpscale"))
+        kube_config = j.sals.fs.join_paths(home, ".kube", "config")
+        tf = j.data.tarfile.tarfile.open(target_file, "w")
+        tf.add(j.sals.fs.join_paths(preprocessing_path, "jumpscale"), arcname="jumpscale")
+        tf.add(kube_config, "config")
+        tf.close()
+        if output is not None:
+            j.sals.fs.rename(target_file, output)
+            target_file = output
+        j.tools.console.printcolors("Success: {GREEN}Export file created successfully at " + target_file + " {RESET}")
+    finally:
+        j.sals.fs.rmtree(tmp_file)
+        j.sals.fs.rmtree(preprocessing_path)
+
+
+@click.command()
+@click.option("-f", "--file", help="The path to the export file")
+def dexport(file):
+    tf = j.data.tarfile.tarfile.open(file, "r")
+    home = j.core.dirs.HOMEDIR
+    if home is None:
+        j.tools.console.printcolors("Error: {RED}Home dir is not found{RESET}")
+        return
+    kube_config = j.sals.fs.join_paths(home, ".kube", "config")
+    config_path = j.sals.fs.join_paths(home, ".config", "jumpscale")
+    tmpdir = tempfile.mkdtemp()
+    try:
+        tf.extractall(tmpdir)
+        postprocess_imported_file(j.sals.fs.join_paths(tmpdir, "jumpscale"))
+        j.tools.console.printcolors(
+            "Warning: {YELLOW}Please take a backup of ~/.config/jumpscale and ~/.kube/config before continuing{RESET}"
+        )
+        x = input("Sure you want to override the local jumpscale config at ~/.config/jumpdsale [yn]? ")
+        if x == "y":
+            j.sals.fs.rmtree(config_path)
+            j.sals.fs.copy_tree(j.sals.fs.join_paths(tmpdir, "jumpscale"), config_path)
+        x = input("Sure you want to override the local kube config at ~/.kube/config [yn]? ")
+        if x == "y":
+            j.sals.fs.copy_file(j.sals.fs.join_paths(tmpdir, "config"), kube_config)
+        tf.close()
+    finally:
+        j.sals.fs.rmtree(tmpdir)
+
+
 @click.group()
 def cli():
     pass
@@ -277,6 +367,8 @@ cli.add_command(stop)
 cli.add_command(status)
 cli.add_command(restart)
 cli.add_command(clean)
+cli.add_command(export)
+cli.add_command(dexport, name="import")
 
 
 if __name__ == "__main__":
