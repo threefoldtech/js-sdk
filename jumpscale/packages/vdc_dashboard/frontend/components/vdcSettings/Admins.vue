@@ -31,6 +31,11 @@
 <script>
 module.exports = {
   components: {},
+  data() {
+    return {
+      admins: [],
+    };
+  },
   props: ["vdc", "loading"],
   methods: {
     listAdmins() {
@@ -42,6 +47,7 @@ module.exports = {
         })
         .finally(() => {
           this.loading.admins = false;
+          console.log("admins", this.admins);
         });
     },
   },

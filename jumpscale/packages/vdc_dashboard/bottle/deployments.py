@@ -157,7 +157,7 @@ def list_alerts() -> str:
     return HTTPResponse(alerts, status=200, headers={"Content-Type": "application/json"})
 
     
-@app.route("/admins/list", method="GET")
+@app.route("/api/admins/list", method="GET")
 @package_authorized("vdc_dashboard")
 def list_all_admins() -> str:
     admins = list(set(j.core.identity.me.admins))
