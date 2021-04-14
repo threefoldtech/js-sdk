@@ -71,7 +71,7 @@ const apiClient = {
     getThreebotState: () => {
       return axios({
         url: `${baseURL}/threebot/export`,
-        headers: { 'Content-Type': 'application/gzip' },
+        headers: { 'Content-Type': 'application/json' },
         responseType: 'arraybuffer',
         method: "get"
       })
