@@ -156,6 +156,13 @@ def list_alerts() -> str:
     alerts = _list_alerts()
     return HTTPResponse(alerts, status=200, headers={"Content-Type": "application/json"})
 
+    
+@app.route("/admins/list", method="GET")
+@package_authorized("vdc_dashboard")
+def list_all_admins() -> str:
+    admins = list(set(j.core.identity.me.admins))
+    return j.data.serializers.json.dumps({"data": admins})
+
 
 @app.route("/api/threebot_vdc", method="GET")
 @package_authorized("vdc_dashboard")
@@ -415,7 +422,7 @@ def get_sdk_version():
     for package in packages:
         data[package] = metadata.version(package)
     return HTTPResponse(
-        j.data.serializers.json.dumps({"data": data}), status=200, headers={"Content-Type": "application/json"},
+        j.data.serializers.json.dumps({"data": data}), status=200, headers={"Content-Type": "application/json"}
     )
 
 

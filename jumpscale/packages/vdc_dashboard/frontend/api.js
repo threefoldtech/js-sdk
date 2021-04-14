@@ -25,7 +25,7 @@ const apiClient = {
     },
     list: ()=>{
       return axios({
-        url: `${baseURL}/admin/list_admins`
+        url: `${baseURL}/admins/list`
     })
     }
   },
