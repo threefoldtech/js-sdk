@@ -9,7 +9,6 @@
   >
     <template #default>
       {{ messages.confirmationMsg }}
-
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
@@ -21,7 +20,7 @@
 <script>
 module.exports = {
   mixins: [dialog],
-  props:{
+  props: {
     title: String,
     api: String,
     wid: Number,
@@ -29,21 +28,28 @@ module.exports = {
   },
   methods: {
     submit() {
-        this.loading = true;
-        this.error = null;
-        this.$api.solutions
-            [this.api](this.wid)
-            .then((response) => {
-            this.alert(this.messages.successMsg, "success");
-            this.$router.go(0);
-            }).catch((err) => {
-            this.error = err.response.data["error"];
-            this.alert(this.error , "error");
-            }).finally(() => {
-            this.loading = false;
-            });
+      this.loading = true;
+      this.error = null;
+      this.$api.solutions[this.api](this.wid)
+        .then((response) => {
+          this.alert(this.messages.successMsg, "success");
+          this.close();
+          this.loading = false;
+          this.getlist();
+        })
+        .catch((err) => {
+          this.error = err.response.data["error"];
+          this.alert(this.error, "error");
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+    getlist() {
+      this.$emit("reload-vdcinfo", {
+        message: "VDC info has been reloaded successfully!",
+      });
     },
   },
-
 };
 </script>
