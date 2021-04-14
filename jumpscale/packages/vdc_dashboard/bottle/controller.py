@@ -89,8 +89,13 @@ def add_node():
         abort(400, "Not enough funds in prepaid wallet to add node")
 
     old_wallet = deployer._set_wallet(vdc.prepaid_wallet.instance_name)
+    duration = vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
+    two_weeks = 2 * 7 * 24 * 60 * 60
+    if duration > two_weeks:
+        duration = two_weeks
     try:
         wids = deployer.add_k8s_nodes(node_flavor, public_ip=False)
+        deployer.extend_k8s_workloads(duration, *wids)
         deployer._set_wallet(old_wallet)
         return HTTPResponse(
             j.data.serializers.json.dumps(wids), status=201, headers={"Content-Type": "application/json"}
