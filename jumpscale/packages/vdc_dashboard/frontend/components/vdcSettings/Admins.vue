@@ -37,8 +37,8 @@
 <script>
 module.exports = {
   components: {
-    "add-admin": httpVueLoader("./AddAdmin.vue"),
-    "remove-admin": httpVueLoader("./RemoveAdmin.vue"),
+    "add-admin": httpVueLoader("./admin_settings/AddAdmin.vue"),
+    "remove-admin": httpVueLoader("./admin_settings/RemoveAdmin.vue"),
   },
   data() {
     return {
@@ -61,7 +61,6 @@ module.exports = {
         })
         .finally(() => {
           this.loading.admins = false;
-          console.log("admins", this.admins);
         });
     },
     removeAdmin(name) {
