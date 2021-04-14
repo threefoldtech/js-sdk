@@ -84,7 +84,7 @@ def add_node():
         abort(400, f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {node_flavor}")
 
     # Payment
-    success, _, _ = vdc.show_external_node_payment(bot=None, size=node_flavor, public_ip=False)
+    success, _, _ = vdc.show_external_node_payment(bot=None, farm_name=farm_name, size=node_flavor, public_ip=False)
     if not success:
         abort(400, "Not enough funds in prepaid wallet to add node")
 

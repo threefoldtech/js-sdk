@@ -78,7 +78,9 @@ class ExtendKubernetesCluster(GedisChatBot):
             )
         j.logger.debug("found enough capacity, continue to payment")
 
-        success, _, payment_id = self.vdc.show_external_node_payment(self, self.node_flavor, public_ip=self.public_ip)
+        success, _, payment_id = self.vdc.show_external_node_payment(
+            self, farm_name=farm_name, size=self.node_flavor, public_ip=self.public_ip
+        )
         if not success:
             self.stop(f"payment timedout")
 
