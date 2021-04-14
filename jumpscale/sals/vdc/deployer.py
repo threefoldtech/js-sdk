@@ -1,26 +1,35 @@
 from collections import defaultdict
-from jumpscale.clients.explorer.models import WorkloadType, ZdbNamespace, K8s, Volume, Container, DiskType
+from contextlib import ContextDecorator
+import os
+import random
 import uuid
 
 import gevent
+from jumpscale.core.exceptions import exceptions
 from jumpscale.loader import j
+
+from jumpscale.clients.explorer.models import (
+    Container,
+    DiskType,
+    K8s,
+    Volume,
+    WorkloadType,
+    ZdbNamespace,
+)
 from jumpscale.sals.chatflows.chatflows import GedisChatBot
 from jumpscale.sals.kubernetes import Manager
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 from jumpscale.sals.zos import get as get_zos
+from jumpscale.sals.zos.billing import InsufficientFunds
 
 from .kubernetes import VDCKubernetesDeployer
-from .proxy import VDCProxy, VDC_PARENT_DOMAIN
-from .s3 import VDCS3Deployer
 from .monitoring import VDCMonitoring
-from .threebot import VDCThreebotDeployer
+from .proxy import VDCProxy, VDC_PARENT_DOMAIN
 from .public_ip import VDCPublicIP
+from .s3 import VDCS3Deployer
 from .scheduler import GlobalCapacityChecker, GlobalScheduler, Scheduler
 from .size import *
-from jumpscale.core.exceptions import exceptions
-from contextlib import ContextDecorator
-from jumpscale.sals.zos.billing import InsufficientFunds
-import os
+from .threebot import VDCThreebotDeployer
 
 SSH_KEY_PREFIX = "ssh_"
 VDC_IDENTITY_FORMAT = "vdc_{}_{}_{}"  # tname, vdc_name, vdc_uuid
@@ -70,7 +79,7 @@ class VDCDeployer:
         self.password = password
         self.email = f"vdc_{self.vdc_instance.solution_uuid}"
         self.wallet_name = self.vdc_instance.provision_wallet.instance_name
-        self.proxy_farm_name = proxy_farm_name
+        self.proxy_farm_name = proxy_farm_name or random.choice(PROXY_FARMS.get())
         self.vdc_uuid = self.vdc_instance.solution_uuid
         self.description = j.data.serializers.json.dumps({"vdc_uuid": self.vdc_uuid})
         self._log_format = f"VDC: {self.vdc_uuid} NAME: {self.vdc_name}: OWNER: {self.tname} {{}}"
@@ -254,7 +263,7 @@ class VDCDeployer:
         self.pay(pool_info)
         return reservation_id, reservation_id
 
-    def init_vdc(self, selected_farm, zdb_farms=None):
+    def init_vdc(self, compute_farm, network_farm, zdb_farms=None):
         """
         1- create 2 pool on storage farms (with the required capacity to have 50-50) as speced
         2- get (and extend) or create a pool for kubernetes controller on the network farm with small flavor
@@ -288,9 +297,9 @@ class VDCDeployer:
         k8s.size = master_size.value
         cus, sus = get_cloud_units(k8s)
         ipv4us = duration * 60 * 60 * 24
-        farm_resources[NETWORK_FARM.get()]["cus"] += cus
-        farm_resources[NETWORK_FARM.get()]["sus"] += sus
-        farm_resources[NETWORK_FARM.get()]["ipv4us"] += ipv4us
+        farm_resources[network_farm]["cus"] += cus
+        farm_resources[network_farm]["sus"] += sus
+        farm_resources[network_farm]["ipv4us"] += ipv4us
 
         cont2 = Container()
         cont2.capacity.cpu = THREEBOT_CPU
@@ -311,8 +320,8 @@ class VDCDeployer:
         # cus += n_cus * ETCD_CLUSTER_SIZE
         # sus += n_sus * ETCD_CLUSTER_SIZE
 
-        farm_resources[selected_farm]["cus"] += cus
-        farm_resources[selected_farm]["sus"] += sus
+        farm_resources[compute_farm]["cus"] += cus
+        farm_resources[compute_farm]["sus"] += sus
 
         for farm_name, cloud_units in farm_resources.items():
             _, reservation_id = self.get_pool_id_and_reservation_id(farm_name, **cloud_units)
@@ -390,13 +399,13 @@ class VDCDeployer:
             )
         return zdb_threads
 
-    def deploy_vdc_kubernetes(self, farm_name, scheduler, pub_keys=None):
+    def deploy_vdc_kubernetes(self, compute_farm, network_farm, scheduler, pub_keys=None):
         """
         1- deploy master
         2- extend cluster with the flavor no_nodes
         """
         # self.bot_show_update("Deploying External ETCD Cluster...")
-        # etcd_ips = self.kubernetes.deploy_external_etcd(farm_name=farm_name, solution_uuid=self.vdc_uuid)
+        # etcd_ips = self.kubernetes.deploy_external_etcd(farm_name=compute_farm, solution_uuid=self.vdc_uuid)
         # if not etcd_ips:
         #     self.error("failed to deploy etcd cluster")
         #     return
@@ -404,7 +413,7 @@ class VDCDeployer:
         endpoint = ""
         self.bot_show_update("Deploying Kubernetes Controller...")
         gs = scheduler or GlobalScheduler()
-        master_pool_id, _ = self.get_pool_id_and_reservation_id(NETWORK_FARM.get())
+        master_pool_id, _ = self.get_pool_id_and_reservation_id(network_farm)
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         pub_keys = pub_keys or []
@@ -420,7 +429,7 @@ class VDCDeployer:
         self.bot_show_update("Deploying Kubernetes Workers...")
         self.vdc_instance.load_info()
         wids = self.kubernetes.extend_cluster(
-            farm_name,
+            compute_farm,
             master_ip,
             VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"],
             self.password,
@@ -447,9 +456,9 @@ class VDCDeployer:
         self._wallet = None
         return old_wallet_name
 
-    def check_capacity(self, farm_name, zdb_farms=None):
+    def check_capacity(self, farm_name, network_farm, zdb_farms=None):
         # make sure there are available public ips
-        farm = self.explorer.farms.get(farm_name=NETWORK_FARM.get())
+        farm = self.explorer.farms.get(farm_name=network_farm)
         available_ips = False
         for address in farm.ipaddresses:
             if not address.reservation_id:
@@ -477,7 +486,7 @@ class VDCDeployer:
         plan = VDC_SIZE.VDC_FLAVORS[self.flavor]
 
         # check kubernetes capacity
-        master_query = {"farm_name": NETWORK_FARM.get(), "public_ip": True}
+        master_query = {"farm_name": network_farm, "public_ip": True}
         master_query.update(VDC_SIZE.K8S_SIZES[plan["k8s"]["controller_size"]])
         if not gcc.add_query(**master_query):
             return False
@@ -509,9 +518,9 @@ class VDCDeployer:
             return False
 
         # check trc container capacity
-        trc_query = {"farm_name": farm_name, "cru": 1, "mru": 1, "sru": 0.25}
-        if not gcc.add_query(**trc_query):
-            return False
+        # trc_query = {"farm_name": farm_name, "cru": 1, "mru": 1, "sru": 0.25}
+        # if not gcc.add_query(**trc_query):
+        #     return False
 
         # etcd_query = {
         #     "farm_name": farm_name,
@@ -526,7 +535,14 @@ class VDCDeployer:
         return gcc.result
 
     def deploy_vdc(
-        self, minio_ak, minio_sk, farm_name=None, install_monitoring_stack=False, s3_backup_config=None, zdb_farms=None
+        self,
+        minio_ak,
+        minio_sk,
+        compute_farm=None,
+        network_farm=None,
+        install_monitoring_stack=False,
+        s3_backup_config=None,
+        zdb_farms=None,
     ):
         """deploys a new vdc
         Args:
@@ -535,9 +551,10 @@ class VDCDeployer:
             farm_name: where to initialize the vdc
             s3_backup_config: dict with keys: url, region, bucket, ak, sk
         """
-        farm_name = farm_name or PREFERED_FARM.get()
+        compute_farm = compute_farm or random.choice(COMPUTE_FARMS.get())
+        network_farm = network_farm or random.choice(NETWORK_FARMS.get())
 
-        self.info(f"deploying VDC flavor: {self.flavor} farm: {farm_name}")
+        self.info(f"deploying VDC flavor: {self.flavor} farm: {compute_farm}")
         # if len(minio_ak) < 3 or len(minio_sk) < 8:
         #     raise j.exceptions.Validation(
         #         "Access key length should be at least 3, and secret key length at least 8 characters"
@@ -545,7 +562,7 @@ class VDCDeployer:
 
         # initialize VDC pools
         self.bot_show_update("Initializing VDC")
-        self.init_vdc(farm_name, zdb_farms)
+        self.init_vdc(compute_farm, network_farm)
         self.bot_show_update("Deploying network")
         if not self.deploy_vdc_network():
             self.error("failed to deploy network")
@@ -560,7 +577,9 @@ class VDCDeployer:
             pub_keys = [self.ssh_key.public_key.strip()]
             # deploy k8s cluster
             self.bot_show_update("Deploying kubernetes cluster")
-            deployment_threads.append(gevent.spawn(self.deploy_vdc_kubernetes, farm_name, gs, pub_keys=pub_keys))
+            deployment_threads.append(
+                gevent.spawn(self.deploy_vdc_kubernetes, compute_farm, network_farm, gs, pub_keys=pub_keys)
+            )
             gevent.joinall(deployment_threads)
 
             if not deployment_threads[-1].value:
@@ -577,7 +596,7 @@ class VDCDeployer:
 
             # zdb_wids = deployment_threads[0].value + deployment_threads[1].value
             # scheduler = Scheduler(farm_name)
-            pool_id, _ = self.get_pool_id_and_reservation_id(farm_name)
+            pool_id, _ = self.get_pool_id_and_reservation_id(compute_farm)
 
             # deploy minio container
             # self.bot_show_update("Deploying minio container")
@@ -681,15 +700,18 @@ class VDCDeployer:
         self.info(f"s3 exposed over domain: {domain_name}")
         return domain_name
 
-    def add_k8s_nodes(self, flavor, farm_name=None, public_ip=False, no_nodes=1, duration=None, external=True):
-        farm_name = farm_name or PREFERED_FARM.get()
+    def add_k8s_nodes(
+        self, flavor, farm_name=None, network_farm=None, public_ip=False, no_nodes=1, duration=None, external=True
+    ):
+        farm_name = farm_name or random.choice(COMPUTE_FARMS.get())
+        network_farm = network_farm or random.choice(NETWORK_FARMS.get())
         if isinstance(flavor, str):
             flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
         self.vdc_instance.load_info()
         cluster_secret = self.vdc_instance.get_password()
         self.info(f"extending kubernetes cluster on farm: {farm_name}, public_ip: {public_ip}, no_nodes: {no_nodes}")
         master_ip = self.vdc_instance.kubernetes[0].ip_address
-        farm_name = farm_name if not public_ip else NETWORK_FARM.get()
+        farm_name = farm_name if not public_ip else network_farm
         public_key = None
         try:
             public_key = self.ssh_key.public_key.strip()

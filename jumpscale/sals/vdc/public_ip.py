@@ -1,6 +1,6 @@
 from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from .base_component import VDCBaseComponent
-from .size import NETWORK_FARM
+from .size import NETWORK_FARMS
 import random
 from jumpscale.sals.reservation_chatflow import deployer
 import uuid
@@ -9,7 +9,7 @@ import uuid
 class VDCPublicIP(VDCBaseComponent):
     def __init__(self, vdc_deployer, farm_name=None):
         super().__init__(vdc_deployer)
-        self.farm_name = farm_name or NETWORK_FARM.get()
+        self.farm_name = farm_name or random.choice(NETWORK_FARMS.get())
         self._farm = None
 
     @property
