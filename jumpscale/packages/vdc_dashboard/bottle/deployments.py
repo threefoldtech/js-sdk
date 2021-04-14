@@ -192,6 +192,8 @@ def remove_admin() -> str:
         raise j.exceptions.Value(f"Admin name shouldn't be empty")
     if name not in package.admins:
         raise j.exceptions.Value(f"Admin {name} does not exist")
+    if len(package.admins) == 1:
+        raise j.exceptions.Value(f"VDC should have at least one admin")
     package.admins.remove(name)
     threebot.packages.save()
 
