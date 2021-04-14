@@ -3,11 +3,11 @@ from bottle import Bottle, request, HTTPResponse, abort
 import random
 
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, controller_authorized
 from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper
 from jumpscale.sals.vdc.size import VDC_SIZE
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_kubeconfig_file, get_zstor_config_file
 
+from .auth import controller_authorized
 
 app = Bottle()
 
@@ -345,6 +345,3 @@ def get_zstor_config():
         return HTTPResponse(status=500, message=str(e), headers={"Content-Type": "application/json"})
     except j.exceptions.Value as e:
         return HTTPResponse(status=400, message=str(e), headers={"Content-Type": "application/json"})
-
-
-app = SessionMiddleware(app, SESSION_OPTS)
