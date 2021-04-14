@@ -47,6 +47,7 @@ class DeploymentConfig(Base):
 class SolutionsChatflowDeploy(GedisChatBot):
     CHART_NAME = None
     ADDITIONAL_QUERIES = None  # list of {"cpu": x(m), "memory": x(Mi)} used by chart dependencies
+    alert_view_url = "/vdc_dashboard/#/alerts"
 
     @property
     def chart_name(self):

@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="grey lighten-5 mt-5">
     <v-tabs
-      v-model="activeTab"
+      v-model="activetab"
       class="text--left"
       background-color="transparent"
       vertical
@@ -39,7 +39,7 @@
       </v-tab-item>
       <v-tab-item class="ml-2">
         <v-card flat>
-          <alerts></alerts>
+          <alerts :alertid="alertid"></alerts>
         </v-card>
       </v-tab-item>
     </v-tabs>
@@ -105,6 +105,16 @@
 
 <script>
 module.exports = {
+  props: {
+    activetab: {
+      type: Number,
+      default: 0,
+    },
+    alertid: {
+      type: Number,
+      default: null
+    },
+  },
   data() {
     return {
       loading: true,
@@ -127,10 +137,16 @@ module.exports = {
         { icon: "mdi-backup-restore", title: "Backup & Restore" },
         { icon: "mdi-alert-outline", title: "Alerts" },
       ],
-      activeTab: null,
       NGVersion: null,
       SDKVersion: null,
     };
+  },
+  watch: {
+    alertid(val) {
+      if(val){
+        this.activetab = 4;
+      }
+    },
   },
   methods: {
     vdcInfo() {

@@ -29,8 +29,25 @@
 
 <script>
 module.exports = {
+  alertid: {
+    type: Number,
+    default: null
+  },
   components: {
     "show-alert": httpVueLoader("./Alert.vue"),
+  },
+  watch: {
+    alertid(val) {
+      if(val){
+        for (let i = 0; i < this.alerts.length; i++) {
+          const alert = this.alerts[i];
+          if(alert.id === val){
+            this.open(alert)
+            return
+          }
+        }
+      }
+    },
   },
   data() {
     return {

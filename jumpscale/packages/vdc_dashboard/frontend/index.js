@@ -72,6 +72,7 @@ const router = new VueRouter({
         { name: "Solution", path: '/:type', component: solution, props: true, meta: { icon: "mdi-apps" } },
         { name: "SolutionChatflow", path: '/solutions/:topic', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
 
+        { name: "Alert", path: '/alerts/:alertid', component: vdcSettings, props: true },
     ]
 })
 
