@@ -12,10 +12,11 @@ app = Bottle()
 @package_authorized("vdc_dashboard")
 def export():
     filename = j.tools.export.export_threebot_state()
+    exporttime = j.data.time.now().format("YYYY-MM-DDTHH-mm-ssZZ")
     return static_file(
         j.sals.fs.basename(filename),
         root=j.sals.fs.dirname(filename),
-        download="export.tar.gz",
+        download=f"export-{exporttime}.tar.gz",
         mimetype="application/gzip",
     )
 
