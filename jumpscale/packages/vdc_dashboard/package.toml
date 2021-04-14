@@ -35,6 +35,14 @@ path_dest = "/api/controller/"
 host = "0.0.0.0"
 port = 5591
 
+[[bottle_servers]]
+name = "threebot_export"
+file_path = "bottle/export.py"
+path_url = "/api/threebot/"
+path_dest = "/api/threebot/"
+host = "0.0.0.0"
+port = 5592
+
 [[servers]]
 name = "vdc_dashboard_root_proxy"
 domain = "vdc-dashboard.threefold.me"

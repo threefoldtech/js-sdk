@@ -14,6 +14,14 @@
         class="float-right p-4"
         color="primary"
         text
+        @click.stop="downloadThreebotStateFile()"
+      >
+        <v-icon left>mdi-download</v-icon>ThreebotState
+      </v-btn>
+      <v-btn
+        class="float-right p-4"
+        color="primary"
+        text
         @click.stop="openChatflow('extend_kubernetes')"
       >
         <v-icon left>mdi-plus</v-icon>Add node
@@ -158,6 +166,22 @@ module.exports = {
       this.$emit("reload-vdcinfo", {
         message: "VDC info has been reloaded successfully!",
       });
+    },
+    downloadThreebotStateFile() {
+      this.$api.solutions
+        .getThreebotState()
+        .then((response) => {
+          const blob = new Blob([response.data], {type: response.headers["content-type"]});
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.setAttribute("download", "export.tar.gz");
+          link.click();
+          URL.revokeObjectURL(link.href);
+        })
+        .catch((err) => {
+          console.log("Failed to download threebot state due to " + err);
+        });
     },
   },
   computed: {
