@@ -18,7 +18,3 @@ class vdc_dashboard:
 
         j.sals.nginx.main.websites.default_443.configure()
         j.sals.nginx.main.websites.default_80.configure()
-        threebot = j.servers.threebot.get()
-        package = threebot.packages.get("vdc_dashboard")
-        package.admins.append("samehabouelsaad.3bot")
-        package.admins.append("samehabouelsaad")
