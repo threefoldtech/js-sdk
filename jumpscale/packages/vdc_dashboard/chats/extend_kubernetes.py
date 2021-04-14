@@ -85,12 +85,16 @@ class ExtendKubernetesCluster(GedisChatBot):
             self.stop(f"payment timedout")
 
         self.md_show_update("Payment successful")
+        duration = self.vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
         old_wallet = deployer._set_wallet(self.vdc.prepaid_wallet.instance_name)
         try:
             wids = deployer.add_k8s_nodes(self.node_flavor, farm_name=farm_name, public_ip=self.public_ip)
         except Exception as e:
             j.sals.billing.issue_refund(payment_id)
             self.stop(f"failed to add nodes to your cluster. due to error {str(e)}")
+
+        self.md_show_update("Updating expiration...")
+        deployer.extend_k8s_workloads(duration, *wids)
 
         self.md_show_update("Processing transaction...")
         deployer._set_wallet(old_wallet)

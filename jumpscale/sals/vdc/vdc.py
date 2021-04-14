@@ -483,11 +483,12 @@ class UserVDC(Base):
         if isinstance(size, str):
             size = VDC_SIZE.K8SNodeFlavor[size.upper()].value
         k8s.size = size
-        amount = j.tools.zos.consumption.cost(k8s, 60 * 60 * 24 * 30, farm_id) + TRANSACTION_FEES
+        duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
+        amount = j.tools.zos.consumption.cost(k8s, duration, farm_id) + TRANSACTION_FEES
 
         if public_ip:
             pub_ip = PublicIP()
-            amount += j.tools.zos.consumption.cost(pub_ip, 60 * 60 * 24 * 30, farm_id)
+            amount += j.tools.zos.consumption.cost(pub_ip, duration, farm_id)
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
@@ -529,7 +530,8 @@ class UserVDC(Base):
         zdb = ZdbNamespace()
         zdb.size = size
         zdb.disk_type = DiskType.HDD
-        amount = j.tools.zos.consumption.cost(zdb, 60 * 60 * 24 * 30, farm_id) + TRANSACTION_FEES
+        duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
+        amount = j.tools.zos.consumption.cost(zdb, duration, farm_id) + TRANSACTION_FEES
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:

@@ -778,9 +778,8 @@ class VDCDeployer:
 
     def extend_k8s_workloads(self, duration, *wids):
         """
-        duration in days
+        duration in seconds
         """
-        duration = duration * 24 * 60 * 60
         pools_units = defaultdict(lambda: {"cu": 0, "su": 0, "ipv4us": 0})
         for wid in wids:
             workload = self.zos.workloads.get(wid)
