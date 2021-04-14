@@ -164,6 +164,32 @@ def list_all_admins() -> str:
     return j.data.serializers.json.dumps({"data": admins})
 
 
+@app.route("/api/admins/add", method="POST")
+@package_authorized("vdc_dashboard")
+def add_admin() -> str:
+    data = j.data.serializers.json.loads(request.body.read())
+    name = data.get("name")
+    if not name:
+        raise j.exceptions.Value(f"Admin name shouldn't be empty")
+    if name in j.core.identity.me.admins:
+        raise j.exceptions.Value(f"Admin {name} already exists")
+    j.core.identity.me.admins.append(name)
+    j.core.identity.me.save()
+
+
+@app.route("/api/admins/remove", method="POST")
+@package_authorized("vdc_dashboard")
+def remove_admin() -> str:
+    data = j.data.serializers.json.loads(request.body.read())
+    name = data.get("name")
+    if not name:
+        raise j.exceptions.Value(f"Admin name shouldn't be empty")
+    if name not in j.core.identity.me.admins:
+        raise j.exceptions.Value(f"Admin {name} does not exist")
+    j.core.identity.me.admins.remove(name)
+    j.core.identity.me.save()
+
+
 @app.route("/api/threebot_vdc", method="GET")
 @package_authorized("vdc_dashboard")
 def threebot_vdc():

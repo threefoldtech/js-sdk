@@ -26,14 +26,27 @@
         >{{ admin }}</v-chip
       >
     </base-section>
+    <add-admin v-model="dialogs.addAdmin" @done="listAdmins"></add-admin>
+    <remove-admin
+      v-model="dialogs.removeAdmin"
+      :name="selectedAdmin"
+      @done="listAdmins"
+    ></remove-admin>
   </div>
 </template>
 <script>
 module.exports = {
-  components: {},
+  components: {
+    "add-admin": httpVueLoader("./AddAdmin.vue"),
+    "remove-admin": httpVueLoader("./RemoveAdmin.vue"),
+  },
   data() {
     return {
       admins: [],
+      dialogs: {
+        addAdmin: false,
+        removeAdmin: false,
+      },
     };
   },
   props: ["vdc", "loading"],
@@ -49,6 +62,10 @@ module.exports = {
           this.loading.admins = false;
           console.log("admins", this.admins);
         });
+    },
+    removeAdmin(name) {
+      this.selectedAdmin = name;
+      this.dialogs.removeAdmin = true;
     },
   },
   mounted() {
