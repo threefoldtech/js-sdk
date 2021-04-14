@@ -245,12 +245,6 @@ def export(output):
     j.tools.export.export_threebot_state(output)
 
 
-@click.command()
-@click.option("-f", "--file", help="The path to the export file")
-def dexport(file):
-    j.tools.export.import_threebot_state(file)
-
-
 @click.group()
 def cli():
     pass
@@ -289,7 +283,6 @@ cli.add_command(status)
 cli.add_command(restart)
 cli.add_command(clean)
 cli.add_command(export)
-cli.add_command(dexport, name="import")
 
 
 if __name__ == "__main__":
