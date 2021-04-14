@@ -160,7 +160,10 @@ def list_alerts() -> str:
 @app.route("/api/admins/list", method="GET")
 @package_authorized("vdc_dashboard")
 def list_all_admins() -> str:
-    admins = list(set(j.core.identity.me.admins))
+    # admins = list(set(j.core.identity.me.admins))
+    threebot = j.servers.threebot.get()
+    package = threebot.packages.get("vdc_dashboard")
+    admins = list(set(package.admins))
     return j.data.serializers.json.dumps({"data": admins})
 
 
