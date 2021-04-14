@@ -43,6 +43,7 @@ module.exports = {
   data() {
     return {
       admins: [],
+      selectedAdmin: null,
       dialogs: {
         addAdmin: false,
         removeAdmin: false,
