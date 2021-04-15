@@ -142,17 +142,16 @@ def delete_node():
     )
 
 
-@app.route("/api/controller/zdb/list", method="POST")
+@app.route("/api/controller/zdb", method="GET")
 @controller_authorized()
 def list_zdbs():
     """
-    request body:
+    request header:
         password
 
     Returns:
         zdbs: string
     """
-    data = j.data.serializers.json.loads(request.body.read())
     vdc_dict = _get_vdc_dict()
 
     vdc = get_vdc()
@@ -169,12 +168,13 @@ def list_zdbs():
     )
 
 
-@app.route("/api/controller/zdb/add", method="POST")
+@app.route("/api/controller/zdb", method="POST")
 @controller_authorized()
 def add_zdb():
     """
-    request body:
+    request header:
         password
+    request body:
         capacity
         farm(optional)
         nodes_ids(optional)
@@ -213,19 +213,20 @@ def add_zdb():
         abort(500, f"Error: Failed to deploy zdb")
 
 
-@app.route("/api/controller/zdb/delete", method="POST")
+@app.route("/api/controller/zdb", method="DELETE")
 @controller_authorized()
 def delete_zdb():
     """
-    request body:
+    request header:
         password
+    request body:
         wid
 
     Returns:
         status
     """
     data = j.data.serializers.json.loads(request.body.read())
-    vdc_password = data.get("password")
+    _, vdc_password = parse_auth(request.headers.get("Authorization"))
     wid = data.get("wid")
     if not all([wid]):
         abort(400, "Error: Not all required params were passed.")
@@ -245,11 +246,11 @@ def delete_zdb():
     )
 
 
-@app.route("/api/controller/wallet", method="POST")
+@app.route("/api/controller/wallet", method="GET")
 @controller_authorized()
 def get_wallet_info():
     """
-    request body:
+    request header:
         password
 
     Returns:
@@ -263,11 +264,11 @@ def get_wallet_info():
     )
 
 
-@app.route("/api/controller/pools", method="POST")
+@app.route("/api/controller/pools", method="GET")
 @controller_authorized()
 def list_pools():
     """
-    request body:
+    request header:
         password
 
     Returns:
@@ -281,12 +282,13 @@ def list_pools():
     return HTTPResponse(j.data.serializers.json.dumps(pools), status=200, headers={"Content-Type": "application/json"})
 
 
-@app.route("/api/controller/alerts", method="POST")
+@app.route("/api/controller/alerts", method="GET")
 @controller_authorized()
 def list_alerts():
     """
-    request body:
+    request header:
         password
+    request body:
         application (optional, if not given all alerts returned)
 
     Returns:
@@ -303,11 +305,11 @@ def list_alerts():
     return HTTPResponse(j.data.serializers.json.dumps(alerts), status=200, headers={"Content-Type": "application/json"})
 
 
-@app.route("/api/controller/kubeconfig", method="POST")
+@app.route("/api/controller/kubeconfig", method="GET")
 @controller_authorized()
 def get_kubeconfig():
     """
-    request body:
+    request header:
         password
 
     Returns:
@@ -322,12 +324,13 @@ def get_kubeconfig():
         return HTTPResponse(status=400, message=str(e), headers={"Content-Type": "application/json"})
 
 
-@app.route("/api/controller/zstor_config", method="POST")
+@app.route("/api/controller/zstor_config", method="GET")
 @controller_authorized()
 def get_zstor_config():
     """
-    request body:
+    request header:
         password
+    request body:
         ip_version
 
     Returns:
