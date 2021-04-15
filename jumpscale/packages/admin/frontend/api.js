@@ -191,6 +191,14 @@ const apiClient = {
                 url: `${baseURL}/admin/clear_blocked_nodes`,
             })
         },
+        getThreebotState: () => {
+          return axios({
+            url: `/admin/api/export`,
+            headers: { 'Content-Type': 'application/json' },
+            responseType: 'arraybuffer',
+            method: "get"
+          })
+        },
         clearBlockedManagedDomains: () => {
             return axios({
                 url: `${baseURL}/admin/clear_blocked_managed_domains`,

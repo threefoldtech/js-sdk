@@ -14,14 +14,6 @@
         class="float-right p-4"
         color="primary"
         text
-        @click.stop="downloadThreebotStateFile()"
-      >
-        <v-icon left>mdi-download</v-icon>ThreebotState
-      </v-btn>
-      <v-btn
-        class="float-right p-4"
-        color="primary"
-        text
         @click.stop="openChatflow('extend_kubernetes')"
       >
         <v-icon left>mdi-plus</v-icon>Add node
