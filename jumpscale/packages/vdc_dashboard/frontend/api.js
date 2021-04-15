@@ -88,6 +88,14 @@ const apiClient = {
         method: "get"
       })
     },
+    getThreebotState: () => {
+      return axios({
+        url: `${baseURL}/threebot/export`,
+        headers: { 'Content-Type': 'application/json' },
+        responseType: 'arraybuffer',
+        method: "get"
+      })
+    },
     deleteWorkerWorkload: (wid) => {
       return axios({
         url: `${baseURL}/kube/nodes/delete`,
