@@ -127,6 +127,8 @@ class UserVDC(Base):
         deployment_logs=False,
         ssh_key_path=None,
         restore=False,
+        network_farm=None,
+        compute_farm=None,
     ):
         proxy_farm_name = proxy_farm_name or random.choice(PROXY_FARMS.get())
         if not password and not identity:
@@ -141,6 +143,8 @@ class UserVDC(Base):
             deployment_logs=deployment_logs,
             ssh_key_path=ssh_key_path,
             restore=restore,
+            network_farm=network_farm,
+            compute_farm=compute_farm,
         )
 
     def get_password(self):
@@ -762,15 +766,3 @@ class UserVDC(Base):
         j.clients.sshclient.delete(client_name)
         ssh_client = j.clients.sshclient.get(client_name, user=user, host=ip_address, sshkey=client_name)
         return ssh_client
-
-    def check_capacity_available(self, flavor, farm_name=None):
-        old_node_ids = []
-        for k8s_node in self.kubernetes:
-            old_node_ids.append(k8s_node.node_id)
-        farm_name = farm_name or j.sals.marketplace.deployer.get_pool_farm_name(self.kubernetes[0].pool_id)
-        cc = CapacityChecker(farm_name)
-        cc.exclude_nodes(*old_node_ids)
-        node_flavor_size = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
-        if not cc.add_query(**VDC_SIZE.K8S_SIZES[node_flavor_size]):
-            return False, farm_name
-        return True, farm_name

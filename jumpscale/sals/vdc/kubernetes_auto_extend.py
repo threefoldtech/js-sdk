@@ -176,6 +176,9 @@ class KubernetesMonitor:
         if no_nodes < 1:
             return []
         deployer = deployer or self.vdc_instance.get_deployer(bot=bot)
+        farm_name, capacity_check = deployer.find_worker_farm(flavor, farm_name)
+        if not capacity_check:
+            j.logger.warning(f"There is no capacity to add worker node")
         duration = self.vdc_instance.get_pools_expiration() - j.data.time.utcnow().timestamp
         two_weeks = 2 * 7 * 24 * 60 * 60
         if duration > two_weeks:
