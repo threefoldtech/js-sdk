@@ -38,7 +38,6 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
     @chatflow_step(title="Solution Name")
     def get_release_name(self):
         self._check_uniqueness()
-        self._get_vdc_info()
         message = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
         releases = [
             release["name"]
