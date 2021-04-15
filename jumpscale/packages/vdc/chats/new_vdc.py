@@ -294,7 +294,9 @@ class VDCDeploy(GedisChatBot):
 
         if not filtered_network_farms:
             raise StopChatFlow(
-                f"There are not enough resources available in network farms: {network_farms} to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
+                f"There are not enough resources available in network farms: {network_farms} "
+                f"to deploy your VDC of flavor `{self.vdc_flavor}`. To restart VDC creation,"
+                "please use the refresh button on the upper right corner."
             )
 
         if self.farm_selection.value == "Manually Select Farms" and len(set(filtered_network_farms)) > 1:
@@ -314,7 +316,9 @@ class VDCDeploy(GedisChatBot):
 
         if not filtered_compute_farms:
             raise StopChatFlow(
-                f"There are not enough resources available in compute farms: {compute_farms} to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
+                f"There are not enough resources available in compute farms: {compute_farms} "
+                f"to deploy your VDC of flavor `{self.vdc_flavor}`. To restart VDC creation,"
+                "please use the refresh button on the upper right corner."
             )
 
         if self.farm_selection.value == "Manually Select Farms" and len(set(filtered_compute_farms)) > 1:
