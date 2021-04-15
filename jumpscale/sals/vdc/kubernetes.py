@@ -10,6 +10,7 @@ from .scheduler import CapacityChecker, Scheduler
 from .size import *
 from jumpscale.clients.explorer.models import K8s, NextAction
 import gevent
+import random
 
 
 ETCD_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-etcd-latest.flist"
@@ -502,7 +503,7 @@ ports:
 
     def deploy_external_etcd(self, no_nodes=ETCD_CLUSTER_SIZE, farm_name=None, solution_uuid=None):
         network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-        farm_name = farm_name or PREFERED_FARM.get()
+        farm_name = farm_name or random.choice(COMPUTE_FARMS.get())
         pool_id, _ = self.vdc_deployer.get_pool_id_and_reservation_id(farm_name)
         scheduler = Scheduler(pool_id=pool_id)
         nodes_generator = scheduler.nodes_by_capacity(cru=ETCD_CPU, sru=ETCD_DISK / 1024, mru=ETCD_MEMORY / 1024)

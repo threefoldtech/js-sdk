@@ -9,19 +9,19 @@
         "testnet": ["freefarm"],
         "mainnet": ["freefarm"]
     },
-    "PREFERED_FARM": {
-        "devnet": "lochristi_dev_lab",
-        "testnet": "freefarm",
-        "mainnet": "freefarm"
+    "COMPUTE_FARMS": {
+        "devnet": ["lochristi_dev_lab"],
+        "testnet": ["freefarm"],
+        "mainnet": ["freefarm"]
     },
     "NETWORK_FARM": {
-        "devnet": "lochristi_dev_lab",
-        "testnet": "freefarm",
-        "mainnet": "freefarm"
+        "devnet": ["lochristi_dev_lab"],
+        "testnet": ["freefarm"],
+        "mainnet": ["freefarm"]
     },
     "PROXY_FARM": {
-        "devnet": "csfarmer",
-        "testnet": "csfarmer",
-        "mainnet": "csfarmer"
+        "devnet": ["csfarmer"],
+        "testnet": ["csfarmer"],
+        "mainnet": ["csfarmer"]
     }
 }

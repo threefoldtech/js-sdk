@@ -169,6 +169,15 @@ const apiClient = {
       })
     },
   },
+  alerts: {
+    listAlerts: () => {
+      return axios({
+        url: `${baseURL}/alerts`,
+        method: "get",
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  },
   quantumstorage: {
     enable: () => {
       return axios({

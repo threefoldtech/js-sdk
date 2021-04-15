@@ -14,9 +14,11 @@ from jumpscale.loader import j
 from stellar_sdk import Asset, TransactionBuilder
 
 from .wrapped import Account, Server
-from .balance import AccountBalances, Balance, EscrowAccount
+from .balance import AccountBalances, Balance, EscrowAccount, VestingAccount
 from .transaction import Effect, PaymentSummary, TransactionSummary
 from .exceptions import UnAuthorized
+from .vesting import is_vesting_account, VESTING_SCHEME
+
 
 XLM_TRANSACTION_FEES = 0.00001
 ACTIVATION_ADDRESS = "GCKLGWHEYT2V63HC2VDJRDWEY3G54YSHHPOA6Q3HAPQUGA5OZDWZL7KW"
@@ -187,15 +189,24 @@ class Stellar(Client):
                 balances = []
                 for response_balance in account["balances"]:
                     balances.append(Balance.from_horizon_response(response_balance))
-
-                escrow_account = EscrowAccount(
-                    account_id,
-                    preauth_signers,
-                    balances,
+                if is_vesting_account(
+                    account,
+                    address,
+                    self.network.value,
                     _NETWORK_PASSPHRASES[self.network.value],
                     self._get_unlockhash_transaction,
-                )
-                escrow_accounts.append(escrow_account)
+                ):
+                    escrow_accounts.append(VestingAccount(account_id, balances, VESTING_SCHEME))
+                else:
+                    escrow_accounts.append(
+                        EscrowAccount(
+                            account_id,
+                            preauth_signers,
+                            balances,
+                            _NETWORK_PASSPHRASES[self.network.value],
+                            self._get_unlockhash_transaction,
+                        )
+                    )
         return escrow_accounts
 
     def claim_locked_funds(self):
@@ -744,7 +755,7 @@ class Stellar(Client):
         escrow_account = server.load_account(escrow_kp.public_key)
         escrow_account.increment_sequence_number()
         tx = (
-            stellar_sdk.TransactionBuilder(escrow_account)
+            stellar_sdk.TransactionBuilder(escrow_account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
             .append_set_options_op(master_weight=0, low_threshold=1, med_threshold=1, high_threshold=1)
             .add_time_bounds(unlock_time, 0)
             .build()
@@ -759,7 +770,7 @@ class Stellar(Client):
         else:
             account = server.load_account(address)
         tx = (
-            stellar_sdk.TransactionBuilder(account)
+            stellar_sdk.TransactionBuilder(account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
             .append_pre_auth_tx_signer(preauth_tx_hash, 1)
             .append_ed25519_public_key_signer(public_key_signer, 1)
             .append_set_options_op(master_weight=1, low_threshold=2, med_threshold=2, high_threshold=2)
@@ -796,7 +807,9 @@ class Stellar(Client):
         account = self.load_account()
         source_keypair = stellar_sdk.Keypair.from_secret(self.secret)
 
-        transaction_builder = stellar_sdk.TransactionBuilder(account)
+        transaction_builder = stellar_sdk.TransactionBuilder(
+            account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value]
+        )
         # set the signing options
         transaction_builder.append_set_options_op(
             low_threshold=low_treshold,
@@ -862,7 +875,11 @@ class Stellar(Client):
         """
         server = self._get_horizon_server()
         account = self.load_account()
-        tx = stellar_sdk.TransactionBuilder(account).append_ed25519_public_key_signer(public_key_signer, 0).build()
+        tx = (
+            stellar_sdk.TransactionBuilder(account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
+            .append_ed25519_public_key_signer(public_key_signer, 0)
+            .build()
+        )
 
         source_keypair = stellar_sdk.Keypair.from_secret(self.secret)
 

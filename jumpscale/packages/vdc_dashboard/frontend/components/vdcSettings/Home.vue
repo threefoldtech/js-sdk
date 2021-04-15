@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="grey lighten-5 mt-5">
     <v-tabs
-      v-model="activeTab"
+      v-model="activetab"
       class="text--left"
       background-color="transparent"
       vertical
@@ -13,12 +13,20 @@
 
       <v-tab-item class="ml-2">
         <v-card flat>
-          <kubernetes :vdc="vdc" :loading="loading"></kubernetes>
+          <kubernetes
+            :vdc="vdc"
+            :loading="tableloading"
+            @reload-vdcinfo="vdcInfo"
+          ></kubernetes>
         </v-card>
       </v-tab-item>
       <v-tab-item class="ml-2">
         <v-card flat>
-          <s3 :vdc="vdc"></s3>
+          <s3
+            :vdc="vdc"
+            :tableloading="tableloading"
+            @reload-vdcinfo="vdcInfo"
+          ></s3>
         </v-card>
       </v-tab-item>
       <v-tab-item class="ml-2">
@@ -32,10 +40,14 @@
           ></wallet>
         </v-card>
       </v-tab-item>
-
       <v-tab-item class="ml-2">
         <v-card flat>
-          <backups :vdc="vdc" :loading="loading"></backups>
+          <backups :vdc="vdc" :loading="tableloading"></backups>
+        </v-card>
+      </v-tab-item>
+      <v-tab-item class="ml-2">
+        <v-card flat>
+          <alerts :alertid="parseInt(alertid)"></alerts>
         </v-card>
       </v-tab-item>
     </v-tabs>
@@ -101,9 +113,15 @@
 
 <script>
 module.exports = {
+  props: {
+    alertid: {
+      type: String,
+      default: null,
+    },
+  },
   data() {
     return {
-      loading: true,
+      tableloading: true,
       vdc: null,
       name: null,
       wallet: null,
@@ -121,15 +139,16 @@ module.exports = {
         { icon: "mdi-server", title: "Storage Nodes" },
         { icon: "mdi-wallet", title: "Wallet Information" },
         { icon: "mdi-backup-restore", title: "Backup & Restore" },
+        { icon: "mdi-alert-outline", title: "Alerts" },
       ],
-      activeTab: null,
+      activetab: 0,
       NGVersion: null,
       SDKVersion: null,
     };
   },
   methods: {
     vdcInfo() {
-      this.loading = true;
+      this.tableloading = true;
       this.$api.solutions
         .getVdcInfo()
         .then((response) => {
@@ -147,9 +166,10 @@ module.exports = {
               : `${(this.vdc.expiration_days * 24).toFixed(0)} hours,`;
         })
         .finally(() => {
-          this.loading = false;
+          this.tableloading = false;
         });
     },
+
     checkDashboardUpdates() {
       this.$api.version.checkForUpdate().then((response) => {
         let new_release = response.data.new_release;
@@ -171,6 +191,9 @@ module.exports = {
     this.getSDKVersion();
     this.vdcInfo();
     this.checkDashboardUpdates();
+    if (this.alertid) {
+      this.activetab = 4;
+    }
   },
   updated() {
     if (this.raiseExpirationAlert && this.vdc) {

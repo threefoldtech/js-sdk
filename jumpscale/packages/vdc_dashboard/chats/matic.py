@@ -7,7 +7,16 @@ class MaticDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "matic"
     title = "Polygon (Matic)"
     HELM_REPO_NAME = "marketplace"
-    steps = ["get_release_name", "create_subdomain", "set_config", "install_chart", "initializing", "success"]
+    steps = [
+        "init_chatflow",
+        "get_release_name",
+        "choose_flavor",
+        "set_config",
+        "create_subdomain",
+        "install_chart",
+        "initializing",
+        "success",
+    ]
 
     CHART_LIMITS = {
         "Silver": {"cpu": "2000m", "memory": "2024Mi"},
@@ -15,93 +24,87 @@ class MaticDeploy(SolutionsChatflowDeploy):
         "Platinum": {"cpu": "4000m", "memory": "8192Mi"},
     }
 
+    def get_config(self):
+        return {
+            "access_code": self.config.chart_config.access_code,
+            "global.ingress.host": self.config.chart_config.domain,
+            "env.moniker": self.config.release_name,
+            "env.node_ingress_ip": self.vdc_info["public_ip"],
+            "env.node_type": self.config.chart_config.node_type,
+            "env.eth_rpc_url": self.config.chart_config.extra_config.get("eth_rpc_url", ""),
+            "eth_privkey": self.config.chart_config.extra_config.get("eth_privkey", ""),
+            "eth_key_passphrase": self.config.chart_config.extra_config.get("eth_key_passphrase", ""),
+            "env.eth_walletaddr": self.config.chart_config.extra_config.get("eth_walletaddr", ""),
+            "env.sentry_nodeid": self.config.chart_config.extra_config.get("sentry_nodeid", ""),
+            "env.sentry_enodeid": self.config.chart_config.extra_config.get("sentry_enodeid", ""),
+        }
+
     def _enter_nodetype(self):
         choices = [
             "Sentry Node",
             "Full Node",
             "Validator",
         ]
-        self.node_type = self.single_choice("Select the Node Type", choices, default="Sentry Node")
-        if self.node_type == "Full Node":
+        self.config.chart_config.node_type = self.single_choice("Select the Node Type", choices, default="Sentry Node")
+        if self.config.chart_config.node_type == "Full Node":
             self._enter_rpc_url()
-        elif self.node_type == "Validator":
+        elif self.config.chart_config.node_type == "Validator":
             self._enter_rpc_url()
             self._enter_validator_info()
             self._enter_sentry_info()
         else:
             pass
 
-        self.chart_config.update({"env.node_type": self.node_type})
-
     def _check_uniqueness(self):
-        username = self.user_info()["username"]
-        self.md_show_update("Preparing the chatflow . .")
-        if get_deployments(self.SOLUTION_TYPE, username):
+        if get_deployments(self.SOLUTION_TYPE, self.config.username):
             raise StopChatFlow("You can only have one Matic solution per VDC")
 
     def get_release_name(self):
         self._check_uniqueness()
         super().get_release_name()
-        if len(self.release_name) > 10:
+        if len(self.config.release_name) > 10:
             raise StopChatFlow("Solution Name should not be more than 10 characters")
 
-    def _enter_access_code(self):
-        self.access_code = self.secret_ask(
-            "Enter Access Code (This would be used to access your node's web page)", min_length=8, required=True
-        )
-
     def _enter_rpc_url(self):
-        self.eth_rpc_url = self.string_ask("Insert Infura or any full node RPC URL to Ethereum.", required=True,)
-        self.chart_config.update({"env.eth_rpc_url": self.eth_rpc_url})
+        self.config.chart_config.extra_config["eth_rpc_url"] = self.string_ask(
+            "Insert Infura or any full node RPC URL to Ethereum.", required=True,
+        )
 
     def _enter_validator_info(self):
         form = self.new_form()
-        self.eth_privkey = form.string_ask("Please enter your ethereum wallet's *private* key.", required=True)
-        self.eth_key_passphrase = form.secret_ask(
+        eth_privkey = form.string_ask("Please enter your ethereum wallet's *private* key.", required=True)
+        eth_key_passphrase = form.secret_ask(
             "Please enter the passphrase for your ethereum wallet's *private* key. It should be minimum 8 characters.",
             min_length=8,
             required=True,
         )
-        self.eth_walletaddr = form.string_ask("Please enter your ethereum wallet address.", required=True)
+        eth_walletaddr = form.string_ask("Please enter your ethereum wallet address.", required=True)
         form.ask()
-        self.eth_privkey = self.eth_privkey.value
-        self.eth_key_passphrase = self.eth_key_passphrase.value
-        self.eth_walletaddr = self.eth_walletaddr.value
-        self.chart_config.update(
-            {
-                "eth_privkey": self.eth_privkey,
-                "eth_key_passphrase": self.eth_key_passphrase,
-                "env.eth_walletaddr": self.eth_walletaddr,
-            }
-        )
+
+        self.config.chart_config.extra_config["eth_privkey"] = eth_privkey.value
+        self.config.chart_config.extra_config["eth_key_passphrase"] = eth_key_passphrase.value
+        self.config.chart_config.extra_config["eth_walletaddr"] = eth_walletaddr.value
 
     def _enter_sentry_info(self):
         form = self.new_form()
-        self.sentry_nodeid = form.string_ask("Please enter your sentry node's NodeID for heimdall")
-        self.sentry_enodeid = form.string_ask("Please enter your sentry node's EnodeID for Bor")
+        sentry_nodeid = form.string_ask("Please enter your sentry node's NodeID for heimdall")
+        sentry_enodeid = form.string_ask("Please enter your sentry node's EnodeID for Bor")
         form.ask()
-        self.sentry_nodeid = self.sentry_nodeid.value
-        self.sentry_enodeid = self.sentry_enodeid.value
-        self.chart_config.update({"env.sentry_nodeid": self.sentry_nodeid, "env.sentry_enodeid": self.sentry_enodeid})
+
+        self.config.chart_config.extra_config["sentry_nodeid"] = sentry_nodeid.value
+        self.config.chart_config.extra_config["sentry_enodeid"] = sentry_enodeid.value
+
+    def _enter_access_code(self):
+        self.config.chart_config.access_code = self.secret_ask(
+            "Enter Access Code (This would be used to access your node's web page)", min_length=8, required=True
+        )
 
     @chatflow_step(title="Node Configuration")
     def set_config(self):
         self._enter_nodetype()
         self._enter_access_code()
-        self._choose_flavor(self.CHART_LIMITS)
         self.vdc.get_deployer().kubernetes.add_traefik_entrypoints(
             {"matic-bor": {"port": "30303"}, "matic-heimdall": {"port": "26656"}}
-        )
-
-        self.chart_config.update(
-            {
-                "access_code": self.access_code,
-                "global.ingress.host": self.domain,
-                "env.moniker": self.release_name,
-                "env.node_ingress_ip": self.vdc_info["public_ip"],
-                "resources.limits.cpu": self.resources_limits["cpu"],
-                "resources.limits.memory": self.resources_limits["memory"],
-            }
         )
 
 

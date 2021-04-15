@@ -10,7 +10,7 @@ from jumpscale.packages.auth.bottle.auth import (
     package_authorized,
 )
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper, _list_alerts
 from jumpscale.core.base import StoredFactory
 
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
@@ -110,6 +110,13 @@ def list_all_deployments() -> str:
         j.logger.exception(message=str(e), exception=e)
 
     return j.data.serializers.json.dumps({"data": deployments})
+
+
+@app.route("/api/alerts", method="GET")
+@package_authorized("vdc_dashboard")
+def list_alerts() -> str:
+    alerts = _list_alerts()
+    return HTTPResponse(alerts, status=200, headers={"Content-Type": "application/json"})
 
 
 @app.route("/api/threebot_vdc", method="GET")

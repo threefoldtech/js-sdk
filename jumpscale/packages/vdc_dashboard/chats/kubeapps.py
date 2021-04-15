@@ -10,10 +10,11 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
     title = "Kubeapps"
     HELM_REPO_NAME = "marketplace"
     steps = [
+        "init_chatflow",
         "check_already_deployed",
         "get_release_name",
+        "choose_flavor",
         "create_subdomain",
-        "set_config",
         "install_chart",
         "initializing",
         "get_access_token",
@@ -34,22 +35,13 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Checking deployed solutions")
     def check_already_deployed(self):
-        username = self.user_info()["username"]
-        self.md_show_update("Preparing the chatflow...")
-        if get_deployments(self.SOLUTION_TYPE, username):
+        if get_deployments(self.SOLUTION_TYPE, self.config.username):
             raise StopChatFlow("You can only have one Kubeapps solution per VDC")
 
-    @chatflow_step(title="Configurations")
-    def set_config(self):
-        self._choose_flavor()
-
-        self.chart_config.update(
-            {
-                "ingress.hostname": self.domain,
-                "kubeops.resources.limits.cpu": self.resources_limits["cpu"],
-                "kubeops.resources.limits.memory": self.resources_limits["memory"],
-            }
-        )
+    def get_config(self):
+        return {
+            "ingress.hostname": self.config.chart_config.domain,
+        }
 
     def get_specific_service(self, all_services, service_name):
         service_account = [
@@ -64,7 +56,6 @@ class KubeappsDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Generating access token")
     def get_access_token(self):
-        self._get_vdc_info()
         # Validate service account
         services = self.k8s_client.execute_native_cmd("kubectl get serviceaccount -o json")
         all_service_account = json.loads(services)

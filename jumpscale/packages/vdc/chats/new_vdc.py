@@ -1,12 +1,22 @@
-from jumpscale.sals.vdc.size import PREFERED_FARM
-from jumpscale.loader import j
-from jumpscale.sals.vdc.size import VDC_SIZE, INITIAL_RESERVATION_DURATION, ZDB_STARTING_SIZE
-from jumpscale.sals.vdc.proxy import VDC_PARENT_DOMAIN
-from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step, StopChatFlow
-from textwrap import dedent
-from jumpscale.sals.vdc.scheduler import GlobalCapacityChecker
-from urllib.parse import urlparse
 import math
+import random
+from textwrap import dedent
+from urllib.parse import urlparse
+
+from jumpscale.loader import j
+
+from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
+from jumpscale.sals.vdc.proxy import VDC_PARENT_DOMAIN
+from jumpscale.sals.vdc.scheduler import GlobalCapacityChecker
+from jumpscale.sals.vdc.size import COMPUTE_FARMS, NETWORK_FARMS
+from jumpscale.sals.vdc.size import (
+    INITIAL_RESERVATION_DURATION,
+    THREEBOT_CPU,
+    THREEBOT_DISK,
+    THREEBOT_MEMORY,
+    VDC_SIZE,
+    ZDB_STARTING_SIZE,
+)
 
 
 MINIMUM_ACTIVATION_XLMS = 0
@@ -14,7 +24,15 @@ MINIMUM_ACTIVATION_XLMS = 0
 
 class VDCDeploy(GedisChatBot):
     title = "VDC"
-    steps = ["vdc_info", "storage_farms_selection", "deploy", "initializing", "success"]
+    steps = [
+        "vdc_info",
+        "storage_farms_selection",
+        "network_farm_selection",
+        "compute_farm_selection",
+        "deploy",
+        "initializing",
+        "success",
+    ]
     VDC_INIT_WALLET_NAME = j.config.get("VDC_INITIALIZATION_WALLET", "vdc_init")
     GRACE_PERIOD_WALLET_NAME = j.config.get("GRACE_PERIOD_WALLET", "grace_period")
 
@@ -87,8 +105,8 @@ class VDCDeploy(GedisChatBot):
         self.vdc_flavor = form.single_choice(
             "Choose the VDC plan", options=vdc_flavor_messages, default=vdc_flavor_messages[0], required=True,
         )
-        self.storage_selection = form.single_choice(
-            "Do you wish to select farms for storage automatically?",
+        self.farm_selection = form.single_choice(
+            "Do you wish to select farms automatically?",
             ["Automatically Select Farms", "Manually Select Farms"],
             required=True,
             default="Automatically Select Farms",
@@ -188,6 +206,45 @@ class VDCDeploy(GedisChatBot):
             "bucket": backup_config.get("S3_BUCKET", ""),
         }
 
+    def _check_network_farm_resource(self, farm_name):
+        zos = j.sals.zos.get()
+        farm = zos._explorer.farms.get(farm_name=farm_name)
+        available_ips = False
+        for address in farm.ipaddresses:
+            if not address.reservation_id:
+                available_ips = True
+                break
+        if not available_ips:
+            return False
+
+        gcc = GlobalCapacityChecker()
+        plan = VDC_SIZE.VDC_FLAVORS[VDC_SIZE.VDCFlavor(self.vdc_flavor.lower())]
+        master_query = {"farm_name": farm_name, "public_ip": True}
+        master_query.update(VDC_SIZE.K8S_SIZES[plan["k8s"]["controller_size"]])
+        if not gcc.add_query(**master_query):
+            return False
+
+        return gcc.result
+
+    def _check_compute_farm_resource(self, farm_name):
+        gcc = GlobalCapacityChecker()
+        plan = VDC_SIZE.VDC_FLAVORS[VDC_SIZE.VDCFlavor(self.vdc_flavor.lower())]
+        worker_query = {"farm_name": farm_name, "no_nodes": 1}
+        worker_query.update(VDC_SIZE.K8S_SIZES[plan["k8s"]["size"]])
+        if not gcc.add_query(**worker_query):
+            return False
+
+        threebot_query = {
+            "farm_name": farm_name,
+            "cru": THREEBOT_CPU,
+            "mru": THREEBOT_MEMORY / 1024,
+            "sru": THREEBOT_DISK / 1024,
+        }
+        if not gcc.add_query(**threebot_query):
+            return False
+
+        return gcc.result
+
     @chatflow_step(title="VDC Information")
     def vdc_info(self):
         self._init()
@@ -201,7 +258,7 @@ class VDCDeploy(GedisChatBot):
     def storage_farms_selection(self):
         self.zdb_farms = None
         available_farms = []
-        if self.storage_selection.value == "Manually Select Farms":
+        if self.farm_selection.value == "Manually Select Farms":
             while True:
                 self.no_farms = self.int_ask(
                     "How many farms you want to deploy your storage on?", max=10, min=1, required=True, default=2
@@ -227,6 +284,46 @@ class VDCDeploy(GedisChatBot):
                     f"Invalid number of farms {len(self.zdb_farms)}. you must select exactly {self.no_farms}. click next to try again"
                 )
 
+    @chatflow_step(title="Network Farm")
+    def network_farm_selection(self):
+        filtered_network_farms = []
+        network_farms = NETWORK_FARMS.get()
+        for farm in network_farms:
+            if self._check_network_farm_resource(farm):
+                filtered_network_farms.append(farm)
+
+        if not filtered_network_farms:
+            raise StopChatFlow(
+                f"There are not enough resources available in network farms: {network_farms} to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
+            )
+
+        if self.farm_selection.value == "Manually Select Farms" and len(set(filtered_network_farms)) > 1:
+            self.network_farm = self.drop_down_choice(
+                f"Please select network farm", filtered_network_farms, required=True
+            )
+        else:
+            self.network_farm = random.choice(filtered_network_farms)
+
+    @chatflow_step(title="Compute Farm")
+    def compute_farm_selection(self):
+        filtered_compute_farms = []
+        compute_farms = COMPUTE_FARMS.get()
+        for farm in compute_farms:
+            if self._check_compute_farm_resource(farm):
+                filtered_compute_farms.append(farm)
+
+        if not filtered_compute_farms:
+            raise StopChatFlow(
+                f"There are not enough resources available in compute farms: {compute_farms} to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
+            )
+
+        if self.farm_selection.value == "Manually Select Farms" and len(set(filtered_compute_farms)) > 1:
+            self.compute_farm = self.drop_down_choice(
+                f"Please select compute farm", filtered_compute_farms, required=True
+            )
+        else:
+            self.compute_farm = random.choice(filtered_compute_farms)
+
     @chatflow_step(title="VDC Deployment")
     def deploy(self):
         self.md_show_update(f"Initializing Deployer (This may take a few moments)....")
@@ -248,11 +345,6 @@ class VDCDeploy(GedisChatBot):
             self._rollback()
             self.stop("failed to initialize VDC deployer. please contact support")
 
-        farm_name = PREFERED_FARM.get()  # TODO: use the selected farm name when users are allowed to select farms
-        if not self.deployer.check_capacity(farm_name, zdb_farms=self.zdb_farms):
-            raise StopChatFlow(
-                f"There are not enough resources available to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
-            )
         prefix = self.deployer.get_prefix()
         subdomain = f"{prefix}.{VDC_PARENT_DOMAIN}"
         j.logger.info(f"checking the availability of subdomain {subdomain}")
@@ -281,7 +373,12 @@ class VDCDeploy(GedisChatBot):
         old_wallet = self.deployer._set_wallet(self.VDC_INIT_WALLET_NAME)
         try:
             self.config = self.deployer.deploy_vdc(
-                minio_ak=None, minio_sk=None, s3_backup_config=self.backup_config, zdb_farms=self.zdb_farms
+                compute_farm=self.compute_farm,
+                network_farm=self.network_farm,
+                minio_ak=None,
+                minio_sk=None,
+                s3_backup_config=self.backup_config,
+                zdb_farms=self.zdb_farms,
             )
             if not self.config:
                 raise StopChatFlow(

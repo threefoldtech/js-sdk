@@ -1,4 +1,4 @@
-const DOCS_BASE_URL = "https://marketplace.threefold.io/marketplace/apps"
+const DOCS_BASE_URL = "https://marketplace.threefold.io/apps"
 
 const DECENTRALIZED_OFFICE = {
     titleToolTip: null,
@@ -90,6 +90,14 @@ const DECENTRALIZED_WE = {
             disable: false,
             helpLink: `${DOCS_BASE_URL}/discourse`,
             description: "Discourse is an open source Internet forum and mailing list management software application built to educate members about civil community engagement."
+        },
+        mastodon: {
+            name: "Mastodon",
+            type: "mastodon",
+            image: "./assets/mastodon.png",
+            disable: false,
+            helpLink: "https://docs.joinmastodon.org/",
+            description: "Similar to how blogging is the act of publishing updates to a website, microblogging is the act of publishing small updates to a stream of updates on your profile. You can publish text posts and optionally attach media such as pictures, audio, video, or polls. Mastodon lets you follow friends and discover new ones."
         },
         peertube: {
             name: "Peertube",
@@ -344,3 +352,27 @@ const KUBERNETES_VM_SIZE_MAP =
     17: { "vcpu": 4, "memory": 8, "storage": 50 },
     18: { "vcpu": 1, "memory": 1, "storage": 25 },
 }
+
+const LEVELS = {
+    50: { value: 50, text: "CRITICAL", color: "#A93226" },
+    40: { value: 40, text: "ERROR", color: "#CB4335" },
+    30: { value: 30, text: "WARNING", color: "#F39C12" },
+    20: { value: 20, text: "INFO", color: "#148F77" },
+    15: { value: 15, text: "STDOUT", color: "#5499C7" },
+    10: { value: 10, text: "DEBUG", color: "#839192" }
+};
+
+const STATES = [
+    'closed',
+    'new',
+    'open',
+    'reopen'
+]
+
+const TYPES = [
+    'bug',
+    'question',
+    'event_system',
+    'event_monitor',
+    'event_operator',
+]

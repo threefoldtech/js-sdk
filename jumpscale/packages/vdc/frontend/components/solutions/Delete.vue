@@ -11,7 +11,7 @@
       <strong class="red--text text--lighten-1">
         WARNING: This action can't be undone. Please make sure to transfer the
         tokens left in your wallet before deletion. (Wallet secret is available
-        in your VDC dashboard wallet pane)
+        in your VDC dashboard wallet pane, and it can be imported into any stellar compatible wallet.)
       </strong>
       <br /><br />
       Please type <b class="font-weight-black">{{ vdcname }}</b> to confirm.

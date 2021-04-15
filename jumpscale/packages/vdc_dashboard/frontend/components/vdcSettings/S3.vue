@@ -55,7 +55,7 @@
     </div>
     <v-data-table
       :headers="headers"
-      :loading="loading"
+      :loading="loading || tableloading"
       :items="zdbs"
       class="elevation-1"
     >
@@ -118,6 +118,7 @@
       title="Delete ZDB"
       :messages="deletionMessages"
       :wid="selectedZdb"
+      @reload-vdcinfo="reloadVdcInfo"
     ></cancel-zdb>
   </div>
 </template>
@@ -125,7 +126,7 @@
 
 <script>
 module.exports = {
-  props: ["vdc"],
+  props: ["vdc", "tableloading"],
   mixins: [dialog],
   components: {
     "cancel-zdb": httpVueLoader("./DeleteConfirmation.vue"),
@@ -242,6 +243,13 @@ module.exports = {
       this.selectedZdb = wid;
       this.dialogs.cancelZdb = true;
     },
+    reloadVdcInfo() {
+      this.dialogs.cancelZdb = false;
+      this.$emit("reload-vdcinfo", {
+        message: "VDC info has been reloaded successfully!",
+      });
+    },
+
     openChatflow(topic) {
       this.$router.push({
         name: "SolutionChatflow",

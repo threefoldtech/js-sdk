@@ -3,7 +3,7 @@ from bottle import Bottle, parse_auth, request, HTTPResponse, abort
 import random
 
 from jumpscale.loader import j
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper, _list_alerts
 from jumpscale.sals.vdc.size import VDC_SIZE
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_kubeconfig_file, get_zstor_config_file
 
@@ -297,12 +297,21 @@ def list_alerts():
     data = j.data.serializers.json.loads(request.body.read())
     app_name = data.get("application")
 
-    if not app_name:
-        alerts = [alert.json for alert in j.tools.alerthandler.find()]
-    else:
-        alerts = [alert.json for alert in j.tools.alerthandler.find() if alert.app_name == app_name]
+    alerts = _list_alerts(app_name)
 
-    return HTTPResponse(j.data.serializers.json.dumps(alerts), status=200, headers={"Content-Type": "application/json"})
+    return HTTPResponse(alerts, status=200, headers={"Content-Type": "application/json"})
+
+
+@app.route("/api/controller/status", method="GET")
+def is_running():
+    """Make sure the controller is running
+
+    Returns:
+        object: will only reply if the controller is alive
+    """
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"running": True}), status=200, headers={"Content-Type": "application/json"}
+    )
 
 
 @app.route("/api/controller/kubeconfig", method="GET")
