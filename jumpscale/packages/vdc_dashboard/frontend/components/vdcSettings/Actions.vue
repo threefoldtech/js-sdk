@@ -65,7 +65,7 @@ module.exports = {
           this.show = true;
           this.msg = response.data;
           this.close();
-          this.getlist();
+          this.getlist(5000);
         })
         .finally(() => {
           this.loading = false;
