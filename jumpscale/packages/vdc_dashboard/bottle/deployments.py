@@ -184,7 +184,7 @@ def get_zstor_config():
     ip_version = data.get("ip_version", 6)
     try:
         zstor_config = get_zstor_config_file(ip_version)
-        return {"data": j.data.serializers.toml.dumps(zstor_config)}
+        return {"data": zstor_config}
     except j.exceptions.NotFound as e:
         return HTTPResponse(status=500, message=str(e), headers={"Content-Type": "application/json"})
     except j.exceptions.Value as e:
