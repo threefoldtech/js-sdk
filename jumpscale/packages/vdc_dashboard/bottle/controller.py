@@ -276,4 +276,16 @@ def list_alerts():
     return HTTPResponse(alerts, status=200, headers={"Content-Type": "application/json"})
 
 
+@app.route("/api/controller/status", method="GET")
+def is_running():
+    """Make sure the controller is running
+
+    Returns:
+        object: will only reply if the controller is alive
+    """
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"running": True}), status=200, headers={"Content-Type": "application/json"}
+    )
+
+
 app = SessionMiddleware(app, SESSION_OPTS)
