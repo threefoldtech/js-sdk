@@ -541,7 +541,7 @@ class VDCDeployer:
     def find_worker_farm(self, flavor, farm_name=None):
         if farm_name:
             return farm_name, self._check_added_worker_capacity(flavor, farm_name)
-        for farm in j.config.get("COMPUTE_FARMS"):
+        for farm in j.config.get("COMPUTE_FARMS", []):
             if self._check_added_worker_capacity(flavor, farm):
                 return farm, True
         else:
