@@ -80,15 +80,15 @@ module.exports = {
           this.show = true;
           this.msg = response.data;
           this.close();
-          this.getlist();
+          this.getlist(10000);
         })
         .finally(() => {
           this.loading = false;
           this.confirmName = null;
         });
     },
-    getlist() {
-      this.$emit("reload-backups", { message: "Backup list reloaded!" });
+    getlist(timeout=2000) {
+      this.$emit("reload-backups", timeout, { message: "Backup list reloaded!" });
     },
   },
   mounted() {
