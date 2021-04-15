@@ -44,7 +44,7 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
             for release in self.k8s_client.list_deployed_releases()
             if release["namespace"].startswith(self.chart_name)
         ]
-        self.release_name = self.string_ask(
+        self.config.release_name = self.string_ask(
             message, required=True, is_identifier=True, not_exist=["solution name", releases], md=True, max_length=10
         )
 
