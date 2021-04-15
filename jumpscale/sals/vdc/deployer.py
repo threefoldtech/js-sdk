@@ -39,6 +39,17 @@ MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/vdc-solutions-chart
 NO_DEPLOYMENT_BACKUP_NODES = 0
 
 
+def on_exception(greenlet):
+    """Callback to handle exception raised by service greenlet
+
+    Arguments:
+        greenlet (Greenlet): greenlet object
+    """
+    message = f"raised an exception: {greenlet.exception}"
+    j.tools.alerthandler.alert_raise(app_name="vdc", message=message, alert_type="exception")
+    greenlet.deployer.error(message)
+
+
 class new_vdc_context(ContextDecorator):
     def __init__(self, vdc_deployer, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -390,17 +401,18 @@ class VDCDeployer:
         for idx, farm in enumerate(zdb_farms):
             no_nodes = farm_count[idx]
             pool_id, _ = self.get_pool_id_and_reservation_id(farm)
-            zdb_threads.append(
-                gevent.spawn(
-                    self.s3.deploy_s3_zdb,
-                    pool_id=pool_id,
-                    scheduler=gs,
-                    storage_per_zdb=ZDB_STARTING_SIZE,
-                    password=self.password,
-                    solution_uuid=self.vdc_uuid,
-                    no_nodes=no_nodes,
-                )
+            greenlet = gevent.spawn(
+                self.s3.deploy_s3_zdb,
+                pool_id=pool_id,
+                scheduler=gs,
+                storage_per_zdb=ZDB_STARTING_SIZE,
+                password=self.password,
+                solution_uuid=self.vdc_uuid,
+                no_nodes=no_nodes,
             )
+            greenlet.deployer = self
+            greenlet.link_exception(on_exception)
+            zdb_threads.append(greenlet)
         return zdb_threads
 
     def deploy_vdc_kubernetes(self, compute_farm, network_farm, scheduler, pub_keys=None):
@@ -592,9 +604,12 @@ class VDCDeployer:
             pub_keys = [self.ssh_key.public_key.strip()]
             # deploy k8s cluster
             self.bot_show_update("Deploying kubernetes cluster")
-            deployment_threads.append(
-                gevent.spawn(self.deploy_vdc_kubernetes, self.compute_farm, self.network_farm, gs, pub_keys=pub_keys)
+            greenlet = gevent.spawn(
+                self.deploy_vdc_kubernetes, self.compute_farm, self.network_farm, gs, pub_keys=pub_keys
             )
+            greenlet.deployer = self
+            greenlet.link_exception(on_exception)
+            deployment_threads.append(greenlet)
             gevent.joinall(deployment_threads)
 
             if not deployment_threads[-1].value:
@@ -757,6 +772,8 @@ class VDCDeployer:
 
     def rollback_vdc_deployment(self):
         self.vdc_instance.load_info()
+        message = f"Deleting all workloads for vdc: {self.vdc_instance}"
+        j.tools.alerthandler.alert_raise(app_name="vdc", message=message, alert_type="exception")
         if all([self.vdc_instance.threebot.domain, os.environ.get("VDC_NAME_USER"), os.environ.get("VDC_NAME_TOKEN")]):
             # delete domain record from name.com
             prefix = self.get_prefix()
