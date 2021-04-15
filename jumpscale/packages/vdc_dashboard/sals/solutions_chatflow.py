@@ -21,7 +21,7 @@ CHART_LIMITS = {
 }
 RESOURCE_VALUE_TEMPLATE = {"cpu": "CPU {}", "memory": "Memory {}"}
 HELM_REPOS = {
-    "marketplace": {"name": "marketplace", "url": "https://threefoldtech.github.io/vdc-solutions-charts/"}
+    "marketplace": {"name": "marketplace", "url": "https://threefoldtech.github.io/vdc-solutions-charts/",}
 }  # TODO: revert to threefoldtech
 VDC_ENDPOINT = "/vdc"
 PREFERRED_FARM = "csfarmer"
@@ -47,6 +47,7 @@ class DeploymentConfig(Base):
 class SolutionsChatflowDeploy(GedisChatBot):
     CHART_NAME = None
     ADDITIONAL_QUERIES = None  # list of {"cpu": x(m), "memory": x(Mi)} used by chart dependencies
+    alert_view_url = "/vdc_dashboard/#/alerts"
 
     @property
     def chart_name(self):
@@ -100,7 +101,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         ssh_key.private_key_path = private_key_path
         ssh_key.load_from_file_system()
         ssh_client = j.clients.sshclient.get(
-            self.vdc_name, user=user, host=self.vdc_info["master_ip"], sshkey=self.vdc_name
+            self.vdc_name, user=user, host=self.vdc_info["master_ip"], sshkey=self.vdc_name,
         )
         return ssh_client
 
@@ -180,7 +181,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         if not gateways:
             self.preferred_farm_gw = False
             gateways = deployer.list_all_gateways(
-                self.config.username, self.vdc_info["farm_name"], identity_name=self.identity_name
+                self.config.username, self.vdc_info["farm_name"], identity_name=self.identity_name,
             )
             if not gateways:
                 raise StopChatFlow(
@@ -204,7 +205,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 if domain in blocked_domains:
                     continue
                 success = deployer.test_managed_domain(
-                    gateway.node_id, domain, gw_dict["pool"].pool_id, gateway, identity_name=self.identity_name
+                    gateway.node_id, domain, gw_dict["pool"].pool_id, gateway, identity_name=self.identity_name,
                 )
                 if not success:
                     j.logger.warning(f"managed domain {domain} failed to populate subdomain. skipping")
@@ -224,7 +225,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
                 if self.config.chart_config.domain_type == "Choose a custom subdomain on a gateway":
                     self.custom_subdomain = self.string_ask(
-                        f"Please enter a subdomain to be added to {managed_domain}", required=True, is_identifier=True
+                        f"Please enter a subdomain to be added to {managed_domain}", required=True, is_identifier=True,
                     )
                     full_domain = f"{self.custom_subdomain}.{managed_domain}"
                 else:
@@ -267,7 +268,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                             )
                             full_domain = f"{self.custom_subdomain}.{managed_domain}"
                         else:
-                            random_number = random.randint(1000, 100000)
+                            random_number = random.randint(1000, 100_000)
                             full_domain = (
                                 f"{owner_prefix}-{solution_type}-{release_name}-{random_number}.{managed_domain}"
                             )
@@ -299,7 +300,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         cluster_ip = self.vdc_info["public_ip"]
         while not valid:
             custom_domain = self.string_ask(
-                f"Please enter the domain name, make sure the domain points to {cluster_ip}.", required=True
+                f"Please enter the domain name, make sure the domain points to {cluster_ip}.", required=True,
             )
             if not self._does_domain_point_to_ip(custom_domain, cluster_ip):
                 self.md_show(f"The domain {custom_domain} doesn't point to {cluster_ip}.")
@@ -312,7 +313,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         self.workload_ids = []
         metadata = {
             "name": self.config.release_name,
-            "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.config.release_name},
+            "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.config.release_name,},
         }
         self.workload_ids.append(
             deployer.create_subdomain(
@@ -348,7 +349,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             if release["namespace"].startswith(self.chart_name)
         ]
         self.config.release_name = self.string_ask(
-            message, required=True, is_identifier=True, not_exist=["solution name", releases], md=True, max_length=20
+            message, required=True, is_identifier=True, not_exist=["solution name", releases], md=True, max_length=20,
         )
 
     @chatflow_step(title="Solution Flavor")
@@ -391,7 +392,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             "Choose a custom domain",
         ]
         self.config.chart_config.domain_type = self.single_choice(
-            "Select the domain type", choices, default="Choose subdomain for me on a gateway"
+            "Select the domain type", choices, default="Choose subdomain for me on a gateway",
         )
         custom_domain = self.config.chart_config.domain_type == "Choose a custom domain"
         # get self.config.chart_config.domain
@@ -409,7 +410,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
     @chatflow_step(title="Chart Backup")
     def ask_backup(self):
         self.backup = self.single_choice(
-            "Do you want to enable backup for this solution?", ["Yes", "No"], default="Yes", required=True
+            "Do you want to enable backup for this solution?", ["Yes", "No"], default="Yes", required=True,
         )
         if self.backup == "No":
             self.config.chart_config.backup = ""
@@ -423,7 +424,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
             helm_repos_urls = []
         if HELM_REPOS[self.HELM_REPO_NAME]["url"] not in helm_repos_urls:
             self.k8s_client.add_helm_repo(
-                HELM_REPOS[self.HELM_REPO_NAME]["name"], HELM_REPOS[self.HELM_REPO_NAME]["url"]
+                HELM_REPOS[self.HELM_REPO_NAME]["name"], HELM_REPOS[self.HELM_REPO_NAME]["url"],
             )
         self.k8s_client.update_repos()
         chart_config = {
@@ -489,7 +490,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         return False
 
     @chatflow_step(title="Initializing", disable_previous=True)
-    def initializing(self, timeout=300):
+    def initializing(self, timeout=300, pod_initalizing_timeout=POD_INITIALIZING_TIMEOUT):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
         domain_message = ""
         if self.config.chart_config.domain:
@@ -502,20 +503,25 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 Reason: {{reason}}
                 """
         start_time = time()
-        while time() - start_time <= POD_INITIALIZING_TIMEOUT:
+        while time() - start_time <= pod_initalizing_timeout:
             if self.chart_pods_started():
                 break
             gevent.sleep(1)
 
-        if not self.chart_pods_started() and self.chart_resource_failure():
+        if self.chart_resource_failure():
             stop_message = error_message_template.format(
                 reason="Couldn't find resources in the cluster for the solution"
             )
             self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.config.release_name}")
             self.stop(dedent(stop_message))
 
+        if not self.chart_pods_started():
+            stop_message = error_message_template.format(reason="Pods initialization timed out")
+            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.config.release_name}")
+            self.stop(dedent(stop_message))
+
         if self.config.chart_config.domain and not j.sals.reservation_chatflow.wait_http_test(
-            f"https://{self.config.chart_config.domain}", timeout=timeout - POD_INITIALIZING_TIMEOUT, verify=False
+            f"https://{self.config.chart_config.domain}", timeout=timeout - POD_INITIALIZING_TIMEOUT, verify=False,
         ):
             stop_message = error_message_template.format(reason="Couldn't reach the website after deployment")
             self.stop(dedent(stop_message))

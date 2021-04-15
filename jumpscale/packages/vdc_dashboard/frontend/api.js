@@ -23,6 +23,26 @@ const apiClient = {
         url: "/auth/authenticated/"
       })
     },
+    list: ()=>{
+      return axios({
+        url: `${baseURL}/admins/list`
+    })
+    },
+    add: (name) => {
+      return axios({
+          url: `${baseURL}/admins/add`,
+          method: "post",
+          headers: { 'Content-Type': 'application/json' },
+          data: { name: name }
+      })
+    },
+    remove: (name) => {
+      return axios({
+          url: `${baseURL}/admins/remove`,
+          method: "post",
+          headers: { 'Content-Type': 'application/json' },
+          data: { name: name }
+      })}
   },
   solutions: {
     getSolutions: (solutionType) => {
@@ -168,6 +188,15 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
+  },
+  alerts: {
+    listAlerts: () => {
+      return axios({
+        url: `${baseURL}/alerts`,
+        method: "get",
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
   },
   quantumstorage: {
     enable: () => {

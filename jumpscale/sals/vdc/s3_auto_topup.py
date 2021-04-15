@@ -168,6 +168,11 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, siz
     zos = get_zos()
     reservation_ids = []
 
+    duration = current_expiration - j.data.time.utcnow().timestamp
+    two_weeks = 2 * 7 * 24 * 60 * 60
+    if duration > two_weeks:
+        duration = two_weeks
+
     pool_total_sus = defaultdict(int)
     for _, pool_id in enumerate(pool_ids):
         cloud_units = deployer.calculate_capacity_units(hru=size)
@@ -175,7 +180,8 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, siz
         pool_total_sus[pool_id] += su
 
     for pool_id, su in pool_total_sus.items():
-        su = su * (current_expiration - j.data.time.utcnow().timestamp)
+
+        su = su * two_weeks
         pool_info = zos.pools.extend(pool_id, 0, su, 0)
         j.logger.info(
             f"AUTO TOPUP: extending pool {pool_id} with sus: {su}, reservation_id: {pool_info.reservation_id}"

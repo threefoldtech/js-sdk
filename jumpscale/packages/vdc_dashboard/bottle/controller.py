@@ -4,7 +4,7 @@ import random
 
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, controller_authorized
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper, _list_alerts
 from jumpscale.sals.vdc.size import VDC_SIZE
 
 
@@ -84,13 +84,18 @@ def add_node():
         abort(400, f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {node_flavor}")
 
     # Payment
-    success, _, _ = vdc.show_external_node_payment(bot=None, size=node_flavor, public_ip=False)
+    success, _, _ = vdc.show_external_node_payment(bot=None, farm_name=farm_name, size=node_flavor, public_ip=False)
     if not success:
         abort(400, "Not enough funds in prepaid wallet to add node")
 
     old_wallet = deployer._set_wallet(vdc.prepaid_wallet.instance_name)
+    duration = vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
+    two_weeks = 2 * 7 * 24 * 60 * 60
+    if duration > two_weeks:
+        duration = two_weeks
     try:
         wids = deployer.add_k8s_nodes(node_flavor, public_ip=False)
+        deployer.extend_k8s_workloads(duration, *wids)
         deployer._set_wallet(old_wallet)
         return HTTPResponse(
             j.data.serializers.json.dumps(wids), status=201, headers={"Content-Type": "application/json"}
@@ -271,12 +276,21 @@ def list_alerts():
     data = j.data.serializers.json.loads(request.body.read())
     app_name = data.get("application")
 
-    if not app_name:
-        alerts = [alert.json for alert in j.tools.alerthandler.find()]
-    else:
-        alerts = [alert.json for alert in j.tools.alerthandler.find() if alert.app_name == app_name]
+    alerts = _list_alerts(app_name)
 
-    return HTTPResponse(j.data.serializers.json.dumps(alerts), status=200, headers={"Content-Type": "application/json"})
+    return HTTPResponse(alerts, status=200, headers={"Content-Type": "application/json"})
+
+
+@app.route("/api/controller/status", method="GET")
+def is_running():
+    """Make sure the controller is running
+
+    Returns:
+        object: will only reply if the controller is alive
+    """
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"running": True}), status=200, headers={"Content-Type": "application/json"}
+    )
 
 
 app = SessionMiddleware(app, SESSION_OPTS)

@@ -10,10 +10,17 @@ from jumpscale.packages.auth.bottle.auth import (
     package_authorized,
 )
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import (
+    get_vdc,
+    threebot_vdc_helper,
+    _list_alerts,
+)
 from jumpscale.core.base import StoredFactory
 
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
+    get_all_deployments,
+    get_deployments,
+)
 import os
 
 app = Bottle()
@@ -21,7 +28,9 @@ app = Bottle()
 
 def _get_zstor_config(ip_version=6):
     if not j.sals.vdc.list_all():
-        abort(500, "Couldn't find any vdcs on this machine, Please make sure to have it configured properly")
+        abort(
+            500, "Couldn't find any vdcs on this machine, Please make sure to have it configured properly",
+        )
     vdc_full_name = list(j.sals.vdc.list_all())[0]
     vdc = j.sals.vdc.find(vdc_full_name, load_info=True)
     vdc_zdb_monitor = vdc.get_zdb_monitor()
@@ -37,7 +46,7 @@ def _get_zstor_config(ip_version=6):
         "meta": {
             "type": "etcd",
             "config": {
-                "endpoints": ["http://127.0.0.1:2379", "http://127.0.0.1:22379", "http://127.0.0.1:32379"],
+                "endpoints": ["http://127.0.0.1:2379", "http://127.0.0.1:22379", "http://127.0.0.1:32379",],
                 "prefix": "someprefix",
             },
         },
@@ -55,7 +64,7 @@ def _get_zstor_config(ip_version=6):
             zdb_url = zdb.proxy_address
         else:
             return
-        data["groups"].append({"backends": [{"address": zdb_url, "namespace": zdb.namespace, "password": password}]})
+        data["groups"].append({"backends": [{"address": zdb_url, "namespace": zdb.namespace, "password": password,}]})
     return data
 
 
@@ -69,7 +78,7 @@ def get_kubeconfig() -> str:
     file_content = j.sals.fs.read_file(file_path)
 
     if not file_content:
-        return HTTPResponse(status=400, message="Invalid file!", headers={"Content-Type": "application/json"})
+        return HTTPResponse(status=400, message="Invalid file!", headers={"Content-Type": "application/json"},)
 
     return j.data.serializers.json.dumps({"data": file_content})
 
@@ -122,7 +131,7 @@ def expose_s3() -> str:
     vdc_deployer = vdc.get_deployer()
     s3_domain = vdc_deployer.expose_s3()
     if not s3_domain:
-        return HTTPResponse(status=400, message="Failed to expose S3", headers={"Content-Type": "application/json"})
+        return HTTPResponse(status=400, message="Failed to expose S3", headers={"Content-Type": "application/json"},)
     return j.data.serializers.json.dumps({"data": s3_domain})
 
 
@@ -150,13 +159,61 @@ def list_all_deployments() -> str:
     return j.data.serializers.json.dumps({"data": deployments})
 
 
+@app.route("/api/alerts", method="GET")
+@package_authorized("vdc_dashboard")
+def list_alerts() -> str:
+    alerts = _list_alerts()
+    return HTTPResponse(alerts, status=200, headers={"Content-Type": "application/json"})
+
+
+@app.route("/api/admins/list", method="GET")
+@package_authorized("vdc_dashboard")
+def list_all_admins() -> str:
+    threebot = j.servers.threebot.get("default")
+    package = threebot.packages.get("vdc_dashboard")
+    admins = list(set(package.admins))
+    return j.data.serializers.json.dumps({"data": admins})
+
+
+@app.route("/api/admins/add", method="POST")
+@package_authorized("vdc_dashboard")
+def add_admin() -> str:
+    data = j.data.serializers.json.loads(request.body.read())
+    name = data.get("name")
+    threebot = j.servers.threebot.get("default")
+    package = threebot.packages.get("vdc_dashboard")
+    if not name:
+        raise j.exceptions.Value(f"Admin name shouldn't be empty")
+    if name in package.admins:
+        raise j.exceptions.Value(f"Admin {name} already exists")
+    package.admins.append(name)
+    threebot.packages.save()
+
+
+@app.route("/api/admins/remove", method="POST")
+@package_authorized("vdc_dashboard")
+def remove_admin() -> str:
+    data = j.data.serializers.json.loads(request.body.read())
+    name = data.get("name")
+    threebot = j.servers.threebot.get("default")
+    package = threebot.packages.get("vdc_dashboard")
+    if not name:
+        raise j.exceptions.Value(f"Admin name shouldn't be empty")
+    if name not in package.admins:
+        raise j.exceptions.Value(f"Admin {name} does not exist")
+    if len(package.admins) == 1:
+        raise j.exceptions.Value(f"VDC should have at least one admin")
+    package.admins.remove(name)
+    threebot.packages.save()
+
+
 @app.route("/api/threebot_vdc", method="GET")
 @package_authorized("vdc_dashboard")
 def threebot_vdc():
     vdc = get_vdc()
     vdc_dict = threebot_vdc_helper(vdc=vdc)
     return HTTPResponse(
-        j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
+        j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"},
     )
 
 
@@ -216,7 +273,7 @@ def get_zstor_config():
     zstor_config = _get_zstor_config(ip_version)
     if not zstor_config:
         return HTTPResponse(
-            status=400, message=f"unsupported ip version: {ip_version}", headers={"Content-Type": "application/json"}
+            status=400, message=f"unsupported ip version: {ip_version}", headers={"Content-Type": "application/json"},
         )
     return j.data.serializers.json.dumps({"data": j.data.serializers.toml.dumps(zstor_config)})
 
@@ -270,7 +327,7 @@ def accept():
     user_entry = user_factory.get(f"{explorer_name}_{tname.replace('.3bot', '')}")
     if user_entry.has_agreed:
         return HTTPResponse(
-            j.data.serializers.json.dumps({"allowed": True}), status=200, headers={"Content-Type": "application/json"}
+            j.data.serializers.json.dumps({"allowed": True}), status=200, headers={"Content-Type": "application/json"},
         )
     else:
         user_entry.has_agreed = True
@@ -278,7 +335,7 @@ def accept():
         user_entry.tname = tname
         user_entry.save()
         return HTTPResponse(
-            j.data.serializers.json.dumps({"allowed": True}), status=201, headers={"Content-Type": "application/json"}
+            j.data.serializers.json.dumps({"allowed": True}), status=201, headers={"Content-Type": "application/json"},
         )
 
 
@@ -296,7 +353,7 @@ def update():
         if rc:
             return HTTPResponse(
                 j.data.serializers.json.dumps(
-                    {"error": "failed to pull upstream", "stderr": err, "stdout": out, "code": rc, "cmd": cmd}
+                    {"error": "failed to pull upstream", "stderr": err, "stdout": out, "code": rc, "cmd": cmd,}
                 ),
                 status=500,
                 headers={"Content-Type": "application/json"},
@@ -306,7 +363,7 @@ def update():
         "restart",
     )
     return HTTPResponse(
-        j.data.serializers.json.dumps({"success": True}), status=200, headers={"Content-Type": "application/json"}
+        j.data.serializers.json.dumps({"success": True}), status=200, headers={"Content-Type": "application/json"},
     )
 
 
@@ -331,7 +388,7 @@ def check_update():
         )
 
     return HTTPResponse(
-        j.data.serializers.json.dumps({"new_release": ""}), status=200, headers={"Content-Type": "application/json"}
+        j.data.serializers.json.dumps({"new_release": ""}), status=200, headers={"Content-Type": "application/json"},
     )
 
 
@@ -343,7 +400,7 @@ def backup() -> str:
     service.job()
 
     return HTTPResponse(
-        j.data.serializers.json.dumps({"success": True}), status=200, headers={"Content-Type": "application/json"}
+        j.data.serializers.json.dumps({"success": True}), status=200, headers={"Content-Type": "application/json"},
     )
 
 
@@ -355,7 +412,7 @@ def get_wallet_qrcode_image():
     amount = request_data.get("amount")
     scale = request_data.get("scale", 5)
     if not all([address, amount, scale]):
-        return HTTPResponse("Not all parameters satisfied", status=400, headers={"Content-Type": "application/json"})
+        return HTTPResponse("Not all parameters satisfied", status=400, headers={"Content-Type": "application/json"},)
 
     data = f"TFT:{address}?amount={amount}&message=topup&sender=me"
     qrcode_image = j.tools.qrcode.base64_get(data, scale=scale)
@@ -372,7 +429,7 @@ def redir(solution):
 @login_required
 def is_running():
     return HTTPResponse(
-        j.data.serializers.json.dumps({"running": True}), status=200, headers={"Content-Type": "application/json"}
+        j.data.serializers.json.dumps({"running": True}), status=200, headers={"Content-Type": "application/json"},
     )
 
 
@@ -394,7 +451,7 @@ def enable_quantumstorage():
     except Exception as e:
         j.logger.error(f"Failed to enable quantum storage on your vdc due to {str(e)}")
         return HTTPResponse(
-            "Failed to enable quantum storage on your vdc", status=500, headers={"Content-Type": "application/json"}
+            "Failed to enable quantum storage on your vdc", status=500, headers={"Content-Type": "application/json"},
         )
 
 

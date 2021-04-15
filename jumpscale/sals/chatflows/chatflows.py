@@ -82,6 +82,7 @@ class GedisChatBot:
 
     steps = []
     title = "Zero Chat Bot"
+    alert_view_url = None
 
     def __init__(self, **kwargs):
         """
@@ -180,7 +181,14 @@ class GedisChatBot:
                     traceback=traceback_info,
                 )
                 username = self.user_info()["username"]
-                if username in j.core.identity.me.admins:
+                if self.alert_view_url:
+                    self.send_error(
+                        f"""{message}, please check alert: <a href="{self.alert_view_url}/{alert.id}" target="_parent">{alert.id} </a>. This could occur if Stellar service was down."""
+                        f"Use the refresh button on the upper right to restart {self.title} creation",
+                        md=True,
+                        html=True,
+                    )
+                elif username in j.core.identity.me.admins:
                     self.send_error(
                         f"""{message}, please check alert: <a href="/admin/#/alerts/{alert.id}" target="_parent">{alert.id} </a>. This could occur if Stellar service was down."""
                         f"Use the refresh button on the upper right to restart {self.title} creation",

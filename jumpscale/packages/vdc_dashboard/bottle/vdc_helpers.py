@@ -70,3 +70,13 @@ def threebot_vdc_helper(vdc=None):
     vdc_dict["price"] = math.ceil(vdc.calculate_spec_price())
 
     return vdc_dict
+
+
+def _list_alerts(app_name: str = ""):
+
+    if app_name:
+        alerts = [alert.json for alert in j.tools.alerthandler.find() if alert.app_name == app_name]
+    else:
+        alerts = [alert.json for alert in j.tools.alerthandler.find()]
+
+    return j.data.serializers.json.dumps(alerts)
