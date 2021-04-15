@@ -517,7 +517,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
 
         if not self.chart_pods_started():
             stop_message = error_message_template.format(reason="Pods initialization timed out")
-            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.release_name}")
+            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.config.release_name}")
             self.stop(dedent(stop_message))
 
         if self.config.chart_config.domain and not j.sals.reservation_chatflow.wait_http_test(
