@@ -84,5 +84,8 @@ This manual will go through the `VDC_dashboard` package and how to add new solut
 
     ![vdc_storage_nodes](./images/vdc_backup.png)
 
+  - `Admins tab`: Shows a list of admins. It also enables the user to add a new Admin/s to manage his VDC or remove existing ones.
+    ![vdc_storage_nodes](./images/vdc_admins.png)
+
 ### Adding New Solution Chatflow
 - please see this documentation: [Add Marketplace Solution Chatflow](../wiki/tutorials/add_marketplacevdc_chatflow.md)
