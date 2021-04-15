@@ -81,7 +81,7 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self):
-        super().initializing(timeout=1200)
+        super().initializing(timeout=800, pod_initalizing_timeout=600)
 
 
 chat = DiscourseDeploy
