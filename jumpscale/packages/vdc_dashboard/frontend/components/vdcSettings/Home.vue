@@ -53,7 +53,7 @@
 
       <v-tab-item class="ml-2">
         <v-card flat>
-          <admins :vdc="vdc" :loading="loading"></admins>
+          <admins :vdc="vdc" :loading="tableloading"></admins>
         </v-card>
       </v-tab-item>
     </v-tabs>
