@@ -187,9 +187,9 @@ module.exports = {
     confirmCreation() {
       this.dialogs.confirmBackup = true;
     },
-    reload() {
+    reload(timeout) {
       this.loading = true;
-      setTimeout(()=> {this.list()} , 2000);
+      setTimeout(()=> {this.list()} , timeout);
     },
     updateStatus(status) {
       if (status === "PartiallyFailed") {
