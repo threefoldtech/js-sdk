@@ -176,8 +176,12 @@ class KubernetesMonitor:
         if no_nodes < 1:
             return []
         deployer = deployer or self.vdc_instance.get_deployer(bot=bot)
+        duration = self.vdc_instance.get_pools_expiration() - j.data.time.utcnow().timestamp
+        two_weeks = 2 * 7 * 24 * 60 * 60
+        if duration > two_weeks:
+            duration = two_weeks
         wids = deployer.add_k8s_nodes(flavor, farm_name, no_nodes=no_nodes, external=False)
-        deployer.extend_k8s_workloads(14 - (INITIAL_RESERVATION_DURATION / 24), *wids)
+        deployer.extend_k8s_workloads(duration, *wids)
         return wids
 
     def fetch_resource_reservations(self):

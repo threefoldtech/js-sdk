@@ -7,12 +7,7 @@ from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 import netaddr
 
-from jumpscale.clients.explorer.models import (
-    DiskType,
-    NextAction,
-    WorkloadType,
-    ZdbNamespace,
-)
+from jumpscale.clients.explorer.models import DiskType, NextAction, WorkloadType, ZdbNamespace, K8s, PublicIP
 from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.sals.vdc.quantum_storage import QuantumStorage
@@ -479,17 +474,24 @@ class UserVDC(Base):
         else:
             return True, amount, payment_id
 
-    def show_external_node_payment(self, bot, size, no_nodes=1, expiry=5, wallet_name=None, public_ip=False):
+    def show_external_node_payment(self, bot, farm_name, size, no_nodes=1, expiry=5, wallet_name=None, public_ip=False):
         discount = FARM_DISCOUNT.get()
+        duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
+        month = 60 * 60 * 24 * 30
+        if duration > month:
+            duration = month
 
+        zos = j.sals.zos.get()
+        farm_id = zos._explorer.farms.get(farm_name=farm_name).id
+        k8s = K8s()
         if isinstance(size, str):
-            size = VDC_SIZE.K8SNodeFlavor[size.upper()]
-        amount = VDC_SIZE.PRICES["nodes"][size] * no_nodes
-        if public_ip:
-            amount += VDC_SIZE.PRICES["services"][VDC_SIZE.Services.IP]
+            size = VDC_SIZE.K8SNodeFlavor[size.upper()].value
+        k8s.size = size
+        amount = j.tools.zos.consumption.cost(k8s, duration, farm_id) + TRANSACTION_FEES
 
-        amount *= 1 - discount
-        node_price = amount
+        if public_ip:
+            pub_ip = PublicIP()
+            amount += j.tools.zos.consumption.cost(pub_ip, duration, farm_id)
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
@@ -522,16 +524,21 @@ class UserVDC(Base):
                 notes = ["For testing purposes, we applied a discount of {:.0f}%".format(discount * 100)]
             return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
         else:
-            return True, node_price, payment_id
+            return True, amount, payment_id
 
     def show_external_zdb_payment(self, bot, farm_name, size=ZDB_STARTING_SIZE, no_nodes=1, expiry=5, wallet_name=None):
         discount = FARM_DISCOUNT.get()
+        duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
+        month = 60 * 60 * 24 * 30
+        if duration > month:
+            duration = month
+
         zos = j.sals.zos.get()
         farm_id = zos._explorer.farms.get(farm_name=farm_name).id
         zdb = ZdbNamespace()
         zdb.size = size
         zdb.disk_type = DiskType.HDD
-        amount = j.tools.zos.consumption.cost(zdb, 60 * 60 * 24 * 30, farm_id) + TRANSACTION_FEES
+        amount = j.tools.zos.consumption.cost(zdb, duration, farm_id) + TRANSACTION_FEES
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
