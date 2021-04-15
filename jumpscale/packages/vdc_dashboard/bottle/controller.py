@@ -79,7 +79,7 @@ def add_node():
     vdc = get_vdc()
     vdc.load_info()
     deployer = vdc.get_deployer(password=vdc_password)
-    capacity_check, farm_name = vdc.check_capacity_available(node_flavor)
+    farm_name, capacity_check = deployer.find_worker_farm(node_flavor)
     if not capacity_check:
         abort(400, f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {node_flavor}")
 

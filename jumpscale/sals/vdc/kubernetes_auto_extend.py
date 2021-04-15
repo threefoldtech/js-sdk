@@ -176,6 +176,9 @@ class KubernetesMonitor:
         if no_nodes < 1:
             return []
         deployer = deployer or self.vdc_instance.get_deployer(bot=bot)
+        farm_name, capacity_check = deployer.find_worker_farm(flavor, farm_name)
+        if not capacity_check:
+            j.logger.warning(f"There is no capacity to add worker node")
         wids = deployer.add_k8s_nodes(flavor, farm_name, no_nodes=no_nodes, external=False)
         deployer.extend_k8s_workloads(14 - (INITIAL_RESERVATION_DURATION / 24), *wids)
         return wids
