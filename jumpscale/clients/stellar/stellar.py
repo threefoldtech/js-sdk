@@ -465,7 +465,8 @@ class Stellar(Client):
         Returns:
             [type]: [description]
         """
-        while retries > 0:
+        nretries = 0
+        while nretries < retries:
             try:
                 return self._transfer(
                     destination_address=destination_address,
@@ -481,7 +482,7 @@ class Stellar(Client):
                     sign=sign,
                 )
             except Exception as e:
-                retries -= 1
+                nretries += 1
                 j.logger.warning(str(e))
 
         raise j.exceptions.Runtime(f"Failed to make transaction for {retries} times, Please try again later")
