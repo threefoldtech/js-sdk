@@ -78,4 +78,4 @@ def _list_alerts(app_name: str = ""):
     else:
         alerts = [alert.json for alert in j.tools.alerthandler.find()]
 
-    return j.data.serializers.json.dumps(alerts)
+    return alerts

@@ -234,9 +234,9 @@ def list_pools(vdc):
     return [pool.to_dict() for pool in vdc.active_pools]
 
 
-@app.route("/api/controller/alerts", method="GET")
+@app.route("/api/controller/alerts/<app_name>", method="GET")
 @vdc_route()
-def list_alerts(vdc):
+def list_alerts(vdc, app_name):
     """
     request body:
         application (optional, if not given all alerts returned)
@@ -244,17 +244,15 @@ def list_alerts(vdc):
     Returns:
         list: alerts
     """
-    data = request.json
-    app_name = data.get("application")
     return _list_alerts(app_name)
 
 
 @app.route("/api/controller/kubeconfig", method="GET")
-@vdc_route()
+@vdc_route(serialize=False)
 def get_kubeconfig(vdc):
     """
     Returns:
-        dict: kubeconfig
+        str: config file content
     """
     try:
         return get_kubeconfig_file()
@@ -265,20 +263,16 @@ def get_kubeconfig(vdc):
 
 
 @app.route("/api/controller/zstor_config", method="GET")
-@vdc_route()
+@vdc_route(serialize=False)
 def get_zstor_config(vdc):
     """
     request body:
         ip_version
 
     Returns:
-        dict: zstor_config
+        str: config file content
     """
-    try:
-        data = request.json
-    except:
-        data = {}
-
+    data = request.json or {}
     ip_version = data.get("ip_version", 6)
 
     try:
@@ -296,5 +290,6 @@ def is_running():
     Returns:
         object: will only reply if the controller is alive
     """
-    response.content_type = "application/json"
-    return j.data.serializers.json.dumps({"running": True})
+    return HTTPResponse(
+        j.data.serializers.json.dumps({"running": True}), status=200, headers={"Content-Type": "application/json"},
+    )
