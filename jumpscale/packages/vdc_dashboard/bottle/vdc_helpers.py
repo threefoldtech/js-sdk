@@ -30,7 +30,6 @@ def _get_addons(flavor, kubernetes_addons):
 
 
 def _total_capacity(vdc):
-    vdc.load_info()
     addons = _get_addons(vdc.flavor, vdc.kubernetes)
     plan = VDC_SIZE.VDC_FLAVORS.get(vdc.flavor)
     plan_nodes_count = plan.get("k8s").get("no_nodes")
