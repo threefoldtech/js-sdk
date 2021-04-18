@@ -44,7 +44,7 @@ def list_nodes(vdc):
     Returns:
         dict: kubernates info
     """
-    return get_full_vdc_info(vdc["kubernetes"])
+    return get_full_vdc_info(vdc)["kubernetes"]
 
 
 @app.route("/api/controller/node", method="POST")
