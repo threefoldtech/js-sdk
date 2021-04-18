@@ -82,12 +82,14 @@ class KubernetesMonitor:
                 memory_usage = float(splits[3][:-2])
                 memory_percentage = float(splits[4][:-1]) / 100
             except Exception as e:
-                j.logger.warning(f"k8s monitor: failed to get node: {node_name} usage due to error: {e}")
+                j.logger.warning(
+                    f"k8s monitor: failed to get node: {node_name} usage due to error: {e}, vdc uuid: {self.vdc_instance.solution_uuid}"
+                )
                 continue
             cpu_percentage = cpu_percentage or 1
             memory_percentage = memory_percentage or 1
             self._node_stats[node_name] = {
-                "cpu": {"used": cpu_mill, "total": cpu_mill / cpu_percentage,},
+                "cpu": {"used": cpu_mill, "total": cpu_mill / cpu_percentage},
                 "memory": {"used": memory_usage, "total": memory_usage / memory_percentage},
             }
         out = self.manager.execute_native_cmd("kubectl get nodes -o wide -o json")
@@ -99,7 +101,7 @@ class KubernetesMonitor:
             if not node_name in self._node_stats:
                 continue
             self._node_stats[node_name]["wid"] = ip_to_wid.get(node_ip)
-        j.logger.info(f"kubernetes stats: {self.node_stats}")
+        j.logger.info(f"Kubernetes stats: {self.node_stats}")
         self.stats_history.update(self._node_stats)
 
     def is_extend_triggered(self, cpu_threshold=0.7, memory_threshold=0.7):
