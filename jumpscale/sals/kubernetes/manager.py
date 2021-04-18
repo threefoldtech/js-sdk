@@ -98,7 +98,13 @@ class Manager:
 
     @helm_required
     def install_chart(
-        self, release, chart_name, namespace="default", extra_config=None, chart_values_file=None, env_vars=None
+        self,
+        release,
+        chart_name,
+        namespace="default",
+        extra_config=None,
+        chart_values_file=None,
+        extra_config_string_safe=None,
     ):
         """deployes a helm chart
 
@@ -106,6 +112,8 @@ class Manager:
             release (str): name of the release to be deployed
             chart_name (str): the name of the chart you need to deploy
             extra_config: dict containing extra paramters passed to install command with --set
+            extra_config_string_safe: dict container extra paramters passed to install command with --set-string
+                      to ensure that the values of type string and prevent wrong type casting
 
         Raises:
             j.exceptions.Runtime: in case the helm command failed to execute

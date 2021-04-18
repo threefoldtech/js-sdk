@@ -28,7 +28,7 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
             "ingress.hostname": self.config.chart_config.domain,
         }
 
-    def get_env_vars(self):
+    def get_config_string_safe(self):
         return {
             "discourse.extraEnvVars[0].name": "SMTP_HOST",
             "discourse.extraEnvVars[0].value": self.config.chart_config.smtp_host,
