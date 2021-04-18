@@ -4,12 +4,12 @@ External API related helpers
 from bottle import abort, request, response, parse_auth
 from jumpscale.loader import j
 
-from .exceptions import BaseError, InvalidCredentials, MissingAuthorizationHeader, VDCNotFound
+from .exceptions import BaseError, InvalidCredentials, MissingAuthorizationHeader, VDCNotFound, UnknownError
 from ..vdc_helpers import threebot_vdc_helper
 
 
 def format_error(error):
-    """"
+    """n
     formats an error as json
 
     Args:
@@ -50,6 +50,8 @@ def vdc_route(serialize=True):
     def decorator(function):
         def wrapper(*args, **kwargs):
             try:
+                function_name = function.__name__
+
                 # Get vdc instance and password
                 vdc = get_vdc()
                 if not vdc:
@@ -73,10 +75,12 @@ def vdc_route(serialize=True):
 
                 return result
             except BaseError as error:
-                function_name = function.__name__
                 # TODO: logging plugin for bottle to log requests using j.logger
                 j.logger.error(f"Error while calling {function_name}: {error}")
                 return format_error(error)
+            except Exception as error:
+                j.logger.exception(f"Unhandled exception when calling {function_name}: {error}", exception=error)
+                return format_error(UnknownError(500, "Unknown error, please contact support"))
 
         return wrapper
 

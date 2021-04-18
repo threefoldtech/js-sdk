@@ -67,3 +67,7 @@ class ZStorConfigNotFound(BaseError):
 
 class InvalidZStorConfig(BaseError):
     pass
+
+
+class UnknownError(BaseError):
+    pass
