@@ -25,7 +25,7 @@ HELM_REPOS = {
 }  # TODO: revert to threefoldtech
 VDC_ENDPOINT = "/vdc"
 PREFERRED_FARM = "csfarmer"
-POD_INITIALIZING_TIMEOUT = 120
+POD_INITIALIZING_TIMEOUT = 600
 
 
 class ChartConfig(Base):
@@ -448,13 +448,24 @@ class SolutionsChatflowDeploy(GedisChatBot):
         custom_config = self.get_config()
         chart_config.update(custom_config)
         extra_config_string_safe = self.get_config_string_safe()
-        self.k8s_client.install_chart(
-            release=self.config.release_name,
-            chart_name=f"{self.HELM_REPO_NAME}/{self.chart_name}",
-            namespace=f"{self.chart_name}-{self.config.release_name}",
-            extra_config=chart_config,
-            extra_config_string_safe=extra_config_string_safe,
-        )
+        try:
+            self.k8s_client.install_chart(
+                release=self.config.release_name,
+                chart_name=f"{self.HELM_REPO_NAME}/{self.chart_name}",
+                namespace=f"{self.chart_name}-{self.config.release_name}",
+                extra_config=chart_config,
+                extra_config_string_safe=extra_config_string_safe,
+            )
+        except Exception as e:
+            stop_message = f"Helm time out for detailed error, {e}"
+            j.logger.error(stop_message)
+            j.tools.alerthandler.alert_raise(
+                app_name="chatflows", category="internal_errors", message=stop_message, alert_type="exception"
+            )
+            self.k8s_client.execute_native_cmd(
+                f"helm delete -n {self.chart_name}-{self.config.release_name} {self.config.release_name}"
+            )
+            self.stop(dedent(stop_message))
 
     def chart_pods_started(self):
         pods_status_info = self.k8s_client.execute_native_cmd(
@@ -503,7 +514,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
         return False
 
     @chatflow_step(title="Initializing", disable_previous=True)
-    def initializing(self, timeout=300, pod_initalizing_timeout=POD_INITIALIZING_TIMEOUT):
+    def initializing(self, timeout=800, pod_initalizing_timeout=POD_INITIALIZING_TIMEOUT):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
         domain_message = ""
         if self.config.chart_config.domain:

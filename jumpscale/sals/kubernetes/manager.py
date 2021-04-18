@@ -105,8 +105,9 @@ class Manager:
         extra_config=None,
         chart_values_file=None,
         extra_config_string_safe=None,
+        timeout="7m0s",
     ):
-        """deployes a helm chart
+        """deploy a helm chart
 
         Args:
             release (str): name of the release to be deployed
