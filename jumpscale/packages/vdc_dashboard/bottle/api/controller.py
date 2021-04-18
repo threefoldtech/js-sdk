@@ -59,7 +59,7 @@ def add_node(vdc):
     Returns:
         wids: list of wids
     """
-    data = request.json
+    data = request.json or {}
     node_flavor = data.get("flavor")
     farm = data.get("farm")
     nodes_ids = data.get("nodes_ids")
@@ -111,14 +111,14 @@ def delete_node(vdc):
     Returns:
         dict: status
     """
-    data = request.json
+    data = request.json or {}
     wid = data.get("wid")
     if not wid:
-        MissingArgument(400, "Not all required params were passed.")
+        raise MissingArgument(400, "Not all required params were passed.")
 
     deployer = vdc.get_deployer()
     if vdc.kubernetes[0].wid == wid:
-        abort(400, "Error: Can not delete master node")
+        raise CannotDeleteMasterNode(400, "Can not delete master node")
 
     try:
         deployer.delete_k8s_node(wid)
@@ -159,7 +159,7 @@ def add_zdb(vdc):
     Returns:
         wids: list of wids
     """
-    data = request.json
+    data = request.json or {}
     capacity = data.get("capacity")
     farm = data.get("farm")
     nodes_ids = data.get("nodes_ids")
@@ -196,7 +196,7 @@ def delete_zdb(vdc):
     Returns:
         dict: status
     """
-    data = request.json
+    data = request.json or {}
 
     wid = data.get("wid")
     if not all([wid]):
