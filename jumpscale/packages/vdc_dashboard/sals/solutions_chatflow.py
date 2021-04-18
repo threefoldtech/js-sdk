@@ -439,13 +439,13 @@ class SolutionsChatflowDeploy(GedisChatBot):
         }
         custom_config = self.get_config()
         chart_config.update(custom_config)
-        env_var = self.get_env_vars()
+        env_vars = self.get_env_vars()
         self.k8s_client.install_chart(
             release=self.config.release_name,
             chart_name=f"{self.HELM_REPO_NAME}/{self.chart_name}",
             namespace=f"{self.chart_name}-{self.config.release_name}",
             extra_config=chart_config,
-            env_vars=env_var,
+            env_vars=env_vars,
         )
 
     def chart_pods_started(self):
