@@ -93,6 +93,7 @@ def delete_vdc():
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
 
     try:
+        j.logger.info(f"Attemting deleting vdc: {name}")
         vdc = VDCFACTORY.find(f"vdc_{vdc.vdc_name}_{vdc.owner_tname}")
         VDCFACTORY.cleanup_vdc(vdc)
     except Exception as e:

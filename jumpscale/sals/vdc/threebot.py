@@ -137,7 +137,9 @@ class VDCThreebotDeployer(VDCBaseComponent):
                     if not network_updated:
                         raise DeploymentFailed()
                 except DeploymentFailed:
-                    self.vdc_deployer.error(f"failed to deploy network on node {node.node_id}")
+                    self.vdc_deployer.error(
+                        f"Failed to deploy network on node {node.node_id}, vdc uuid: {self.vdc_uuid}"
+                    )
                     continue
             network_view = network_view.copy()
             ip_address = network_view.get_free_ip(node)
@@ -182,7 +184,9 @@ class VDCThreebotDeployer(VDCBaseComponent):
                     return wid
                 raise DeploymentFailed()
             except DeploymentFailed:
-                self.vdc_deployer.error(f"failed to deploy threebot container on node: {node.node_id} wid: {wid}")
+                self.vdc_deployer.error(
+                    f"failed to deploy threebot container on node: {node.node_id} wid: {wid}, vdc uuid: {self.vdc_uuid}"
+                )
                 continue
 
     def _prepare_proxy(self):
@@ -219,17 +223,21 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 secret=secret,
             )
             self.vdc_deployer.info(
-                f"reserving proxy on gateway {gateway.node_id} for subdomain: {subdomain} wid: {wid}"
+                f"Reserving proxy on gateway {gateway.node_id} for subdomain: {subdomain} wid: {wid}"
             )
             try:
                 success = deployer.wait_workload(wid, self.bot, expiry=5, identity_name=self.identity.instance_name)
                 if not success:
                     raise DeploymentFailed()
             except DeploymentFailed:
-                self.vdc_deployer.error(f"failed to deploy reverse proxy on gateway: {gateway.node_id} wid: {wid}")
+                self.vdc_deployer.error(
+                    f"Failed to deploy reverse proxy on gateway: {gateway.node_id} wid: {wid}, vdc uuid: {self.vdc_uuid}"
+                )
                 continue
 
             remote = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
         if not remote:
-            self.vdc_deployer.error(f"all tries to reseve a proxy on pool: {gateway_pool_id} has failed")
+            self.vdc_deployer.error(
+                f"All attempts to reseve a proxy on pool: {gateway_pool_id} has failed, vdc uuid: {self.vdc_uuid}"
+            )
         return subdomain, secret, remote
