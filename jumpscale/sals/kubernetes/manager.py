@@ -126,8 +126,8 @@ class Manager:
         for key, arg in extra_config.items():
             params += f" --set {key}={quote(arg)}"
 
-        if env_vars:
-            for key, arg in env_vars.items():
+        if extra_config_string_safe:
+            for key, arg in extra_config_string_safe.items():
                 params += f" --set-string {key}={quote(arg)}"
 
         cmd = f"helm --kubeconfig {self.config_path} --namespace {namespace} install --create-namespace {release} {chart_name} {params}"
