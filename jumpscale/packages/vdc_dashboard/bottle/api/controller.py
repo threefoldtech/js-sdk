@@ -79,7 +79,7 @@ def add_node(vdc):
 
     node_flavor = node_flavor.upper()
     deployer = vdc.get_deployer()
-    farm_name, capacity_check = deployer.find_worker_farm(node_flavor)
+    farm_name, capacity_check = deployer.find_worker_farm(node_flavor, farm_name=farm)
     if not capacity_check:
         raise NoEnoughCapacity(
             400, f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {node_flavor}"
@@ -97,7 +97,7 @@ def add_node(vdc):
         duration = two_weeks
 
     try:
-        wids = deployer.add_k8s_nodes(node_flavor, public_ip=False)
+        wids = deployer.add_k8s_nodes(node_flavor, farm_name=farm_name, public_ip=False)
         deployer.extend_k8s_workloads(duration, *wids)
         deployer._set_wallet(old_wallet)
         return wids
