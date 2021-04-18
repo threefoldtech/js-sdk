@@ -67,15 +67,15 @@ def add_node(vdc):
     if nodes_ids and not farm:
         raise MissingArgument(400, "Must specify farm with nodes_ids.")
 
-    if not all([node_flavor, farm, node_ids]):
-        raise MissingArgument(400, "MustNot all required arguments were passed.")
+    if not node_flavor:
+        raise MissingArgument(400, "'flavor' is required.")
 
     # check stellar service
     if not j.clients.stellar.check_stellar_service():
         raise StellarServiceDown(400, "Stellar service currently down")
 
     if node_flavor.upper() not in VDC_SIZE.K8SNodeFlavor.__members__:
-        raise FlavorNotSupported(400, "Flavor passed is not supported")
+        raise FlavorNotSupported(400, "Flavor of '{flavor}' is not supported")
 
     node_flavor = node_flavor.upper()
     deployer = vdc.get_deployer()
@@ -102,6 +102,7 @@ def add_node(vdc):
         deployer._set_wallet(old_wallet)
         return wids
     except Exception as e:
+        j.logger.exception("failed to add node", exception=e)
         raise AdddingNodeFailed(400, f"failed to add nodes to your cluster. due to error {e}")
 
 
