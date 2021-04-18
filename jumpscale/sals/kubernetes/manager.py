@@ -97,7 +97,9 @@ class Manager:
         return out
 
     @helm_required
-    def install_chart(self, release, chart_name, namespace="default", extra_config=None, chart_values_file=None):
+    def install_chart(
+        self, release, chart_name, namespace="default", extra_config=None, chart_values_file=None, env_vars=None
+    ):
         """deployes a helm chart
 
         Args:
@@ -115,6 +117,11 @@ class Manager:
         params = ""
         for key, arg in extra_config.items():
             params += f" --set {key}={quote(arg)}"
+
+        if env_vars:
+            for key, arg in env_vars.items():
+                params += f" --set-string {key}={quote(arg)}"
+
         cmd = f"helm --kubeconfig {self.config_path} --namespace {namespace} install --create-namespace {release} {chart_name} {params}"
         if chart_values_file:
             cmd += f" -f {chart_values_file}"

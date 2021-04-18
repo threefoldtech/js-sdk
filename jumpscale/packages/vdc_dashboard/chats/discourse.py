@@ -26,6 +26,10 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
             "discourse.username": self.config.chart_config.admin_username,
             "discourse.password": self.config.chart_config.admin_password,
             "ingress.hostname": self.config.chart_config.domain,
+        }
+
+    def get_env_vars(self):
+        return {
             "discourse.extraEnvVars[0].name": "SMTP_HOST",
             "discourse.extraEnvVars[0].value": self.config.chart_config.smtp_host,
             "discourse.extraEnvVars[1].name": "SMTP_PORT",
@@ -70,7 +74,7 @@ class DiscourseDeploy(SolutionsChatflowDeploy):
         smtp_password = form.secret_ask("Email Password", required=True, isAlphanumeric=True)
         form.ask()
         self.config.chart_config.smtp_host = smtp_host.value
-        self.config.chart_config.smtp_port = f'"{smtp_port.value}"'
+        self.config.chart_config.smtp_port = smtp_port.value
         self.config.chart_config.smtp_username = smtp_username.value
         self.config.chart_config.smtp_password = smtp_password.value
 
