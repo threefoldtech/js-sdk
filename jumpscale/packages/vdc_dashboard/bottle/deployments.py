@@ -95,6 +95,7 @@ def delete_node():
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     deployer = vdc.get_deployer()
     try:
+        j.logger.info(f"Deleting node with wid: {wid}")
         deployer.delete_k8s_node(wid)
     except Exception as e:
         j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
@@ -114,6 +115,7 @@ def delete_zdb():
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     deployer = vdc.get_deployer()
     try:
+        j.logger.info(f"Deleting zdb with wid: {wid}")
         deployer.delete_s3_zdb(wid)
     except Exception as e:
         j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
@@ -203,6 +205,7 @@ def remove_admin() -> str:
         raise j.exceptions.Value(f"Admin {name} does not exist")
     if len(package.admins) == 1:
         raise j.exceptions.Value(f"VDC should have at least one admin")
+    j.logger.info(f"Removing admin {name}")
     package.admins.remove(name)
     threebot.packages.save()
 
@@ -257,6 +260,7 @@ def cancel_deployment():
         k8s_client.delete_deployed_release(release=data["release"], vdc_instance=vdc, namespace=namespace)
     else:
         k8s_client.execute_native_cmd(f"kubectl delete ns {namespace}")
+    j.logger.info(f"Cancelling deployment for {data['solution_id']}")
     j.sals.marketplace.solutions.cancel_solution_by_uuid(data["solution_id"])
     return j.data.serializers.json.dumps({"result": True})
 

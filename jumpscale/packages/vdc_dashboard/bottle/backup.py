@@ -100,6 +100,7 @@ def create_backup():
     config_path = j.sals.fs.expanduser("~/.kube/config")
     client = j.sals.kubernetes.Manager(config_path=config_path)
     try:
+        j.logger.info(f"Creating backup with name: {name}")
         client.execute_native_cmd(
             f"velero create backup {CONFIG_BACKUP_PREFIX}{name} --include-resources secrets,configmaps"
         )
@@ -125,6 +126,7 @@ def delete_backup():
     client = j.sals.kubernetes.Manager(config_path=config_path)
 
     try:
+        j.logger.info(f"Deleting backup with name: {vdc_backup_name}")
         client.execute_native_cmd(f"velero delete backup {vdc_backup_name} --confirm")
         client.execute_native_cmd(f"velero delete backup {config_backup_name} --confirm")
         return HTTPResponse("Backup deleted successfully.", status=200, headers={"Content-Type": "application/json"})
@@ -149,6 +151,7 @@ def restore_backup():
     time = j.data.time.utcnow().format("YYYYMMDDHHMMSS")
 
     try:
+        j.logger.info(f"Restoring backup with name: {vdc_backup_name}")
         client.execute_native_cmd(
             f"velero create restore restore-{vdc_backup_name}-{time} --from-backup {vdc_backup_name}"
         )
