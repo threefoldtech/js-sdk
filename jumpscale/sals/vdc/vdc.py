@@ -71,6 +71,11 @@ class UserVDC(Base):
             return False
         return True
 
+    def has_minimal_components(self):
+        if all([self.kubernetes, self.threebot.wid, self.threebot.domain]):
+            return True
+        return False
+
     @property
     def expiration_date(self):
         expiration = self.calculate_expiration_value()
