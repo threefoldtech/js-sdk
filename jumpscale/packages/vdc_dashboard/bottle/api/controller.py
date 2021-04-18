@@ -221,8 +221,7 @@ def get_wallet_info(vdc):
         dict: wallet (prepaid)
     """
     # Get prepaid wallet info
-    vdc = get_full_vdc_info(vdc)
-    return vdc_dict["wallet"]
+    return get_full_vdc_info(vdc)["wallet"]
 
 
 @app.route("/api/controller/pools", method="GET")
