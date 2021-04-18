@@ -69,5 +69,9 @@ class InvalidZStorConfig(BaseError):
     pass
 
 
+class NoEnoughFunds(BaseError):
+    pass
+
+
 class UnknownError(BaseError):
     pass

@@ -1,28 +1,28 @@
-from beaker.middleware import SessionMiddleware
-from bottle import Bottle, parse_auth, request, HTTPResponse, abort
 import random
 
-from jumpscale.loader import j
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import get_vdc, threebot_vdc_helper, _list_alerts
-from jumpscale.sals.vdc.size import VDC_SIZE
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_kubeconfig_file, get_zstor_config_file
+from beaker.middleware import SessionMiddleware
+from bottle import Bottle, HTTPResponse, abort, parse_auth, request
 
-from jumpscale.packages.vdc_dashboard.bottle.api.helpers import vdc_route, get_full_vdc_info
+from jumpscale.loader import j
 from jumpscale.packages.vdc_dashboard.bottle.api.exceptions import (
-    MissingArgument,
-    StellarServiceDown,
-    FlavorNotSupported,
-    NoEnoughCapacity,
     AdddingNodeFailed,
     CannotDeleteMasterNode,
-    ZDBDeploymentFailed,
-    ZDBDeletionFailed,
-    KubeConfigNotFound,
+    FlavorNotSupported,
     InvalidKubeConfig,
-    ZStorConfigNotFound,
     InvalidZStorConfig,
+    KubeConfigNotFound,
+    MissingArgument,
+    NoEnoughCapacity,
+    NoEnoughFunds,
+    StellarServiceDown,
+    ZDBDeletionFailed,
+    ZDBDeploymentFailed,
+    ZStorConfigNotFound,
 )
-
+from jumpscale.packages.vdc_dashboard.bottle.api.helpers import get_full_vdc_info, vdc_route
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts, get_vdc, threebot_vdc_helper
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_kubeconfig_file, get_zstor_config_file
+from jumpscale.sals.vdc.size import VDC_SIZE
 
 app = Bottle()
 
@@ -87,7 +87,7 @@ def add_node(vdc):
     # Payment
     success, _, _ = vdc.show_external_node_payment(bot=None, farm_name=farm_name, size=node_flavor, public_ip=False)
     if not success:
-        abort(400, "Not enough funds in prepaid wallet to add node")
+        raise NoEnoughFunds(400, "No enough funds in prepaid wallet to add node")
 
     old_wallet = deployer._set_wallet(vdc.prepaid_wallet.instance_name)
     duration = vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
