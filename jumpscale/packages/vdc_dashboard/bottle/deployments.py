@@ -370,15 +370,14 @@ def update():
 @app.route("/api/check_update", method="GET")
 @package_authorized("vdc_dashboard")
 def check_update():
+    vdc_dashboard_path = j.packages.vdc_dashboard.__file__
+    sdk_repo_path = j.tools.git.find_git_path(vdc_dashboard_path)
     try:
-        response = j.tools.http.get("https://api.github.com/repos/threefoldtech/js-sdk/releases")
-        json_response = j.data.serializers.json.loads(response.text)
-        latest_remote_tag = json_response[0]["tag_name"]
+        _, out, _ = j.sals.process.execute("git ls-remote --tag | tail -n 1", cwd=sdk_repo_path)
+        latest_remote_tag = out.split("/tags/")[-1].rstrip("\n")
     except Exception as e:
         raise j.exceptions.Runtime(f"Failed to fetch remote releases. {str(e)}")
 
-    vdc_dashboard_path = j.packages.vdc_dashboard.__file__
-    sdk_repo_path = j.tools.git.find_git_path(vdc_dashboard_path)
     _, latest_local_tag, _ = j.sals.process.execute("git describe --tags --abbrev=0", cwd=sdk_repo_path)
     if latest_remote_tag != latest_local_tag.rstrip("\n"):
         return HTTPResponse(
