@@ -103,7 +103,7 @@ def add_node(vdc):
         return wids
     except Exception as e:
         j.logger.exception("failed to add node", exception=e)
-        raise AdddingNodeFailed(400, f"failed to add nodes to your cluster. due to error {e}")
+        raise AdddingNodeFailed(400, f"failed to add nodes to your cluster: {e}")
 
 
 @app.route("/api/controller/node", method="DELETE")
@@ -125,8 +125,8 @@ def delete_node(vdc):
     try:
         deployer.delete_k8s_node(wid)
     except Exception as e:
-        j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
-        raise CannotDeleteMasterNode(500, "Error: Failed to delete workload")
+        j.logger.exception(f"Failed to delete workload", exception=e)
+        raise CannotDeleteMasterNode(500, f"Failed to delete workload: {e}")
 
     return {"success": True}
 
@@ -205,8 +205,8 @@ def delete_zdb(vdc):
     try:
         deployer.delete_s3_zdb(wid)
     except Exception as e:
-        j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
-        raise ZDBDeletionFailed(500, "Error: Failed to delete workload")
+        j.logger.exception(f"Failed to delete workload", exception=e)
+        raise ZDBDeletionFailed(500, f"Failed to delete workload: {e}")
 
     return {"success": True}
 
