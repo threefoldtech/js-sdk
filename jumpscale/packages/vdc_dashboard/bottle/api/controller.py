@@ -24,6 +24,7 @@ from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts, ge
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_kubeconfig_file, get_zstor_config_file
 from jumpscale.sals.vdc.size import VDC_SIZE
 
+
 app = Bottle()
 
 
@@ -164,11 +165,11 @@ def add_zdb(vdc):
     farm = data.get("farm")
     nodes_ids = data.get("nodes_ids")
 
+    if not capacity:
+        raise MissingArgument(400, "'capacity' is required")
+
     if nodes_ids and not farm:
         raise MissingArgument(400, "Must specify farm with nodes_ids.")
-
-    if not all([capacity, farm, nodes_ids]):
-        raise MissingArgument(400, "Must specifyNot all required params were passed.")
 
     if not farm:
         zdb_config = j.config.get("S3_AUTO_TOP_SOLUTIONS")
@@ -183,7 +184,7 @@ def add_zdb(vdc):
 
         return wids
     except Exception as e:
-        raise ZDBDeploymentFailed(500, f"Error: Failed to deploy zdb")
+        raise ZDBDeploymentFailed(500, f"Failed to deploy zdb")
 
 
 @app.route("/api/controller/zdb", method="DELETE")
