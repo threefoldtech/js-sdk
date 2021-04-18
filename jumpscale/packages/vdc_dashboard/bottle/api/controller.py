@@ -97,7 +97,7 @@ def add_node(vdc):
         duration = two_weeks
 
     try:
-        wids = deployer.add_k8s_nodes(node_flavor, farm_name=farm_name, public_ip=False)
+        wids = deployer.add_k8s_nodes(node_flavor, farm_name=farm_name, public_ip=False, nodes_ids=nodes_ids)
         deployer.extend_k8s_workloads(duration, *wids)
         deployer._set_wallet(old_wallet)
         return wids
