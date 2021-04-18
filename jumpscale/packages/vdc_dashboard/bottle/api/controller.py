@@ -176,15 +176,11 @@ def add_zdb(vdc):
         zdb_farms = zdb_config.get("farm_names")
         farm = random.choice(zdb_farms)
 
-    try:
-        zdb_monitor = vdc.get_zdb_monitor()
-        wids = zdb_monitor.extend(
-            required_capacity=capacity, farm_names=[farm], wallet_name="prepaid_wallet", nodes_ids=nodes_ids
-        )
-
-        return wids
-    except Exception as e:
-        raise ZDBDeploymentFailed(500, f"Failed to deploy zdb")
+    zdb_monitor = vdc.get_zdb_monitor()
+    wids = zdb_monitor.extend(
+        required_capacity=capacity, farm_names=[farm], wallet_name="prepaid_wallet", nodes_ids=nodes_ids
+    )
+    return wids
 
 
 @app.route("/api/controller/zdb", method="DELETE")
