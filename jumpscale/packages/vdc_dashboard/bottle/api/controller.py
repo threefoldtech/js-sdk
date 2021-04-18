@@ -75,7 +75,7 @@ def add_node(vdc):
         raise StellarServiceDown(400, "Stellar service currently down")
 
     if node_flavor.upper() not in VDC_SIZE.K8SNodeFlavor.__members__:
-        raise FlavorNotSupported(400, "Flavor of '{flavor}' is not supported")
+        raise FlavorNotSupported(400, f"Flavor of '{node_flavor}' is not supported")
 
     node_flavor = node_flavor.upper()
     deployer = vdc.get_deployer()
