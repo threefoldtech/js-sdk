@@ -50,6 +50,12 @@
           <alerts :alertid="parseInt(alertid)"></alerts>
         </v-card>
       </v-tab-item>
+
+      <v-tab-item class="ml-2">
+        <v-card flat>
+          <admins :vdc="vdc" :loading="tableloading"></admins>
+        </v-card>
+      </v-tab-item>
     </v-tabs>
     <div class="version">JS-NG v{{ NGVersion }}, JS-SDK v{{ SDKVersion }}</div>
 
@@ -140,6 +146,7 @@ module.exports = {
         { icon: "mdi-wallet", title: "Wallet Information" },
         { icon: "mdi-backup-restore", title: "Backup & Restore" },
         { icon: "mdi-alert-outline", title: "Alerts" },
+        { icon: "mdi-account-lock", title: "Admins" },
       ],
       activetab: 0,
       NGVersion: null,

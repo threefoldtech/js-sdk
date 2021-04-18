@@ -294,7 +294,9 @@ class VDCDeploy(GedisChatBot):
 
         if not filtered_network_farms:
             raise StopChatFlow(
-                f"There are not enough resources available in network farms: {network_farms} to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
+                f"There are not enough resources available in network farms: {network_farms} "
+                f"to deploy your VDC of flavor `{self.vdc_flavor}`. To restart VDC creation,"
+                "please use the refresh button on the upper right corner."
             )
 
         if self.farm_selection.value == "Manually Select Farms" and len(set(filtered_network_farms)) > 1:
@@ -314,7 +316,9 @@ class VDCDeploy(GedisChatBot):
 
         if not filtered_compute_farms:
             raise StopChatFlow(
-                f"There are not enough resources available in compute farms: {compute_farms} to deploy your VDC of flavor `{self.deployer.flavor.value}`. To restart VDC creation, please use the refresh button on the upper right corner."
+                f"There are not enough resources available in compute farms: {compute_farms} "
+                f"to deploy your VDC of flavor `{self.vdc_flavor}`. To restart VDC creation,"
+                "please use the refresh button on the upper right corner."
             )
 
         if self.farm_selection.value == "Manually Select Farms" and len(set(filtered_compute_farms)) > 1:
@@ -339,7 +343,13 @@ class VDCDeploy(GedisChatBot):
             self.stop(f"failed to initialize VDC wallets. please try again later")
 
         try:
-            self.deployer = self.vdc.get_deployer(password=self.password, bot=self, restore=self.restore)
+            self.deployer = self.vdc.get_deployer(
+                password=self.password,
+                bot=self,
+                restore=self.restore,
+                network_farm=self.network_farm,
+                compute_farm=self.compute_farm,
+            )
         except Exception as e:
             j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
             self._rollback()
@@ -373,12 +383,7 @@ class VDCDeploy(GedisChatBot):
         old_wallet = self.deployer._set_wallet(self.VDC_INIT_WALLET_NAME)
         try:
             self.config = self.deployer.deploy_vdc(
-                compute_farm=self.compute_farm,
-                network_farm=self.network_farm,
-                minio_ak=None,
-                minio_sk=None,
-                s3_backup_config=self.backup_config,
-                zdb_farms=self.zdb_farms,
+                minio_ak=None, minio_sk=None, s3_backup_config=self.backup_config, zdb_farms=self.zdb_farms,
             )
             if not self.config:
                 raise StopChatFlow(

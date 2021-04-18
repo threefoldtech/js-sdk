@@ -27,7 +27,7 @@ from .monitoring import VDCMonitoring
 from .proxy import VDCProxy, VDC_PARENT_DOMAIN
 from .public_ip import VDCPublicIP
 from .s3 import VDCS3Deployer
-from .scheduler import GlobalCapacityChecker, GlobalScheduler, Scheduler
+from .scheduler import GlobalCapacityChecker, GlobalScheduler, Scheduler, CapacityChecker
 from .size import *
 from .threebot import VDCThreebotDeployer
 
@@ -37,6 +37,17 @@ IP_VERSION = "IPv4"
 IP_RANGE = "10.200.0.0/16"
 MARKETPLACE_HELM_REPO_URL = "https://threefoldtech.github.io/vdc-solutions-charts/"
 NO_DEPLOYMENT_BACKUP_NODES = 0
+
+
+def on_exception(greenlet):
+    """Callback to handle exception raised by service greenlet
+
+    Arguments:
+        greenlet (Greenlet): greenlet object
+    """
+    message = f"raised an exception: {greenlet.exception}"
+    j.tools.alerthandler.alert_raise(app_name="vdc", message=message, alert_type="exception")
+    greenlet.deployer.error(message)
 
 
 class new_vdc_context(ContextDecorator):
@@ -68,6 +79,8 @@ class VDCDeployer:
         deployment_logs=False,
         ssh_key_path=None,
         restore=False,
+        network_farm=None,
+        compute_farm=None,
     ):
         self.restore = restore
         self.vdc_instance = vdc_instance
@@ -80,6 +93,8 @@ class VDCDeployer:
         self.email = f"vdc_{self.vdc_instance.solution_uuid}"
         self.wallet_name = self.vdc_instance.provision_wallet.instance_name
         self.proxy_farm_name = proxy_farm_name or random.choice(PROXY_FARMS.get())
+        self.network_farm = network_farm
+        self.compute_farm = compute_farm
         self.vdc_uuid = self.vdc_instance.solution_uuid
         self.description = j.data.serializers.json.dumps({"vdc_uuid": self.vdc_uuid})
         self._log_format = f"VDC: {self.vdc_uuid} NAME: {self.vdc_name}: OWNER: {self.tname} {{}}"
@@ -133,7 +148,7 @@ class VDCDeployer:
     @property
     def public_ip(self):
         if not self._public_ip:
-            self._public_ip = VDCPublicIP(self)
+            self._public_ip = VDCPublicIP(self, self.network_farm)
         return self._public_ip
 
     @property
@@ -386,17 +401,18 @@ class VDCDeployer:
         for idx, farm in enumerate(zdb_farms):
             no_nodes = farm_count[idx]
             pool_id, _ = self.get_pool_id_and_reservation_id(farm)
-            zdb_threads.append(
-                gevent.spawn(
-                    self.s3.deploy_s3_zdb,
-                    pool_id=pool_id,
-                    scheduler=gs,
-                    storage_per_zdb=ZDB_STARTING_SIZE,
-                    password=self.password,
-                    solution_uuid=self.vdc_uuid,
-                    no_nodes=no_nodes,
-                )
+            greenlet = gevent.spawn(
+                self.s3.deploy_s3_zdb,
+                pool_id=pool_id,
+                scheduler=gs,
+                storage_per_zdb=ZDB_STARTING_SIZE,
+                password=self.password,
+                solution_uuid=self.vdc_uuid,
+                no_nodes=no_nodes,
             )
+            greenlet.deployer = self
+            greenlet.link_exception(on_exception)
+            zdb_threads.append(greenlet)
         return zdb_threads
 
     def deploy_vdc_kubernetes(self, compute_farm, network_farm, scheduler, pub_keys=None):
@@ -534,15 +550,29 @@ class VDCDeployer:
 
         return gcc.result
 
+    def find_worker_farm(self, flavor, farm_name=None):
+        if farm_name:
+            return farm_name, self._check_added_worker_capacity(flavor, farm_name)
+        for farm in j.config.get("COMPUTE_FARMS", []):
+            if self._check_added_worker_capacity(flavor, farm):
+                return farm, True
+        else:
+            farm_name = j.sals.marketplace.deployer.get_pool_farm_name(self.vdc_instance.kubernetes[0].pool_id)
+            return farm_name, self._check_added_worker_capacity(flavor, farm_name)
+
+    def _check_added_worker_capacity(self, flavor, farm_name):
+        old_node_ids = []
+        for k8s_node in self.vdc_instance.kubernetes:
+            old_node_ids.append(k8s_node.node_id)
+        cc = CapacityChecker(farm_name)
+        cc.exclude_nodes(*old_node_ids)
+        node_flavor_size = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
+        if not cc.add_query(**VDC_SIZE.K8S_SIZES[node_flavor_size]):
+            return False
+        return True
+
     def deploy_vdc(
-        self,
-        minio_ak,
-        minio_sk,
-        compute_farm=None,
-        network_farm=None,
-        install_monitoring_stack=False,
-        s3_backup_config=None,
-        zdb_farms=None,
+        self, minio_ak, minio_sk, install_monitoring_stack=False, s3_backup_config=None, zdb_farms=None,
     ):
         """deploys a new vdc
         Args:
@@ -551,10 +581,7 @@ class VDCDeployer:
             farm_name: where to initialize the vdc
             s3_backup_config: dict with keys: url, region, bucket, ak, sk
         """
-        compute_farm = compute_farm or random.choice(COMPUTE_FARMS.get())
-        network_farm = network_farm or random.choice(NETWORK_FARMS.get())
-
-        self.info(f"deploying VDC flavor: {self.flavor} farm: {compute_farm}")
+        self.info(f"deploying VDC flavor: {self.flavor} farm: {self.compute_farm}")
         # if len(minio_ak) < 3 or len(minio_sk) < 8:
         #     raise j.exceptions.Validation(
         #         "Access key length should be at least 3, and secret key length at least 8 characters"
@@ -562,7 +589,7 @@ class VDCDeployer:
 
         # initialize VDC pools
         self.bot_show_update("Initializing VDC")
-        self.init_vdc(compute_farm, network_farm)
+        self.init_vdc(self.compute_farm, self.network_farm, zdb_farms=zdb_farms)
         self.bot_show_update("Deploying network")
         if not self.deploy_vdc_network():
             self.error("failed to deploy network")
@@ -577,9 +604,12 @@ class VDCDeployer:
             pub_keys = [self.ssh_key.public_key.strip()]
             # deploy k8s cluster
             self.bot_show_update("Deploying kubernetes cluster")
-            deployment_threads.append(
-                gevent.spawn(self.deploy_vdc_kubernetes, compute_farm, network_farm, gs, pub_keys=pub_keys)
+            greenlet = gevent.spawn(
+                self.deploy_vdc_kubernetes, self.compute_farm, self.network_farm, gs, pub_keys=pub_keys
             )
+            greenlet.deployer = self
+            greenlet.link_exception(on_exception)
+            deployment_threads.append(greenlet)
             gevent.joinall(deployment_threads)
 
             if not deployment_threads[-1].value:
@@ -596,7 +626,7 @@ class VDCDeployer:
 
             # zdb_wids = deployment_threads[0].value + deployment_threads[1].value
             # scheduler = Scheduler(farm_name)
-            pool_id, _ = self.get_pool_id_and_reservation_id(compute_farm)
+            pool_id, _ = self.get_pool_id_and_reservation_id(self.compute_farm)
 
             # deploy minio container
             # self.bot_show_update("Deploying minio container")
@@ -639,7 +669,7 @@ class VDCDeployer:
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
             threebot_wid = self.threebot.deploy_threebot(
-                minio_wid, pool_id, kube_config=kube_config, backup_config=s3_backup_config, zdb_farms=zdb_farms
+                minio_wid, pool_id, kube_config=kube_config, backup_config=s3_backup_config, zdb_farms=zdb_farms,
             )
             self.info(f"threebot_wid: {threebot_wid}")
             if not threebot_wid:
@@ -700,18 +730,13 @@ class VDCDeployer:
         self.info(f"s3 exposed over domain: {domain_name}")
         return domain_name
 
-    def add_k8s_nodes(
-        self, flavor, farm_name=None, network_farm=None, public_ip=False, no_nodes=1, duration=None, external=True
-    ):
-        farm_name = farm_name or random.choice(COMPUTE_FARMS.get())
-        network_farm = network_farm or random.choice(NETWORK_FARMS.get())
+    def add_k8s_nodes(self, flavor, farm_name, public_ip=False, no_nodes=1, duration=None, external=True):
         if isinstance(flavor, str):
             flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
         self.vdc_instance.load_info()
         cluster_secret = self.vdc_instance.get_password()
         self.info(f"extending kubernetes cluster on farm: {farm_name}, public_ip: {public_ip}, no_nodes: {no_nodes}")
         master_ip = self.vdc_instance.kubernetes[0].ip_address
-        farm_name = farm_name if not public_ip else network_farm
         public_key = None
         try:
             public_key = self.ssh_key.public_key.strip()
@@ -748,6 +773,8 @@ class VDCDeployer:
 
     def rollback_vdc_deployment(self):
         self.vdc_instance.load_info()
+        message = f"Deleting all workloads for vdc: {self.vdc_instance}"
+        j.tools.alerthandler.alert_raise(app_name="vdc", message=message, alert_type="exception")
         if all([self.vdc_instance.threebot.domain, os.environ.get("VDC_NAME_USER"), os.environ.get("VDC_NAME_TOKEN")]):
             # delete domain record from name.com
             prefix = self.get_prefix()
@@ -779,9 +806,8 @@ class VDCDeployer:
 
     def extend_k8s_workloads(self, duration, *wids):
         """
-        duration in days
+        duration in seconds
         """
-        duration = duration * 24 * 60 * 60
         pools_units = defaultdict(lambda: {"cu": 0, "su": 0, "ipv4us": 0})
         for wid in wids:
             workload = self.zos.workloads.get(wid)

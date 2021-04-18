@@ -71,24 +71,33 @@ class ExtendKubernetesCluster(GedisChatBot):
                 f"Couldn't verify VDC secret. please make sure you are using the correct secret for VDC {self.vdc_name}"
             )
 
-        capacity_check, farm_name = self.vdc.check_capacity_available(self.node_flavor, self.farm_name)
+        farm_name, capacity_check = deployer.find_worker_farm(self.node_flavor, self.farm_name)
         if not capacity_check:
             self.stop(
                 f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {self.node_flavor}"
             )
         j.logger.debug("found enough capacity, continue to payment")
 
-        success, _, payment_id = self.vdc.show_external_node_payment(self, self.node_flavor, public_ip=self.public_ip)
+        success, _, payment_id = self.vdc.show_external_node_payment(
+            self, farm_name=farm_name, size=self.node_flavor, public_ip=self.public_ip
+        )
         if not success:
             self.stop(f"payment timedout")
 
         self.md_show_update("Payment successful")
+        duration = self.vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
+        two_weeks = 2 * 7 * 24 * 60 * 60
+        if duration > two_weeks:
+            duration = two_weeks
         old_wallet = deployer._set_wallet(self.vdc.prepaid_wallet.instance_name)
         try:
             wids = deployer.add_k8s_nodes(self.node_flavor, farm_name=farm_name, public_ip=self.public_ip)
         except Exception as e:
             j.sals.billing.issue_refund(payment_id)
             self.stop(f"failed to add nodes to your cluster. due to error {str(e)}")
+
+        self.md_show_update("Updating expiration...")
+        deployer.extend_k8s_workloads(duration, *wids)
 
         self.md_show_update("Processing transaction...")
         deployer._set_wallet(old_wallet)

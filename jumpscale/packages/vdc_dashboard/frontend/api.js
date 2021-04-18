@@ -23,6 +23,26 @@ const apiClient = {
         url: "/auth/authenticated/"
       })
     },
+    list: ()=>{
+      return axios({
+        url: `${baseURL}/admins/list`
+    })
+    },
+    add: (name) => {
+      return axios({
+          url: `${baseURL}/admins/add`,
+          method: "post",
+          headers: { 'Content-Type': 'application/json' },
+          data: { name: name }
+      })
+    },
+    remove: (name) => {
+      return axios({
+          url: `${baseURL}/admins/remove`,
+          method: "post",
+          headers: { 'Content-Type': 'application/json' },
+          data: { name: name }
+      })}
   },
   solutions: {
     getSolutions: (solutionType) => {
@@ -65,6 +85,14 @@ const apiClient = {
       return axios({
         url: `${baseURL}/kube/get`,
         headers: { 'Content-Type': 'application/json' },
+        method: "get"
+      })
+    },
+    getThreebotState: () => {
+      return axios({
+        url: `${baseURL}/threebot/export`,
+        headers: { 'Content-Type': 'application/json' },
+        responseType: 'arraybuffer',
         method: "get"
       })
     },

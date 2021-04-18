@@ -73,6 +73,12 @@ validators = {
         }
     },
     secret_ask: {
+        isAlphanumeric:(field) =>{
+            if(!field.val.match(/[A-Z]/i)){
+                return 'Value must be alphanumeric, including at least one character'
+            }
+
+        }
 
     },
     text_ask: {

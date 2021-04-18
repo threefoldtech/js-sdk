@@ -501,9 +501,8 @@ ports:
         config_yaml = j.data.serializers.yaml.dumps(config_json)
         k8s_client.upgrade_release("traefik", "traefik/traefik", "kube-system", config_yaml)
 
-    def deploy_external_etcd(self, no_nodes=ETCD_CLUSTER_SIZE, farm_name=None, solution_uuid=None):
+    def deploy_external_etcd(self, farm_name, no_nodes=ETCD_CLUSTER_SIZE, solution_uuid=None):
         network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-        farm_name = farm_name or random.choice(COMPUTE_FARMS.get())
         pool_id, _ = self.vdc_deployer.get_pool_id_and_reservation_id(farm_name)
         scheduler = Scheduler(pool_id=pool_id)
         nodes_generator = scheduler.nodes_by_capacity(cru=ETCD_CPU, sru=ETCD_DISK / 1024, mru=ETCD_MEMORY / 1024)

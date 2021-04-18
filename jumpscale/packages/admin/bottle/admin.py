@@ -1,5 +1,5 @@
 from beaker.middleware import SessionMiddleware
-from bottle import Bottle, request, HTTPResponse
+from bottle import Bottle, request, HTTPResponse, static_file
 
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
@@ -67,6 +67,19 @@ def announce():
 @app.route("/api/heartbeat", method="GET")
 def heartbeat():
     return HTTPResponse(status=200)
+
+
+@app.route("/api/export")
+@login_required
+def export():
+    filename = j.tools.export.export_threebot_state()
+    exporttime = j.data.time.now().format("YYYY-MM-DDTHH-mm-ssZZ")
+    return static_file(
+        j.sals.fs.basename(filename),
+        root=j.sals.fs.dirname(filename),
+        download=f"export-{exporttime}.tar.gz",
+        mimetype="application/gzip",
+    )
 
 
 app = SessionMiddleware(app, SESSION_OPTS)

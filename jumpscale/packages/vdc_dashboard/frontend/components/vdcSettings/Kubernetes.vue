@@ -159,6 +159,23 @@ module.exports = {
         message: "VDC info has been reloaded successfully!",
       });
     },
+    downloadThreebotStateFile() {
+      this.$api.solutions
+        .getThreebotState()
+        .then((response) => {
+          const blob = new Blob([response.data], {type: response.headers["content-type"]});
+          const url = URL.createObjectURL(blob);
+          let filename = response.headers['content-disposition'].split('filename="')[1].slice(0, -1)
+          const link = document.createElement("a");
+          link.href = url;
+          link.setAttribute("download", filename);
+          link.click();
+          URL.revokeObjectURL(link.href);
+        })
+        .catch((err) => {
+          console.log("Failed to download threebot state due to " + err);
+        });
+    },
   },
   computed: {
     kubernetesData() {

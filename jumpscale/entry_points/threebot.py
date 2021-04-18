@@ -3,7 +3,6 @@ from gevent import monkey
 monkey.patch_all(subprocess=False)  # noqa: E402
 
 import sys
-
 import click
 import tempfile
 import subprocess
@@ -240,6 +239,12 @@ def clean(all=False):
             print(f"exception for debugging {e}")
 
 
+@click.command()
+@click.option("-o", "--output", default="export.tar.gz", help="exported output file")
+def export(output):
+    j.tools.export.export_threebot_state(output)
+
+
 @click.group()
 def cli():
     pass
@@ -277,6 +282,7 @@ cli.add_command(stop)
 cli.add_command(status)
 cli.add_command(restart)
 cli.add_command(clean)
+cli.add_command(export)
 
 
 if __name__ == "__main__":
