@@ -3,7 +3,6 @@ is_auth = true
 is_package_authorized = true
 is_admin = false
 frontend = "/vdc_dashboard"
-
 [[static_dirs]]
 name = "frontend"
 path_url = ""
@@ -37,15 +36,12 @@ port = 5591
 
 [[servers]]
 name = "vdc_dashboard_root_proxy"
-domain = "vdc-dashboard.threefold.me"
+domain = "mazraa-dgbtests.vdctest.grid.tf"
 letsencryptemail = "motaweam@incubaid.com"
-includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.vdc_dashboard*"]
-
+includes = [ "default_443.chatflows_*", "default_443.auth_*", "default_443.vdc_dashboard*",]
 [[servers.locations]]
 name = "custom"
 type = "custom"
-custom_config = """
-location / {
-   rewrite ^(.+) /vdc_dashboard;
-}
-"""
+custom_config = "location / {\n   rewrite ^(.+) /vdc_dashboard;\n}\n"
+
+
