@@ -76,14 +76,14 @@ class COMPUTE_FARMS(FarmConfigBase):
 
 
 class NETWORK_FARMS(FarmConfigBase):
-    KEY = "NETWORK_FARM"
+    KEY = "NETWORK_FARMS"
     devnet = ["lochristi_dev_lab"]
     testnet = ["freefarm"]
     mainnet = ["freefarm"]
 
 
 class PROXY_FARMS(FarmConfigBase):
-    KEY = "PROXY_FARM"
+    KEY = "PROXY_FARMS"
     devnet = ["csfarmer"]
     testnet = ["csfarmer"]
     mainnet = ["csfarmer"]

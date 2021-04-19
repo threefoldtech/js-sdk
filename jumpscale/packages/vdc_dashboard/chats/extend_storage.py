@@ -5,7 +5,7 @@ from jumpscale.sals.vdc.size import VDC_SIZE, ZDB_STARTING_SIZE
 import random
 
 
-class ExtendKubernetesCluster(GedisChatBot):
+class ExtendStorageNodes(GedisChatBot):
     title = "Extend Storage Nodes"
     steps = ["different_farm", "select_farm", "add_node", "success"]
 
@@ -73,4 +73,4 @@ class ExtendKubernetesCluster(GedisChatBot):
         self.md_show(f"""Your VDC {self.vdc.vdc_name} has been extended successfuly""")
 
 
-chat = ExtendKubernetesCluster
+chat = ExtendStorageNodes
