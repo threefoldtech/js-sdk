@@ -338,7 +338,7 @@ class VDCDeploy(GedisChatBot):
         if self.vdc:
             if not self.vdc.is_empty():
                 self.redis.hdel(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
-                self.stop(f"There is another non-empty vdc with name {self.vdc_name}")
+                self.stop(f"There is another active vdc with name {self.vdc_name}")
             j.sals.vdc.delete(self.vdc_instance_name)
         self.vdc = j.sals.vdc.new(
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDC_SIZE.VDCFlavor[self.vdc_flavor],
