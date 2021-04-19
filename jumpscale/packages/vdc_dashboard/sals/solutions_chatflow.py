@@ -457,11 +457,7 @@ class SolutionsChatflowDeploy(GedisChatBot):
                 extra_config_string_safe=extra_config_string_safe,
             )
         except Exception as e:
-            stop_message = f"Helm time out for detailed error, {e}"
-            j.logger.error(stop_message)
-            j.tools.alerthandler.alert_raise(
-                app_name="chatflows", category="internal_errors", message=stop_message, alert_type="exception"
-            )
+            stop_message = f"Helm install command failed, {e}"
             self.k8s_client.execute_native_cmd(
                 f"helm delete -n {self.chart_name}-{self.config.release_name} {self.config.release_name}"
             )
