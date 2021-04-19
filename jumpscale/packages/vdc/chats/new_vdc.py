@@ -2,8 +2,6 @@ import math
 import random
 from textwrap import dedent
 from urllib.parse import urlparse
-import datetime
-import uuid
 
 from jumpscale.loader import j
 
