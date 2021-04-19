@@ -19,7 +19,7 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
     ]
 
     CHART_LIMITS = {
-        "Gold": {"cpu": "3000m", "memory": "4000Mi"},
+        "Gold": {"cpu": "3000m", "memory": "5000Mi"},
         "Platinum": {"cpu": "4000m", "memory": "7000Mi"},
     }
 
