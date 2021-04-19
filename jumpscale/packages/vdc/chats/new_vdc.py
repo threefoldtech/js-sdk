@@ -73,7 +73,7 @@ class VDCDeploy(GedisChatBot):
 
     def _rollback(self):
         j.sals.vdc.cleanup_vdc(self.vdc)
-        self.redis.hdel(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
+        j.core.db.hdel(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
 
     def _vdc_form(self):
         vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username, load_info=True) if not vdc.is_empty()]
@@ -329,16 +329,15 @@ class VDCDeploy(GedisChatBot):
     def deploy(self):
         self.md_show_update(f"Initializing Deployer (This may take a few moments)....")
         self.vdc_instance_name = VDC_INSTANCE_NAME_FORMAT.format(self.vdc_name.value, self.username.rstrip(".3bot"))
-        self.redis = j.clients.redis.get("vdc")
-        if self.redis.hget(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name):
+        if j.core.db.hget(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name):
             self.stop(f"Another deployment is running with the same name {self.vdc_name.value}")
-        self.redis.hset(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name, "DEPLOY")
+        j.core.db.hset(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name, "DEPLOY")
 
         self.vdc = j.sals.vdc.find(vdc_name=self.vdc_name.value, owner_tname=self.username)
         if self.vdc:
             if not self.vdc.is_empty():
-                self.redis.hdel(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
-                self.stop(f"There is another non-empty vdc with name {self.vdc_name}")
+                j.core.db.hdel(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
+                self.stop(f"There is another active vdc with name {self.vdc_name}")
             j.sals.vdc.delete(self.vdc_instance_name)
         self.vdc = j.sals.vdc.new(
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDC_SIZE.VDCFlavor[self.vdc_flavor],
@@ -438,7 +437,7 @@ class VDCDeploy(GedisChatBot):
         if not j.sals.reservation_chatflow.wait_http_test(
             threebot_url, timeout=600, verify=not j.config.get("TEST_CERT")
         ):
-            self.redis.hdel(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
+            j.core.db.hdel(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
             self.stop(f"Failed to initialize VDC on {threebot_url} , please contact support")
 
     @chatflow_step(title="VDC Deployment Success", final_step=True)
@@ -460,7 +459,7 @@ class VDCDeploy(GedisChatBot):
             Visit https://{self.vdc.threebot.domain}/vdc_dashboard/api/refer/{solution} to deploy a new instance of {solution.capitalize()}.
             """
             )
-        self.redis.hdel(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
+        j.core.db.hdel(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
         self.md_show(dedent(msg), md=True)
 
 
