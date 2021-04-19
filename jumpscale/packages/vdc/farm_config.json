@@ -14,12 +14,12 @@
         "testnet": ["freefarm"],
         "mainnet": ["freefarm"]
     },
-    "NETWORK_FARM": {
+    "NETWORK_FARMS": {
         "devnet": ["lochristi_dev_lab"],
         "testnet": ["freefarm"],
         "mainnet": ["freefarm"]
     },
-    "PROXY_FARM": {
+    "PROXY_FARMS": {
         "devnet": ["csfarmer"],
         "testnet": ["csfarmer"],
         "mainnet": ["csfarmer"]
