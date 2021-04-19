@@ -2,9 +2,12 @@ import math
 import random
 from textwrap import dedent
 from urllib.parse import urlparse
+import datetime
+import uuid
 
 from jumpscale.loader import j
 
+from jumpscale.sals.vdc import VDC_INSTANCE_NAME_FORMAT
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.vdc.proxy import VDC_PARENT_DOMAIN
 from jumpscale.sals.vdc.scheduler import GlobalCapacityChecker
@@ -35,6 +38,7 @@ class VDCDeploy(GedisChatBot):
     ]
     VDC_INIT_WALLET_NAME = j.config.get("VDC_INITIALIZATION_WALLET", "vdc_init")
     GRACE_PERIOD_WALLET_NAME = j.config.get("GRACE_PERIOD_WALLET", "grace_period")
+    VCD_DEPLOYING_INSTANCES = "VCD_DEPLOYING_INSTANCES"
 
     def _init(self):
         self.md_show_update("It will take a few seconds to be ready to help you ...")
@@ -70,10 +74,8 @@ class VDCDeploy(GedisChatBot):
         self.username = self.user_info_data["username"]
 
     def _rollback(self):
-        if self.restore:
-            j.sals.vdc.cleanup_vdc(self.vdc)
-        else:
-            j.sals.vdc.delete(self.vdc.instance_name)
+        j.sals.vdc.cleanup_vdc(self.vdc)
+        self.redis.hdel(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
 
     def _vdc_form(self):
         vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username, load_info=True) if not vdc.is_empty()]
@@ -128,10 +130,7 @@ class VDCDeploy(GedisChatBot):
                     min_length=8,
                     required=True,
                 )
-
             self.restore = True
-            j.logger.info(f"deleting empty vdc instance: {vdc.instance_name} with uuid: {vdc.solution_uuid}")
-            j.sals.vdc.delete(vdc.instance_name)
 
     def _k3s_and_minio_form(self):
         form = self.new_form()
@@ -331,6 +330,18 @@ class VDCDeploy(GedisChatBot):
     @chatflow_step(title="VDC Deployment")
     def deploy(self):
         self.md_show_update(f"Initializing Deployer (This may take a few moments)....")
+        self.vdc_instance_name = VDC_INSTANCE_NAME_FORMAT.format(self.vdc_name.value, self.username.rstrip(".3bot"))
+        self.redis = j.clients.redis.get("vdc")
+        if self.redis.hget(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name):
+            self.stop(f"Another deployment is running with the same name {self.vdc_name.value}")
+        self.redis.hset(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name, "DEPLOY")
+
+        self.vdc = j.sals.vdc.find(vdc_name=self.vdc_name.value, owner_tname=self.username)
+        if self.vdc:
+            if not self.vdc.is_empty():
+                self.redis.hdel(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
+                self.stop(f"There is another non-empty vdc with name {self.vdc_name}")
+            j.sals.vdc.delete(self.vdc_instance_name)
         self.vdc = j.sals.vdc.new(
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDC_SIZE.VDCFlavor[self.vdc_flavor],
         )
@@ -365,6 +376,7 @@ class VDCDeploy(GedisChatBot):
                 uid = self.deployer.proxy.check_subdomain_owner(subdomain)
                 if uid:
                     j.logger.error(f"Subdomain {subdomain} is owned by identity {uid}")
+                    self._rollback()
                     raise StopChatFlow(
                         f"Subdomain {subdomain} is not available. please use a different name for your vdc"
                     )
@@ -428,6 +440,7 @@ class VDCDeploy(GedisChatBot):
         if not j.sals.reservation_chatflow.wait_http_test(
             threebot_url, timeout=600, verify=not j.config.get("TEST_CERT")
         ):
+            self.redis.hdel(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
             self.stop(f"Failed to initialize VDC on {threebot_url} , please contact support")
 
     @chatflow_step(title="VDC Deployment Success", final_step=True)
@@ -449,6 +462,7 @@ class VDCDeploy(GedisChatBot):
             Visit https://{self.vdc.threebot.domain}/vdc_dashboard/api/refer/{solution} to deploy a new instance of {solution.capitalize()}.
             """
             )
+        self.redis.hdel(self.VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
         self.md_show(dedent(msg), md=True)
 
 
