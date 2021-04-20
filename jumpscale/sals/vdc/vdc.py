@@ -596,8 +596,10 @@ class UserVDC(Base):
         for t_hash in transaction_hashes:
             effects = initial_wallet.get_transaction_effects(t_hash)
             for effect in effects:
-                amount += effect.amount + TRANSACTION_FEES  # transaction fees to not drain the initialization wallet
-        amount = round(abs(amount), 6)
+                amount += (
+                    abs(float(effect.amount)) + TRANSACTION_FEES
+                )  # transaction fees to not drain the initialization wallet
+        amount = round(amount, 6)
         if not amount:
             return True
         return self.pay_amount(initial_wallet.address, amount, wallet)
