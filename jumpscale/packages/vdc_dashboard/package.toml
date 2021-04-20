@@ -36,12 +36,10 @@ port = 5591
 
 [[servers]]
 name = "vdc_dashboard_root_proxy"
-domain = "mazraa-dgbtests.vdctest.grid.tf"
+domain = "vdc-dashboard.threefold.me"
 letsencryptemail = "motaweam@incubaid.com"
 includes = [ "default_443.chatflows_*", "default_443.auth_*", "default_443.vdc_dashboard*",]
 [[servers.locations]]
 name = "custom"
 type = "custom"
 custom_config = "location / {\n   rewrite ^(.+) /vdc_dashboard;\n}\n"
-
-
