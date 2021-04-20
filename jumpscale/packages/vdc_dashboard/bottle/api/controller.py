@@ -1,8 +1,6 @@
 import random
 
-from beaker.middleware import SessionMiddleware
-from bottle import Bottle, HTTPResponse, abort, parse_auth, request
-
+from bottle import Bottle, HTTPResponse, request
 from jumpscale.loader import j
 from jumpscale.packages.vdc_dashboard.bottle.api.exceptions import (
     AdddingNodeFailed,
@@ -19,13 +17,13 @@ from jumpscale.packages.vdc_dashboard.bottle.api.exceptions import (
     ZDBDeploymentFailed,
     ZStorConfigNotFound,
 )
-from jumpscale.packages.vdc_dashboard.bottle.api.helpers import get_full_vdc_info, vdc_route
+from jumpscale.packages.vdc_dashboard.bottle.api.helpers import get_full_vdc_info, logger, vdc_route
 from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts, get_vdc, threebot_vdc_helper
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_kubeconfig_file, get_zstor_config_file
 from jumpscale.sals.vdc.size import VDC_SIZE
 
-
 app = Bottle()
+app.install(logger)
 
 
 @app.route("/api/controller/vdc", method="GET")

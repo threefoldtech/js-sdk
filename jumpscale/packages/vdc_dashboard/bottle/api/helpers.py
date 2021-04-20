@@ -1,11 +1,37 @@
 """
 External API related helpers
 """
-from bottle import abort, request, response, parse_auth
+from functools import wraps
+
+from bottle import parse_auth, request, response
 from jumpscale.loader import j
 
-from .exceptions import BaseError, InvalidCredentials, MissingAuthorizationHeader, VDCNotFound, UnknownError
 from ..vdc_helpers import threebot_vdc_helper
+from .exceptions import BaseError, InvalidCredentials, MissingAuthorizationHeader, UnknownError, VDCNotFound
+
+
+def logger(function):
+    """
+    Wrap a Bottle request so that a log line is emitted after it's handled in case of errors to make it easy to debug.
+    """
+
+    @wraps(function)
+    def _logger(*args, **kwargs):
+        actual_response = function(*args, **kwargs)
+        api_function_name = function.__closure__[0].cell_contents.__name__
+        if 200 <= response.status_code < 300:
+            j.logger.info(f"{request.method} {response.status}: {request.url} ")
+        else:
+            resp = j.data.serializers.json.loads(actual_response)
+            j.logger.error(
+                f"{request.method} {request.path}: Error {resp.get('status')}, {resp.get('type')}: {resp.get('message')}."
+                f"Function {api_function_name} "
+                f"request params: {dict(request.params)} "
+                f"request body: {request.body.read().decode()}"
+            )
+        return actual_response
+
+    return _logger
 
 
 def format_error(error):
@@ -75,8 +101,6 @@ def vdc_route(serialize=True):
 
                 return result
             except BaseError as error:
-                # TODO: logging plugin for bottle to log requests using j.logger
-                j.logger.error(f"Error while calling {function_name}: {error}")
                 return format_error(error)
             except Exception as error:
                 j.logger.exception(f"Unhandled exception when calling {function_name}: {error}", exception=error)
