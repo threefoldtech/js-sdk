@@ -36,7 +36,7 @@ class FarmManagemenet(BaseActor):
     def get_farm(self, farm_id) -> str:
         farm = self._explorer.farms.get(farm_id).to_dict()
         farm["explorer_prices"] = self._explorer.farms.get_explorer_prices()
-        return j.data.serializers.json.dumps()
+        return j.data.serializers.json.dumps(farm)
 
     @actor_method
     def add_ip_addresses(self, farm_id, ip_addresses):
