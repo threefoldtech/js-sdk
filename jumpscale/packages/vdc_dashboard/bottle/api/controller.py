@@ -280,13 +280,13 @@ def get_zstor_config(vdc):
 
 
 @app.route("/api/controller/status", method="GET")
-@vdc_route(serialize=False)
-def is_running(vdc):
-    """Make sure the controller is running
+def is_running():
 
+    """Make sure the controller is running
     Returns:
         object: will only reply if the controller is alive
     """
+    # This endpoint needed without authentication
     return HTTPResponse(
         j.data.serializers.json.dumps({"running": True}), status=200, headers={"Content-Type": "application/json"},
     )
