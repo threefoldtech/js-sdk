@@ -81,7 +81,7 @@ def report_vdc_status(vdc_name: str):
     )
     print("\n")
 
-    workloads_list = [["Wid", "Type", "State", "Farm", "PoolID", "IPv4Units" "NodeID", "NodeState", "Message"]]
+    workloads_list = [["Wid", "Type", "State", "Farm", "PoolID", "IPv4Units", "NodeID", "NodeState", "Message"]]
     for workload in workloads:
         workload_type = workload.info.workload_type.name
         if not workload_type in ["Subdomain", "Reverse_proxy"]:
