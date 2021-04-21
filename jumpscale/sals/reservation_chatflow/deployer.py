@@ -453,8 +453,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             pool_info = j.sals.zos.get().pools.create(cu, su, ipv4u, farm, currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to reserve pool.\n{str(e)}")
-        qr_code = self.show_payment(pool_info, bot)
-        self.wait_pool_reservation(pool_info.reservation_id, 30, qr_code=qr_code, bot=bot)
+        # Make sure we have amount to pay can set the custom farm prices to 0
+        # Or gateways farms which don't require payment
+        if pool_info.escrow_information.amount > 0:
+            qr_code = self.show_payment(pool_info, bot)
+            self.wait_pool_reservation(pool_info.reservation_id, 30, qr_code=qr_code, bot=bot)
         return pool_info
 
     def extend_pool(self, bot, pool_id):
