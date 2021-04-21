@@ -38,7 +38,7 @@ def report_vdc_status(vdc_name: str):
     Returns:
         str: nice view for the vdc workloads
     """
-    print("\nGetting VDC information ...")
+    print("\nGetting VDC information ...\n")
     vdc = j.sals.vdc.find(vdc_name, load_info=True)
     zos = get_zos()
     creation_time = vdc.created.strftime("%d/%m/%Y, %H:%M:%S")
@@ -47,12 +47,15 @@ def report_vdc_status(vdc_name: str):
     grace_period = "Yes" if vdc.is_blocked else "No"
     master_ip = ""
     threebot_ip = ""
+    threebot_domain = ""
     master_ip_state = "Down"
+    threebot_domain_state = "Down"
     if vdc.has_minimal_components():
         master_ip = vdc.kubernetes[0].public_ip
         threebot_ip = vdc.threebot.ip_address
         master_ip_state = "Up" if j.sals.nettools.tcp_connection_test(vdc.kubernetes[0].public_ip, 6443, 10) else "Down"
-
+        threebot_domain = vdc.threebot.domain
+        threebot_domain_state = "Up" if j.sals.nettools.wait_http_test(threebot_domain, timeout=10) else "Down"
     print(
         f"Creation time: {creation_time}\n"
         f"Expiration time: {expiration_time}\n"
@@ -60,6 +63,7 @@ def report_vdc_status(vdc_name: str):
         f"Grace Period:  {grace_period}\n"
         f"Master IP:  {master_ip}  --> State: {master_ip_state}\n"
         f"Threebot IP: {threebot_ip}\n"
+        f"Threebot Domain: {threebot_domain}  --> State {threebot_domain_state}\n"
     )
     workloads = _filter_vdc_workloads(vdc)
 
@@ -81,7 +85,7 @@ def report_vdc_status(vdc_name: str):
     )
     print("\n")
 
-    workloads_list = [["Wid", "Type", "State", "Farm", "PoolID", "IPv4Units", "NodeID", "NodeState", "Message"]]
+    workloads_list = [["Wid", "Type", "State", "Farm", "PoolID", "IPv4Units", "NodeID", "NState", "Message"]]
     for workload in workloads:
         workload_type = workload.info.workload_type.name
         if not workload_type in ["Subdomain", "Reverse_proxy"]:
