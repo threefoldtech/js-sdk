@@ -38,7 +38,7 @@ def report_vdc_status(vdc_name: str):
     Returns:
         str: nice view for the vdc workloads
     """
-    print("\nGetting VDC information ...")
+    print("\nGetting VDC information ...\n")
     vdc = j.sals.vdc.find(vdc_name, load_info=True)
     zos = get_zos()
     creation_time = vdc.created.strftime("%d/%m/%Y, %H:%M:%S")
@@ -47,21 +47,45 @@ def report_vdc_status(vdc_name: str):
     grace_period = "Yes" if vdc.is_blocked else "No"
     master_ip = ""
     threebot_ip = ""
+    threebot_domain = ""
+    master_ip_state = "Down"
+    threebot_domain_state = "Down"
     if vdc.has_minimal_components():
         master_ip = vdc.kubernetes[0].public_ip
         threebot_ip = vdc.threebot.ip_address
-
+        master_ip_state = "Up" if j.sals.nettools.tcp_connection_test(vdc.kubernetes[0].public_ip, 6443, 10) else "Down"
+        threebot_domain = vdc.threebot.domain
+        threebot_domain_state = "Up" if j.sals.nettools.wait_http_test(threebot_domain, timeout=10) else "Down"
     print(
         f"Creation time: {creation_time}\n"
         f"Expiration time: {expiration_time}\n"
         f"Flavor: {flavor}\n"
         f"Grace Period:  {grace_period}\n"
-        f"Master IP:  {master_ip}\n"
+        f"Master IP:  {master_ip}  --> State: {master_ip_state}\n"
         f"Threebot IP: {threebot_ip}\n"
+        f"Threebot Domain: {threebot_domain}  --> State {threebot_domain_state}\n"
     )
     workloads = _filter_vdc_workloads(vdc)
 
-    print_list = [["Wid", "Type", "Next Action", "Farm", "Pool ID", "Node ID", "Node State", "Message"]]
+    j.data.terminaltable.print_table(
+        f"Wallets",
+        [
+            ["Name", "Address", "Balance"],
+            [
+                vdc.prepaid_wallet.instance_name,
+                vdc.prepaid_wallet.address,
+                f"{vdc.prepaid_wallet.get_balance().balances[0].balance} TFT",
+            ],
+            [
+                vdc.provision_wallet.instance_name,
+                vdc.provision_wallet.address,
+                f"{vdc.provision_wallet.get_balance().balances[0].balance} TFT",
+            ],
+        ],
+    )
+    print("\n")
+
+    workloads_list = [["Wid", "Type", "State", "Farm", "PoolID", "IPv4Units", "NodeID", "NState", "Message"]]
     for workload in workloads:
         workload_type = workload.info.workload_type.name
         if not workload_type in ["Subdomain", "Reverse_proxy"]:
@@ -72,16 +96,17 @@ def report_vdc_status(vdc_name: str):
         else:
             farm_name = "Gateway"
             node_state = "Gateway"
-        print_list.append(
+        workloads_list.append(
             [
                 workload.id,
                 workload_type,
                 workload.info.next_action.name,
                 farm_name,
                 workload.info.pool_id,
+                zos.pools.get(workload.info.pool_id).ipv4us,
                 workload.info.node_id,
                 node_state,
                 "\n".join(wrap(workload.info.result.message, 80)),
             ]
         )
-    j.data.terminaltable.print_table(f"\nWorkloads", print_list)
+    j.data.terminaltable.print_table(f"Workloads", workloads_list)
