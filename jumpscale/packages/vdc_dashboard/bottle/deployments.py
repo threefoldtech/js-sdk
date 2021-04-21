@@ -163,7 +163,7 @@ def list_all_deployments() -> str:
 @package_authorized("vdc_dashboard")
 def list_alerts() -> str:
     alerts = _list_alerts()
-    return HTTPResponse(alerts, status=200, headers={"Content-Type": "application/json"})
+    return HTTPResponse(j.data.serializers.json.dumps(alerts), status=200, headers={"Content-Type": "application/json"})
 
 
 @app.route("/api/admins/list", method="GET")
