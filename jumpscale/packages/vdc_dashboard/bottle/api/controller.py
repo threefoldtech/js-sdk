@@ -280,7 +280,8 @@ def get_zstor_config(vdc):
 
 
 @app.route("/api/controller/status", method="GET")
-def is_running():
+@vdc_route(serialize=False)
+def is_running(vdc):
     """Make sure the controller is running
 
     Returns:
