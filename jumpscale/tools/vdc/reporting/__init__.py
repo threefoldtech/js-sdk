@@ -38,11 +38,20 @@ def report_vdc_status(vdc_name: str):
     Returns:
         str: nice view for the vdc workloads
     """
-    print("\nGetting VDC information ...\n")
     vdc = j.sals.vdc.find(vdc_name, load_info=True)
+    if not vdc:
+        print("VDC not found.")
+        return
+
+    print("\nGetting VDC information ...\n")
+
     zos = get_zos()
     creation_time = vdc.created.strftime("%d/%m/%Y, %H:%M:%S")
-    expiration_time = vdc.expiration_date.strftime("%d/%m/%Y, %H:%M:%S")
+    expiration_time = "EXPIRED"
+    try:
+        expiration_time = vdc.expiration_date.strftime("%d/%m/%Y, %H:%M:%S")
+    except:
+        pass
     flavor = vdc.flavor.value
     grace_period = "Yes" if vdc.is_blocked else "No"
     master_ip = ""

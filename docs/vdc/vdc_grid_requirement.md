@@ -24,11 +24,11 @@ To have a VDC deployer, it needs a farm with the following resources:
 
 - Nodes with IPv6 interface and HDD disks
 
-    These nodes will be used to deploy ZDBs that used as storage nodes.
+    These nodes will be used to deploy ZDBs that used as storage containers.
 
 **Important Notes:**
 
-- The nodes needed can have all resources together so they can be used for deploying kubernetes clusters or storage nodes.
+- The nodes needed can have all resources together so they can be used for deploying kubernetes clusters or storage containers.
 
 ### How to use this farm
 
@@ -108,7 +108,7 @@ To be a storage provider, it needs a farm with the following resources:
 
 - Nodes with IPv6 interface and HDD disks
 
-    These nodes will be used to deploy ZDBs that used as storage nodes.
+    These nodes will be used to deploy ZDBs that used as storage containers.
 
 **Notes:**
 
