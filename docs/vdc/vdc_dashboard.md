@@ -52,7 +52,7 @@ This manual will go through the `VDC_dashboard` package and how to add new solut
   - `Get all worker nodes`: `<YOUR_VDC_DOMAIN>/api/controller/node/list`
   - `Add new worker node`: `<YOUR_VDC_DOMAIN>/api/controller/node/add`
   - `Delete existing worker node`: `<YOUR_VDC_DOMAIN>/api/controller/node/delete`
-  - `Get all storage nodes`: `<YOUR_VDC_DOMAIN>/api/controller/zdb/list`
+  - `Get all storage containers`: `<YOUR_VDC_DOMAIN>/api/controller/zdb/list`
   - `Add new storage node`: `<YOUR_VDC_DOMAIN>/api/controller/zdb/add`
   - `Delete storage node`: `<YOUR_VDC_DOMAIN>/api/controller/zdb/delete`
   - `Get vdc prepaid wallet info`: `<YOUR_VDC_DOMAIN>/api/controller/wallet`
@@ -68,8 +68,8 @@ This manual will go through the `VDC_dashboard` package and how to add new solut
 - The VDC setting home page:
   - `Compute Nodes tab` is the default tab for the VDC Kubernetes cluster, where the user can add or remove their VDC's nodes.
   ![vdc_setting](./images/vdc_setting.png)
-  - In the `Storage Nodes` tab the user can:
-    - Add/Delete storage nodes.
+  - In the `Storage Containers` tab the user can:
+    - Add/Delete storage containers.
     - Enable quantum storage.
     - Download [Z-stor](https://github.com/threefoldtech/0-stor_v2) configuration.
     - Download ZDBs information.

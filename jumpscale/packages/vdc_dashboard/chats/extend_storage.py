@@ -6,7 +6,7 @@ import random
 
 
 class ExtendStorageNodes(GedisChatBot):
-    title = "Extend Storage Nodes"
+    title = "Extend Storage Containers"
     steps = ["different_farm", "select_farm", "add_node", "success"]
 
     @chatflow_step(title="Farm Selection")
@@ -55,7 +55,7 @@ class ExtendStorageNodes(GedisChatBot):
 
         success, _, payment_id = self.vdc.show_external_zdb_payment(self, self.farm_name)
         if not success:
-            self.stop(f"payment timedout")
+            self.stop(f"payment timedout (in case you already paid you will get refunded within 15 minutes)")
 
         self.md_show_update("Payment successful")
         try:
@@ -66,11 +66,11 @@ class ExtendStorageNodes(GedisChatBot):
             )
         except Exception as e:
             j.sals.billing.issue_refund(payment_id)
-            self.stop(f"failed to add storage nodes to your VDC. due to error {str(e)}")
+            self.stop(f"failed to add storage containers to your VDC. due to error {str(e)}")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        self.md_show(f"""Your VDC {self.vdc.vdc_name} has been extended successfuly""")
+        self.md_show(f"""Your VDC {self.vdc.vdc_name} has been extended successfully""")
 
 
 chat = ExtendStorageNodes

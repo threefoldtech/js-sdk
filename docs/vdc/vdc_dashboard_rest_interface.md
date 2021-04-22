@@ -45,14 +45,14 @@ The functionalities can be accessed through the following endpoints:
     - *wid*: (string) workload id of the node to be deleted
 
 
-## Get all storage nodes
+## Get all storage containers
 
 - `<YOUR_VDC_DOMAIN>/api/controller/zdb/list`
 - method: POST
 - Body params:
     - *password*: (string) password to access vdc
 - Return:
-    - *zdbs*: (JSON string) all storage nodes information of vdc
+    - *zdbs*: (JSON string) all storage containers information of vdc
 
 
 ## Add new storage node

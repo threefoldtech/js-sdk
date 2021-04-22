@@ -82,7 +82,7 @@ class ExtendKubernetesCluster(GedisChatBot):
             self, farm_name=farm_name, size=self.node_flavor, public_ip=self.public_ip
         )
         if not success:
-            self.stop(f"payment timedout")
+            self.stop(f"payment timedout (in case you already paid you will get refunded within 15 minutes)")
 
         self.md_show_update("Payment successful")
         duration = self.vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
