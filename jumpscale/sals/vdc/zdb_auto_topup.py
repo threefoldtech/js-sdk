@@ -109,7 +109,19 @@ class ZDBMonitor:
                 return password
         raise j.exceptions.Runtime("couldn't get password for any zdb of vdc")
 
-    def extend(self, required_capacity, farm_names, wallet_name="provision_wallet", extension_size=10, nodes_ids=None):
+    def extend(
+        self,
+        required_capacity,
+        farm_names,
+        wallet_name="provision_wallet",
+        extension_size=10,
+        nodes_ids=None,
+        duration=None,
+    ):
+        if not duration:
+            duration = self.vdc_instance.get_pools_expiration() - j.data.time.utcnow().timestamp
+            two_weeks = 2 * 7 * 24 * 60 * 60
+            duration = duration if duration < two_weeks else two_weeks
         password = self.get_password()
         no_zdbs = math.floor(required_capacity / extension_size)
         if no_zdbs < 1:
@@ -130,7 +142,7 @@ class ZDBMonitor:
             pool_ids,
             solution_uuid,
             password,
-            self.vdc_instance.get_pools_expiration(),
+            duration,
             extension_size,
             wallet_name=wallet.instance_name,
             nodes_ids=nodes_ids,

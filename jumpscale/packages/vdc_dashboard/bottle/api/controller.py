@@ -175,10 +175,19 @@ def add_zdb(vdc):
         zdb_farms = zdb_config.get("farm_names")
         farm = random.choice(zdb_farms)
 
+    duration = vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
+    two_weeks = 2 * 7 * 24 * 60 * 60
+    duration = duration if duration < two_weeks else two_weeks
+    deployer = vdc.get_deployer()
     zdb_monitor = vdc.get_zdb_monitor()
     wids = zdb_monitor.extend(
-        required_capacity=capacity, farm_names=[farm], wallet_name="prepaid_wallet", nodes_ids=nodes_ids
+        required_capacity=capacity,
+        farm_names=[farm],
+        wallet_name="prepaid_wallet",
+        nodes_ids=nodes_ids,
+        duration=60 * 60,
     )
+    deployer.extend_zdb_workload(duration, *wids)
     return wids
 
 
