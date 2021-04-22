@@ -224,7 +224,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             try:
                 success = deployer.wait_workload(wid, self.bot, expiry=5, identity_name=self.identity.instance_name)
                 if not success:
-                    raise DeploymentFailed()
+                    raise DeploymentFailed(f"failed to deploy reverse proxy on gateway: {gateway.node_id} wid: {wid}")
             except DeploymentFailed:
                 self.vdc_deployer.error(f"failed to deploy reverse proxy on gateway: {gateway.node_id} wid: {wid}")
                 continue

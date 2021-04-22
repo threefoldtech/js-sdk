@@ -70,6 +70,7 @@ class ExtendStorageNodes(GedisChatBot):
         duration = self.vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
         two_weeks = 2 * 7 * 24 * 60 * 60
         duration = duration if duration < two_weeks else two_weeks
+        wids = []
         try:
             zdb_monitor = self.vdc.get_zdb_monitor()
             self.md_show_update("Deploying 1 Storage Node")
@@ -81,6 +82,7 @@ class ExtendStorageNodes(GedisChatBot):
             )
             deployer.extend_zdb_workload(duration, *wids)
         except Exception as e:
+            [deployer.delete_s3_zdb(wid) for wid in wids]
             self.stop(f"failed to add storage nodes to your VDC. due to error {str(e)}")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
