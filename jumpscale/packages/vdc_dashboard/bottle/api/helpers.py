@@ -18,15 +18,22 @@ def logger(function):
     @wraps(function)
     def _logger(*args, **kwargs):
         actual_response = function(*args, **kwargs)
-        api_function_name = function.__closure__[0].cell_contents.__name__
+
+        # get function name
+        closures = function.__closure__
+        if closures:
+            api_function_name = closures[0].cell_contents.__name__
+        else:
+            api_function_name = function.__name__
+
         if 200 <= response.status_code < 300:
-            j.logger.info(f"{request.method} {response.status}: {request.url} ")
+            j.logger.info(f"{api_function_name}: {request.method} {response.status}: {request.url} ")
         else:
             resp = j.data.serializers.json.loads(actual_response)
             j.logger.error(
-                f"{request.method} {request.path}: Error {resp.get('status')}, {resp.get('type')}: {resp.get('message')}."
-                f"Function {api_function_name} "
-                f"request params: {dict(request.params)} "
+                f"{request.method} {request.path}: Error {resp.get('status')}, {resp.get('type')}: {resp.get('message')}, "
+                f"Function {api_function_name} , "
+                f"request params: {dict(request.params)}, "
                 f"request body: {request.body.read().decode()}"
             )
         return actual_response
