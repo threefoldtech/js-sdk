@@ -72,10 +72,4 @@ def threebot_vdc_helper(vdc=None):
 
 
 def _list_alerts(app_name: str = ""):
-
-    if app_name:
-        alerts = [alert.json for alert in j.tools.alerthandler.find() if alert.app_name == app_name]
-    else:
-        alerts = [alert.json for alert in j.tools.alerthandler.find()]
-
-    return alerts
+    return [alert.json for alert in j.tools.alerthandler.find(app_name)]

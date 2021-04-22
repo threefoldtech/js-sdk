@@ -230,12 +230,23 @@ def list_pools(vdc):
     return [pool.to_dict() for pool in vdc.active_pools]
 
 
+@app.route("/api/controller/alerts", method="GET")
+@vdc_route()
+def list_alerts(vdc, app_name):
+    """
+    List all alerts
+
+    Returns:
+        list: alerts
+    """
+    return _list_alerts()
+
+
 @app.route("/api/controller/alerts/<app_name>", method="GET")
 @vdc_route()
 def list_alerts(vdc, app_name):
     """
-    request body:
-        application (optional, if not given all alerts returned)
+    List alerts of a specific app
 
     Returns:
         list: alerts
