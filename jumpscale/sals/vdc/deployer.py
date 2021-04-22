@@ -822,7 +822,7 @@ class VDCDeployer:
             cloud_units = resource_units.cloud_units()
             pools_units[pool_id]["cu"] += cloud_units.cu * duration
             pools_units[pool_id]["su"] += cloud_units.su * duration
-            if workload.public_ip:
+            if workload.info.workload_type == WorkloadType.Kubernetes and workload.public_ip:
                 pools_units[pool_id]["ipv4us"] += duration
 
         for pool_id, units_dict in pools_units.items():
