@@ -40,7 +40,7 @@ class ExtendKubernetesCluster(GedisChatBot):
     def different_farm(self):
         self.diff_farm = False
         diff_farm = self.single_choice(
-            "Do you want to deploy this node on a different farm", options=["Yes", "No"], default="No", required=True
+            "Do you want to deploy this node on a different farm?", options=["Yes", "No"], default="No", required=True
         )
         if diff_farm == "Yes":
             self.diff_farm = True
@@ -90,14 +90,14 @@ class ExtendKubernetesCluster(GedisChatBot):
         if duration > two_weeks:
             duration = two_weeks
         old_wallet = deployer._set_wallet(self.vdc.prepaid_wallet.instance_name)
+        wids = []
         try:
             wids = deployer.add_k8s_nodes(self.node_flavor, farm_name=farm_name, public_ip=self.public_ip)
+            self.md_show_update("Updating expiration...")
+            deployer.extend_k8s_workloads(duration, *wids)
         except Exception as e:
-            j.sals.billing.issue_refund(payment_id)
+            [deployer.delete_k8s_node(wid) for wid in wids]
             self.stop(f"failed to add nodes to your cluster. due to error {str(e)}")
-
-        self.md_show_update("Updating expiration...")
-        deployer.extend_k8s_workloads(duration, *wids)
 
         self.md_show_update("Processing transaction...")
         deployer._set_wallet(old_wallet)

@@ -17,7 +17,7 @@ class ExtendStorageNodes(GedisChatBot):
             raise StopChatFlow("Payment service is currently down, try again later")
         self.diff_farm = False
         diff_farm = self.single_choice(
-            "Do you want to deploy this node on a different farm", options=["Yes", "No"], default="No", required=True
+            "Do you want to deploy this node on a different farm?", options=["Yes", "No"], default="No", required=True
         )
         if diff_farm == "Yes":
             self.diff_farm = True
@@ -65,8 +65,7 @@ class ExtendStorageNodes(GedisChatBot):
                 required_capacity=ZDB_STARTING_SIZE, farm_names=[self.farm_name], wallet_name="prepaid_wallet"
             )
         except Exception as e:
-            j.sals.billing.issue_refund(payment_id)
-            self.stop(f"failed to add storage containers to your VDC. due to error {str(e)}")
+            self.stop(f"failed to add storage nodes to your VDC. due to error {str(e)}")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
