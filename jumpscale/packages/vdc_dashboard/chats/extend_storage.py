@@ -55,7 +55,7 @@ class ExtendStorageNodes(GedisChatBot):
 
         success, _, payment_id = self.vdc.show_external_zdb_payment(self, self.farm_name)
         if not success:
-            self.stop(f"payment timedout (in case you already paid you will get refunded within 15 minutes)")
+            self.stop(f"payment timedout (in case you already paid, please contact support)")
 
         self.md_show_update("Payment successful")
         try:
