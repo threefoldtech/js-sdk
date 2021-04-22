@@ -232,7 +232,7 @@ def list_pools(vdc):
 
 @app.route("/api/controller/alerts", method="GET")
 @vdc_route()
-def list_alerts(vdc, app_name):
+def list_alerts(vdc):
     """
     List all alerts
 
