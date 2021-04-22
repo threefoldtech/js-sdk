@@ -154,7 +154,7 @@ def check_s3_utilization(url, threshold=0.7, clear_threshold=0.4, max_storage=No
     return disk_utilization, (required_capacity / (1024 ** 3))
 
 
-def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, size=10, wallet_name=None):
+def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, size=10, wallet_name=None, nodes_ids=None):
     """
     1- create/extend pools with enough cloud units for the new zdbs
     2- deploy a zdb with the same size and password for each wid
@@ -196,7 +196,17 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, siz
         if not wait_pool_reservation(reservation_id):
             j.logger.warning(f"pool {pool_id} extension timedout for reservation: {reservation_id}")
             continue
-        for node in gs.nodes_by_capacity(pool_id=pool_id, hru=size):
+        nodes_generator = gs.nodes_by_capacity(pool_id=pool_id, hru=size, ip_version="IPv6")
+        if nodes_ids:
+            nodes_generator = list(nodes_generator)
+            nodes_generator_ids = [node.node_id for node in nodes_generator]
+            unavailable_nodes_ids = set(nodes_ids) - set(nodes_generator_ids)
+            if unavailable_nodes_ids:
+                raise j.exceptions.Validation(
+                    f"Some nodes: {unavailable_nodes_ids} are not in the farm or don't have capacity"
+                )
+            nodes_generator = [node for node in nodes_generator if node.node_id in nodes_ids]
+        for node in nodes_generator:
             wid = deployer.deploy_zdb(
                 pool_id=pool_id,
                 node_id=node.node_id,

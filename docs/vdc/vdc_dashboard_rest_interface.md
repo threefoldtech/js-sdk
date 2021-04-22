@@ -33,6 +33,8 @@ The functionalities can be accessed through the following endpoints:
 - Body params:
     - *password*: (string) password to access vdc
     - *flavor*: (string) flavor(specs) of the new node to be added e.g: SMALL
+    - *farm*(optional): (string) farm to add kubernetes node on
+    - nodes_ids*(optional): (list) list of nodes IDs to add kubernetes node on one of them.
 - Return:
     - *wids*: (JSON string) list of workload ids of the new node/s added
 
@@ -63,6 +65,7 @@ The functionalities can be accessed through the following endpoints:
     - *password*: (string) password to access vdc
     - *capacity*: (int) size of the storage node to be added in GB e.g 10
     - *farm*(optional): (string) farm to add zdb on
+    - nodes_ids*(optional): (list) list of nodes IDs to add zdb on one of them.
 - Return:
     - *wids*: (JSON string) list of workload ids of the new node/s added
 
