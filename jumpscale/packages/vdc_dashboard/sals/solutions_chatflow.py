@@ -509,6 +509,10 @@ class SolutionsChatflowDeploy(GedisChatBot):
             return True
         return False
 
+    def rollback(self):
+        self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.config.release_name}")
+        j.sals.marketplace.solutions.cancel_solution_by_uuid(self.solution_id)
+
     @chatflow_step(title="Initializing", disable_previous=True)
     def initializing(self, timeout=800, pod_initalizing_timeout=POD_INITIALIZING_TIMEOUT):
         self.md_show_update(f"Initializing your {self.SOLUTION_TYPE}...")
@@ -532,22 +536,19 @@ class SolutionsChatflowDeploy(GedisChatBot):
             stop_message = error_message_template.format(
                 reason="Couldn't find resources in the cluster for the solution"
             )
-            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.config.release_name}")
-            j.sals.marketplace.solutions.cancel_solution_by_uuid(self.solution_id)
+            self.rollback()
             self.stop(dedent(stop_message))
 
         if not self.chart_pods_started():
             stop_message = error_message_template.format(reason="Pods initialization timed out")
-            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.config.release_name}")
-            j.sals.marketplace.solutions.cancel_solution_by_uuid(self.solution_id)
+            self.rollback()
             self.stop(dedent(stop_message))
 
         if self.config.chart_config.domain and not j.sals.reservation_chatflow.wait_http_test(
             f"https://{self.config.chart_config.domain}", timeout=timeout - POD_INITIALIZING_TIMEOUT, verify=False
         ):
             stop_message = error_message_template.format(reason="Couldn't reach the website after deployment")
-            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.config.release_name}")
-            j.sals.marketplace.solutions.cancel_solution_by_uuid(self.solution_id)
+            self.rollback()
             self.stop(dedent(stop_message))
         self._label_resources(backupType="vdc")
 

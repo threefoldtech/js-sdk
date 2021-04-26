@@ -85,8 +85,7 @@ class MinioDeploy(SolutionsChatflowDeploy):
             stop_message = error_message_template.format(
                 reason="Couldn't find resources in the cluster for the solution"
             )
-            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.config.release_name}")
-            j.sals.marketplace.solutions.cancel_solution_by_uuid(self.solution_id)
+            self.rollback()
             self.stop(dedent(stop_message))
 
         if self.config.chart_config.domain and not j.sals.reservation_chatflow.wait_http_test(
@@ -96,8 +95,7 @@ class MinioDeploy(SolutionsChatflowDeploy):
             status_code=403,
         ):
             stop_message = error_message_template.format(reason="Couldn't reach the website after deployment")
-            self.k8s_client.execute_native_cmd(f"kubectl delete ns {self.chart_name}-{self.config.release_name}")
-            j.sals.marketplace.solutions.cancel_solution_by_uuid(self.solution_id)
+            self.rollback()
             self.stop(dedent(stop_message))
         self._label_resources(backupType="vdc")
 
