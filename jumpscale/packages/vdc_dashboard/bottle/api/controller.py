@@ -16,6 +16,7 @@ from jumpscale.packages.vdc_dashboard.bottle.api.exceptions import (
     ZDBDeletionFailed,
     ZDBDeploymentFailed,
     ZStorConfigNotFound,
+    BadRequestError,
 )
 from jumpscale.packages.vdc_dashboard.bottle.api.helpers import get_full_vdc_info, logger, vdc_route
 from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts, get_vdc, threebot_vdc_helper
@@ -54,6 +55,7 @@ def add_node(vdc):
         flavor
         farm(optional)
         nodes_ids(optional)
+        public_ip(optional)
 
     Returns:
         wids: list of wids
@@ -62,6 +64,7 @@ def add_node(vdc):
     node_flavor = data.get("flavor")
     farm = data.get("farm")
     nodes_ids = data.get("nodes_ids")
+    public_ip = data.get("public_ip")
     if nodes_ids and not farm:
         raise MissingArgument(400, "Must specify farm with nodes_ids.")
 
@@ -75,19 +78,27 @@ def add_node(vdc):
     if node_flavor.upper() not in VDC_SIZE.K8SNodeFlavor.__members__:
         raise FlavorNotSupported(400, f"Flavor of '{node_flavor}' is not supported")
 
+    if public_ip:
+        if not isinstance(public_ip, bool):
+            raise BadRequestError(400, "public_ip should be a boolean")
+    else:
+        public_ip = False
+
     node_flavor = node_flavor.upper()
-    deployer = vdc.get_deployer()
-    farm_name, capacity_check = deployer.find_worker_farm(node_flavor, farm_name=farm)
+    farm_name, capacity_check = vdc.find_worker_farm(node_flavor, farm_name=farm, public_ip=public_ip)
     if not capacity_check:
+        public_ip_msg = " with public IP" if public_ip else ""
         raise NoEnoughCapacity(
-            400, f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {node_flavor}"
+            400,
+            f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {node_flavor}{public_ip_msg}",
         )
 
     # Payment
-    success, _, _ = vdc.show_external_node_payment(bot=None, farm_name=farm_name, size=node_flavor, public_ip=False)
+    success, _, _ = vdc.show_external_node_payment(bot=None, farm_name=farm_name, size=node_flavor, public_ip=public_ip)
     if not success:
         raise NoEnoughFunds(400, "No enough funds in prepaid wallet to add node")
 
+    deployer = vdc.get_deployer(network_farm=farm_name)
     old_wallet = deployer._set_wallet(vdc.prepaid_wallet.instance_name)
     duration = vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
     two_weeks = 2 * 7 * 24 * 60 * 60
@@ -95,7 +106,7 @@ def add_node(vdc):
         duration = two_weeks
 
     try:
-        wids = deployer.add_k8s_nodes(node_flavor, farm_name=farm_name, public_ip=False, nodes_ids=nodes_ids)
+        wids = deployer.add_k8s_nodes(node_flavor, farm_name=farm_name, public_ip=public_ip, nodes_ids=nodes_ids)
         deployer.extend_k8s_workloads(duration, *wids)
         deployer._set_wallet(old_wallet)
         return wids

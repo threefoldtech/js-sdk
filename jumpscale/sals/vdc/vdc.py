@@ -775,3 +775,39 @@ class UserVDC(Base):
         j.clients.sshclient.delete(client_name)
         ssh_client = j.clients.sshclient.get(client_name, user=user, host=ip_address, sshkey=client_name)
         return ssh_client
+
+    def find_worker_farm(self, flavor, farm_name=None, public_ip=False):
+        if farm_name:
+            return farm_name, self._check_added_worker_capacity(flavor, farm_name, public_ip)
+        farms = j.config.get("NETWORK_FARMS", []) if public_ip else j.config.get("COMPUTE_FARMS", [])
+        for farm in farms:
+            if self._check_added_worker_capacity(flavor, farm, public_ip):
+                return farm, True
+        else:
+            self.load_info()
+            farm_name = j.sals.marketplace.deployer.get_pool_farm_name(self.kubernetes[0].pool_id)
+            return farm_name, self._check_added_worker_capacity(flavor, farm_name, public_ip)
+
+    def _check_added_worker_capacity(self, flavor, farm_name, public_ip=False):
+        if public_ip:
+            zos = j.sals.zos.get()
+            farm = zos._explorer.farms.get(farm_name=farm_name)
+            available_ips = False
+            for address in farm.ipaddresses:
+                if not address.reservation_id:
+                    available_ips = True
+                    break
+            if not available_ips:
+                return False
+
+        old_node_ids = []
+        self.load_info()
+        for k8s_node in self.kubernetes:
+            old_node_ids.append(k8s_node.node_id)
+        cc = CapacityChecker(farm_name)
+        cc.exclude_nodes(*old_node_ids)
+        if isinstance(flavor, str):
+            flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
+        if not cc.add_query(**VDC_SIZE.K8S_SIZES[flavor]):
+            return False
+        return True
