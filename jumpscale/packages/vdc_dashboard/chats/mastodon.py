@@ -27,16 +27,20 @@ class MastodonDeploy(SolutionsChatflowDeploy):
     def get_config(self):
         return {
             "web.ingress.host": self.config.chart_config.domain,
+            "resources.limits.cpu": self.config.chart_config.resources_limits["cpu"][:-1],
+            "resources.limits.memory": self.config.chart_config.resources_limits["memory"][:-2],
+        }
+
+    def get_config_string_safe(self):
+        return {
             "env.smtp.server": self.config.chart_config.smtp_host,
-            "env.smtp.port": self.config.chart_config.smtp_port.strip('"'),
+            "env.smtp.port": self.config.chart_config.smtp_port,
             "env.smtp.address": f"support@{self.config.chart_config.domain}",
             "env.smtp.login": self.config.chart_config.smtp_username,
             "env.smtp.domain": self.config.chart_config.domain,
             "smtpPassword": self.config.chart_config.smtp_password,
             "env.extraEnvVars[0].name": "THREEBOT_KEY",
             "env.extraEnvVars[0].value": self.generate_signing_key(),
-            "resources.limits.cpu": self.config.chart_config.resources_limits["cpu"][:-1],
-            "resources.limits.memory": self.config.chart_config.resources_limits["memory"][:-2],
         }
 
     @chatflow_step(title="Configurations")
