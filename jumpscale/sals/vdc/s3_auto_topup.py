@@ -169,7 +169,7 @@ def extend_zdbs(
     wallet_name = wallet_name or j.core.config.get("S3_AUTO_TOPUP_WALLET")
     wallet = j.clients.stellar.get(wallet_name)
     zos = get_zos()
-    reservation_ids = []
+    reservations = []
 
     storage_query = {"hru": size}
     if disk_type == DiskType.SSD:
@@ -188,15 +188,18 @@ def extend_zdbs(
             f"AUTO TOPUP: extending pool {pool_id} with sus: {su}, reservation_id: {pool_info.reservation_id}"
         )
         zos.billing.payout_farmers(wallet, pool_info)
-        reservation_ids.append(pool_info.reservation_id)
+        reservations.append({"pool_id": pool_id, "reservation_id": pool_info.reservation_id})
+
+    for reservation in reservations:
+        if not wait_pool_reservation(reservation["reservation_id"]):
+            j.logger.warning(
+                f"pool {reservation['pool_id']} extension timedout for reservation: {reservation['reservation_id']}"
+            )
+            continue
 
     gs = GlobalScheduler()
     wids = []
-    for idx, pool_id in enumerate(pool_ids):
-        reservation_id = reservation_ids[idx]
-        if not wait_pool_reservation(reservation_id):
-            j.logger.warning(f"pool {pool_id} extension timedout for reservation: {reservation_id}")
-            continue
+    for pool_id in pool_ids:
         nodes_generator = gs.nodes_by_capacity(pool_id=pool_id, ip_version="IPv6", **storage_query)
         if nodes_ids:
             nodes_generator = list(nodes_generator)
