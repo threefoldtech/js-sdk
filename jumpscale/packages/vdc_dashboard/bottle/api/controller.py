@@ -1,27 +1,22 @@
+from math import ceil
 import random
 
 from bottle import Bottle, HTTPResponse, request
 from jumpscale.loader import j
-from jumpscale.packages.vdc_dashboard.bottle.api.exceptions import (
-    AdddingNodeFailed,
-    CannotDeleteMasterNode,
-    FlavorNotSupported,
-    InvalidKubeConfig,
-    InvalidZStorConfig,
-    KubeConfigNotFound,
-    MissingArgument,
-    NoEnoughCapacity,
-    NoEnoughFunds,
-    StellarServiceDown,
-    ZDBDeletionFailed,
-    ZDBDeploymentFailed,
-    ZStorConfigNotFound,
-    BadRequestError,
+
+from jumpscale.clients.explorer.models import DiskType
+from jumpscale.packages.vdc_dashboard.bottle.api.exceptions import *
+from jumpscale.packages.vdc_dashboard.bottle.api.helpers import (
+    get_full_vdc_info,
+    logger,
+    vdc_route,
 )
-from jumpscale.packages.vdc_dashboard.bottle.api.helpers import get_full_vdc_info, logger, vdc_route
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts, get_vdc, threebot_vdc_helper
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_kubeconfig_file, get_zstor_config_file
-from jumpscale.sals.vdc.size import VDC_SIZE
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
+    get_kubeconfig_file,
+    get_zstor_config_file,
+)
+from jumpscale.sals.vdc.size import VDC_SIZE, ZDB_STARTING_SIZE
 
 app = Bottle()
 app.install(logger)
@@ -64,7 +59,7 @@ def add_node(vdc):
     node_flavor = data.get("flavor")
     farm = data.get("farm")
     nodes_ids = data.get("nodes_ids")
-    public_ip = data.get("public_ip")
+    public_ip = data.get("public_ip", False)
     if nodes_ids and not farm:
         raise MissingArgument(400, "Must specify farm with nodes_ids.")
 
@@ -81,8 +76,6 @@ def add_node(vdc):
     if public_ip:
         if not isinstance(public_ip, bool):
             raise BadRequestError(400, "public_ip should be a boolean")
-    else:
-        public_ip = False
 
     node_flavor = node_flavor.upper()
     farm_name, capacity_check = vdc.find_worker_farm(node_flavor, farm_name=farm, public_ip=public_ip)
@@ -166,6 +159,7 @@ def add_zdb(vdc):
         capacity
         farm(optional)
         nodes_ids(optional)
+        disk_type(optional)
 
     Returns:
         wids: list of wids
@@ -174,6 +168,7 @@ def add_zdb(vdc):
     capacity = data.get("capacity")
     farm = data.get("farm")
     nodes_ids = data.get("nodes_ids")
+    disk_type = data.get("disk_type", "HDD")
 
     if not capacity:
         raise MissingArgument(400, "'capacity' is required")
@@ -181,24 +176,40 @@ def add_zdb(vdc):
     if nodes_ids and not farm:
         raise MissingArgument(400, "Must specify farm with nodes_ids.")
 
+    if disk_type:
+        if disk_type not in ["HDD", "SSD"]:
+            raise BadRequestError(400, "Container disk type should be HDD or SSD")
+    disk_type = DiskType[disk_type]
+
     if not farm:
         zdb_config = j.config.get("S3_AUTO_TOP_SOLUTIONS")
         zdb_farms = zdb_config.get("farm_names")
         farm = random.choice(zdb_farms)
 
+    no_nodes = ceil(capacity / ZDB_STARTING_SIZE)
+
+    success, _, _ = vdc.show_external_zdb_payment(bot=None, farm_name=farm, no_nodes=no_nodes, disk_type=disk_type)
+    if not success:
+        raise NoEnoughFunds(400, "No enough funds in prepaid wallet to add storage container")
+
     duration = vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
     two_weeks = 2 * 7 * 24 * 60 * 60
     duration = duration if duration < two_weeks else two_weeks
     deployer = vdc.get_deployer()
-    zdb_monitor = vdc.get_zdb_monitor()
-    wids = zdb_monitor.extend(
-        required_capacity=capacity,
-        farm_names=[farm],
-        wallet_name="prepaid_wallet",
-        nodes_ids=nodes_ids,
-        duration=60 * 60,
-    )
-    deployer.extend_zdb_workload(duration, *wids)
+    try:
+        zdb_monitor = vdc.get_zdb_monitor()
+        wids = zdb_monitor.extend(
+            required_capacity=capacity,
+            farm_names=[farm],
+            wallet_name="prepaid_wallet",
+            nodes_ids=nodes_ids,
+            duration=60 * 60,
+            disk_type=disk_type,
+        )
+        deployer.extend_zdb_workload(duration, *wids)
+    except Exception as e:
+        j.logger.exception("failed to add storage container", exception=e)
+        raise ZDBDeploymentFailed(400, f"failed to add storage container: {e}")
     return wids
 
 

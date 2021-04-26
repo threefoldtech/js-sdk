@@ -1,7 +1,11 @@
-from jumpscale.loader import j
 import math
+
+from jumpscale.loader import j
+
+from jumpscale.clients.explorer.models import DiskType
 from jumpscale.sals.reservation_chatflow import deployer, solutions
-from .s3_auto_topup import get_zdb_farms_distribution, get_farm_pool_id, extend_zdbs
+
+from .s3_auto_topup import extend_zdbs, get_farm_pool_id, get_zdb_farms_distribution
 
 
 class ZDBMonitor:
@@ -117,13 +121,14 @@ class ZDBMonitor:
         extension_size=10,
         nodes_ids=None,
         duration=None,
+        disk_type=DiskType.HDD,
     ):
         if not duration:
             duration = self.vdc_instance.get_pools_expiration() - j.data.time.utcnow().timestamp
             two_weeks = 2 * 7 * 24 * 60 * 60
             duration = duration if duration < two_weeks else two_weeks
         password = self.get_password()
-        no_zdbs = math.floor(required_capacity / extension_size)
+        no_zdbs = math.ceil(required_capacity / extension_size)
         if no_zdbs < 1:
             return
         solution_uuid = self.vdc_instance.solution_uuid
@@ -146,6 +151,7 @@ class ZDBMonitor:
             extension_size,
             wallet_name=wallet.instance_name,
             nodes_ids=nodes_ids,
+            disk_type=disk_type,
         )
         j.logger.info(f"zdbs extended with wids: {wids}")
         if len(wids) != no_zdbs:

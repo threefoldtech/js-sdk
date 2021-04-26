@@ -536,7 +536,9 @@ class UserVDC(Base):
         else:
             return True, amount, payment_id
 
-    def show_external_zdb_payment(self, bot, farm_name, size=ZDB_STARTING_SIZE, no_nodes=1, expiry=5, wallet_name=None):
+    def show_external_zdb_payment(
+        self, bot, farm_name, size=ZDB_STARTING_SIZE, no_nodes=1, expiry=5, wallet_name=None, disk_type=DiskType.HDD
+    ):
         discount = FARM_DISCOUNT.get()
         duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
         month = 60 * 60 * 24 * 30
@@ -547,19 +549,25 @@ class UserVDC(Base):
         farm_id = zos._explorer.farms.get(farm_name=farm_name).id
         zdb = ZdbNamespace()
         zdb.size = size
-        zdb.disk_type = DiskType.HDD
+        zdb.disk_type = disk_type
         amount = j.tools.zos.consumption.cost(zdb, duration, farm_id) + TRANSACTION_FEES
         amount *= no_nodes
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
-            result = bot.single_choice(
-                f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
-                ["Yes", "No"],
-                required=True,
-            )
-            if result == "Yes":
+            if bot:
+                result = bot.single_choice(
+                    f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
+                    ["Yes", "No"],
+                    required=True,
+                )
+                if result == "Yes":
+                    amount = 0
+            else:
                 amount = 0
+        elif not bot:
+            # Not enough funds in prepaid wallet and no bot passed to use to view QRcode
+            return False, amount, None
 
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
