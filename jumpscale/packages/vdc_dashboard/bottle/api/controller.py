@@ -73,9 +73,8 @@ def add_node(vdc):
     if node_flavor.upper() not in VDC_SIZE.K8SNodeFlavor.__members__:
         raise FlavorNotSupported(400, f"Flavor of '{node_flavor}' is not supported")
 
-    if public_ip:
-        if not isinstance(public_ip, bool):
-            raise BadRequestError(400, "public_ip should be a boolean")
+    if not isinstance(public_ip, bool):
+        raise BadRequestError(400, "public_ip should be a boolean")
 
     node_flavor = node_flavor.upper()
     farm_name, capacity_check = vdc.find_worker_farm(node_flavor, farm_name=farm, public_ip=public_ip)
@@ -176,9 +175,8 @@ def add_zdb(vdc):
     if nodes_ids and not farm:
         raise MissingArgument(400, "Must specify farm with nodes_ids.")
 
-    if disk_type:
-        if disk_type not in ["HDD", "SSD"]:
-            raise BadRequestError(400, "Container disk type should be HDD or SSD")
+    if disk_type not in ["HDD", "SSD"]:
+        raise BadRequestError(400, "Container disk type should be HDD or SSD")
     disk_type = DiskType[disk_type]
 
     if not farm:
