@@ -73,5 +73,9 @@ class NoEnoughFunds(BaseError):
     pass
 
 
+class BadRequestError(BaseError):
+    pass
+
+
 class UnknownError(BaseError):
     pass
