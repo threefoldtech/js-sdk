@@ -1,8 +1,11 @@
+import random
+
 from jumpscale.loader import j
+
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
+from jumpscale.sals.vdc.deployer import VDCIdentityError
 from jumpscale.sals.vdc.scheduler import CapacityChecker, GlobalCapacityChecker
 from jumpscale.sals.vdc.size import VDC_SIZE, ZDB_STARTING_SIZE
-import random
 
 
 class ExtendStorageNodes(GedisChatBot):
@@ -17,7 +20,7 @@ class ExtendStorageNodes(GedisChatBot):
             raise StopChatFlow("Payment service is currently down, try again later")
         self.diff_farm = False
         diff_farm = self.single_choice(
-            "Do you want to deploy this node on a different farm", options=["Yes", "No"], default="No", required=True
+            "Do you want to deploy this node on a different farm?", options=["Yes", "No"], default="No", required=True
         )
         if diff_farm == "Yes":
             self.diff_farm = True
@@ -41,7 +44,13 @@ class ExtendStorageNodes(GedisChatBot):
         self.vdc = j.sals.vdc.get(name=self.vdc_name)
         if not self.vdc:
             self.stop(f"VDC {self.vdc_name} doesn't exist")
-        self.vdc.load_info()
+        try:
+            self.vdc.load_info()
+            deployer = self.vdc.get_deployer(bot=self)
+        except VDCIdentityError:
+            self.stop(
+                f"Couldn't verify VDC secret. please make sure you are using the correct secret for VDC {self.vdc_name}"
+            )
 
         # check for capacity before deploying
         if not self.farm_name:
@@ -58,15 +67,23 @@ class ExtendStorageNodes(GedisChatBot):
             self.stop(f"payment timedout (in case you already paid, please contact support)")
 
         self.md_show_update("Payment successful")
+        duration = self.vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
+        two_weeks = 2 * 7 * 24 * 60 * 60
+        duration = duration if duration < two_weeks else two_weeks
+        wids = []
         try:
             zdb_monitor = self.vdc.get_zdb_monitor()
             self.md_show_update("Deploying 1 Storage Node")
-            zdb_monitor.extend(
-                required_capacity=ZDB_STARTING_SIZE, farm_names=[self.farm_name], wallet_name="prepaid_wallet"
+            wids = zdb_monitor.extend(
+                required_capacity=ZDB_STARTING_SIZE,
+                farm_names=[self.farm_name],
+                wallet_name="prepaid_wallet",
+                duration=60 * 60,
             )
+            deployer.extend_zdb_workload(duration, *wids)
         except Exception as e:
-            j.sals.billing.issue_refund(payment_id)
-            self.stop(f"failed to add storage containers to your VDC. due to error {str(e)}")
+            [deployer.delete_s3_zdb(wid) for wid in wids]
+            self.stop(f"failed to add storage nodes to your VDC. due to error {str(e)}")
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):

@@ -501,6 +501,7 @@ class UserVDC(Base):
         if public_ip:
             pub_ip = PublicIP()
             amount += j.tools.zos.consumption.cost(pub_ip, duration, farm_id)
+        amount *= no_nodes
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
@@ -548,6 +549,7 @@ class UserVDC(Base):
         zdb.size = size
         zdb.disk_type = DiskType.HDD
         amount = j.tools.zos.consumption.cost(zdb, duration, farm_id) + TRANSACTION_FEES
+        amount *= no_nodes
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:

@@ -807,14 +807,14 @@ class VDCDeployer:
             gevent.sleep(2)
         return False
 
-    def extend_k8s_workloads(self, duration, *wids):
+    def _extend_workloads(self, duration, *wids, types):
         """
         duration in seconds
         """
         pools_units = defaultdict(lambda: {"cu": 0, "su": 0, "ipv4us": 0})
         for wid in wids:
             workload = self.zos.workloads.get(wid)
-            if workload.info.workload_type != WorkloadType.Kubernetes:
+            if workload.info.workload_type not in types:
                 self.warning(f"workload {wid} is not a valid kubernetes workload")
                 continue
             pool_id = workload.info.pool_id
@@ -822,7 +822,7 @@ class VDCDeployer:
             cloud_units = resource_units.cloud_units()
             pools_units[pool_id]["cu"] += cloud_units.cu * duration
             pools_units[pool_id]["su"] += cloud_units.su * duration
-            if workload.public_ip:
+            if workload.info.workload_type == WorkloadType.Kubernetes and workload.public_ip:
                 pools_units[pool_id]["ipv4us"] += duration
 
         for pool_id, units_dict in pools_units.items():
@@ -831,6 +831,12 @@ class VDCDeployer:
             pool_info = self.zos.pools.extend(pool_id, **units_dict)
 
             self.pay(pool_info)
+
+    def extend_k8s_workloads(self, duration, *wids):
+        self._extend_workloads(duration, *wids, types=[WorkloadType.Kubernetes])
+
+    def extend_zdb_workload(self, duration, *wids):
+        self._extend_workloads(duration, *wids, types=[WorkloadType.Zdb])
 
     def _log(self, msg, loglevel="info", disable_bot=False):
         getattr(j.logger, loglevel)(self._log_format.format(msg))

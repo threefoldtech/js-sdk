@@ -154,7 +154,7 @@ def check_s3_utilization(url, threshold=0.7, clear_threshold=0.4, max_storage=No
     return disk_utilization, (required_capacity / (1024 ** 3))
 
 
-def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, size=10, wallet_name=None, nodes_ids=None):
+def extend_zdbs(name, pool_ids, solution_uuid, password, duration, size=10, wallet_name=None, nodes_ids=None):
     """
     1- create/extend pools with enough cloud units for the new zdbs
     2- deploy a zdb with the same size and password for each wid
@@ -168,11 +168,6 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, siz
     zos = get_zos()
     reservation_ids = []
 
-    duration = current_expiration - j.data.time.utcnow().timestamp
-    two_weeks = 2 * 7 * 24 * 60 * 60
-    if duration > two_weeks:
-        duration = two_weeks
-
     pool_total_sus = defaultdict(int)
     for _, pool_id in enumerate(pool_ids):
         cloud_units = deployer.calculate_capacity_units(hru=size)
@@ -180,8 +175,7 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, current_expiration, siz
         pool_total_sus[pool_id] += su
 
     for pool_id, su in pool_total_sus.items():
-
-        su = su * two_weeks
+        su = su * duration
         pool_info = zos.pools.extend(pool_id, 0, su, 0)
         j.logger.info(
             f"AUTO TOPUP: extending pool {pool_id} with sus: {su}, reservation_id: {pool_info.reservation_id}"
