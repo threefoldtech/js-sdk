@@ -25,7 +25,7 @@ class VDCWallet(Base):
 class VDCWalletStoredFactory(StoredFactory):
     def new(self, *args, **kwargs):
         instance = super().new(*args, **kwargs)
-        #instance._init_wallet()
+        instance._init_wallet()
         instance.save()
         return instance
 

@@ -22,6 +22,8 @@ port = 5562
 
 [[servers]]
 name = "vdc_proxy"
+domain = "vdc.testnet.grid.tf"
+letsencryptemail = "motaweam@incubaid.com"
 includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.vdc*"]
 
 [[servers.locations]]
