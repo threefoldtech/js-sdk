@@ -88,8 +88,9 @@ module.exports = new Promise(async (resolve, reject) => {
             deleteIpAddressFarmer (ipaddress) {
                 const del = {
                     farm_id: this.farm.id,
-                    ipaddress: ipaddress.ipaddress
+                    ipaddress: ipaddress.address
                 }
+                console.log(ipaddress)
                 this.deleteIpAddress(del)
                     .then(response => {
                         if (response.status == 200) {

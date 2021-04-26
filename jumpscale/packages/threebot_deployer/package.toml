@@ -29,8 +29,6 @@ port = 5561
 
 [[servers]]
 name = "threebot_deployer_root_proxy"
-domain = "deploy3bot.testnet.grid.tf"
-letsencryptemail = "motaweam@incubaid.com"
 includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.threebot_deployer*"]
 
 [[servers.locations]]
