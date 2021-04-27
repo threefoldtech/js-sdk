@@ -790,7 +790,7 @@ importlib-resources = {version = "*", markers = "python_version < \"3.7\""}
 
 [[package]]
 name = "parameterized"
-version = "0.8.1"
+version = "0.7.5"
 description = "Parameterized testing with any Python test framework"
 category = "main"
 optional = false
@@ -1529,7 +1529,7 @@ test = ["zope.security", "zope.testrunner"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "f2db5e2a6eb11aa3c60e35a1cc625a57f73be85d6060dd9aecc35577284e47ed"
+content-hash = "c3af463d2f5771523323e6791157e61e7b8452b7b37025b8d7565b8e5661ee5d"
 
 [metadata.files]
 acme = [
@@ -1969,8 +1969,8 @@ netaddr = [
     {file = "netaddr-0.7.20.tar.gz", hash = "sha256:d09252e5aec3913815d77eb8e8ea8fa6eb33521253e52f977f6abaa964776f3e"},
 ]
 parameterized = [
-    {file = "parameterized-0.8.1-py2.py3-none-any.whl", hash = "sha256:9cbb0b69a03e8695d68b3399a8a5825200976536fe1cb79db60ed6a4c8c9efe9"},
-    {file = "parameterized-0.8.1.tar.gz", hash = "sha256:41bbff37d6186430f77f900d777e5bb6a24928a1c46fb1de692f8b52b8833b5c"},
+    {file = "parameterized-0.7.5-py2.py3-none-any.whl", hash = "sha256:b36f709fcfd9e8c144c1374b16a40fc0b5984efe93e41d53e6d228ae2a1540c5"},
+    {file = "parameterized-0.7.5.tar.gz", hash = "sha256:b5e6af67b9e49485e30125b1c8f031ffa81a265ca08bfa73f31551bf03cf68c4"},
 ]
 paramiko = [
     {file = "paramiko-2.7.2-py2.py3-none-any.whl", hash = "sha256:4f3e316fef2ac628b05097a637af35685183111d4bc1b5979bd397c2ab7b5898"},
