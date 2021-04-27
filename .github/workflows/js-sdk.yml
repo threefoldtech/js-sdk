@@ -5,10 +5,9 @@ name: js-sdk
 
 on:
   push:
-    branches: [ development ]
+    branches: [ development_update_gevent ]
     paths:
     - '**.py'
-    - '.github/workflows/**.yml'
     - 'pyproject.toml'
     - 'poetry.lock'
   pull_request:
