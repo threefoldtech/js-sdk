@@ -21,9 +21,30 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      # max-parallel: 9
+      matrix:
+        os: [ubuntu-18.04, ubuntu-20.04]
+        python-version: [3.6, 3.7, 3.8, 3.9]
+        experimental: [false]
+        include:
+          - os: ubuntu-20.04
+            python-version: 3.8
+            experimental: true
+            name: Experimental build - latest Ubuntu
+          - python-version: 3.9
+            os: ubuntu-18.04
+            experimental: true
+            name: Experimental build - latest Python
     steps:
       - uses: actions/checkout@master
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Gathering deps
         run: |
           sudo apt-get update
