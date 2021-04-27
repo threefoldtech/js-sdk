@@ -35,6 +35,19 @@ namecom = "^0.5.0"
 crontab = "^0.22.9"
 parameterized = "^0.8.1"
 
+[tool.poetry.dev-dependencies]
+ipython = "^7.6"
+ipdb = "^0.12.1"
+black = {version = "^18.3-alpha.0", allow-prereleases = true}
+flake8 = "^3.7"
+parameterized = "^0.7.0"
+pytest = "^5.0"
+codecov = "^2.0"
+hypothesis = "^4.28"
+pytest-cov = "^2.7"
+objgraph = "^3.4.1"
+
+
 [tool.poetry.scripts]
 threebot = "jumpscale.entry_points.threebot:cli"
 
