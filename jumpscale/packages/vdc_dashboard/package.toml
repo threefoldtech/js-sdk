@@ -17,6 +17,8 @@ path_url = "/apidoc"
 path_location = "bottle/api/swagger/"
 index = "index.html"
 spa = false
+is_auth = false
+is_admin = false
 
 [[bottle_servers]]
 name = "main"
