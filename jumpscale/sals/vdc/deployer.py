@@ -238,9 +238,7 @@ class VDCDeployer:
             self._identity.register()
             self._identity.save()
         except Exception as e:
-            j.logger.error(
-                f"failed to generate identity for user {identity_name} due to error {str(e)}, vdc uuid: {self.vdc_uuid}"
-            )
+            self.error(f"failed to generate identity for user {identity_name} due to error {str(e)}")
             raise VDCIdentityError(
                 f"failed to generate identity for user {identity_name} due to error {str(e)}, vdc uuid: {self.vdc_uuid}"
             )
@@ -373,9 +371,7 @@ class VDCDeployer:
                         network_success = network_success and success
                     except Exception as e:
                         network_success = False
-                        self.error(
-                            f"network workload {wid} failed on node {access_node.node_id} due to error {str(e)}, vdc uuid: {self.vdc_uuid}"
-                        )
+                        self.error(f"network workload {wid} failed on node {access_node.node_id} due to error {str(e)}")
                         break
                 if network_success:
                     self.info(
@@ -443,7 +439,7 @@ class VDCDeployer:
             master_pool_id, gs, master_size, self.password, pub_keys, self.vdc_uuid, nv, endpoint
         )
         if not master_ip:
-            self.error(f"failed to deploy kubernetes master, vdc uuid: {self.vdc_uuid}")
+            self.error(f"failed to deploy kubernetes master")
             return
         no_nodes = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["no_nodes"]
         if no_nodes < 1:
@@ -462,7 +458,7 @@ class VDCDeployer:
             external=False,
         )
         if not wids:
-            self.error(f"failed to deploy kubernetes workers, vdc uuid: {self.vdc_uuid}")
+            self.error(f"failed to deploy kubernetes workers")
         return wids
 
     def _set_wallet(self, alternate_wallet_name=None):
@@ -566,7 +562,7 @@ class VDCDeployer:
             farm_name: where to initialize the vdc
             s3_backup_config: dict with keys: url, region, bucket, ak, sk
         """
-        self.info(f"Deploying VDC flavor: {self.flavor} farm: {self.compute_farm}, vdc uuid: {self.vdc_uuid}")
+        self.info(f"Deploying VDC flavor: {self.flavor} farm: {self.compute_farm}")
         # if len(minio_ak) < 3 or len(minio_sk) < 8:
         #     raise j.exceptions.Validation(
         #         "Access key length should be at least 3, and secret key length at least 8 characters"
@@ -577,7 +573,7 @@ class VDCDeployer:
         self.init_vdc(self.compute_farm, self.network_farm, zdb_farms=zdb_farms)
         self.bot_show_update("Deploying network")
         if not self.deploy_vdc_network():
-            self.error(f"Failed to deploy network, vdc uuid: {self.vdc_uuid}")
+            self.error(f"Failed to deploy network")
             raise j.exceptions.Runtime(f"Failed to deploy network, vdc uuid: {self.vdc_uuid}")
         gs = GlobalScheduler()
 
@@ -598,7 +594,7 @@ class VDCDeployer:
             gevent.joinall(deployment_threads)
 
             if not deployment_threads[-1].value:
-                self.error(f"failed to deploy VDC. cancelling workloads, vdc uuid: {self.vdc_uuid}")
+                self.error(f"failed to deploy VDC. cancelling workloads")
                 self.rollback_vdc_deployment()
                 raise j.exceptions.Runtime(
                     f"failed to deploy VDC. failed to deploy kubernetes cluster, vdc uuid: {self.vdc_uuid}"
@@ -607,7 +603,7 @@ class VDCDeployer:
             for thread in deployment_threads[:-1]:
                 if thread.value:
                     continue
-                self.error(f"failed to deploy VDC. cancelling workloads, vdc uuid: {self.vdc_uuid}")
+                self.error(f"failed to deploy VDC. cancelling workloads")
                 self.rollback_vdc_deployment()
                 raise j.exceptions.Runtime(f"failed to deploy VDC. failed to deploy zdb, vdc uuid: {self.vdc_uuid}")
 
@@ -641,7 +637,7 @@ class VDCDeployer:
             master_ip = self.vdc_instance.kubernetes[0].public_ip
 
             if master_ip == "::/128":
-                self.error(f"couldn't get kubernetes master public ip {self.vdc_instance}, vdc uuid: {self.vdc_uuid}")
+                self.error(f"couldn't get kubernetes master public ip {self.vdc_instance}")
                 self.rollback_vdc_deployment()
                 raise j.exceptions.Runtime(
                     f"couldn't get kubernetes master public ip {self.vdc_instance}, vdc uuid: {self.vdc_uuid}"
@@ -651,7 +647,7 @@ class VDCDeployer:
                 # download kube config from master
                 kube_config = self.kubernetes.download_kube_config(master_ip)
             except Exception as e:
-                self.error(f"Failed to download kube config due to error {str(e)}, vdc uuid: {self.vdc_uuid}")
+                self.error(f"Failed to download kube config due to error {str(e)}")
                 self.rollback_vdc_deployment()
                 raise j.exceptions.Runtime(
                     f"Failed to download kube config due to error {str(e)}, vdc uuid: {self.vdc_uuid}"
@@ -664,7 +660,7 @@ class VDCDeployer:
             )
             self.info(f"threebot_wid: {threebot_wid}")
             if not threebot_wid:
-                self.error(f"Failed to deploy VDC. cancelling workloads, vdc uuid: {self.vdc_uuid}")
+                self.error(f"Failed to deploy VDC. cancelling workloads")
                 self.rollback_vdc_deployment()
                 raise j.exceptions.Runtime(f"Failed to deploy VDC. failed to deploy 3bot, vdc uuid: {self.vdc_uuid}")
 
@@ -675,9 +671,7 @@ class VDCDeployer:
                     self.monitoring.deploy_stack()
                 except j.exceptions.Runtime as e:
                     # TODO: rollback
-                    self.error(
-                        f"Failed to deploy monitoring stack on VDC cluster due to error {str(e)}, vdc uuid: {self.vdc_uuid}"
-                    )
+                    self.error(f"Failed to deploy monitoring stack on VDC cluster due to error {str(e)}")
 
             self.bot_show_update("Updating Traefik")
             self.kubernetes.upgrade_traefik()
@@ -691,7 +685,7 @@ class VDCDeployer:
     def expose_s3(self, delete_previous=False):
         self.vdc_instance.load_info()
         if not self.vdc_instance.s3.minio or not self.vdc_instance.kubernetes:
-            self.error(f"can't find one or more required workloads to expose s3, vdc uuid: {self.vdc_uuid}")
+            self.error(f"can't find one or more required workloads to expose s3")
             raise j.exceptions.Runtime(
                 f"vdc {self.vdc_uuid} doesn't contain the required workloads, vdc uuid: {self.vdc_uuid}"
             )
@@ -720,7 +714,7 @@ class VDCDeployer:
         )
         if not domain_name:
             solutions.cancel_solution_by_uuid(solution_uuid, self.identity.instance_name)
-            self.error(f"Failed to expose s3, vdc uuid: {self.vdc_uuid}")
+            self.error(f"Failed to expose s3")
             return
         self.info(f"S3 exposed over domain: {domain_name}")
         return domain_name
@@ -738,9 +732,7 @@ class VDCDeployer:
         try:
             public_key = self.ssh_key.public_key.strip()
         except Exception as e:
-            self.warning(
-                f"Failed to fetch key pair in kubernetes extension due to error: {str(e)}, vdc uuid: {self.vdc_uuid}"
-            )
+            self.warning(f"Failed to fetch key pair in kubernetes extension due to error: {str(e)}")
 
         if not public_key:
             key_path = j.sals.fs.expanduser("~/.ssh/id_rsa.pub")
@@ -879,14 +871,12 @@ class VDCDeployer:
             ipv4us = pool.active_ipv4 * duration * 60 * 60 * 24
             pool_info = self.zos.pools.extend(pool_id, int(cus), int(sus), int(ipv4us))
             self.info(
-                f"Renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, ipv4us: {ipv4us} reservation_id: {pool_info.reservation_id}, vdc uuid: {self.vdc_uuid}"
+                f"Renew plan: extending pool {pool_id}, sus: {sus}, cus: {cus}, ipv4us: {ipv4us} reservation_id: {pool_info.reservation_id}"
             )
             self.pay(pool_info)
             result = self.wait_pool_payment(pool_info.reservation_id)
             if not result:
-                self.critical(
-                    f"Failed to extend pool {pool_id} in reservation: {pool_info.reservation_id}, vdc uuid: {self.vdc_uuid}"
-                )
+                self.critical(f"Failed to extend pool {pool_id} in reservation: {pool_info.reservation_id}")
                 failed_pools.append((pool_id, pool_info.reservation_id))
         self.vdc_instance.updated = j.data.time.utcnow().timestamp
         if self.vdc_instance.is_blocked:
@@ -909,7 +899,7 @@ class VDCDeployer:
                 self.bot_show_update(
                     f"Failed to submit payment to stellar due to error {str(e)}, vdc uuid: {self.vdc_uuid}. retrying.."
                 )
-                self.warning(f"Failed to submit payment to stellar due to error {str(e)}, vdc uuid: {self.vdc_uuid}")
+                self.warning(f"Failed to submit payment to stellar due to error {str(e)}")
                 gevent.sleep(3)
         if not success:
             raise j.exceptions.Runtime(

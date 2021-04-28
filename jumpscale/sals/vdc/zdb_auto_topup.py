@@ -2,6 +2,8 @@ import math
 
 from jumpscale.loader import j
 
+from jumpscale.clients.explorer.models import DiskType
+
 from .s3_auto_topup import extend_zdbs, get_farm_pool_id, get_zdb_farms_distribution
 
 
