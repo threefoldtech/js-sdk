@@ -17,7 +17,7 @@ class HealthCheckService(BackgroundService):
 
                 ipv4us = self.zos.pools.get(pool_id).ipv4us
                 if ipv4us < 604800:  # enough for a week
-                    err_msg = f"Health check service: vdc: {vdc_name} public ip units is about to expire you have {ipv4us} which is enough for only a week"
+                    err_msg = f"Health check service: vdc: {vdc_name} public ip units is about to expire you have {int(ipv4us)} which is enough for less than a week"
                     j.logger.warning(err_msg)
                     j.tools.alerthandler.alert_raise(
                         app_name="health_check_service", category="kubernetes", message=err_msg, alert_type="vdc"
