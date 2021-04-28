@@ -179,7 +179,7 @@ class VDCProxy(VDCBaseComponent):
         if len(old_workloads) > 1:
             old_workloads.pop(-1)
             self.vdc_deployer.info(
-                f"Cancelling old workloads for subdomain: {subdomain} wids: {[workload.id for workload in old_workloads]}, vdc uuid: {self.vdc_uuid}"
+                f"Cancelling old workloads for subdomain: {subdomain} wids: {[workload.id for workload in old_workloads]}"
             )
             for workload in old_workloads:
                 self.zos.decomission(workload.id)
@@ -196,7 +196,7 @@ class VDCProxy(VDCBaseComponent):
         if set(addresses.sort()) == set(subdomain_workload.ips.sort()):
             self.vdc_deployer.info(f"subdomain {subdomain_workload.id} matching addresses {addresses}")
             return True
-        self.vdc_deployer.info(f"Cancelling subdomain workload {subdomain_workload.id}, vdc uuid: {self.vdc_uuid}")
+        self.vdc_deployer.info(f"Cancelling subdomain workload {subdomain_workload.id}")
         self.zos.workloads.decomission(subdomain_workload.id)
         deployer.wait_workload_deletion(subdomain_workload.id, identity_name=self.identity.instance_name)
         return False
@@ -298,7 +298,7 @@ class VDCProxy(VDCBaseComponent):
                 if not success:
                     raise DeploymentFailed()
             except DeploymentFailed:
-                self.vdc_deployer.error(f"Subdomain {subdomain} failed. wid: {wid}, vdc uuid: {self.vdc_uuid}")
+                self.vdc_deployer.error(f"Subdomain {subdomain} failed. wid: {wid}")
                 continue
 
             populated = self.wait_domain_population(subdomain)
@@ -306,13 +306,9 @@ class VDCProxy(VDCBaseComponent):
                 self.vdc_deployer.info(f"Subdomain {subdomain} created successfully pointing to {addresses}")
                 yield subdomain, wid
             else:
-                self.vdc_deployer.error(
-                    f"Subdomain {subdomain} failed to populate wid: {wid}, vdc uuid: {self.vdc_uuid}"
-                )
+                self.vdc_deployer.error(f"Subdomain {subdomain} failed to populate wid: {wid}")
                 self.zos.workloads.decomission(wid)
-        self.vdc_deployer.error(
-            f"All attempts to reserve a subdomain failed on farm {self.farm_name}, vdc uuid: {self.vdc_uuid}"
-        )
+        self.vdc_deployer.error(f"All attempts to reserve a subdomain failed on farm {self.farm_name}")
 
     def _deploy_nginx_proxy(
         self,
@@ -361,7 +357,7 @@ class VDCProxy(VDCBaseComponent):
                 )
                 if not success:
                     self.vdc_deployer.error(
-                        f"Nginx container for wid: {wid} failed on node: {node.node_id}, nginx_wid: {cont_id}, vdc uuid: {self.vdc_uuid}"
+                        f"Nginx container for wid: {wid} failed on node: {node.node_id}, nginx_wid: {cont_id}"
                     )
                     # container only failed. no need to decomission subdomain
                     self.zos.workloads.decomission(proxy_id)
@@ -397,7 +393,7 @@ class VDCProxy(VDCBaseComponent):
         for node in scheduler.nodes_by_capacity(cru=1, mru=1, sru=0.25):
             try:
                 self.vdc_deployer.info(
-                    f"Deploying trc proxy for wid: {wid} on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}, vdc uuid: {self.vdc_uuid}"
+                    f"Deploying trc proxy for wid: {wid} on node: {node.node_id} subdomain: {subdomain} gateway: {gateway.node_id}"
                 )
                 cont_id, proxy_id = deployer.expose_address(
                     reserve_proxy=True,
@@ -422,7 +418,7 @@ class VDCProxy(VDCBaseComponent):
                 )
                 if not success:
                     self.vdc_deployer.error(
-                        f"Nginx container for wid: {wid} failed on node: {node.node_id}, nginx_wid: {cont_id}, vdc uuid: {self.vdc_uuid}"
+                        f"Nginx container for wid: {wid} failed on node: {node.node_id}, nginx_wid: {cont_id}"
                     )
                     # container only failed. no need to decomission subdomain
                     self.zos.workloads.decomission(proxy_id)
@@ -430,7 +426,7 @@ class VDCProxy(VDCBaseComponent):
                 return subdomain
             except DeploymentFailed:
                 self.vdc_deployer.error(
-                    f"proxy reservation for wid: {wid} failed on node: {node.node_id}, subdomain: {subdomain}, gateway: {gateway.node_id}, vdc uuid: {self.vdc_uuid}"
+                    f"proxy reservation for wid: {wid} failed on node: {node.node_id}, subdomain: {subdomain}, gateway: {gateway.node_id}"
                 )
                 if cont_id:
                     self.zos.workloads.decomission(cont_id)
@@ -578,14 +574,10 @@ class VDCProxy(VDCBaseComponent):
                 if result:
                     return result
                 self.zos.workloads.decomission(subdomain_id)
-                self.vdc_deployer.error(
-                    f"failed to proxy wid: {wid} on subdomain {subdomain}, vdc uuid: {self.vdc_uuid}"
-                )
+                self.vdc_deployer.error(f"failed to proxy wid: {wid} on subdomain {subdomain}")
                 scheduler.refresh_nodes()
-            self.vdc_deployer.error(
-                f"failed to expose workload {wid} on gateway {gateway.node_id}, vdc uuid: {self.vdc_uuid}"
-            )
-        self.vdc_deployer.error(f"All attempts to expose wid {wid} failed , vdc uuid: {self.vdc_uuid}")
+            self.vdc_deployer.error(f"failed to expose workload {wid} on gateway {gateway.node_id}")
+        self.vdc_deployer.error(f"All attempts to expose wid {wid} failed")
 
     def ingress_proxy_over_custom_domain(
         self, name, prefix, port, public_ip, private_ip=None, wid=None, parent_domain=None, force_https=True
@@ -644,9 +636,7 @@ class VDCProxy(VDCBaseComponent):
                 self._create_ingress(name, subdomain, [ip_address], port, force_https)
                 return subdomain
             except Exception as e:
-                self.vdc_deployer.error(
-                    f"failed to create proxy ingress config due to error {str(e)}, vdc uuid: {self.vdc_uuid}"
-                )
+                self.vdc_deployer.error(f"failed to create proxy ingress config due to error {str(e)}")
                 self.zos.workloads.decomission(subdomain_id)
                 return
 
