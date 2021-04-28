@@ -19,14 +19,15 @@ class DigibyteDeploy(SolutionsChatflowDeploy):
     ]
 
     CHART_LIMITS = {
-        "Gold": {"cpu": "3000m", "memory": "5000Mi"},
-        "Platinum": {"cpu": "4000m", "memory": "7000Mi"},
+        "Gold": {"cpu": "4000m", "memory": "12000Mi"},
+        "Platinum": {"cpu": "4000m", "memory": "16000Mi"},
     }
 
     def get_config(self):
         return {
             "env.rpcuser": self.config.chart_config.rpcuser,
             "env.rpcpasswd": self.config.chart_config.rpcpassword,
+            "env.node_ingress_ip": self.vdc_info["public_ip"],
             "global.ingress.host": self.config.chart_config.domain,
         }
 
