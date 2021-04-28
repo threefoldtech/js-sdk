@@ -559,14 +559,14 @@ class Stellar(Client):
             asset_issuer=issuer,
             source=source_account.account_id,
         )
-
-        fund_operation_data = self._get_fund_transaction_conditions(asset)
-        transaction_builder.append_payment_op(
-            destination=fund_operation_data["fee_account_id"],
-            amount=fund_operation_data["fee_fixed"],
-            asset_code=asset_code,
-            asset_issuer=issuer,
-        )
+        if fund_transaction:
+            fund_operation_data = self._get_fund_transaction_conditions(asset)
+            transaction_builder.append_payment_op(
+                destination=fund_operation_data["fee_account_id"],
+                amount=fund_operation_data["fee_fixed"],
+                asset_code=asset_code,
+                asset_issuer=issuer,
+            )
 
         transaction_builder.set_timeout(timeout)
         if memo_text is not None:
