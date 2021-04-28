@@ -29,7 +29,7 @@ port = 5590
 
 [[bottle_servers]]
 name = "controller"
-file_path = "bottle/controller.py"
+file_path = "bottle/api/controller.py"
 path_url = "/api/controller/"
 path_dest = "/api/controller/"
 host = "0.0.0.0"

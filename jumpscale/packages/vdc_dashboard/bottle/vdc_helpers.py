@@ -30,7 +30,6 @@ def _get_addons(flavor, kubernetes_addons):
 
 
 def _total_capacity(vdc):
-    vdc.load_info()
     addons = _get_addons(vdc.flavor, vdc.kubernetes)
     plan = VDC_SIZE.VDC_FLAVORS.get(vdc.flavor)
     plan_nodes_count = plan.get("k8s").get("no_nodes")
@@ -73,10 +72,4 @@ def threebot_vdc_helper(vdc=None):
 
 
 def _list_alerts(app_name: str = ""):
-
-    if app_name:
-        alerts = [alert.json for alert in j.tools.alerthandler.find() if alert.app_name == app_name]
-    else:
-        alerts = [alert.json for alert in j.tools.alerthandler.find()]
-
-    return j.data.serializers.json.dumps(alerts)
+    return [alert.json for alert in j.tools.alerthandler.find(app_name)]

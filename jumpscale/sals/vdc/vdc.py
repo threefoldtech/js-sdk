@@ -501,6 +501,7 @@ class UserVDC(Base):
         if public_ip:
             pub_ip = PublicIP()
             amount += j.tools.zos.consumption.cost(pub_ip, duration, farm_id)
+        amount *= no_nodes
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
@@ -535,7 +536,9 @@ class UserVDC(Base):
         else:
             return True, amount, payment_id
 
-    def show_external_zdb_payment(self, bot, farm_name, size=ZDB_STARTING_SIZE, no_nodes=1, expiry=5, wallet_name=None):
+    def show_external_zdb_payment(
+        self, bot, farm_name, size=ZDB_STARTING_SIZE, no_nodes=1, expiry=5, wallet_name=None, disk_type=DiskType.HDD
+    ):
         discount = FARM_DISCOUNT.get()
         duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
         month = 60 * 60 * 24 * 30
@@ -546,18 +549,25 @@ class UserVDC(Base):
         farm_id = zos._explorer.farms.get(farm_name=farm_name).id
         zdb = ZdbNamespace()
         zdb.size = size
-        zdb.disk_type = DiskType.HDD
+        zdb.disk_type = disk_type
         amount = j.tools.zos.consumption.cost(zdb, duration, farm_id) + TRANSACTION_FEES
+        amount *= no_nodes
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
-            result = bot.single_choice(
-                f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
-                ["Yes", "No"],
-                required=True,
-            )
-            if result == "Yes":
+            if bot:
+                result = bot.single_choice(
+                    f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
+                    ["Yes", "No"],
+                    required=True,
+                )
+                if result == "Yes":
+                    amount = 0
+            else:
                 amount = 0
+        elif not bot:
+            # Not enough funds in prepaid wallet and no bot passed to use to view QRcode
+            return False, amount, None
 
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
@@ -773,3 +783,39 @@ class UserVDC(Base):
         j.clients.sshclient.delete(client_name)
         ssh_client = j.clients.sshclient.get(client_name, user=user, host=ip_address, sshkey=client_name)
         return ssh_client
+
+    def find_worker_farm(self, flavor, farm_name=None, public_ip=False):
+        if farm_name:
+            return farm_name, self._check_added_worker_capacity(flavor, farm_name, public_ip)
+        farms = j.config.get("NETWORK_FARMS", []) if public_ip else j.config.get("COMPUTE_FARMS", [])
+        for farm in farms:
+            if self._check_added_worker_capacity(flavor, farm, public_ip):
+                return farm, True
+        else:
+            self.load_info()
+            farm_name = j.sals.marketplace.deployer.get_pool_farm_name(self.kubernetes[0].pool_id)
+            return farm_name, self._check_added_worker_capacity(flavor, farm_name, public_ip)
+
+    def _check_added_worker_capacity(self, flavor, farm_name, public_ip=False):
+        if public_ip:
+            zos = j.sals.zos.get()
+            farm = zos._explorer.farms.get(farm_name=farm_name)
+            available_ips = False
+            for address in farm.ipaddresses:
+                if not address.reservation_id:
+                    available_ips = True
+                    break
+            if not available_ips:
+                return False
+
+        old_node_ids = []
+        self.load_info()
+        for k8s_node in self.kubernetes:
+            old_node_ids.append(k8s_node.node_id)
+        cc = CapacityChecker(farm_name)
+        cc.exclude_nodes(*old_node_ids)
+        if isinstance(flavor, str):
+            flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
+        if not cc.add_query(**VDC_SIZE.K8S_SIZES[flavor]):
+            return False
+        return True

@@ -382,10 +382,10 @@ class VDCDeploy(GedisChatBot):
                         f"Subdomain {subdomain} is not reserved on the explorer. continuing with the deployment."
                     )
 
-        success, amount, payment_id = self.vdc.show_vdc_payment(self)
+        success, amount, payment_id = self.vdc.show_vdc_payment(self, expiry=10)
         if not success:
             self._rollback()  # delete it?
-            self.stop(f"payment timedout")
+            self.stop(f"payment timedout (in case you already paid, please contact support)")
         self.md_show_update("Payment successful")
 
         self.md_show_update("Deploying your VDC...")

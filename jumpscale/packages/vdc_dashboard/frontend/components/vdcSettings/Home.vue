@@ -142,7 +142,7 @@ module.exports = {
       release: null,
       tabs: [
         { icon: "mdi-memory", title: "Compute Nodes" },
-        { icon: "mdi-server", title: "Storage Nodes" },
+        { icon: "mdi-server", title: "Storage Containers" },
         { icon: "mdi-wallet", title: "Wallet Information" },
         { icon: "mdi-backup-restore", title: "Backup & Restore" },
         { icon: "mdi-alert-outline", title: "Alerts" },

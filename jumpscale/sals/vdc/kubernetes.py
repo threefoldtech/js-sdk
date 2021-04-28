@@ -84,6 +84,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         public_ip=False,
         solution_uuid=None,
         external=True,
+        nodes_ids=None,
     ):
         """
         search for a pool in the same farm and extend it or create a new one with the required capacity
@@ -107,11 +108,20 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         )
         if duration <= 0:
             raise j.exceptions.Validation(f"invalid duration {duration}")
-        pool_id = self._preprare_extension_pool(farm_name, k8s_flavor, no_nodes, duration, public_ip)
-        scheduler = Scheduler(pool_id=pool_id)
+        scheduler = Scheduler(farm_name=farm_name)
         scheduler.exclude_nodes(*old_node_ids)
-        network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         nodes_generator = scheduler.nodes_by_capacity(**VDC_SIZE.K8S_SIZES[k8s_flavor], public_ip=public_ip)
+        if nodes_ids:
+            nodes_generator = list(nodes_generator)
+            nodes_generator_ids = [node.node_id for node in nodes_generator]
+            unavailable_nodes_ids = set(nodes_ids) - set(nodes_generator_ids)
+            if unavailable_nodes_ids:
+                raise j.exceptions.Validation(
+                    f"Some nodes: {unavailable_nodes_ids} are not in farm: {farm_name} or don't have capacity"
+                )
+            nodes_generator = [node for node in nodes_generator if node.node_id in nodes_ids]
+        pool_id = self._preprare_extension_pool(farm_name, k8s_flavor, no_nodes, duration, public_ip)
+        network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         solution_uuid = solution_uuid or uuid.uuid4().hex
         wids = self._add_workers(
             pool_id,

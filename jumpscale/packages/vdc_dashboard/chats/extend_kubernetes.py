@@ -29,18 +29,24 @@ class ExtendKubernetesCluster(GedisChatBot):
             node_flavor_messages.append(
                 f"{flavor.name}: {plan['cru']} vCPU, {plan['mru']} GB Memory, {plan['sru']} GB SSD storage"
             )
-
-        self.node_flavor = self.single_choice(
+        form = self.new_form()
+        self.node_flavor = form.single_choice(
             "Choose the Node size", options=node_flavor_messages, default=node_flavor_messages[0], required=True
         )
-        self.node_flavor = self.node_flavor.split(":")[0].lower()
+        self.node_public = form.single_choice(
+            "Do you want the added node with public IP?", options=["Yes", "No"], default="No", required=True
+        )
+        form.ask()
+        self.node_flavor = self.node_flavor.value.split(":")[0].lower()
         self.public_ip = False
+        if self.node_public.value == "Yes":
+            self.public_ip = True
 
     @chatflow_step(title="Farm Selection")
     def different_farm(self):
         self.diff_farm = False
         diff_farm = self.single_choice(
-            "Do you want to deploy this node on a different farm", options=["Yes", "No"], default="No", required=True
+            "Do you want to deploy this node on a different farm?", options=["Yes", "No"], default="No", required=True
         )
         if diff_farm == "Yes":
             self.diff_farm = True
@@ -63,15 +69,7 @@ class ExtendKubernetesCluster(GedisChatBot):
 
     @chatflow_step(title="Adding node")
     def add_node(self):
-        try:
-            self.vdc.load_info()
-            deployer = self.vdc.get_deployer(bot=self)
-        except VDCIdentityError:
-            self.stop(
-                f"Couldn't verify VDC secret. please make sure you are using the correct secret for VDC {self.vdc_name}"
-            )
-
-        farm_name, capacity_check = deployer.find_worker_farm(self.node_flavor, self.farm_name)
+        farm_name, capacity_check = self.vdc.find_worker_farm(self.node_flavor, self.farm_name, self.public_ip)
         if not capacity_check:
             self.stop(
                 f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {self.node_flavor}"
@@ -82,22 +80,29 @@ class ExtendKubernetesCluster(GedisChatBot):
             self, farm_name=farm_name, size=self.node_flavor, public_ip=self.public_ip
         )
         if not success:
-            self.stop(f"payment timedout")
+            self.stop(f"payment timedout (in case you already paid, please contact support)")
 
+        try:
+            self.vdc.load_info()
+            deployer = self.vdc.get_deployer(bot=self, network_farm=farm_name)
+        except VDCIdentityError:
+            self.stop(
+                f"Couldn't verify VDC secret. please make sure you are using the correct secret for VDC {self.vdc_name}"
+            )
         self.md_show_update("Payment successful")
         duration = self.vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
         two_weeks = 2 * 7 * 24 * 60 * 60
         if duration > two_weeks:
             duration = two_weeks
         old_wallet = deployer._set_wallet(self.vdc.prepaid_wallet.instance_name)
+        wids = []
         try:
             wids = deployer.add_k8s_nodes(self.node_flavor, farm_name=farm_name, public_ip=self.public_ip)
+            self.md_show_update("Updating expiration...")
+            deployer.extend_k8s_workloads(duration, *wids)
         except Exception as e:
-            j.sals.billing.issue_refund(payment_id)
+            [deployer.delete_k8s_node(wid) for wid in wids]
             self.stop(f"failed to add nodes to your cluster. due to error {str(e)}")
-
-        self.md_show_update("Updating expiration...")
-        deployer.extend_k8s_workloads(duration, *wids)
 
         self.md_show_update("Processing transaction...")
         deployer._set_wallet(old_wallet)

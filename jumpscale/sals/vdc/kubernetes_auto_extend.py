@@ -96,7 +96,7 @@ class KubernetesMonitor:
         result_dict = j.data.serializers.json.loads(out)
         ip_to_wid = {node.ip_address: node.wid for node in self.nodes}
         for node in result_dict["items"]:
-            node_name = node["metadata"]["labels"]["k3s.io/hostname"]
+            node_name = node["metadata"]["labels"]["kubernetes.io/hostname"]
             node_ip = node["metadata"]["annotations"]["flannel.alpha.coreos.com/public-ip"]
             if not node_name in self._node_stats:
                 continue
@@ -178,7 +178,7 @@ class KubernetesMonitor:
         if no_nodes < 1:
             return []
         deployer = deployer or self.vdc_instance.get_deployer(bot=bot)
-        farm_name, capacity_check = deployer.find_worker_farm(flavor, farm_name)
+        farm_name, capacity_check = self.vdc_instance.find_worker_farm(flavor, farm_name)
         if not capacity_check:
             j.logger.warning(f"There is no capacity to add worker node")
         duration = self.vdc_instance.get_pools_expiration() - j.data.time.utcnow().timestamp

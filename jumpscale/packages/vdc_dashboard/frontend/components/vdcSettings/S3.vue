@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="actions mb-3">
-      <h1 class="d-inline" color="primary" text>Storage Nodes</h1>
+      <h1 class="d-inline" color="primary" text>Storage Containers</h1>
       <v-btn
         class="float-right p-4"
         color="primary"
@@ -86,13 +86,13 @@
       </template>
     </v-data-table>
     <base-dialog
-      title="Download storage nodes Information file"
+      title="Download storage containers Information file"
       v-model="dialogs.downloadInfo"
       v-if="dialogs.downloadInfo"
     >
       <template #default>
         <p v-if="downloadType === 'zdbs'">
-          WARNING: Please keep the storage nodes Information safe and secure.
+          WARNING: Please keep the storage containers Information safe and secure.
         </p>
         <p v-else-if="downloadType === 'zstor'">
           WARNING: You should update the TOML file with your custom

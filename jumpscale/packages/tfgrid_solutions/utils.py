@@ -1,6 +1,9 @@
-import time
 from decimal import Decimal
+import time
+
 from jumpscale.loader import j
+
+from jumpscale.packages.admin.services.notifier import MAIL_QUEUE
 
 
 def get_payment_amount(pool):
@@ -80,18 +83,10 @@ def send_pool_info_mail(pool_id, sender="support@threefold.com"):
         "please check the fund in your wallets and extend it manually "
         "or contact our support team"
     )
-    send_mail(recipients_emails, message, sender=sender)
-
-
-def send_mail(recipients_emails=None, message="", sender=""):
-    """
-    This method send mail in case the auto extend fail
-    """
-    recipients_emails = recipients_emails or []
-    mail = j.clients.mail.get("mail")
-    mail_config = j.core.config.get("EMAIL_SERVER_CONFIG")
-    mail.smtp_server = mail_config.get("host")
-    mail.smtp_port = mail_config.get("port")
-    mail.login = mail_config.get("username")
-    mail.password = mail_config.get("password")
-    mail.send(recipients_emails, sender=sender, message=message)
+    mail_info = {
+        "recipients_emails": recipients_emails,
+        "sender": sender,
+        "subject": "Auto Extend Pools",
+        "message": message,
+    }
+    j.core.db.rpush(MAIL_QUEUE, j.data.serializers.json.dumps(mail_info))

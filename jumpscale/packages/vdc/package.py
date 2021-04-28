@@ -3,6 +3,6 @@ from jumpscale.loader import j
 
 
 class vdc:
-    def start(self):
+    def start(self, **kwargs):
         # clear the deploying instances from redis
         j.core.db.delete(VCD_DEPLOYING_INSTANCES)

@@ -556,28 +556,6 @@ class VDCDeployer:
 
         return gcc.result
 
-    def find_worker_farm(self, flavor, farm_name=None):
-        if farm_name:
-            return farm_name, self._check_added_worker_capacity(flavor, farm_name)
-        for farm in j.config.get("COMPUTE_FARMS", []):
-            if self._check_added_worker_capacity(flavor, farm):
-                return farm, True
-        else:
-            farm_name = j.sals.marketplace.deployer.get_pool_farm_name(self.vdc_instance.kubernetes[0].pool_id)
-            return farm_name, self._check_added_worker_capacity(flavor, farm_name)
-
-    def _check_added_worker_capacity(self, flavor, farm_name):
-        old_node_ids = []
-        for k8s_node in self.vdc_instance.kubernetes:
-            old_node_ids.append(k8s_node.node_id)
-        cc = CapacityChecker(farm_name)
-        cc.exclude_nodes(*old_node_ids)
-        if isinstance(flavor, str):
-            flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
-        if not cc.add_query(**VDC_SIZE.K8S_SIZES[flavor]):
-            return False
-        return True
-
     def deploy_vdc(
         self, minio_ak, minio_sk, install_monitoring_stack=False, s3_backup_config=None, zdb_farms=None,
     ):
@@ -747,7 +725,9 @@ class VDCDeployer:
         self.info(f"S3 exposed over domain: {domain_name}")
         return domain_name
 
-    def add_k8s_nodes(self, flavor, farm_name, public_ip=False, no_nodes=1, duration=None, external=True):
+    def add_k8s_nodes(
+        self, flavor, farm_name, public_ip=False, no_nodes=1, duration=None, external=True, nodes_ids=None
+    ):
         if isinstance(flavor, str):
             flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
         self.vdc_instance.load_info()
@@ -777,6 +757,7 @@ class VDCDeployer:
             solution_uuid=uuid.uuid4().hex,
             public_ip=public_ip,
             external=external,
+            nodes_ids=nodes_ids,
         )
         self.info(f"Kubernetes cluster expansion result: {wids}")
         if not wids:
@@ -822,22 +803,22 @@ class VDCDeployer:
             gevent.sleep(2)
         return False
 
-    def extend_k8s_workloads(self, duration, *wids):
+    def _extend_workloads(self, duration, *wids, types):
         """
         duration in seconds
         """
         pools_units = defaultdict(lambda: {"cu": 0, "su": 0, "ipv4us": 0})
         for wid in wids:
             workload = self.zos.workloads.get(wid)
-            if workload.info.workload_type != WorkloadType.Kubernetes:
-                self.warning(f"workload {wid} is not a valid kubernetes workload, vdc uuid: {self.vdc_uuid}")
+            if workload.info.workload_type not in types:
+                self.warning(f"workload {wid} is not a valid kubernetes workload")
                 continue
             pool_id = workload.info.pool_id
             resource_units = workload.resource_units()
             cloud_units = resource_units.cloud_units()
             pools_units[pool_id]["cu"] += cloud_units.cu * duration
             pools_units[pool_id]["su"] += cloud_units.su * duration
-            if workload.public_ip:
+            if workload.info.workload_type == WorkloadType.Kubernetes and workload.public_ip:
                 pools_units[pool_id]["ipv4us"] += duration
 
         for pool_id, units_dict in pools_units.items():
@@ -846,6 +827,12 @@ class VDCDeployer:
             pool_info = self.zos.pools.extend(pool_id, **units_dict)
 
             self.pay(pool_info)
+
+    def extend_k8s_workloads(self, duration, *wids):
+        self._extend_workloads(duration, *wids, types=[WorkloadType.Kubernetes])
+
+    def extend_zdb_workload(self, duration, *wids):
+        self._extend_workloads(duration, *wids, types=[WorkloadType.Zdb])
 
     def _log(self, msg, loglevel="info", disable_bot=False):
         getattr(j.logger, loglevel)(self._log_format.format(msg))
