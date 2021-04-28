@@ -27,7 +27,7 @@ jobs:
       # max-parallel: 9
       matrix:
         os: [ubuntu-18.04, ubuntu-20.04]
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8]
         experimental: [false]
         include:
           - os: ubuntu-20.04
@@ -35,7 +35,7 @@ jobs:
             experimental: true
             name: Experimental build - latest Ubuntu
           - python-version: 3.9
-            os: ubuntu-18.04
+            os: ubuntu-20.04
             experimental: true
             name: Experimental build - latest Python
     steps:
