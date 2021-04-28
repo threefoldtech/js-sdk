@@ -11,6 +11,13 @@ path_location = "frontend/"
 index = "index.html"
 spa = true
 
+[[static_dirs]]
+name = "swagger_ui"
+path_url = "/apidoc"
+path_location = "bottle/api/swagger/"
+index = "index.html"
+spa = false
+
 [[bottle_servers]]
 name = "main"
 file_path = "bottle/deployments.py"
@@ -37,7 +44,7 @@ port = 5591
 
 [[servers]]
 name = "vdc_dashboard_root_proxy"
-domain = "vdc-dashboard.threefold.me"
+domain = ""
 letsencryptemail = "motaweam@incubaid.com"
 includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.vdc_dashboard*"]
 
