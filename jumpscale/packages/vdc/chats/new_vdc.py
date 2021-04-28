@@ -193,7 +193,7 @@ class VDCDeploy(GedisChatBot):
         alias.allow_user_to_bucket(
             f"{self.username}-{self.vdc_name.value}",
             backup_config["S3_BUCKET"],
-            prefix=f"{self.username.rstrip('.3bot')}/{self.vdc_name.value}",
+            prefix=f"{j.data.text.removesuffix(self.username, '.3bot')}/{self.vdc_name.value}",
         )
         self.backup_config = {
             "ak": f"{self.username}-{self.vdc_name.value}",
@@ -328,7 +328,9 @@ class VDCDeploy(GedisChatBot):
     @chatflow_step(title="VDC Deployment")
     def deploy(self):
         self.md_show_update(f"Initializing Deployer (This may take a few moments)....")
-        self.vdc_instance_name = VDC_INSTANCE_NAME_FORMAT.format(self.vdc_name.value, self.username.rstrip(".3bot"))
+        self.vdc_instance_name = VDC_INSTANCE_NAME_FORMAT.format(
+            self.vdc_name.value, j.data.text.removesuffix(self.username, ".3bot")
+        )
         if j.core.db.hget(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name):
             self.stop(f"Another deployment is running with the same name {self.vdc_name.value}")
         j.core.db.hset(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name, "DEPLOY")

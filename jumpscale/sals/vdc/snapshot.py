@@ -24,7 +24,7 @@ class Snapshot(Base):
         if not self._creation_time:
             filename = j.sals.fs.basename(self.snapshot_path)
             try:
-                date = filename.lstrip(f"{self.snapshot_name}-")
+                date = j.data.text.removeprefix(filename, f"{self.snapshot_name}-")
                 if date:
                     self._creation_time = j.data.time.get(float(date))
             except Exception as e:
