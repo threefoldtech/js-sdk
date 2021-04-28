@@ -577,7 +577,7 @@ class VDCDeployer:
 
         with new_vdc_context(self):
             # deploy zdbs for s3
-            self.bot_show_update("Deploying ZDBs for s3")
+            self.bot_show_update("Deploying ZDBs")
             deployment_threads = self.deploy_vdc_zdb(gs, zdb_farms)
             # public_keys to deploy vdc with
             pub_keys = [self.ssh_key.public_key.strip()]
