@@ -51,11 +51,11 @@ class VDCDeploy(GedisChatBot):
                     if w.get_balance_by_asset("XLM") < 10:
                         raise StopChatFlow(f"{wname} doesn't have enough XLM to support the deployment.")
                 except:
-                    raise StopChatFlow(f"couldn't get the balance for {wname} wallet")
+                    raise StopChatFlow(f"Couldn't get the balance for {wname} wallet")
                 else:
                     j.logger.info(f"{wname} is funded")
             else:
-                j.logger.info(f"this system doesn't have {wname} configured")
+                j.logger.info(f"This system doesn't have {wname} configured")
 
         # tft wallets check
         for wname in [self.VDC_INIT_WALLET_NAME, self.GRACE_PERIOD_WALLET_NAME]:
@@ -64,7 +64,7 @@ class VDCDeploy(GedisChatBot):
                 if w.get_balance_by_asset() < 50:
                     raise StopChatFlow(f"{wname} doesn't have enough TFT to support the deployment.")
             except:
-                raise StopChatFlow(f"couldn't get the balance for {wname} wallet")
+                raise StopChatFlow(f"Couldn't get the balance for {wname} wallet")
             else:
                 j.logger.info(f"{wname} is funded")
 

@@ -233,7 +233,7 @@ class UserVDC(Base):
     def _list_socat_proxies(self, public_ip=None):
         public_ip = public_ip or self.get_public_ip()
         if not public_ip:
-            raise j.exceptions.Runtime(f"couldn't get a public ip for vdc: {self.vdc_name}")
+            raise j.exceptions.Runtime(f"Couldn't get a public ip for vdc: {self.vdc_name}")
         ssh_client = self.get_ssh_client("socat_list", public_ip, "rancher")
         result = defaultdict(list)
         rc, out, _ = ssh_client.sshclient.run(f"sudo ps -ef | grep -v grep | grep socat", warn=True)
@@ -364,7 +364,7 @@ class UserVDC(Base):
             try:
                 desc = j.data.serializers.json.loads(workload.info.description)
             except Exception as e:
-                j.logger.warning(f"failed to load workload {workload.id} description due to error {e}")
+                j.logger.warning(f"Failed to load workload {workload.id} description due to error {e}")
                 continue
             exposed_wid = desc.get("exposed_wid")
             if exposed_wid == minio_wid:
@@ -383,7 +383,7 @@ class UserVDC(Base):
             try:
                 desc = j.data.serializers.json.loads(workload.info.description)
             except Exception as e:
-                j.logger.warning(f"failed to load workload {workload.id} description due to error {e}")
+                j.logger.warning(f"Failed to load workload {workload.id} description due to error {e}")
                 continue
             exposed_wid = desc.get("exposed_wid")
             if exposed_wid == threebot_wid:
@@ -640,13 +640,13 @@ class UserVDC(Base):
                         else:
                             has_funds = False
                             raise j.exceptions.Validation(
-                                f"not enough funds in wallet {wallet.instance_name} to pay amount: {amount}. current balance: {b.balance}"
+                                f"Not enough funds in wallet {wallet.instance_name} to pay amount: {amount}. current balance: {b.balance}"
                             )
                 except Exception as e:
                     if has_funds is False:
-                        j.logger.error(f"not enough funds in wallet {wallet.instance_name} to pay amount: {amount}")
+                        j.logger.error(f"Not enough funds in wallet {wallet.instance_name} to pay amount: {amount}")
                         raise e
-                    j.logger.warning(f"failed to get wallet {wallet.instance_name} balance due to error: {str(e)}")
+                    j.logger.warning(f"Failed to get wallet {wallet.instance_name} balance due to error: {str(e)}")
                     continue
 
             try:
@@ -656,10 +656,10 @@ class UserVDC(Base):
             except Exception as e:
                 j.logger.warning(f"failed to submit payment to stellar due to error {str(e)}")
         j.logger.critical(
-            f"failed to submit payment to stellar in time to: {address} amount: {amount} for wallet: {wallet.instance_name}"
+            f"Failed to submit payment to stellar in time to: {address} amount: {amount} for wallet: {wallet.instance_name}"
         )
         raise j.exceptions.Runtime(
-            f"failed to submit payment to stellar in time to: {address} amount: {amount} for wallet: {wallet.instance_name}"
+            f"Failed to submit payment to stellar in time to: {address} amount: {amount} for wallet: {wallet.instance_name}"
         )
 
     def get_pools_expiration(self):
