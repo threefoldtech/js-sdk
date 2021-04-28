@@ -11,7 +11,7 @@ class HealthCheckService(BackgroundService):
         j.logger.debug("Health check service started.")
         for vdc_name in j.sals.vdc.list_all():
             vdc_instance = j.sals.vdc.find(vdc_name, load_info=True)
-            if not vdc_instance.has_minimal_components():
+            if vdc_instance.has_minimal_components():
                 # check ip units to be enough for a week
                 pool_id = vdc_instance.kubernetes[0].pool_id
 
