@@ -242,8 +242,8 @@ components:
             type: string
             example: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YWJIE
         public_ip:
-          type: string
-          example: 185.69.167.66
+          type: boolean
+          example: false
       required:
         - flavor
 
@@ -821,9 +821,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Node'
-              example:
-                nodes:
-                  $ref: '#/components/examples/nodes'
+                example:
+                  nodes:
+                    $ref: '#/components/examples/nodes'
         default:
           description: Error
           content:
@@ -841,9 +841,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/NodeAddRequest'
-            example:
-              nodeAddRequest:
-                $ref: '#/components/examples/nodeAddRequest'
+              example:
+                nodeAddRequest:
+                  $ref: '#/components/examples/nodeAddRequest'
 
       responses:
         '200':
@@ -852,9 +852,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/WorkloadIDs'
-              example:
-                workloadIDs:
-                  $ref: '#/components/examples/workloadIDs'
+                example:
+                  workloadIDs:
+                    $ref: '#/components/examples/workloadIDs'
 
         default:
           description: Error
@@ -873,8 +873,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/WorkloadID'
-            example:
-                $ref: '#/components/examples/workloadID'
+              example:
+                  $ref: '#/components/examples/workloadID'
       responses:
         '200':
           description: success response
@@ -882,9 +882,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-              example:
-                success:
-                  $ref: '#/components/examples/success'
+                example:
+                  success:
+                    $ref: '#/components/examples/success'
         default:
           description: Error
           content:
@@ -904,9 +904,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ZDB'
-              example:
-                node:
-                  $ref: '#/components/examples/zdb'
+                example:
+                  zdbs:
+                    $ref: '#/components/examples/zdbs'
         default:
           description: Error
           content:
@@ -924,9 +924,9 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ZDBAddRequest'
-            example:
-              nodeAddRequest:
-                $ref: '#/components/examples/zdbAddRequest'
+              example:
+                nodeAddRequest:
+                  $ref: '#/components/examples/zdbAddRequest'
 
       responses:
         '200':
@@ -935,9 +935,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/WorkloadIDs'
-              example:
-                workloadIDs:
-                  $ref: '#/components/examples/workloadIDs'
+                example:
+                  workloadIDs:
+                    $ref: '#/components/examples/workloadIDs'
 
         default:
           description: Error
@@ -956,8 +956,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/WorkloadID'
-            example:
-                $ref: '#/components/examples/workloadID'
+              example:
+                  $ref: '#/components/examples/workloadID'
       responses:
         '200':
           description: success response
@@ -965,9 +965,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-              example:
-                success:
-                  $ref: '#/components/examples/success'
+                example:
+                  success:
+                    $ref: '#/components/examples/success'
         default:
           description: Error
           content:
@@ -1129,6 +1129,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RunningStatus'
-              example:
-                running:
-                  $ref: '#/components/examples/running'
+                example:
+                  running:
+                    $ref: '#/components/examples/running'

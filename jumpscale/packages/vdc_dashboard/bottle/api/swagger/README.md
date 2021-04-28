@@ -23,7 +23,7 @@ The API is served at `/vdc_dashboard/api/controller`, with basic authentication 
 
 ## Swagger UI
 
-Swagger UI uses current specification file `openapi.yaml`, and is served at `/vdc_dashboard/apidocs`, API endpoints can be tested directly (don't forget to authorize first).
+Swagger UI uses current specification file `openapi.yaml`, and is served at `/vdc_dashboard/apidoc`, API endpoints can be tested directly (don't forget to authorize first).
 
 ## Generating clients
 
