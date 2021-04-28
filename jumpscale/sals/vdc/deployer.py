@@ -97,7 +97,7 @@ class VDCDeployer:
         self.compute_farm = compute_farm
         self.vdc_uuid = self.vdc_instance.solution_uuid
         self.description = j.data.serializers.json.dumps({"vdc_uuid": self.vdc_uuid})
-        self._log_format = f"VDC: {self.vdc_uuid} NAME: {self.vdc_name}: OWNER: {self.tname} {{}}"
+        self._log_format = f"VDC UUID: {self.vdc_uuid}, NAME: {self.vdc_name}, OWNER: {self.tname} {{}}"
         self._generate_identity()
         if not self.vdc_instance.identity_tid:
             self.vdc_instance.identity_tid = self.identity.tid
@@ -140,7 +140,7 @@ class VDCDeployer:
 
     @transaction_hashes.setter
     def transaction_hashes(self, value):
-        self.info(f"adding transactions {value}, vdc uuid: {self.vdc_uuid}", disable_bot=True)
+        self.info(f"adding transactions {value}", disable_bot=True)
         if isinstance(value, list):
             self._transaction_hashes += value
         self._transaction_hashes = list((set(self._transaction_hashes)))
@@ -288,7 +288,7 @@ class VDCDeployer:
         2- get (and extend) or create a pool for kubernetes controller on the network farm with small flavor
         3- get (and extend) or create a pool for kubernetes workers
         """
-        farm_resources = defaultdict(lambda: dict(cus=0, sus=0, ipv4us=0.0))
+        farm_resources = defaultdict(lambda: dict(cus=0, sus=0, ipv4us=0))
         duration = INITIAL_RESERVATION_DURATION / 24
 
         def get_cloud_units(workload):
@@ -315,7 +315,7 @@ class VDCDeployer:
         k8s = K8s()
         k8s.size = master_size.value
         cus, sus = get_cloud_units(k8s)
-        ipv4us = duration * 60 * 60 * 24
+        ipv4us = int(duration * 60 * 60 * 24)
         farm_resources[network_farm]["cus"] += cus
         farm_resources[network_farm]["sus"] += sus
         farm_resources[network_farm]["ipv4us"] += ipv4us
