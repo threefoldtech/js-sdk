@@ -58,9 +58,9 @@ class NginxPackageConfig:
         for static_dir in self.package.static_dirs:
             default_server["locations"].append(
                 {
-                    "is_auth": is_auth,
-                    "is_admin": is_admin,
-                    "is_package_authorized": is_package_authorized,
+                    "is_auth": static_dir.get("is_auth", is_auth),
+                    "is_admin": static_dir.get("is_admin", is_admin),
+                    "is_package_authorized": static_dir.get("is_package_authorized", is_package_authorized),
                     "type": "static",
                     "name": static_dir.get("name"),
                     "spa": static_dir.get("spa"),
@@ -74,9 +74,9 @@ class NginxPackageConfig:
         for bottle_server in self.package.bottle_servers:
             default_server["locations"].append(
                 {
-                    "is_auth": is_auth,
-                    "is_admin": is_admin,
-                    "is_package_authorized": is_package_authorized,
+                    "is_auth": bottle_server.get("is_auth", is_auth),
+                    "is_admin": bottle_server.get("is_admin", is_admin),
+                    "is_package_authorized": bottle_server.get("is_package_authorized", is_package_authorized),
                     "type": "proxy",
                     "name": bottle_server.get("name"),
                     "host": bottle_server.get("host"),
