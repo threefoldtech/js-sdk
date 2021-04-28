@@ -11,6 +11,7 @@ from jumpscale.packages.vdc_dashboard.bottle.api.helpers import (
     logger,
     vdc_route,
 )
+from jumpscale.packages.vdc_dashboard.bottle.backup import _list as list_backups
 from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
     get_kubeconfig_file,
@@ -111,6 +112,8 @@ def add_node(vdc):
 @vdc_route()
 def delete_node(vdc):
     """
+    Request body:
+        object of {"wid": <wid>}
     Returns:
         dict: status
     """
@@ -317,6 +320,17 @@ def get_zstor_config(vdc):
         raise ZStorConfigNotFound(404, str(e))
     except j.exceptions.Value as e:
         raise InvalidZStorConfig(400)
+
+
+@app.route("/api/controller/backup", method="GET")
+@vdc_route()
+def get_backup_status(vdc):
+    """list available backups
+
+    Returns:
+        list: list of backups (as dicts)
+    """
+    return list_backups()
 
 
 @app.route("/api/controller/status", method="GET")
