@@ -19,6 +19,7 @@ index = "index.html"
 spa = false
 is_auth = false
 is_admin = false
+is_package_authorized = false
 
 [[bottle_servers]]
 name = "main"
