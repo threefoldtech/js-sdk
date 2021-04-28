@@ -51,9 +51,9 @@ class VDCPublicIP(VDCBaseComponent):
                 return wid
             except DeploymentFailed as e:
                 self.vdc_deployer.error(
-                    f"Failed to reserve public ip {address} on node {node_id} due to error {str(e)}, vdc uuid: {self.vdc_uuid}, vdc uuid: {self.vdc_uuid}"
+                    f"Failed to reserve public ip {address} on node {node_id} due to error {str(e)}"
                 )
                 continue
         self.vdc_deployer.error(
-            f"All tries to reserve a public ip failed on farm: {self.farm_name} pool: {pool_id} node: {node_id}, vdc uuid: {self.vdc_uuid}"
+            f"All tries to reserve a public ip failed on farm: {self.farm_name} pool: {pool_id} node: {node_id}"
         )

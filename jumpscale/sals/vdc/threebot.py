@@ -137,9 +137,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                     if not network_updated:
                         raise DeploymentFailed()
                 except DeploymentFailed:
-                    self.vdc_deployer.error(
-                        f"Failed to deploy network on node {node.node_id}, vdc uuid: {self.vdc_uuid}"
-                    )
+                    self.vdc_deployer.error(f"Failed to deploy network on node {node.node_id}")
                     continue
             network_view = network_view.copy()
             ip_address = network_view.get_free_ip(node)
@@ -184,9 +182,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                     return wid
                 raise DeploymentFailed()
             except DeploymentFailed:
-                self.vdc_deployer.error(
-                    f"failed to deploy threebot container on node: {node.node_id} wid: {wid}, vdc uuid: {self.vdc_uuid}"
-                )
+                self.vdc_deployer.error(f"failed to deploy threebot container on node: {node.node_id} wid: {wid}")
                 continue
 
     def _prepare_proxy(self):
@@ -230,14 +226,10 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 if not success:
                     raise DeploymentFailed(f"failed to deploy reverse proxy on gateway: {gateway.node_id} wid: {wid}")
             except DeploymentFailed:
-                self.vdc_deployer.error(
-                    f"Failed to deploy reverse proxy on gateway: {gateway.node_id} wid: {wid}, vdc uuid: {self.vdc_uuid}"
-                )
+                self.vdc_deployer.error(f"Failed to deploy reverse proxy on gateway: {gateway.node_id} wid: {wid}")
                 continue
 
             remote = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
         if not remote:
-            self.vdc_deployer.error(
-                f"All attempts to reseve a proxy on pool: {gateway_pool_id} has failed, vdc uuid: {self.vdc_uuid}"
-            )
+            self.vdc_deployer.error(f"All attempts to reseve a proxy on pool: {gateway_pool_id} has failed")
         return subdomain, secret, remote
