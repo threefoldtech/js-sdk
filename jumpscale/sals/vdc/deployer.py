@@ -228,6 +228,8 @@ class VDCDeployer:
         # create a user identity from an old one or create a new one
         if self._identity:
             return
+        if self.password and len(self.password) != 32:
+            raise ValueError("Password length should be 32")
         username = VDC_IDENTITY_FORMAT.format(self.tname, self.vdc_name, self.vdc_uuid)
         words = j.data.encryption.key_to_mnemonic(self.password.encode())
         identity_name = f"vdc_ident_{self.vdc_uuid}"
