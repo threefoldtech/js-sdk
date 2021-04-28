@@ -96,9 +96,9 @@ class KubernetesMonitor:
         result_dict = j.data.serializers.json.loads(out)
         ip_to_wid = {node.ip_address: node.wid for node in self.nodes}
         for node in result_dict["items"]:
-            node_name = node["metadata"]["labels"]["kubernetes.io/hostname"]
-            node_ip = node["metadata"]["annotations"]["flannel.alpha.coreos.com/public-ip"]
-            if not node_name in self._node_stats:
+            node_name = node["metadata"]["labels"].get("kubernetes.io/hostname")
+            node_ip = node["metadata"]["annotations"].get("flannel.alpha.coreos.com/public-ip")
+            if (not node_name and node_name not in self._node_stats) or not node_ip:
                 continue
             self._node_stats[node_name]["wid"] = ip_to_wid.get(node_ip)
         j.logger.info(f"Kubernetes stats: {self.node_stats}")
