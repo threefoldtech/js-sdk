@@ -465,7 +465,7 @@ class Stellar(Client):
         Returns:
             [type]: [description]
         """
-        if amount <= 0:
+        if decimal.Decimal(amount) <= 0:
             j.logger.warning("Can not transfer empty or zero amount transaction")
             return
         nretries = 0
