@@ -23,7 +23,7 @@ class NameManager:
                 nc.nameclient.create_record(parent_domain, prefix, "A", address)
             return f"{prefix}.{parent_domain}", None
         else:
-            prefix = prefix.rstrip(".vdc")
+            prefix = j.data.text.removesuffix(prefix, ".vdc")
             domain_generator = self.proxy_instance.reserve_subdomain(
                 self.gateway, prefix, vdc_uuid, pool_id=self.pool_id, ip_address=ip_addresses[0]
             )

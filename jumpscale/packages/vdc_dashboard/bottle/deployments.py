@@ -230,7 +230,7 @@ def install_deployment():
     vdc_name = data.get("vdc_name")
     if not vdc_name:
         abort(400, "Error: Not all required params was passed.")
-    config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{username.rstrip('.3bot')}/{vdc_name}.yaml"
+    config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{j.data.text.removesuffix(username, '.3bot')}/{vdc_name}.yaml"
     k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
     k8s_client.add_helm_repo(data["repo_name"], data["repo_url"])
     k8s_client.update_repos()
