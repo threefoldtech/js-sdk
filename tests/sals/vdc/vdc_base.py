@@ -68,7 +68,7 @@ class VDCBase(BaseTests):
     @classmethod
     def deploy_vdc(cls, hours=1):
         cls.vdc_name = cls.random_name().lower()
-        cls.password = cls.random_string()
+        cls.password = j.data.hash.md5(cls.random_string())
         cls.vdc = j.sals.vdc.new(cls.vdc_name, cls.tname, cls.flavor)
 
         cls.info(f"Transfer needed TFT to deploy vdc for {hours} hour/s to the provisioning wallet.")
