@@ -626,29 +626,29 @@ components:
               asset_issuer: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
         price: 2
 
-    nodes:
-      description: Kubernetes nodes
+    node:
+      description: Kubernetes node
       value:
-        - role: worker
-          public_ip: '::/128'
-          ip_address: 10.200.0.2
-          wid: 46580
-          node_id: qzuTJJVd5boi6Uyoco1WWnSgzTb7q8uN79AjBT9x9N3
-          pool_id: 10155
-          size: 16
+        role: worker
+        public_ip: '::/128'
+        ip_address: 10.200.0.2
+        wid: 46580
+        node_id: qzuTJJVd5boi6Uyoco1WWnSgzTb7q8uN79AjBT9x9N3
+        pool_id: 10155
+        size: 16
 
-    zdbs:
-      description: ZDB workloads
+    zdb:
+      description: ZDB workload
       value:
-        - size: 10
-          port: 9900
-          namespace: 46564-1
-          proxy_address: null
-          ip_address: '2a02:1802:5e:0:b814:91ff:fe72:d44e'
-          wid: 46564
-          node_id: BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
-          pool_id: 10155
-          usage: 0
+        size: 10
+        port: 9900
+        namespace: 46564-1
+        proxy_address: null
+        ip_address: '2a02:1802:5e:0:b814:91ff:fe72:d44e'
+        wid: 46564
+        node_id: BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
+        pool_id: 10155
+        usage: 0
 
     nodeAddRequest:
       description: Adding kubernetes node request.
@@ -675,84 +675,86 @@ components:
             asset_code: TFT
             asset_issuer: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-    pools:
-      description: list of pools
+    pool:
+      description: Pool
       value:
-        - pool_id: 10155
-          cus: 15579261.25
-          sus: 2921802.8290000004
-          ipv4us: 964957
-          node_ids:
-            - 3kcJhRkTDuL51HmikzWFMndWwJbJGg8dZeqG9e72c6LV
-            - BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
-            - 3NAkUYqm5iPRmNAnmLfjwdreqDssvsebj4uPUt9BxFPm
-            - 3We9p7C3wihY3ZZSP5w4ujEBPVtm685fVW563MVFbnE8
-            - qzuTJJVd5boi6Uyoco1WWnSgzTb7q8uN79AjBT9x9N3
-            - 5f4QEXpTcKt9Tbngn4hvraXd2G4QVFkagabUeKpn55oc
-            - 48YmkyvfoXnXqEojpJieMfFPnCv2enEuqEJcmhvkcdAk
-            - DJHD5cMjRkuVh4enQ6dqCAuPNUPfH2a45gLv7JDDswbT
-            - HtKZ3SwHcGM7nTsm8ykRGttfodFfLkghrmD5FGypgobK
-            - 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
-            - FTothsg9ZuJubAEzZByEgQQUmkWM637x93YH1QSJM242
-            - BBmMHCw392RLiByVEUT2ac6y6qJpbW9xj8TRdgk5rMGN
-            - Gr8NxBLHe7yjSsnSTgTqGr7BHbyAUVPJqs8fnudEE4Sf
-          last_updated: 1619585651
-          active_cu: 1.75
-          active_su: 0.33000000000000007
-          active_ipv4: 1
-          empty_at: 1620550608
-          customer_tid: 3565
-          active_workload_ids:
-            - 46563
-            - 46566
-            - 46569
-            - 46570
-            - 46579
-            - 46568
-            - 46572
-            - 46573
-            - 46578
-            - 46564
-            - 46565
-            - 46567
-            - 46571
-            - 46577
-            - 46576
-            - 46580
-            - 46587
-            - 46590
-            - 46589
-            - 46588
-            - 46826
-            - 46824
-            - 46823
-            - 46825
+        pool_id: 10155
+        cus: 15579261.25
+        sus: 2921802.8290000004
+        ipv4us: 964957
+        node_ids:
+          - 3kcJhRkTDuL51HmikzWFMndWwJbJGg8dZeqG9e72c6LV
+          - BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
+          - 3NAkUYqm5iPRmNAnmLfjwdreqDssvsebj4uPUt9BxFPm
+          - 3We9p7C3wihY3ZZSP5w4ujEBPVtm685fVW563MVFbnE8
+          - qzuTJJVd5boi6Uyoco1WWnSgzTb7q8uN79AjBT9x9N3
+          - 5f4QEXpTcKt9Tbngn4hvraXd2G4QVFkagabUeKpn55oc
+          - 48YmkyvfoXnXqEojpJieMfFPnCv2enEuqEJcmhvkcdAk
+          - DJHD5cMjRkuVh4enQ6dqCAuPNUPfH2a45gLv7JDDswbT
+          - HtKZ3SwHcGM7nTsm8ykRGttfodFfLkghrmD5FGypgobK
+          - 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+          - FTothsg9ZuJubAEzZByEgQQUmkWM637x93YH1QSJM242
+          - BBmMHCw392RLiByVEUT2ac6y6qJpbW9xj8TRdgk5rMGN
+          - Gr8NxBLHe7yjSsnSTgTqGr7BHbyAUVPJqs8fnudEE4Sf
+        last_updated: 1619585651
+        active_cu: 1.75
+        active_su: 0.33000000000000007
+        active_ipv4: 1
+        empty_at: 1620550608
+        customer_tid: 3565
+        active_workload_ids:
+          - 46563
+          - 46566
+          - 46569
+          - 46570
+          - 46579
+          - 46568
+          - 46572
+          - 46573
+          - 46578
+          - 46564
+          - 46565
+          - 46567
+          - 46571
+          - 46577
+          - 46576
+          - 46580
+          - 46587
+          - 46590
+          - 46589
+          - 46588
+          - 46826
+          - 46824
+          - 46823
+          - 46825
 
-    alerts:
-      description: list of alerts
+    alert:
+      description: Alert
       value:
-        - id: 1
-          type: exception
-          level: 40
-          app_name: servicemanager
-          category: ''
-          message: >-
-            Service vdc_dashboard_k8s_auto_extend raised an exception: ('Connection
-            aborted.', ConnectionResetError(104, 'Connection reset by peer'))
-          public_message: ''
-          count: 24
-          status: open
-          first_occurrence: 1619097688
-          last_occurrence: 1619578682
-          data: null
-          event: []
-          tracebacks:
-            - null
-            - null
-            - null
+        id: 1
+        type: exception
+        level: 40
+        app_name: servicemanager
+        category: ''
+        message: >-
+          Service vdc_dashboard_k8s_auto_extend raised an exception: ('Connection
+          aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+        public_message: ''
+        count: 24
+        status: open
+        first_occurrence: 1619097688
+        last_occurrence: 1619578682
+        data: null
+        event: []
+        tracebacks:
+          - null
+          - null
+          - null
 
-    backups:
-      - name: schedule-202103290609
+    backup:
+      description: Backup
+      value:
+        name: schedule-202103290609
         vdc_backup: vdc-20210329060953
         config_backup: config-20210329060953
         expiration: 1619590197
@@ -904,9 +906,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ZDB'
-                example:
-                  zdbs:
-                    $ref: '#/components/examples/zdbs'
+                  example:
+                    zdb:
+                      $ref: '#/components/examples/zdv'
         default:
           description: Error
           content:
@@ -988,9 +990,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Wallet'
-                example:
-                  wallet:
-                    $ref: '#/components/examples/wallet'
+                  example:
+                    wallet:
+                      $ref: '#/components/examples/wallet'
         default:
           description: Error
           content:
@@ -1011,9 +1013,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Pool'
-                example:
-                  pools:
-                    $ref: '#/components/examples/pools'
+                  example:
+                    pool:
+                      $ref: '#/components/examples/pool'
         default:
           description: Error
           content:
@@ -1041,9 +1043,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Alert'
-                example:
-                  pools:
-                    $ref: '#/components/examples/alerts'
+                  example:
+                    alert:
+                      $ref: '#/components/examples/alert'
         default:
           description: Error
           content:
@@ -1064,9 +1066,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Backup'
-                example:
-                  pools:
-                    $ref: '#/components/examples/backups'
+                  example:
+                    backup:
+                      $ref: '#/components/examples/backup'
         default:
           description: Error
           content:
