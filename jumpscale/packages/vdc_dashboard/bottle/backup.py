@@ -168,4 +168,4 @@ def restore_backup():
         return HTTPResponse("Failed to restore backup.", status=500, headers={"Content-Type": "application/json"})
 
 
-app = SessionMiddleware(app, SESSION_OPTS)
+# app = SessionMiddleware(app, SESSION_OPTS)

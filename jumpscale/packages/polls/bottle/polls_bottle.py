@@ -45,4 +45,4 @@ def names():
     return data
 
 
-app = SessionMiddleware(app, SESSION_OPTS)
+# app = SessionMiddleware(app, SESSION_OPTS)

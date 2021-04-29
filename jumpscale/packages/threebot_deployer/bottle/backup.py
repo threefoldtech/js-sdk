@@ -55,4 +55,4 @@ def destroy():
     return j.data.serializers.json.dumps({"data": {"status": status}})
 
 
-app = SessionMiddleware(app, SESSION_OPTS)
+# app = SessionMiddleware(app, SESSION_OPTS)

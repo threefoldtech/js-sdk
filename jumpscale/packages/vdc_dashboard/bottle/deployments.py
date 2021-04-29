@@ -472,4 +472,4 @@ def get_sdk_version():
     )
 
 
-app = SessionMiddleware(app, SESSION_OPTS)
+# app = SessionMiddleware(app, SESSION_OPTS)

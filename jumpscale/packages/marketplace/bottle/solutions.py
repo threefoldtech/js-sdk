@@ -87,4 +87,4 @@ def accept():
         )
 
 
-app = SessionMiddleware(app, SESSION_OPTS)
+# app = SessionMiddleware(app, SESSION_OPTS)

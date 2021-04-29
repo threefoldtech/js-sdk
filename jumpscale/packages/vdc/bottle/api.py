@@ -194,4 +194,4 @@ def get_wallet_qrcode_image():
     return j.data.serializers.json.dumps({"data": qrcode_image})
 
 
-app = SessionMiddleware(app, SESSION_OPTS)
+# app = SessionMiddleware(app, SESSION_OPTS)

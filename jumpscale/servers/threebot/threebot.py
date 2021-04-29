@@ -14,6 +14,7 @@ from jumpscale import packages as pkgnamespace
 from jumpscale.sals.nginx.nginx import LocationType, PORTS
 from jumpscale.packages.tfgrid_solutions.scripts.threebot.monitoring_alert_handler import send_alert
 from jumpscale.sals.nginx.nginx import LocationType, PORTS, AcmeServer
+from jumpscale.servers.appserver import StripPathMiddleware
 
 
 GEDIS = "gedis"
@@ -198,19 +199,6 @@ class NginxPackageConfig:
                 self.nginx.save()
 
 
-class StripPathMiddleware(object):
-    """
-    a middle ware for bottle apps to strip slashes
-    """
-
-    def __init__(self, app):
-        self.app = app
-
-    def __call__(self, e, h):
-        e["PATH_INFO"] = e["PATH_INFO"].rstrip("/")
-        return self.app(e, h)
-
-
 class Package:
     def __init__(
         self,
@@ -336,6 +324,10 @@ class Package:
     def get_bottle_server(self, file_path, host, port):
         module = imp.load_source(file_path[:-3], file_path)
         return WSGIServer((host, port), StripPathMiddleware(module.app))
+
+    def get_package_bottle_app(self, file_path):
+        module = imp.load_source(file_path[:-3], file_path)
+        return module.app
 
     def preinstall(self):
         if self.module and hasattr(self.module, "preinstall"):
@@ -604,8 +596,13 @@ class PackageManager(Base):
             if not j.sals.fs.exists(path):
                 raise j.exceptions.NotFound(f"Cannot find bottle server path {path}")
 
-            bottle_app = package.get_bottle_server(path, bottle_server["host"], bottle_server["port"])
-            self.threebot.rack.add(f"{package.name}_{bottle_server['name']}", bottle_app)
+            if hasattr(bottle_server, "standalone") and bottle_server.standalone:
+                bottle_wsgi_server = package.get_bottle_server(path, bottle_server["host"], bottle_server["port"])
+                self.threebot.rack.add(f"{package.name}_{bottle_server['name']}", bottle_wsgi_server)
+            else:
+                bottle_app = package.get_package_bottle_app(path)
+                j.logger.info(f"registering subapp {package.name}")
+                j.servers.appserver.mainapp.mount(f"/{package.name}", bottle_app)
 
         # register gedis actors
         if package.actors_dir:
@@ -629,6 +626,7 @@ class PackageManager(Base):
 
         # execute package start method
         package.start()
+
         self.threebot.gedis_http.client.reload()
         self.threebot.nginx.reload()
 
@@ -825,6 +823,9 @@ class ThreebotServer(Base):
         self.redis.start()
         self.nginx.start()
         j.sals.nginx.get(self.nginx.server_name).cert = cert
+        jsappserver = WSGIServer(("localhost", 31000), j.servers.appserver.mainapp)
+        self.rack.add(f"appserver", jsappserver)
+
         self.rack.start()
         j.logger.register(f"threebot_{self.instance_name}")
         if j.config.get("SEND_REMOTE_ALERTS", False):
@@ -849,6 +850,7 @@ class ThreebotServer(Base):
 
         # mark server as started
         self._started = True
+        print(j.servers.appserver.mainapp.routes)
         j.logger.info(f"Threebot is running at http://localhost:{PORTS.HTTP} and https://localhost:{PORTS.HTTPS}")
         self.rack.start(wait=wait)  # to keep the server running
 

@@ -92,4 +92,4 @@ def total_unlocked_tft():
     return f"{total_unlocked_tft}"
 
 
-app = SessionMiddleware(app, SESSION_OPTS)
+# app = SessionMiddleware(app, SESSION_OPTS)

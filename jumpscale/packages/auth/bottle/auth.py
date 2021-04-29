@@ -268,7 +268,7 @@ def authenticated(handler):
     """
 
     def decorator(*args, **kwargs):
-        session = request.environ.get("beaker.session")
+        session = request.environ.get("beaker.session", {})
         if j.core.config.get_config().get("threebot_connect", True) and j.core.identity.is_configured:
             if not session.get("authorized", False):
                 return abort(401)
@@ -387,4 +387,4 @@ def get_package_admins(package_name):
     return package.admins
 
 
-app = SessionMiddleware(app, SESSION_OPTS)
+# app = SessionMiddleware(app, SESSION_OPTS)

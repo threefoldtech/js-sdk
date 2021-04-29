@@ -30,4 +30,4 @@ def chat(package_name, chat_name):
     )
 
 
-app = SessionMiddleware(app, SESSION_OPTS)
+# app = SessionMiddleware(app, SESSION_OPTS)
