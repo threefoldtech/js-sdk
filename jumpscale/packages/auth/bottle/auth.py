@@ -11,7 +11,6 @@ from nacl.signing import VerifyKey
 
 from jumpscale.loader import j
 
-SESSION_OPTS = {"session.type": "file", "session.data_dir": f"{j.core.dirs.VARDIR}/data", "session.auto": True}
 REDIRECT_URL = "https://login.threefold.me"
 CALLBACK_URL = "/auth/3bot_callback"
 LOGIN_URL = "/auth/login"
@@ -367,7 +366,7 @@ def login_required(func):
 
     @wraps(func)
     def decorator(*args, **kwargs):
-        session = request.environ.get("beaker.session")
+        session = request.environ.get("beaker.session", {})
         if j.core.config.get_config().get("threebot_connect", True):
             if not session.get("authorized", False):
                 session["next_url"] = request.url
@@ -390,6 +389,3 @@ def get_package_admins(package_name):
     if not package:
         raise j.exceptions.Validation(f"package {package_name} is not installed")
     return package.admins
-
-
-app = SessionMiddleware(app, SESSION_OPTS)

@@ -4,8 +4,6 @@ from beaker.middleware import SessionMiddleware
 from bottle import Bottle, request
 
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS
-
 from jumpscale.packages.stellar_stats.bottle.stats_service import StatisticsCollector
 
 app = Bottle()
@@ -90,6 +88,3 @@ def total_unlocked_tft():
 
     redis.set(f"{network}-{tokencode}-total_unlocked_tft", total_unlocked_tft, ex=600)
     return f"{total_unlocked_tft}"
-
-
-# app = SessionMiddleware(app, SESSION_OPTS)

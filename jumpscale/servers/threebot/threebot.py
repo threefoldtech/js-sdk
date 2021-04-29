@@ -14,7 +14,7 @@ from jumpscale import packages as pkgnamespace
 from jumpscale.sals.nginx.nginx import LocationType, PORTS
 from jumpscale.packages.tfgrid_solutions.scripts.threebot.monitoring_alert_handler import send_alert
 from jumpscale.sals.nginx.nginx import LocationType, PORTS, AcmeServer
-from jumpscale.servers.appserver import StripPathMiddleware
+from jumpscale.servers.appserver import StripPathMiddleware, apply_main_middlewares
 
 
 GEDIS = "gedis"
@@ -623,7 +623,7 @@ class PackageManager(Base):
             else:
                 bottle_app = package.get_package_bottle_app(path)
                 j.logger.info(f"registering subapp {package.name}")
-                j.servers.appserver.mainapp.mount(f"/{package.name}", bottle_app)
+                self.threebot.mainapp.mount(f"/{package.name}", bottle_app)
 
         # register gedis actors
         if package.actors_dir:
@@ -844,8 +844,7 @@ class ThreebotServer(Base):
         self.redis.start()
         self.nginx.start()
         j.sals.nginx.get(self.nginx.server_name).cert = cert
-        jsappserver = WSGIServer(("localhost", 31000), j.servers.appserver.mainapp)
-        self.rack.add(f"appserver", jsappserver)
+        self.mainapp = j.servers.appserver.make_main_app()
 
         self.rack.start()
         j.logger.register(f"threebot_{self.instance_name}")
@@ -866,12 +865,15 @@ class ThreebotServer(Base):
 
         # install all package
         self.packages._install_all()
+        self.jsappserver = WSGIServer(("localhost", 31000), apply_main_middlewares(self.mainapp))
+        self.rack.add(f"appserver", self.jsappserver)
+
         j.logger.info("Reloading nginx")
         self.nginx.reload()
 
         # mark server as started
         self._started = True
-        print(j.servers.appserver.mainapp.routes)
+        j.logger.debug("routes: ", self.mainapp)
         j.logger.info(f"Threebot is running at http://localhost:{PORTS.HTTP} and https://localhost:{PORTS.HTTPS}")
         self.rack.start(wait=wait)  # to keep the server running
 

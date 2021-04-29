@@ -27,4 +27,12 @@ class StripPathMiddleware(object):
         return self.app(e, h)
 
 
-mainapp = Bottle()  # mount sub applications on this object
+def make_main_app():
+    app = Bottle()
+    # mount sub applications on this object
+    return app
+
+
+def apply_main_middlewares(app):
+    app = StripPathMiddleware(app)
+    return SessionMiddleware(app, SESSION_OPTS)
