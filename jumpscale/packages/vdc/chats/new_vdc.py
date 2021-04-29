@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from jumpscale.loader import j
 
 from jumpscale.sals.vdc import VDC_INSTANCE_NAME_FORMAT
+from jumpscale.sals.vdc.vdc import VDCSTATE
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.vdc.proxy import VDC_PARENT_DOMAIN
 from jumpscale.sals.vdc.scheduler import GlobalCapacityChecker
@@ -73,6 +74,8 @@ class VDCDeploy(GedisChatBot):
     def _rollback(self):
         j.sals.vdc.cleanup_vdc(self.vdc)
         j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
+        self.vdc.state = VDCSTATE.EMPTY
+        self.vdc.save()
 
     def _vdc_form(self):
         vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username, load_info=True) if not vdc.is_empty()]
@@ -428,6 +431,9 @@ class VDCDeploy(GedisChatBot):
         self.vdc.fund_difference(self.VDC_INIT_WALLET_NAME)
         self.md_show_update("Updating expiration...")
         self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
+        self.vdc.state = VDCSTATE.DEPLOYED
+        self.vdc.save()
+        j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
 
         threebot_url = f"https://{self.vdc.threebot.domain}/"
         self.md_show_update(
@@ -438,7 +444,6 @@ class VDCDeploy(GedisChatBot):
         ):
             j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
             self.stop(f"Failed to initialize VDC on {threebot_url} , please contact support")
-        j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
 
     @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
