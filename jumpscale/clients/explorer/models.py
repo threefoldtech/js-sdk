@@ -269,7 +269,7 @@ class WorkloadType(Enum):
     Gateway4to6 = 9
     Network_resource = 10
     Public_IP = 11
-    VirtualMachine = 12
+    Virtual_Machine = 12
 
 
 class ZDBMode(Enum):
@@ -543,28 +543,50 @@ class Container(Base):
 
 class VirtualMachine(Base):
     id = fields.Integer()
-    flist = fields.String(default="")
+    name = fields.String(default="")
     hub_url = fields.String(default="")
     network_connection = fields.List(fields.Object(ContainerNetworkConnection))
     network_id = fields.String()
     farmer_tid = fields.Integer()
-    capacity = fields.Object(ContainerCapacity)
+    size = fields.Integer()
     info = fields.Object(ReservationInfo)
     ssh_keys = fields.List(fields.String())
     public_ip = fields.Integer()
     ipaddress = fields.IPAddress()
 
+    SIZES = OrderedDict(
+        {
+            1: {"cru": 1, "mru": 2, "sru": 50},
+            2: {"cru": 2, "mru": 4, "sru": 100},
+            3: {"cru": 2, "mru": 8, "sru": 25},
+            4: {"cru": 2, "mru": 5, "sru": 50},
+            5: {"cru": 2, "mru": 8, "sru": 200},
+            6: {"cru": 4, "mru": 16, "sru": 50},
+            7: {"cru": 4, "mru": 16, "sru": 100},
+            8: {"cru": 4, "mru": 16, "sru": 400},
+            9: {"cru": 8, "mru": 32, "sru": 100},
+            10: {"cru": 8, "mru": 32, "sru": 200},
+            11: {"cru": 8, "mru": 32, "sru": 800},
+            12: {"cru": 16, "mru": 64, "sru": 200},
+            13: {"cru": 16, "mru": 64, "sru": 400},
+            14: {"cru": 16, "mru": 64, "sru": 800},
+            15: {"cru": 1, "mru": 2, "sru": 25},
+            16: {"cru": 2, "mru": 4, "sru": 50},
+            17: {"cru": 4, "mru": 8, "sru": 50},
+            18: {"cru": 1, "mru": 1, "sru": 25},
+        }
+    )
+
     def resource_units(self):
-        cap = self.capacity
+
         resource_units = ResourceUnitAmount()
-        resource_units.cru = cap.cpu
-        resource_units.mru = round(cap.memory / 1024 * 10000) / 10000
-        storage_size = round(cap.disk_size / 1024 * 10000) / 10000
-        storage_size = max(0, storage_size - 50)  # we offer the 50 first GB of storage for container root filesystem
-        if cap.disk_type == DiskType.HDD:
-            resource_units.hru += storage_size
-        elif cap.disk_type == DiskType.SSD:
-            resource_units.sru += storage_size
+        size = self.SIZES.get(self.size)
+        if not size:
+            raise j.exceptions.Input(f"kubernetes size {self.size} not supported")
+
+        resource_units.cru += size["cru"]
+        resource_units.mru += size["mru"]
+        resource_units.sru += size["sru"]
         return resource_units
 
 

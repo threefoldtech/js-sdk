@@ -1,6 +1,7 @@
 from typing import List
 
 from jumpscale.clients.explorer.models import VirtualMachine, WorkloadType
+from jumpscale.core.exceptions import Input
 
 
 class VMGenerator:
@@ -15,14 +16,12 @@ class VMGenerator:
         self,
         node_id: str,
         network_name: str,
-        flist: str,
+        name: str,
         ip_address: str,
         ssh_keys: List[str],
         pool_id: int,
+        size: int,
         public_ip_wid: int = 0,
-        cpu: int = 1,
-        memory: int = 1024,
-        disk_size: int = 256,
     ) -> VirtualMachine:
         """create a virtual machine
 
@@ -32,15 +31,18 @@ class VMGenerator:
           ip_address(str): ip address of the vm
           ssh_keys(List[str]): list of public SSH key to authorize in the VM
           pool_id(int): capacity pool ID
-          flist(str): the flist url of the vm
+          name(str): the name of the vm image to deploy
           public_ip_wid(int): The workload public ip
         Returns:
           vm: VirtualMachine
 
         """
+        if size not in range(1, 19):
+            raise Input(f"VM size {size} is not supported")
+
         vm = VirtualMachine()
         vm.info.node_id = node_id
-        vm.info.workload_type = WorkloadType.VirtualMachine
+        vm.info.workload_type = WorkloadType.Virtual_Machine
         vm.info.pool_id = pool_id
 
         vm.network_id = network_name
@@ -49,9 +51,7 @@ class VMGenerator:
             ssh_keys = [ssh_keys]
         vm.ssh_keys = ssh_keys
         vm.public_ip = public_ip_wid
-        vm.flist = flist
-        vm.capacity.cpu = cpu
-        vm.capacity.memory = memory
-        vm.capacity.disk_size = disk_size
+        vm.name = name
+        vm.size = size
 
         return vm

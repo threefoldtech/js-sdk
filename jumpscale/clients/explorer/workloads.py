@@ -44,7 +44,7 @@ class Decoder:
             WorkloadType.Gateway4to6: Gateway4to6,
             WorkloadType.Network_resource: NetworkResource,
             WorkloadType.Public_IP: PublicIP,
-            WorkloadType.VirtualMachine: VirtualMachine,
+            WorkloadType.Virtual_Machine: VirtualMachine,
         }
 
     def workload(self):

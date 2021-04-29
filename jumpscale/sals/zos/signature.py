@@ -19,6 +19,7 @@ def sign_provision_request(workload, tid, signing_key):
     b.write("provision")
     b.write(str(tid))
     h = _hash(b.getvalue())
+
     signature = signing_key.sign(h)
 
     return signature.signature
@@ -69,7 +70,7 @@ def _hash_signing_challenge(workload):
         WorkloadType.Gateway4to6: _gateway4to6_challenge,
         WorkloadType.Network_resource: _network_resource_challenge,
         WorkloadType.Public_IP: _public_ip_challenge,
-        WorkloadType.VirtualMachine: _virtual_machine_challenge,
+        WorkloadType.Virtual_Machine: _virtual_machine_challenge,
     }
     b = StringIO()
     b.write(_workload_info_challenge(workload.info))
@@ -167,15 +168,13 @@ def _k8s_challenge(k8s):
 
 def _virtual_machine_challenge(vm):
     b = StringIO()
-    b.write(str(vm.flist))
+    b.write(str(vm.name))
     b.write(vm.network_id)
     b.write(str(vm.public_ip))
     b.write(str(vm.ipaddress))
     for key in vm.ssh_keys:
         b.write(key)
-    b.write(str(vm.capacity.cpu))
-    b.write(str(vm.capacity.memory))
-    b.write(str(vm.capacity.disk_size))
+    b.write(str(vm.size))
     return b.getvalue()
 
 
