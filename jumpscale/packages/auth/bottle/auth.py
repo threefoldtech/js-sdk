@@ -5,7 +5,7 @@ from urllib.parse import urlencode, quote, unquote
 import nacl
 import requests
 from beaker.middleware import SessionMiddleware
-from bottle import Bottle, abort, redirect, request, response
+from bottle import Bottle, request, abort, redirect, response
 from nacl.public import Box
 from nacl.signing import VerifyKey
 
@@ -19,6 +19,11 @@ LOGIN_URL = "/auth/login"
 app = Bottle()
 
 
+@app.hook("before_request")
+def setup_request():
+    request.session = request.environ.get("beaker.session", {})
+
+
 templates_path = j.sals.fs.join_paths(j.sals.fs.dirname(__file__), "templates")
 env = j.tools.jinja2.get_env(templates_path)
 
@@ -30,7 +35,7 @@ def login():
     Returns:
         Renders the template of login page
     """
-    session = request.environ.get("beaker.session")
+    session = request.environ.get("beaker.session", {})
     provider = request.query.get("provider")
     next_url = quote(request.query.get("next_url", session.get("next_url", "/")))
 
@@ -387,4 +392,4 @@ def get_package_admins(package_name):
     return package.admins
 
 
-# app = SessionMiddleware(app, SESSION_OPTS)
+app = SessionMiddleware(app, SESSION_OPTS)

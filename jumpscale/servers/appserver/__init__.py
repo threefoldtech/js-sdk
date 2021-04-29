@@ -12,9 +12,6 @@ from nacl.signing import VerifyKey
 from jumpscale.loader import j
 
 SESSION_OPTS = {"session.type": "file", "session.data_dir": f"{j.core.dirs.VARDIR}/data", "session.auto": True}
-REDIRECT_URL = "https://login.threefold.me"
-CALLBACK_URL = "/auth/3bot_callback"
-LOGIN_URL = "/auth/login"
 
 
 class StripPathMiddleware(object):
@@ -31,5 +28,3 @@ class StripPathMiddleware(object):
 
 
 mainapp = Bottle()  # mount sub applications on this object
-app = SessionMiddleware(mainapp, SESSION_OPTS)
-app = StripPathMiddleware(app)

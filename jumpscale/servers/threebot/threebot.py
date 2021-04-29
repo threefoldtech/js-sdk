@@ -73,21 +73,42 @@ class NginxPackageConfig:
             )
 
         for bottle_server in self.package.bottle_servers:
-            default_server["locations"].append(
-                {
-                    "is_auth": bottle_server.get("is_auth", is_auth),
-                    "is_admin": bottle_server.get("is_admin", is_admin),
-                    "is_package_authorized": bottle_server.get("is_package_authorized", is_package_authorized),
-                    "type": "proxy",
-                    "name": bottle_server.get("name"),
-                    "host": bottle_server.get("host"),
-                    "port": bottle_server.get("port"),
-                    "path_url": j.sals.fs.join_paths(self.package.base_url, bottle_server.get("path_url").lstrip("/")),
-                    "path_dest": bottle_server.get("path_dest"),
-                    "websocket": bottle_server.get("websocket"),
-                    "force_https": self.package.config.get("force_https", True),
-                }
-            )
+            if hasattr(bottle_server, "standalone") and bottle_server.standalone:
+                default_server["locations"].append(
+                    {
+                        "is_auth": bottle_server.get("is_auth", is_auth),
+                        "is_admin": bottle_server.get("is_admin", is_admin),
+                        "is_package_authorized": bottle_server.get("is_package_authorized", is_package_authorized),
+                        "type": "proxy",
+                        "name": bottle_server.get("name"),
+                        "host": bottle_server.get("host"),
+                        "port": bottle_server.get("port"),
+                        "path_url": j.sals.fs.join_paths(
+                            self.package.base_url, bottle_server.get("path_url").lstrip("/")
+                        ),
+                        "path_dest": bottle_server.get("path_dest"),
+                        "websocket": bottle_server.get("websocket"),
+                        "force_https": self.package.config.get("force_https", True),
+                    }
+                )
+            else:
+                default_server["locations"].append(
+                    {
+                        "is_auth": bottle_server.get("is_auth", is_auth),
+                        "is_admin": bottle_server.get("is_admin", is_admin),
+                        "is_package_authorized": bottle_server.get("is_package_authorized", is_package_authorized),
+                        "type": "proxy",
+                        "name": bottle_server.get("name"),
+                        "host": "localhost",
+                        "port": 31000,
+                        "path_url": j.sals.fs.join_paths(
+                            self.package.base_url, bottle_server.get("path_url").lstrip("/")
+                        ),
+                        "path_dest": f"/{self.package.name}/",
+                        "websocket": bottle_server.get("websocket"),
+                        "force_https": self.package.config.get("force_https", True),
+                    }
+                )
 
         if self.package.actors_dir:
             default_server["locations"].append(
