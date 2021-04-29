@@ -23,7 +23,7 @@ GEDIS_HTTP_HOST = "127.0.0.1"
 GEDIS_HTTP_PORT = 8000
 SERVICE_MANAGER = "service_manager"
 CHATFLOW_SERVER_HOST = "127.0.0.1"
-CHATFLOW_SERVER_PORT = 8552
+CHATFLOW_SERVER_PORT = 31000
 DEFAULT_PACKAGES = {
     "auth": {"path": os.path.dirname(j.packages.auth.__file__), "giturl": ""},
     "chatflows": {"path": os.path.dirname(j.packages.chatflows.__file__), "giturl": ""},
@@ -99,7 +99,7 @@ class NginxPackageConfig:
                         "is_package_authorized": bottle_server.get("is_package_authorized", is_package_authorized),
                         "type": "proxy",
                         "name": bottle_server.get("name"),
-                        "host": "localhost",
+                        "host": "0.0.0.0",
                         "port": 31000,
                         "path_url": j.sals.fs.join_paths(
                             self.package.base_url, bottle_server.get("path_url").lstrip("/")
@@ -137,7 +137,7 @@ class NginxPackageConfig:
                     "host": CHATFLOW_SERVER_HOST,
                     "port": CHATFLOW_SERVER_PORT,
                     "path_url": j.sals.fs.join_paths(self.package.base_url, "chats"),
-                    "path_dest": self.package.base_url + "/chats",  # TODO: temperoary fix for auth package
+                    "path_dest": f"/chatflows{self.package.base_url}/chats",  # TODO: temperoary fix for auth package
                     "force_https": self.package.config.get("force_https", True),
                 }
             )
@@ -873,7 +873,7 @@ class ThreebotServer(Base):
 
         # mark server as started
         self._started = True
-        j.logger.debug("routes: ", self.mainapp)
+        j.logger.info(f"routes: {self.mainapp.routes}")
         j.logger.info(f"Threebot is running at http://localhost:{PORTS.HTTP} and https://localhost:{PORTS.HTTPS}")
         self.rack.start(wait=wait)  # to keep the server running
 
