@@ -539,7 +539,7 @@ ports:
             #         "RESTIC_REPOSITORY": f"s3:{restic_url}/{restic_bucket}/{self.vdc_instance.owner_tname}/{self.vdc_instance.vdc_name}",
             #         "AWS_ACCESS_KEY_ID": restic_ak,
             #         "AWS_SECRET_ACCESS_KEY": restic_sk,
-            #         "RESTIC_PASSWORD": self.vdc_deployer.password,
+            #         "RESTIC_PASSWORD": self.vdc_deployer.password_hash,
             #     }
 
             explorer = None
