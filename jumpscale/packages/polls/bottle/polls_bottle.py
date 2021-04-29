@@ -1,8 +1,7 @@
-from beaker.middleware import SessionMiddleware
 from bottle import Bottle
 
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, admin_only, login_required
+from jumpscale.packages.auth.bottle.auth import admin_only, login_required
 from jumpscale.packages.polls.chats.threefold import VOTES
 from jumpscale.sals.chatflows.polls import all_users
 
@@ -43,6 +42,3 @@ def names():
         data["names"].append(voter.extra_data.get("full_name", tname))
     data["-Number of voters"] = all_users.count
     return data
-
-
-# app = SessionMiddleware(app, SESSION_OPTS)

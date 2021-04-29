@@ -4,7 +4,6 @@ from urllib.parse import urlencode, quote, unquote
 
 import nacl
 import requests
-from beaker.middleware import SessionMiddleware
 from bottle import Bottle, request, abort, redirect, response
 from nacl.public import Box
 from nacl.signing import VerifyKey

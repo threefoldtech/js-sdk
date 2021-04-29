@@ -1,8 +1,7 @@
-from beaker.middleware import SessionMiddleware
 from bottle import Bottle, HTTPResponse, request
 from jumpscale.loader import j
 
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, package_authorized
+from jumpscale.packages.auth.bottle.auth import package_authorized
 
 
 app = Bottle()
@@ -166,6 +165,3 @@ def restore_backup():
     except Exception as e:
         j.logger.warning(f"Failed to restore backup due to {str(e)}")
         return HTTPResponse("Failed to restore backup.", status=500, headers={"Content-Type": "application/json"})
-
-
-# app = SessionMiddleware(app, SESSION_OPTS)

@@ -1,4 +1,3 @@
-from beaker.middleware import SessionMiddleware
 from bottle import Bottle, request, HTTPResponse
 
 from jumpscale.loader import j
