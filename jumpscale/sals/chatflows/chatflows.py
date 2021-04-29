@@ -11,6 +11,8 @@ import html
 from jumpscale.loader import j
 import stellar_sdk
 
+from .decorators import UpdateSessionDecorator
+
 
 class Result:
     def __init__(self, loader=str):
@@ -244,12 +246,12 @@ class GedisChatBot:
 
         self._fetch_greenlet = gevent.spawn(self._queue_out.get)
         result = self._fetch_greenlet.get()
-
         if not isinstance(result, gevent.GreenletExit):
             return result
 
-    def set_work(self, data):
-        return self._queue_in.put(data)
+    def set_work(self, dir_name, data):
+        with UpdateSessionDecorator(f"{dir_name}/answers", data):
+            return self._queue_in.put(data)
 
     def send_data(self, data, is_slide=False):
         data.setdefault("kwargs", {})

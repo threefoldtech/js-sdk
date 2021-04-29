@@ -188,13 +188,17 @@
       },
       validateSession(sessionId) {
         return axios({
-          url: `${baseUrl}/validate`,
+          url: `${baseUrl}/validate?timestamp=${new Date().getTime()}`,
           method: "post",
           headers: {'Content-Type': 'application/json'},
           data: {
-            session_id: sessionId
+            session_id: sessionId,
+            username: this.userInfo.username.replace('.3bot',''),
+            package: this.package,
+            chat: this.chat
           }
         }).then((response) => {
+
           this.validSession = response.data.valid
         })
       },
@@ -206,6 +210,7 @@
           data: {
             package: this.package,
             chat: this.chat,
+            username: this.userInfo.username.replace('.3bot',''),
             client_ip: CLIENT_IP,
             query_params: this.$route.query
           }
@@ -236,6 +241,9 @@
                   method: "post",
                   data: {
                     session_id: this.sessionId,
+                    package: this.package,
+                    chat: this.chat,
+                    username: this.userInfo.username.replace('.3bot',''),
                     restore: restore
                   }
                 }).then((response) => {
@@ -262,6 +270,8 @@
           method: "post",
           data: {
             session_id: this.sessionId,
+            package: this.package,
+            chat: this.chat,
             result: result
           }
         })
@@ -283,13 +293,26 @@
           url: `${baseUrl}/back`,
           method: "post",
           data: {
-            session_id: this.sessionId
+            session_id: this.sessionId,
+            package: this.package,
+            chat: this.chat,
           }
         })
       },
       restart () {
-        localStorage.clear()
-        location.reload()
+        axios({
+          url: `${baseUrl}/end`,
+          method: "post",
+          data: {
+            session_id: this.sessionId,
+            username: this.userInfo.username.replace(".3bot",""),
+            package: this.package,
+            chat: this.chat,
+          }
+        }).then(() => {
+          localStorage.clear()
+          location.reload()
+        })
       },
       getCookie(cname) {
         var name = cname + "=";

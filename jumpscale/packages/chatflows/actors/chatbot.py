@@ -1,4 +1,5 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
+from jumpscale.sals.chatflows.decorators import CreateSessionDecorator, DeleteSessionDecorator, UpdateSessionDecorator
 from jumpscale.loader import j
 import base64
 import sys
@@ -12,9 +13,10 @@ class ChatFlows(BaseActor):
         super().__init__()
         self.chats = {}
         self.sessions = {}
+        self.username = None
 
     @actor_method
-    def new(self, package: str, chat: str, client_ip: str, query_params: dict = None) -> dict:
+    def new(self, package: str, chat: str, username: str, client_ip: str, query_params: dict = None) -> dict:
         package_object = self.chats.get(package)
         if not package_object:
             raise j.exceptions.Value(f"Package {package} not found")
@@ -26,34 +28,58 @@ class ChatFlows(BaseActor):
         if query_params is None:
             query_params = {}
         obj = chatflow(**query_params)
-        self.sessions[obj.session_id] = obj
-        return {"sessionId": obj.session_id, "title": obj.title}
+        key = f"{username}_{package}_{chat}"
+        with CreateSessionDecorator(key):
+            self.sessions[key] = obj
+            return {"sessionId": obj.session_id, "title": obj.title}
 
     @actor_method
-    def fetch(self, session_id: str, restore: bool = False) -> dict:
-        chatflow = self.sessions.get(session_id)
+    def fetch(self, session_id: str, package: str, chat: str, username: str, restore: bool = False) -> dict:
+        key = f"{username}_{package}_{chat}"
+        chatflow = self.sessions.get(key)
         if not chatflow:
             return {"payload": {"category": "end"}}
 
         result = chatflow.get_work(restore)
-
-        if result.get("category") == "end":
-            self.sessions.pop(session_id)
-
+        j.logger.debug(result)
+        if result["payload"].get("category") == "end":
+            with DeleteSessionDecorator(key):
+                self.sessions.pop(key)
+        else:
+            with UpdateSessionDecorator(f"{key}/status", result, False):
+                return result
         return result
 
     @actor_method
-    def validate(self, session_id: str) -> dict:
-        return {"valid": session_id in self.sessions}
+    def validate(self, session_id: str, username: str, package: str, chat: str) -> dict:
+        self.username = username
+        key = f"{self.username}_{package}_{chat}"
+        # check the fs
+        path = f"{j.core.dirs.CFGDIR}/chatflows/{key}"
+        if j.sals.fs.is_dir(path):
+            # TODO:
+            # load from fs
+            # self.sessions[key] = chatflow.load_from_path(path)
+            # return {"valid": True}
+            j.logger.debug("dir exists")
+        return {"valid": key in self.sessions}
 
     @actor_method
-    def report(self, session_id: str, result: str = None):
-        chatflow = self.sessions.get(session_id)
-        chatflow.set_work(result)
+    def end(self, session_id: str, username: str, package: str, chat: str) -> dict:
+        key = f"{username}_{package}_{chat}"
+        with DeleteSessionDecorator(key):
+            return {"ended": True}
 
     @actor_method
-    def back(self, session_id: str):
-        chatflow = self.sessions.get(session_id)
+    def report(self, session_id: str, package: str, chat: str, result: str = None):
+        key = f"{self.username}_{package}_{chat}"
+        chatflow = self.sessions.get(key)
+        chatflow.set_work(key, result)
+
+    @actor_method
+    def back(self, session_id: str, package: str, chat: str):
+        key = f"{self.username}_{package}_{chat}"
+        chatflow = self.sessions.get(key)
         chatflow.go_back()
 
     @actor_method
