@@ -32,7 +32,6 @@ class VDCDeploy(GedisChatBot):
         "network_farm_selection",
         "compute_farm_selection",
         "deploy",
-        "initializing",
         "success",
     ]
     VDC_INIT_WALLET_NAME = j.config.get("VDC_INITIALIZATION_WALLET", "vdc_init")
@@ -430,8 +429,6 @@ class VDCDeploy(GedisChatBot):
         self.md_show_update("Updating expiration...")
         self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
 
-    @chatflow_step(title="Initializing", disable_previous=True)
-    def initializing(self):
         threebot_url = f"https://{self.vdc.threebot.domain}/"
         self.md_show_update(
             f"Initializing your VDC 3Bot container at {threebot_url} ... ip: {self.vdc.threebot.ip_address}. public: {self.vdc.kubernetes[0].public_ip}"
@@ -441,6 +438,7 @@ class VDCDeploy(GedisChatBot):
         ):
             j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
             self.stop(f"Failed to initialize VDC on {threebot_url} , please contact support")
+        j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
 
     @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
@@ -461,7 +459,6 @@ class VDCDeploy(GedisChatBot):
             Visit https://{self.vdc.threebot.domain}/vdc_dashboard/api/refer/{solution} to deploy a new instance of {solution.capitalize()}.
             """
             )
-        j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
         self.md_show(dedent(msg), md=True)
 
 
