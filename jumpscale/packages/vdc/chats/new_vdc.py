@@ -354,7 +354,7 @@ class VDCDeploy(GedisChatBot):
 
         try:
             self.deployer = self.vdc.get_deployer(
-                password=self.password,
+                password=self.vdc_secret,
                 bot=self,
                 restore=self.restore,
                 network_farm=self.network_farm,

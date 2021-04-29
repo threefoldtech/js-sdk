@@ -90,6 +90,7 @@ class VDCDeployer:
         self.bot = bot
         self._identity = identity
         self.password = password
+        self.password_hash = None
         self.email = f"vdc_{self.vdc_instance.solution_uuid}"
         self.wallet_name = self.vdc_instance.provision_wallet.instance_name
         self.proxy_farm_name = proxy_farm_name or random.choice(PROXY_FARMS.get())
@@ -228,8 +229,9 @@ class VDCDeployer:
         # create a user identity from an old one or create a new one
         if self._identity:
             return
+        self.password_hash = j.data.hash.md5(self.password)
         username = VDC_IDENTITY_FORMAT.format(self.tname, self.vdc_name, self.vdc_uuid)
-        words = j.data.encryption.key_to_mnemonic(self.password.encode())
+        words = j.data.encryption.key_to_mnemonic(self.password_hash.encode())
         identity_name = f"vdc_ident_{self.vdc_uuid}"
         self._identity = j.core.identity.get(
             identity_name, tname=username, email=self.email, words=words, explorer_url=j.core.identity.me.explorer_url
@@ -408,7 +410,7 @@ class VDCDeployer:
                 pool_id=pool_id,
                 scheduler=gs,
                 storage_per_zdb=ZDB_STARTING_SIZE,
-                password=self.password,
+                password=self.password_hash,
                 solution_uuid=self.vdc_uuid,
                 no_nodes=no_nodes,
             )
@@ -436,7 +438,7 @@ class VDCDeployer:
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         pub_keys = pub_keys or []
         master_ip = self.kubernetes.deploy_master(
-            master_pool_id, gs, master_size, self.password, pub_keys, self.vdc_uuid, nv, endpoint
+            master_pool_id, gs, master_size, self.password_hash, pub_keys, self.vdc_uuid, nv, endpoint
         )
         if not master_ip:
             self.error(f"failed to deploy kubernetes master")
@@ -450,7 +452,7 @@ class VDCDeployer:
             compute_farm,
             master_ip,
             VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"],
-            self.password,
+            self.password_hash,
             [self.ssh_key.public_key.strip()],
             1,
             duration=INITIAL_RESERVATION_DURATION / 24,
@@ -562,6 +564,8 @@ class VDCDeployer:
             farm_name: where to initialize the vdc
             s3_backup_config: dict with keys: url, region, bucket, ak, sk
         """
+        if not self.password_hash:
+            raise j.exceptions.Value("Please set a password while getting deployer object")
         self.info(f"Deploying VDC flavor: {self.flavor} farm: {self.compute_farm}")
         # if len(minio_ak) < 3 or len(minio_sk) < 8:
         #     raise j.exceptions.Validation(
@@ -622,7 +626,7 @@ class VDCDeployer:
             #     scheduler,
             #     zdb_wids,
             #     self.vdc_uuid,
-            #     self.password,
+            #     self.password_hash,
             # )
             # self.info(f"minio_wid: {minio_wid}")
             # if not minio_wid:
