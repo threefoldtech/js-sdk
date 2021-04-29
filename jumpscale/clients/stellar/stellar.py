@@ -539,8 +539,11 @@ class Stellar(Client):
             )
 
         horizon_server = self._get_horizon_server()
+        if fund_transaction and asset_code == "TFT":
+            base_fee = 0
+        else:
+            base_fee = horizon_server.fetch_base_fee()
 
-        # base_fee = horizon_server.fetch_base_fee()
         if from_address:
             source_account = horizon_server.load_account(from_address)
         else:
@@ -550,7 +553,9 @@ class Stellar(Client):
             source_account.sequence = sequence_number
 
         transaction_builder = stellar_sdk.TransactionBuilder(
-            source_account=source_account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value], base_fee=0
+            source_account=source_account,
+            network_passphrase=_NETWORK_PASSPHRASES[self.network.value],
+            base_fee=base_fee,
         )
         transaction_builder.append_payment_op(
             destination=destination_address,
@@ -559,7 +564,7 @@ class Stellar(Client):
             asset_issuer=issuer,
             source=source_account.account_id,
         )
-        if fund_transaction:
+        if fund_transaction and asset_code == "TFT":
             fund_operation_data = self._get_fund_transaction_conditions(asset)
             transaction_builder.append_payment_op(
                 destination=fund_operation_data["fee_account_id"],
@@ -587,7 +592,7 @@ class Stellar(Client):
 
         tx_hash = ""
         if asset_code in _NETWORK_KNOWN_TRUSTS[self.network.value]:
-            if fund_transaction:
+            if fund_transaction and asset_code == "TFT":
                 transaction = self._fund_transaction(transaction=transaction.to_xdr())
                 tx_hash = transaction["transactionhash"]
         else:
