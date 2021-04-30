@@ -104,7 +104,7 @@ class NginxPackageConfig:
                         "path_url": j.sals.fs.join_paths(
                             self.package.base_url, bottle_server.get("path_url").lstrip("/")
                         ),
-                        "path_dest": f"/{self.package.name}/",
+                        "path_dest": f"/{self.package.name}{bottle_server.get('path_dest')}",
                         "websocket": bottle_server.get("websocket"),
                         "force_https": self.package.config.get("force_https", True),
                     }
