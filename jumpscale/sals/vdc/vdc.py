@@ -2,6 +2,7 @@ from collections import defaultdict
 import datetime
 import random
 import uuid
+from enum import Enum
 
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
@@ -31,6 +32,13 @@ VDC_WORKLOAD_TYPES = [
 ]
 
 
+class VDCSTATE(Enum):
+    CREATING = "CREATING"
+    DEPLOYED = "DEPLOYED"
+    ERROR = "ERROR"
+    EMPTY = "EMPTY"
+
+
 class UserVDC(Base):
     vdc_name = fields.String()
     owner_tname = fields.String()
@@ -41,10 +49,12 @@ class UserVDC(Base):
     etcd = fields.List(fields.Object(ETCDNode))
     threebot = fields.Object(VDCThreebot)
     created = fields.DateTime(default=datetime.datetime.utcnow)
+    expiration = fields.Float(default=lambda: j.data.time.utcnow().timestamp + 30 * 24 * 60 * 60)
     last_updated = fields.DateTime(default=datetime.datetime.utcnow)
     is_blocked = fields.Boolean(default=False)  # grace period action is applied
     explorer_url = fields.String(default=lambda: j.core.identity.me.explorer_url)
     _flavor = fields.String()
+    state = fields.Enum(VDCSTATE)
 
     @property
     def flavor(self):
@@ -266,7 +276,7 @@ class UserVDC(Base):
 
     def _filter_vdc_workloads(self):
         zos = get_zos()
-        user_workloads = zos.workloads.list(self.identity_tid, next_action=NextAction.DEPLOY)
+        user_workloads = zos.workloads.list_workloads(self.identity_tid, next_action=NextAction.DEPLOY)
         result = []
         for workload in user_workloads:
             if workload.info.workload_type not in VDC_WORKLOAD_TYPES:
@@ -716,9 +726,9 @@ class UserVDC(Base):
         metadata = j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata, identity.instance_name)
         return j.data.serializers.json.loads(metadata)
 
-    def calculate_spec_price(self):
+    def calculate_spec_price(self, load_info=True):
         discount = FARM_DISCOUNT.get()
-        current_spec = self.get_current_spec()
+        current_spec = self.get_current_spec(load_info)
         total_price = (
             VDC_SIZE.PRICES["plans"][self.flavor]
             + current_spec["services"][VDC_SIZE.Services.IP] * VDC_SIZE.PRICES["services"][VDC_SIZE.Services.IP]
@@ -736,7 +746,7 @@ class UserVDC(Base):
         prepaid_wallet_balance = self._get_wallet_balance(self.prepaid_wallet)
         provision_wallet_balance = self._get_wallet_balance(self.provision_wallet)
 
-        days_prepaid_can_fund = (prepaid_wallet_balance / self.calculate_spec_price()) * 30
+        days_prepaid_can_fund = (prepaid_wallet_balance / self.calculate_spec_price(load_info)) * 30
         days_provisioning_can_fund = provision_wallet_balance / (self.calculate_active_units_price() * 60 * 60 * 24)
         return days_prepaid_can_fund + days_provisioning_can_fund
 
