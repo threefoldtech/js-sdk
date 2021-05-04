@@ -426,6 +426,30 @@ class ContainerStats(Base):
     data = fields.Object(ContainerStatsRedis)
 
 
+VMSIZES = OrderedDict(
+    {
+        1: {"cru": 1, "mru": 2, "sru": 50},
+        2: {"cru": 2, "mru": 4, "sru": 100},
+        3: {"cru": 2, "mru": 8, "sru": 25},
+        4: {"cru": 2, "mru": 5, "sru": 50},
+        5: {"cru": 2, "mru": 8, "sru": 200},
+        6: {"cru": 4, "mru": 16, "sru": 50},
+        7: {"cru": 4, "mru": 16, "sru": 100},
+        8: {"cru": 4, "mru": 16, "sru": 400},
+        9: {"cru": 8, "mru": 32, "sru": 100},
+        10: {"cru": 8, "mru": 32, "sru": 200},
+        11: {"cru": 8, "mru": 32, "sru": 800},
+        12: {"cru": 16, "mru": 64, "sru": 200},
+        13: {"cru": 16, "mru": 64, "sru": 400},
+        14: {"cru": 16, "mru": 64, "sru": 800},
+        15: {"cru": 1, "mru": 2, "sru": 25},
+        16: {"cru": 2, "mru": 4, "sru": 50},
+        17: {"cru": 4, "mru": 8, "sru": 50},
+        18: {"cru": 1, "mru": 1, "sru": 25},
+    }
+)
+
+
 class K8s(Base):
     id = fields.Integer()
     size = fields.Integer()
@@ -440,33 +464,10 @@ class K8s(Base):
     datastore_endpoint = fields.String(default="")
     disable_default_ingress = fields.Boolean(default=True)
 
-    SIZES = OrderedDict(
-        {
-            1: {"cru": 1, "mru": 2, "sru": 50},
-            2: {"cru": 2, "mru": 4, "sru": 100},
-            3: {"cru": 2, "mru": 8, "sru": 25},
-            4: {"cru": 2, "mru": 5, "sru": 50},
-            5: {"cru": 2, "mru": 8, "sru": 200},
-            6: {"cru": 4, "mru": 16, "sru": 50},
-            7: {"cru": 4, "mru": 16, "sru": 100},
-            8: {"cru": 4, "mru": 16, "sru": 400},
-            9: {"cru": 8, "mru": 32, "sru": 100},
-            10: {"cru": 8, "mru": 32, "sru": 200},
-            11: {"cru": 8, "mru": 32, "sru": 800},
-            12: {"cru": 16, "mru": 64, "sru": 200},
-            13: {"cru": 16, "mru": 64, "sru": 400},
-            14: {"cru": 16, "mru": 64, "sru": 800},
-            15: {"cru": 1, "mru": 2, "sru": 25},
-            16: {"cru": 2, "mru": 4, "sru": 50},
-            17: {"cru": 4, "mru": 8, "sru": 50},
-            18: {"cru": 1, "mru": 1, "sru": 25},
-        }
-    )
-
     def resource_units(self):
 
         resource_units = ResourceUnitAmount()
-        size = self.SIZES.get(self.size)
+        size = VMSIZES.get(self.size)
         if not size:
             raise j.exceptions.Input(f"kubernetes size {self.size} not supported")
 
@@ -554,35 +555,12 @@ class VirtualMachine(Base):
     public_ip = fields.Integer()
     ipaddress = fields.IPAddress()
 
-    SIZES = OrderedDict(
-        {
-            1: {"cru": 1, "mru": 2, "sru": 50},
-            2: {"cru": 2, "mru": 4, "sru": 100},
-            3: {"cru": 2, "mru": 8, "sru": 25},
-            4: {"cru": 2, "mru": 5, "sru": 50},
-            5: {"cru": 2, "mru": 8, "sru": 200},
-            6: {"cru": 4, "mru": 16, "sru": 50},
-            7: {"cru": 4, "mru": 16, "sru": 100},
-            8: {"cru": 4, "mru": 16, "sru": 400},
-            9: {"cru": 8, "mru": 32, "sru": 100},
-            10: {"cru": 8, "mru": 32, "sru": 200},
-            11: {"cru": 8, "mru": 32, "sru": 800},
-            12: {"cru": 16, "mru": 64, "sru": 200},
-            13: {"cru": 16, "mru": 64, "sru": 400},
-            14: {"cru": 16, "mru": 64, "sru": 800},
-            15: {"cru": 1, "mru": 2, "sru": 25},
-            16: {"cru": 2, "mru": 4, "sru": 50},
-            17: {"cru": 4, "mru": 8, "sru": 50},
-            18: {"cru": 1, "mru": 1, "sru": 25},
-        }
-    )
-
     def resource_units(self):
 
         resource_units = ResourceUnitAmount()
-        size = self.SIZES.get(self.size)
+        size = VMSIZES.get(self.size)
         if not size:
-            raise j.exceptions.Input(f"kubernetes size {self.size} not supported")
+            raise j.exceptions.Input(f"VM size {self.size} not supported")
 
         resource_units.cru += size["cru"]
         resource_units.mru += size["mru"]
