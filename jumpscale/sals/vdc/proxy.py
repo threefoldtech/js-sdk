@@ -365,7 +365,7 @@ class VDCProxy(VDCBaseComponent):
                 return subdomain
             except DeploymentFailed:
                 self.vdc_deployer.error(
-                    f"Proxy reservation for wid: {wid} failed on node: {node.node_id}, subdomain: {subdomain}, gateway: {gateway.node_id}, vdc uuid: {self.vdc_uuid}"
+                    f"Proxy reservation for wid: {wid} failed on node: {node.node_id}, subdomain: {subdomain}, gateway: {gateway.node_id}"
                 )
                 if cont_id:
                     self.zos.workloads.decomission(cont_id)
@@ -525,9 +525,7 @@ class VDCProxy(VDCBaseComponent):
         scheduler = scheduler or Scheduler(self.farm_name)
         workload = self.zos.workloads.get(wid)
         if workload.info.workload_type != WorkloadType.Container:
-            raise j.exceptions.Validation(
-                f"can't expose workload {wid} of type {workload.info.workload_type}, vdc uuid: {self.vdc_uuid}"
-            )
+            raise j.exceptions.Validation(f"can't expose workload {wid} of type {workload.info.workload_type}")
 
         pool_id = pool_id or workload.info.pool_id
         ip_address = workload.network_connection[0].ipaddress
@@ -690,7 +688,5 @@ class VDCProxy(VDCBaseComponent):
             warn=True,
         )
         if rc != 0:
-            j.exceptions.Runtime(
-                f"failed to expose port using socat. rc: {rc}, out: {out}, err: {err}, vdc uuid: {self.vdc_uuid}"
-            )
+            j.exceptions.Runtime(f"failed to expose port using socat. rc: {rc}, out: {out}, err: {err}")
         return public_ip
