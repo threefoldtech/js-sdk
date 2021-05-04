@@ -85,7 +85,8 @@ class KubernetesMonitor:
                 j.logger.warning(
                     f"k8s monitor: failed to get node: {node_name} usage due to error: {e}, vdc uuid: {self.vdc_instance.solution_uuid}"
                 )
-                continue
+                cpu_mill = cpu_percentage = memory_usage = memory_percentage = 0
+
             cpu_percentage = cpu_percentage or 1
             memory_percentage = memory_percentage or 1
             self._node_stats[node_name] = {
