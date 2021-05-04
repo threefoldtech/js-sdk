@@ -63,7 +63,7 @@ def report_vdc_status(vdc_name: str):
         master_ip = vdc.kubernetes[0].public_ip
         threebot_ip = vdc.threebot.ip_address
         master_ip_state = "Up" if j.sals.nettools.tcp_connection_test(vdc.kubernetes[0].public_ip, 6443, 10) else "Down"
-        threebot_domain = vdc.threebot.domain
+        threebot_domain = f"https://{vdc.threebot.domain}"
         threebot_domain_state = "Up" if j.sals.nettools.wait_http_test(threebot_domain, timeout=10) else "Down"
     print(
         f"Creation time: {creation_time}\n"
