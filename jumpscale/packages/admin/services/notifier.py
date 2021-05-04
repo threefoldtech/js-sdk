@@ -1,8 +1,10 @@
 from jumpscale.loader import j
 
+import telegram
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 MAIL_QUEUE = "MAIL_QUEUE"
+TELEGRAM_QUEUE = "TELEGRAM_QUEUE"
 
 
 class Notifier(BackgroundService):
@@ -35,6 +37,24 @@ class Notifier(BackgroundService):
                 self.send_mail(recipients_emails, subject, message, sender)
             except Exception as e:
                 j.logger.exception(f"Failed to send mail: {mail_info_json}", exception=e)
+        while True:
+            telegram_msg_json = j.core.db.lpop(TELEGRAM_QUEUE)
+            if not telegram_msg_json:
+                break
+            try:
+                telegram_msg = j.data.serializers.json.loads(telegram_msg_json.decode())
+                self.send_telegram_msg(msg=telegram_msg)
+
+            except Exception as e:
+                j.logger.exception(f"Failed to send Telegram message: {telegram_msg_json}", exception=e)
+
+    def send_telegram_msg(self, msg):
+        telegram_config = j.core.config.get("VDC_TELEGRAM_CHAT_CONFIG")
+        token = telegram_config.get("token")
+        chat_id = telegram_config.get("chat_id")
+        msg = "\n".join(msg)
+        bot = telegram.Bot(token=token)
+        bot.sendMessage(chat_id=chat_id, text=msg)
 
     def send_mail(self, recipients_emails, sender, subject, message):
         recipients_emails = recipients_emails or []
