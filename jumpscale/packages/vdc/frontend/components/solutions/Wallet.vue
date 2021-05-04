@@ -71,32 +71,54 @@
 
 <script>
 module.exports = {
-  props: { wallet: Object, price: Number },
+  props: ["vdcname"],
   mixins: [dialog],
   data() {
     return {
+      wallet: null,
+      price: null,
       showSecret: false,
       qrcode: "",
-      currentWalletAddress: null,
+      lastVdcName: "",
     };
   },
 
   methods: {
+    getVdcInfo() {
+      this.loading = true;
+      this.$api.solutions
+        .getVdcInfo(this.vdcname)
+        .then((response) => {
+          this.wallet = response.data.wallet;
+          this.price = response.data.price;
+          this.lastVdcName = this.vdcname;
+          this.getQRCode();
+        })
+        .catch((err) => {
+          console.log(err);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
     getQRCode() {
       this.$api.wallets
         .walletQRCodeImage(this.wallet.address, this.price, 3)
         .then((result) => {
           this.qrcode = result.data.data;
-          this.currentWalletAddress = this.wallet.address;
         })
         .catch((err) => {
           console.log(err);
         });
     },
   },
+  mounted() {
+    this.getVdcInfo();
+  },
   updated() {
-    if (this.wallet && this.currentWalletAddress !== this.wallet.address) {
-      this.getQRCode();
+    if (this.wallet && !this.loading && this.lastVdcName !== this.vdcname) {
+      this.wallet = null;
+      this.getVdcInfo();
     }
   },
 };

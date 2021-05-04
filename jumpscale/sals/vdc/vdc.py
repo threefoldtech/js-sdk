@@ -49,6 +49,7 @@ class UserVDC(Base):
     etcd = fields.List(fields.Object(ETCDNode))
     threebot = fields.Object(VDCThreebot)
     created = fields.DateTime(default=datetime.datetime.utcnow)
+    expiration = fields.Float(default=lambda: j.data.time.utcnow().timestamp + 30 * 24 * 60 * 60)
     last_updated = fields.DateTime(default=datetime.datetime.utcnow)
     is_blocked = fields.Boolean(default=False)  # grace period action is applied
     explorer_url = fields.String(default=lambda: j.core.identity.me.explorer_url)
