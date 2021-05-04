@@ -47,7 +47,7 @@ class VDCPublicIP(VDCBaseComponent):
                     wid, self.bot, 5, cancel_by_uuid=False, identity_name=self.identity.instance_name
                 )
                 if not success:
-                    raise DeploymentFailed(f"Public ip workload failed. wid: {wid}, vdc uuid: {self.vdc_uuid}")
+                    raise DeploymentFailed(f"Public ip workload failed. wid: {wid}")
                 return wid
             except DeploymentFailed as e:
                 self.vdc_deployer.error(
