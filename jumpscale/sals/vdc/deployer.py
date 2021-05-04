@@ -354,7 +354,7 @@ class VDCDeployer:
         for pool in self.zos.pools.list():
             scheduler = Scheduler(pool_id=pool.pool_id)
             network_success = False
-            for access_node in scheduler.nodes_by_capacity(ip_version=IP_VERSION):
+            for access_node in scheduler.nodes_by_capacity(ip_version=IP_VERSION, accessnodes=True):
                 self.info(f"deploying network on node {access_node.node_id}")
                 network_success = True
                 result = deployer.deploy_network(

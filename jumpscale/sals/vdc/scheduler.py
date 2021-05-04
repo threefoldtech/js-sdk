@@ -72,7 +72,7 @@ class Scheduler:
                 node.reserved_resources.hru += hru
 
     def nodes_by_capacity(
-        self, cru=None, sru=None, mru=None, hru=None, ip_version=None, public_ip=None,
+        self, cru=None, sru=None, mru=None, hru=None, ip_version=None, public_ip=None, accessnodes=False
     ):
         """search node with the ability to filter on different criteria
 
@@ -82,6 +82,7 @@ class Scheduler:
           mru: int:  (Default value = None)
           hru: int:  (Default value = None)
           ip_version: str:  (Default value = None)
+          accessnodes: bool: (Default value = False)
 
         yields:
             node
@@ -105,6 +106,10 @@ class Scheduler:
             if public_ip and not self.check_node_public_ip_bridge(node):
                 continue
 
+            # Exclude accessnodes
+            if not accessnodes and self.check_accessnode(node):
+                continue
+
             self._update_node(node, cru, mru, sru, hru)
             yield node
 
@@ -115,6 +120,12 @@ class Scheduler:
         for iface in node.ifaces:
             if iface.name == "br-pub":
                 return True
+
+        return False
+
+    def check_accessnode(self, node):
+        if any([self.zos.nodes_finder.filter_accessnode_ip4(node), self.zos.nodes_finder.filter_accessnode_ip6(node)]):
+            return True
 
         return False
 
