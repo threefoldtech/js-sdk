@@ -33,7 +33,8 @@ requests_unixsocket = "^0.2.0"
 protobuf = "^3.12.2"
 namecom = "^0.5.0"
 crontab = "^0.22.9"
-python-telegram-bot = ""
+python-telegram-bot = "^13.4.1"
+
 
 [tool.poetry.dev-dependencies]
 ipython = "^7.6"
