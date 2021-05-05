@@ -19,7 +19,6 @@ class UpdateExpiration(BackgroundService):
 
     def update_expiration(self, name):
         vdc = j.sals.vdc.get(name)
-        vdc.load_info()
         if vdc.is_empty():
             return
         vdc.expiration = vdc.calculate_expiration_value()

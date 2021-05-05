@@ -28,7 +28,6 @@ def _list_vdcs():
         if vdc.state == VDCSTATE.EMPTY:
             return
 
-        vdc.load_info()
         if vdc.is_empty():
             j.logger.warning(f"vdc {vdc.solution_uuid} is empty")
             vdc.state = VDCSTATE.EMPTY
