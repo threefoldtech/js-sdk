@@ -16,6 +16,7 @@ class Notifier(BackgroundService):
 
     def job(self):
         self.mail_notifier()
+        self.telegram_notifier()
 
     def mail_notifier(self):
         """Pick mails from redis queue and send them.
@@ -37,13 +38,18 @@ class Notifier(BackgroundService):
                 self.send_mail(recipients_emails, subject, message, sender)
             except Exception as e:
                 j.logger.exception(f"Failed to send mail: {mail_info_json}", exception=e)
+
+    def telegram_notifier(self):
+        """
+        send messages to telegram group VDCs Monitoring from redis queue.
+        """
         while True:
             telegram_msg_json = j.core.db.lpop(TELEGRAM_QUEUE)
             if not telegram_msg_json:
                 break
             try:
-                telegram_msg = j.data.serializers.json.loads(telegram_msg_json.decode())
-                self.send_telegram_msg(msg=telegram_msg)
+                telegram_msgs = j.data.serializers.json.loads(telegram_msg_json.decode())
+                self.send_telegram_msg(msg=telegram_msgs)
 
             except Exception as e:
                 j.logger.exception(f"Failed to send Telegram message: {telegram_msg_json}", exception=e)

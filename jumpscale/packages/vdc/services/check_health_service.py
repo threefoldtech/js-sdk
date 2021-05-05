@@ -11,9 +11,9 @@ class HealthCheckService(BackgroundService):
 
     def job(self):
         j.logger.debug("Health check service started.")
+        messages = []
         for vdc_name in j.sals.vdc.list_all():
             vdc_instance = j.sals.vdc.find(vdc_name, load_info=True)
-            messages = []
             if vdc_instance.has_minimal_components():
                 # check ip units to be enough for a week
                 pool_id = vdc_instance.kubernetes[0].pool_id
@@ -53,9 +53,10 @@ class HealthCheckService(BackgroundService):
                         app_name="health_check_service", category="vdc_threebot", message=err_msg, alert_type="vdc"
                     )
                     continue
-                if messages:
-                    j.core.db.rpush(TELEGRAM_QUEUE, j.data.serializers.json.dumps(messages))
                 j.logger.info(f"VDC: {vdc_name} is alive")
+
+        if messages:
+            j.core.db.rpush(TELEGRAM_QUEUE, j.data.serializers.json.dumps(messages))
         j.logger.debug("Health check service ended.")
 
 
