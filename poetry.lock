@@ -1450,6 +1450,25 @@ requests = ">2.11"
 six = ">=1.9"
 
 [[package]]
+name = "python-telegram-bot"
+version = "13.5"
+description = "We have made you a wrapper you can't refuse"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+APScheduler = "3.6.3"
+certifi = "*"
+pytz = ">=2018.6"
+tornado = ">=5.1"
+
+[package.extras]
+json = ["ujson"]
+passport = ["cryptography (!=3.4,!=3.4.1,!=3.4.2,!=3.4.3)"]
+socks = ["pysocks"]
+
+[[package]]
 name = "pytoml"
 version = "0.1.21"
 description = "A parser for TOML-0.4.0"
@@ -2679,6 +2698,10 @@ python-http-client = [
 python-taiga = [
     {file = "python-taiga-1.0.0.tar.gz", hash = "sha256:4ab4ae81324c8b4c8a7dae3a3300096326181e5074b238516a134825df0c25a3"},
     {file = "python_taiga-1.0.0-py2.py3-none-any.whl", hash = "sha256:d18fe441428ba2084f0442516d42f9b5787ec113e80c80ea761a47579d3a7412"},
+]
+python-telegram-bot = [
+    {file = "python-telegram-bot-13.5.tar.gz", hash = "sha256:83dbf4cd46327fd818bb6655f2508024a0ade68ebdb3544da35c469adc23bddb"},
+    {file = "python_telegram_bot-13.5-py3-none-any.whl", hash = "sha256:3f2887317ab045fc65d3c2905a66fd2c5dafcaa96af36700ac8cfaa5a51fd3ee"},
 ]
 pytoml = [
     {file = "pytoml-0.1.21-py2.py3-none-any.whl", hash = "sha256:57a21e6347049f73bfb62011ff34cd72774c031b9828cb628a752225136dfc33"},
