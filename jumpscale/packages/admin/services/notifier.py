@@ -40,8 +40,11 @@ class Notifier(BackgroundService):
                 j.logger.exception(f"Failed to send mail: {mail_info_json}", exception=e)
 
     def telegram_notifier(self):
-        """
-        send messages to telegram group VDCs Monitoring from redis queue.
+        """send messages to telegram group Monitoring from redis queue.
+
+        example:
+        messages = '[message1, message2]'
+        j.core.db.rpush("TELEGRAM_QUEUE", messages)
         """
         while True:
             telegram_msg_json = j.core.db.lpop(TELEGRAM_QUEUE)
@@ -55,7 +58,7 @@ class Notifier(BackgroundService):
                 j.logger.exception(f"Failed to send Telegram message: {telegram_msg_json}", exception=e)
 
     def send_telegram_msg(self, msg):
-        telegram_config = j.core.config.get("VDC_TELEGRAM_CHAT_CONFIG")
+        telegram_config = j.core.config.get("TELEGRAM_CHAT_CONFIG")
         token = telegram_config.get("token")
         chat_id = telegram_config.get("chat_id")
         msg = "\n".join(msg)
