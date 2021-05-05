@@ -76,7 +76,9 @@ class UserVDC(Base):
             node["size"] = node["_size"]
         return d
 
-    def is_empty(self):
+    def is_empty(self, load_info=True):
+        if load_info:
+            self.load_info()
         if any([self.kubernetes, self.threebot.wid, self.threebot.domain, self.s3.minio.wid, self.s3.zdbs]):
             return False
         return True

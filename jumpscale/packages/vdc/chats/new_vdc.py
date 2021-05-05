@@ -78,7 +78,9 @@ class VDCDeploy(GedisChatBot):
         self.vdc.save()
 
     def _vdc_form(self):
-        vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username, load_info=True) if not vdc.is_empty()]
+        vdc_names = [
+            vdc.vdc_name for vdc in j.sals.vdc.list(self.username, load_info=True) if not vdc.is_empty(load_info=False)
+        ]
         vdc_flavors = [flavor for flavor in VDC_SIZE.VDC_FLAVORS]
         vdc_flavor_messages = []
         for flavor in vdc_flavors:
@@ -341,7 +343,7 @@ class VDCDeploy(GedisChatBot):
         if self.vdc:
             if not self.vdc.is_empty():
                 j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
-                self.stop(f"There is another active vdc with name {self.vdc_name}")
+                self.stop(f"There is another active vdc with name {self.vdc_name.value}")
             j.sals.vdc.delete(self.vdc_instance_name)
         self.vdc = j.sals.vdc.new(
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDC_SIZE.VDCFlavor[self.vdc_flavor],
