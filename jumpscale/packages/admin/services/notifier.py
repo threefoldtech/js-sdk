@@ -1,8 +1,10 @@
 from jumpscale.loader import j
 
+import telegram
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 MAIL_QUEUE = "MAIL_QUEUE"
+TELEGRAM_QUEUE = "TELEGRAM_QUEUE"
 
 
 class Notifier(BackgroundService):
@@ -14,6 +16,7 @@ class Notifier(BackgroundService):
 
     def job(self):
         self.mail_notifier()
+        self.telegram_notifier()
 
     def mail_notifier(self):
         """Pick mails from redis queue and send them.
@@ -35,6 +38,32 @@ class Notifier(BackgroundService):
                 self.send_mail(recipients_emails, subject, message, sender)
             except Exception as e:
                 j.logger.exception(f"Failed to send mail: {mail_info_json}", exception=e)
+
+    def telegram_notifier(self):
+        """send messages to telegram group Monitoring from redis queue.
+
+        example:
+        messages = '[message1, message2]'
+        j.core.db.rpush("TELEGRAM_QUEUE", messages)
+        """
+        while True:
+            telegram_msg_json = j.core.db.lpop(TELEGRAM_QUEUE)
+            if not telegram_msg_json:
+                break
+            try:
+                telegram_msgs = j.data.serializers.json.loads(telegram_msg_json.decode())
+                self.send_telegram_msg(msg=telegram_msgs)
+
+            except Exception as e:
+                j.logger.exception(f"Failed to send Telegram message: {telegram_msg_json}", exception=e)
+
+    def send_telegram_msg(self, msg):
+        telegram_config = j.core.config.get("TELEGRAM_CHAT_CONFIG")
+        token = telegram_config.get("token")
+        chat_id = telegram_config.get("chat_id")
+        msg = "\n".join(msg)
+        bot = telegram.Bot(token=token)
+        bot.sendMessage(chat_id=chat_id, text=msg)
 
     def send_mail(self, recipients_emails, sender, subject, message):
         recipients_emails = recipients_emails or []
