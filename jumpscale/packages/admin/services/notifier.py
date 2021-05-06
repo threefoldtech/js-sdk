@@ -61,7 +61,7 @@ class Notifier(BackgroundService):
         telegram_config = j.core.config.get("TELEGRAM_CHAT_CONFIG")
         token = telegram_config.get("token")
         chat_id = telegram_config.get("chat_id")
-        msg = "\n".join(msg)
+        msg = "\n\n".join(msg)
         bot = telegram.Bot(token=token)
         bot.sendMessage(chat_id=chat_id, text=msg)
 
