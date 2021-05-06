@@ -1,7 +1,8 @@
+import gevent
 from jumpscale.loader import j
-from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 from jumpscale.packages.admin.services.notifier import TELEGRAM_QUEUE
+from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 
 class HealthCheckService(BackgroundService):
@@ -54,6 +55,7 @@ class HealthCheckService(BackgroundService):
                     )
                     continue
                 j.logger.info(f"VDC: {vdc_name} is alive")
+            gevent.sleep(0.1)
 
         if messages:
             j.core.db.rpush(TELEGRAM_QUEUE, j.data.serializers.json.dumps(messages))

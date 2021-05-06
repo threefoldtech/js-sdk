@@ -1,4 +1,6 @@
+import gevent
 from jumpscale.loader import j
+
 from jumpscale.sals.vdc import VDCFACTORY
 from jumpscale.sals.vdc.grace_period import GRACE_PERIOD_FACTORY
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
@@ -20,12 +22,14 @@ class GracePeriodWatcher(BackgroundService):
                     GRACE_PERIOD_FACTORY.start_grace_period(vdc_instance)
                 except Exception as e:
                     j.logger.critical(f"Error starting grace period for vdc: {vdc_name}:\n{str(e)}")
+            gevent.sleep(0.1)
 
         for gp in GRACE_PERIOD_FACTORY.list_active_grace_periods():
             try:
                 gp.update_status()
             except Exception as e:
                 j.logger.critical(f"Error updating grace period status: {gp.instance_name}:\n{str(e)}")
+            gevent.sleep(0.1)
 
 
 service = GracePeriodWatcher()
