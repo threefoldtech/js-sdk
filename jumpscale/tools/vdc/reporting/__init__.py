@@ -65,35 +65,37 @@ def report_vdc_status(vdc_name: str):
         master_ip_state = "Up" if j.sals.nettools.tcp_connection_test(vdc.kubernetes[0].public_ip, 6443, 10) else "Down"
         threebot_domain = f"https://{vdc.threebot.domain}"
         threebot_domain_state = "Up" if j.sals.nettools.wait_http_test(threebot_domain, timeout=10) else "Down"
-        print(
-            f"Creation time: {creation_time}\n"
-            f"Expiration time: {expiration_time}\n"
-            f"Flavor: {flavor}\n"
-            f"Grace Period:  {grace_period}\n"
-            f"Master IP:  {master_ip}  --> State: {master_ip_state}\n"
-            f"Threebot IP: {threebot_ip}\n"
-            f"Threebot Domain: {threebot_domain}  --> State {threebot_domain_state}\n"
-        )
-        workloads = _filter_vdc_workloads(vdc)
-    else:
-        print("\n<== No available data. Expired or invalid vdc ==>\n")
-        return
-    j.data.terminaltable.print_table(
-        f"Wallets",
-        [
-            ["Name", "Address", "Balance"],
-            [
-                vdc.prepaid_wallet.instance_name,
-                vdc.prepaid_wallet.address,
-                f"{vdc.prepaid_wallet.get_balance().balances[0].balance} TFT",
-            ],
-            [
-                vdc.provision_wallet.instance_name,
-                vdc.provision_wallet.address,
-                f"{vdc.provision_wallet.get_balance().balances[0].balance} TFT",
-            ],
-        ],
+
+    print(
+        f"Creation time: {creation_time}\n"
+        f"Expiration time: {expiration_time}\n"
+        f"Flavor: {flavor}\n"
+        f"Grace Period:  {grace_period}\n"
+        f"Master IP:  {master_ip}  --> State: {master_ip_state}\n"
+        f"Threebot IP: {threebot_ip}\n"
+        f"Threebot Domain: {threebot_domain}  --> State {threebot_domain_state}\n"
     )
+    workloads = _filter_vdc_workloads(vdc)
+
+    try:
+        j.data.terminaltable.print_table(
+            f"Wallets",
+            [
+                ["Name", "Address", "Balance"],
+                [
+                    vdc.prepaid_wallet.instance_name,
+                    vdc.prepaid_wallet.address,
+                    f"{vdc.prepaid_wallet.get_balance().balances[0].balance} TFT",
+                ],
+                [
+                    vdc.provision_wallet.instance_name,
+                    vdc.provision_wallet.address,
+                    f"{vdc.provision_wallet.get_balance().balances[0].balance} TFT",
+                ],
+            ],
+        )
+    except:
+        print("\n<== No available wallets data. Expired or invalid vdc ==>")
     print("\n")
 
     workloads_list = [["Wid", "Type", "State", "Farm", "PoolID", "IPv4Units", "NodeID", "NState", "Message"]]
