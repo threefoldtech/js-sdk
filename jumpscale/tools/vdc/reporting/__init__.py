@@ -65,17 +65,19 @@ def report_vdc_status(vdc_name: str):
         master_ip_state = "Up" if j.sals.nettools.tcp_connection_test(vdc.kubernetes[0].public_ip, 6443, 10) else "Down"
         threebot_domain = f"https://{vdc.threebot.domain}"
         threebot_domain_state = "Up" if j.sals.nettools.wait_http_test(threebot_domain, timeout=10) else "Down"
-    print(
-        f"Creation time: {creation_time}\n"
-        f"Expiration time: {expiration_time}\n"
-        f"Flavor: {flavor}\n"
-        f"Grace Period:  {grace_period}\n"
-        f"Master IP:  {master_ip}  --> State: {master_ip_state}\n"
-        f"Threebot IP: {threebot_ip}\n"
-        f"Threebot Domain: {threebot_domain}  --> State {threebot_domain_state}\n"
-    )
-    workloads = _filter_vdc_workloads(vdc)
-
+        print(
+            f"Creation time: {creation_time}\n"
+            f"Expiration time: {expiration_time}\n"
+            f"Flavor: {flavor}\n"
+            f"Grace Period:  {grace_period}\n"
+            f"Master IP:  {master_ip}  --> State: {master_ip_state}\n"
+            f"Threebot IP: {threebot_ip}\n"
+            f"Threebot Domain: {threebot_domain}  --> State {threebot_domain_state}\n"
+        )
+        workloads = _filter_vdc_workloads(vdc)
+    else:
+        print("\n<== No available data. Expired or invalid vdc ==>\n")
+        return
     j.data.terminaltable.print_table(
         f"Wallets",
         [
