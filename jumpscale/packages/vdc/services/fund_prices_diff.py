@@ -1,7 +1,9 @@
+import gevent
 from jumpscale.loader import j
+
+from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.sals.vdc import VDCFACTORY
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
-from jumpscale.clients.stellar import TRANSACTION_FEES
 
 
 class FundPricesDifference(BackgroundService):
@@ -63,6 +65,7 @@ class FundPricesDifference(BackgroundService):
                         f"FUND PRICES DIFF: Couldn't transfer {diff} to VDC {vdc_name} due to error: {str(e)}"
                     )
                 j.logger.info(f"FUND PRICES DIFF: VDC {vdc_instance.instance_name} funded with {diff} TFT")
+            gevent.sleep(0.1)
 
 
 service = FundPricesDifference()
