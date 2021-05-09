@@ -364,40 +364,18 @@ def update():
         branch = branch_param
     else:
         branch = os.environ.get("SDK_VERSION", "development")
-    cmds = [f"git checkout {branch}", "git pull"]
-
-    cwd = "/sandbox/code/github/threefoldtech/js-sdk"
-    poetry_trials = 5
-    poetry_update_failed = False
-    commit_id = ""
-    # Check if there is change in poetry.lock file
-    rc, out, err = j.sals.process.execute(f"git diff origin/{branch} poetry.lock", cwd=cwd)
+    # cmds = [f"git checkout {branch}", "git pull"]
+    # for cmd in cmds:
+    cmd = f"bash /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard/scripts/update.sh {branch}"
+    rc, out, err = j.sals.process.execute(cmd, cwd="/sandbox/code/github/threefoldtech/js-sdk")
     if rc:
-        j.logger.error(
-            "Couldn't validate if there are changes in the dependencies or not, during updating the dashboard"
+        return HTTPResponse(
+            j.data.serializers.json.dumps(
+                {"error": "failed to pull upstream", "stderr": err, "stdout": out, "code": rc, "cmd": cmd,}
+            ),
+            status=500,
+            headers={"Content-Type": "application/json"},
         )
-    else:
-        # Change in the poetry.lock file
-        if out:
-            # Get last commit ID
-            commit_id = get_last_commit_id()
-            # TODO: Get checkout and pull branch
-            if not able_update_poetry_dependencies(poetry_trials, cwd):
-                poetry_update_failed = True
-
-    if poetry_update_failed:
-        rollback_last_commit(commit_id, cwd)
-
-    for cmd in cmds:
-        rc, out, err = j.sals.process.execute(cmd, cwd=cwd)
-        if rc:
-            return HTTPResponse(
-                j.data.serializers.json.dumps(
-                    {"error": "failed to pull upstream", "stderr": err, "stdout": out, "code": rc, "cmd": cmd}
-                ),
-                status=500,
-                headers={"Content-Type": "application/json"},
-            )
     j.core.executors.run_tmux(
         "bash /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/tfgrid_solutions/scripts/threebot/restart.sh 5",
         "restart",
