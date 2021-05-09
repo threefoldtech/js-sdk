@@ -57,6 +57,7 @@ class NginxPackageConfig:
         is_package_authorized = self.package.config.get("is_package_authorized", False)
 
         for static_dir in self.package.static_dirs:
+            path_url = j.data.text.removeprefix(static_dir.get("path_url"), "/")
             default_server["locations"].append(
                 {
                     "is_auth": static_dir.get("is_auth", is_auth),
@@ -66,13 +67,14 @@ class NginxPackageConfig:
                     "name": static_dir.get("name"),
                     "spa": static_dir.get("spa"),
                     "index": static_dir.get("index"),
-                    "path_url": j.sals.fs.join_paths(self.package.base_url, static_dir.get("path_url").lstrip("/")),
+                    "path_url": j.sals.fs.join_paths(self.package.base_url, path_url),
                     "path_location": self.package.resolve_staticdir_location(static_dir),
                     "force_https": self.package.config.get("force_https", True),
                 }
             )
 
         for bottle_server in self.package.bottle_servers:
+            path_url = j.data.text.removeprefix(bottle_server.get("path_url"), "/")
             if hasattr(bottle_server, "standalone") and bottle_server.standalone:
                 default_server["locations"].append(
                     {
@@ -83,15 +85,14 @@ class NginxPackageConfig:
                         "name": bottle_server.get("name"),
                         "host": bottle_server.get("host"),
                         "port": bottle_server.get("port"),
-                        "path_url": j.sals.fs.join_paths(
-                            self.package.base_url, bottle_server.get("path_url").lstrip("/")
-                        ),
+                        "path_url": j.sals.fs.join_paths(self.package.base_url,),
                         "path_dest": bottle_server.get("path_dest"),
                         "websocket": bottle_server.get("websocket"),
                         "force_https": self.package.config.get("force_https", True),
                     }
                 )
             else:
+                path_url = j.data.text.removeprefix(bottle_server.get("path_url"), "/")
                 default_server["locations"].append(
                     {
                         "is_auth": bottle_server.get("is_auth", is_auth),
@@ -101,9 +102,7 @@ class NginxPackageConfig:
                         "name": bottle_server.get("name"),
                         "host": "0.0.0.0",
                         "port": 31000,
-                        "path_url": j.sals.fs.join_paths(
-                            self.package.base_url, bottle_server.get("path_url").lstrip("/")
-                        ),
+                        "path_url": j.sals.fs.join_paths(self.package.base_url, path_url),
                         "path_dest": f"/{self.package.name}{bottle_server.get('path_dest')}",
                         "websocket": bottle_server.get("websocket"),
                         "force_https": self.package.config.get("force_https", True),
