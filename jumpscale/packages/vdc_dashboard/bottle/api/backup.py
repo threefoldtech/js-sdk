@@ -1,10 +1,8 @@
 from bottle import Bottle, HTTPResponse, request
 from jumpscale.loader import j
-
 from jumpscale.packages.auth.bottle.auth import package_authorized
 
-from .app import app
-
+from .root import app
 
 VDC_BACKUP_PREFIX = "vdc-"
 CONFIG_BACKUP_PREFIX = "config-"

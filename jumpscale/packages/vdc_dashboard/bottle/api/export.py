@@ -1,9 +1,8 @@
 from bottle import Bottle, static_file
 from jumpscale.loader import j
-
 from jumpscale.packages.auth.bottle.auth import package_authorized
 
-from .app import app
+from .root import app
 
 
 @app.route("/api/threebot/export")
