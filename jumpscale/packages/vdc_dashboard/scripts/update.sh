@@ -34,7 +34,7 @@ git checkout $SDK_BRANCH || (>&2 echo "error: switch to the upstream branch <$SD
 
 # switch the branch
 RESET_SUCCEEDED=false
-(git reset --hard origin/$SDK_BRANCH && RESET_SUCCEEDED=true) || (ERR=2 && >&2 echo "Error: failed to hard reset files to HEAD")
+(git reset --soft origin/$SDK_BRANCH && RESET_SUCCEEDED=true) || (ERR=2 && >&2 echo "Error: failed to hard reset files to HEAD")
 
 if $RESET_SUCCEEDED; then
   if $POETRY_INSTALL; then
