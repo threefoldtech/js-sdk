@@ -14,7 +14,10 @@ if [ $1 ]; then SDK_BRANCH=$1; else SDK_BRANCH=development; fi
 echo "we will use origin/${SDK_BRANCH} branch to update the code"
 
 # find out if a local git branch with $SDK_BRANCH name exists in the repository
-git show-ref --verify --quiet refs/heads/$SDK_BRANCH || (>&2 echo "error: can't find the branch <$SDK_BRANCH> in the repository" && exit 4)
+if ! git show-ref --verify --quiet refs/heads/$SDK_BRANCH; then
+  >&2 echo "error: can't find the branch <$SDK_BRANCH> in the repository"
+  exit 4
+fi
 
 # save the current information to use in case of update failure
 SAVED_BRANCH_NAME=$(git branch --show-current)
@@ -30,11 +33,19 @@ if ! git diff --quiet origin/$SDK_BRANCH poetry.lock; then
 fi
 
 # git ride of the uncommited local changes 
-git checkout $SDK_BRANCH || (>&2 echo "error: switch to the upstream branch <$SDK_BRANCH> failed" && exit 3)
+if ! git checkout $SDK_BRANCH; then
+  >&2 echo "error: switch to the upstream branch <$SDK_BRANCH> failed"
+  exit 3
+fi
 
 # switch the branch
 RESET_SUCCEEDED=false
-(git reset --soft origin/$SDK_BRANCH && RESET_SUCCEEDED=true) || (ERR=2 && >&2 echo "Error: failed to hard reset files to HEAD")
+if git reset --soft origin/$SDK_BRANCH; then
+  RESET_SUCCEEDED=true
+else
+  ERR=2
+  >&2 echo "Error: failed to hard reset files to HEAD"
+fi
 
 if $RESET_SUCCEEDED; then
   if $POETRY_INSTALL; then
