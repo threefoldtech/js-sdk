@@ -23,30 +23,12 @@ is_package_authorized = false
 
 [[bottle_servers]]
 name = "main"
-file_path = "bottle/deployments.py"
+file_path = "bottle/app.py"
 path_url = "/api/"
 path_dest = "/api/"
 host = "0.0.0.0"
 port = 5556
 
-[[bottle_servers]]
-name = "backup"
-file_path = "bottle/backup.py"
-path_url = "/api/backup/"
-path_dest = "/api/backup/"
-host = "0.0.0.0"
-port = 5590
-
-[[bottle_servers]]
-name = "controller"
-file_path = "bottle/api/controller.py"
-path_url = "/api/controller/"
-path_dest = "/api/controller/"
-host = "0.0.0.0"
-port = 5591
-is_auth = false
-is_admin = false
-is_package_authorized = false
 
 [[servers]]
 name = "vdc_dashboard_root_proxy"

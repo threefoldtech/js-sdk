@@ -1,8 +1,7 @@
-from beaker.middleware import SessionMiddleware
 from bottle import Bottle, abort, request
 
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required
+from jumpscale.packages.auth.bottle.auth import login_required
 
 app = Bottle()
 
@@ -28,6 +27,3 @@ def chat(package_name, chat_name):
     return env.get_template("index.html").render(
         package=package_name, chat=chat_name, username=session.get("username", ""), email=session.get("email", "")
     )
-
-
-app = SessionMiddleware(app, SESSION_OPTS)

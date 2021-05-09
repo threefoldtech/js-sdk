@@ -1,29 +1,14 @@
-from beaker.middleware import SessionMiddleware
-from bottle import Bottle, request, HTTPResponse, abort, redirect
-
-from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import (
-    SESSION_OPTS,
-    login_required,
-    get_user_info,
-    authenticated,
-    package_authorized,
-)
-from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import (
-    get_vdc,
-    threebot_vdc_helper,
-    _list_alerts,
-)
-from jumpscale.core.base import StoredFactory
-
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
-    get_all_deployments,
-    get_deployments,
-)
 import os
 
-app = Bottle()
+from bottle import HTTPResponse, abort, redirect, request
+from jumpscale.core.base import StoredFactory
+from jumpscale.loader import j
+from jumpscale.packages.auth.bottle.auth import authenticated, get_user_info, login_required, package_authorized
+from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts, get_vdc, threebot_vdc_helper
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
+
+from .root import app
 
 
 def _get_zstor_config(ip_version=6):
@@ -470,6 +455,3 @@ def get_sdk_version():
     return HTTPResponse(
         j.data.serializers.json.dumps({"data": data}), status=200, headers={"Content-Type": "application/json"}
     )
-
-
-app = SessionMiddleware(app, SESSION_OPTS)

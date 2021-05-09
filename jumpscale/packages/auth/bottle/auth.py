@@ -4,19 +4,22 @@ from urllib.parse import urlencode, quote, unquote
 
 import nacl
 import requests
-from beaker.middleware import SessionMiddleware
-from bottle import Bottle, abort, redirect, request, response
+from bottle import Bottle, request, abort, redirect, response
 from nacl.public import Box
 from nacl.signing import VerifyKey
 
 from jumpscale.loader import j
 
-SESSION_OPTS = {"session.type": "file", "session.data_dir": f"{j.core.dirs.VARDIR}/data", "session.auto": True}
 REDIRECT_URL = "https://login.threefold.me"
 CALLBACK_URL = "/auth/3bot_callback"
 LOGIN_URL = "/auth/login"
 
 app = Bottle()
+
+
+@app.hook("before_request")
+def setup_request():
+    request.session = request.environ.get("beaker.session", {})
 
 
 templates_path = j.sals.fs.join_paths(j.sals.fs.dirname(__file__), "templates")
@@ -30,7 +33,7 @@ def login():
     Returns:
         Renders the template of login page
     """
-    session = request.environ.get("beaker.session")
+    session = request.environ.get("beaker.session", {})
     provider = request.query.get("provider")
     next_url = quote(request.query.get("next_url", session.get("next_url", "/")))
 
@@ -268,7 +271,7 @@ def authenticated(handler):
     """
 
     def decorator(*args, **kwargs):
-        session = request.environ.get("beaker.session")
+        session = request.environ.get("beaker.session", {})
         if j.core.config.get_config().get("threebot_connect", True) and j.core.identity.is_configured:
             if not session.get("authorized", False):
                 return abort(401)
@@ -362,7 +365,7 @@ def login_required(func):
 
     @wraps(func)
     def decorator(*args, **kwargs):
-        session = request.environ.get("beaker.session")
+        session = request.environ.get("beaker.session", {})
         if j.core.config.get_config().get("threebot_connect", True):
             if not session.get("authorized", False):
                 session["next_url"] = request.url
@@ -385,6 +388,3 @@ def get_package_admins(package_name):
     if not package:
         raise j.exceptions.Validation(f"package {package_name} is not installed")
     return package.admins
-
-
-app = SessionMiddleware(app, SESSION_OPTS)
