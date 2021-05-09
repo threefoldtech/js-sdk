@@ -1,14 +1,13 @@
 from math import ceil
 import random
 
-from bottle import Bottle, HTTPResponse, request
+from bottle import HTTPResponse, request
 from jumpscale.loader import j
-
+from .app import app
 from jumpscale.clients.explorer.models import DiskType
 from jumpscale.packages.vdc_dashboard.bottle.api.exceptions import *
 from jumpscale.packages.vdc_dashboard.bottle.api.helpers import (
     get_full_vdc_info,
-    logger,
     vdc_route,
 )
 from jumpscale.packages.vdc_dashboard.bottle.backup import _list as list_backups
@@ -18,9 +17,6 @@ from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
     get_zstor_config_file,
 )
 from jumpscale.sals.vdc.size import VDC_SIZE, ZDB_STARTING_SIZE
-
-app = Bottle()
-app.install(logger)
 
 
 @app.route("/api/controller/vdc", method="GET")

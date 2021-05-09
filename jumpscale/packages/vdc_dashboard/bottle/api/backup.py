@@ -3,8 +3,8 @@ from jumpscale.loader import j
 
 from jumpscale.packages.auth.bottle.auth import package_authorized
 
+from .app import app
 
-app = Bottle()
 
 VDC_BACKUP_PREFIX = "vdc-"
 CONFIG_BACKUP_PREFIX = "config-"

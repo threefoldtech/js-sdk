@@ -1,4 +1,4 @@
-from bottle import Bottle, request, HTTPResponse, abort, redirect
+from bottle import request, HTTPResponse, abort, redirect
 
 from jumpscale.loader import j
 from jumpscale.packages.auth.bottle.auth import (
@@ -21,7 +21,7 @@ from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
 )
 import os
 
-app = Bottle()
+from .app import app
 
 
 def _get_zstor_config(ip_version=6):

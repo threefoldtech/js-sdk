@@ -3,8 +3,7 @@ from jumpscale.loader import j
 
 from jumpscale.packages.auth.bottle.auth import package_authorized
 
-
-app = Bottle()
+from .app import app
 
 
 @app.route("/api/threebot/export")
