@@ -1,10 +1,10 @@
 #################
-# eixt codes
-# 0 Okay
-# 1 Error: poetry install failed
-# 2 Error: hard reset files to HEAD failed
-# 3 Error: switch to the upstream branch failed
-# 4 Error: can't find the branch name in the repository
+# Exit Code Number    Meaning
+# 0                   Okay
+# 64                  Error: poetry install failed
+# 65                  Error: hard reset files to HEAD failed
+# 66                  Error: switch to the upstream branch failed
+# 67                  Error: can't find the branch name in the repository
 #################
 # fetching all remote branches"
 git fetch --all
@@ -16,7 +16,7 @@ echo "we will use origin/${SDK_BRANCH} branch to update the code"
 # find out if a local git branch with $SDK_BRANCH name exists in the repository
 if ! git show-ref --verify --quiet refs/heads/$SDK_BRANCH; then
   >&2 echo "error: can't find the branch <$SDK_BRANCH> in the repository"
-  exit 4
+  exit 64
 fi
 
 # save the current information to use in case of update failure
@@ -38,7 +38,7 @@ git stash push jumpscale/packages/vdc_dashboard/package.toml
 if ! git checkout -f $SDK_BRANCH; then
   >&2 echo "error: switch to the upstream branch <$SDK_BRANCH> failed"
   git stash pop
-  exit 3
+  exit 65
 fi
 
 # switch the branch
@@ -46,13 +46,13 @@ RESET_SUCCEEDED=false
 if git reset --hard origin/$SDK_BRANCH; then
   RESET_SUCCEEDED=true
 else
-  ERR=2
+  ERR=66
   >&2 echo "Error: failed to hard reset files to HEAD"
 fi
 
 if $RESET_SUCCEEDED; then
   if $POETRY_INSTALL; then
-    ERR=1
+    ERR=67
     MAX_TRIES=4
     COUNT=0
     while [  $COUNT -lt $MAX_TRIES ]; do
