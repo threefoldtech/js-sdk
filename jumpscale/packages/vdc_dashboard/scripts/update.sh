@@ -30,7 +30,7 @@ if ! git diff --quiet origin/$SDK_BRANCH poetry.lock; then
 fi
 
 # git ride of the uncommited local changes 
-git checkout -f $SDK_BRANCH || (>&2 echo "error: switch to the upstream branch <$SDK_BRANCH> failed" && exit 3)
+git checkout $SDK_BRANCH || (>&2 echo "error: switch to the upstream branch <$SDK_BRANCH> failed" && exit 3)
 
 # switch the branch
 RESET_SUCCEEDED=false
