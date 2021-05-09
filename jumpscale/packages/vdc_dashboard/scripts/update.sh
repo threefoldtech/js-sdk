@@ -32,15 +32,18 @@ if ! git diff --quiet origin/$SDK_BRANCH poetry.lock; then
   POETRY_INSTALL=true
 fi
 
+git stash push jumpscale/packages/vdc_dashboard/package.toml
+
 # git ride of the uncommited local changes 
-if ! git checkout $SDK_BRANCH; then
+if ! git checkout -f $SDK_BRANCH; then
   >&2 echo "error: switch to the upstream branch <$SDK_BRANCH> failed"
+  git stash pop
   exit 3
 fi
 
 # switch the branch
 RESET_SUCCEEDED=false
-if git reset --soft origin/$SDK_BRANCH; then
+if git reset --hard origin/$SDK_BRANCH; then
   RESET_SUCCEEDED=true
 else
   ERR=2
@@ -55,6 +58,7 @@ if $RESET_SUCCEEDED; then
     while [  $COUNT -lt $MAX_TRIES ]; do
         poetry install
         if [ $? -eq 0 ];then
+          git stash pop
           echo "Code updated and all defined dependencies successfully installed!"
           exit 0
         fi
@@ -62,11 +66,13 @@ if $RESET_SUCCEEDED; then
     done
     >&2 echo "Error: Failed to install the defined dependencies!"
   else
+    git stash pop
     echo "code updated successfully!"
     exit 0
   fi
 fi
 
 # revert back to saved info if hard reset files to HEAD or installing the defined dependencies was failed
-git checkout $SAVED_BRANCH_NAME && git reset --soft $SAVED_COMMIT_HASH
+git checkout $SAVED_BRANCH_NAME && git reset --hard $SAVED_COMMIT_HASH
+git stash pop
 exit $ERR
