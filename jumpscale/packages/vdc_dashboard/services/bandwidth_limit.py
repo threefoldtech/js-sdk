@@ -24,7 +24,7 @@ class BandwidthLimitService(BackgroundService):
         """
         for node in vdc.kubernetes:
             iface = "eth0"
-            if node.role == KubernetesRole.MASTER:
+            if node.public_ip != "::/128":
                 iface = "eth1"
             j.logger.debug(f"Applying bandwidth limit on kubernetes node {node.wid} with address {node.ip_address}")
             ssh_client = vdc.get_ssh_client(name=str(node.wid), ip_address=node.ip_address, user="rancher")

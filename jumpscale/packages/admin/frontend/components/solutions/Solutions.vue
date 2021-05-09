@@ -58,7 +58,7 @@
                   <template v-slot:activator="{ on, attrs }">
                     <a
                       class="chatflowInfo"
-                      :href="`https://manual.threefold.io/#/${solution.type}`"
+                      :href="solution.helpLink"
                       target="blank"
                     >
                       <v-icon color="primary" v-bind="attrs" v-on="on" right>mdi-information-outline</v-icon>
