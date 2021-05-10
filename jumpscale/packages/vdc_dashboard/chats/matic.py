@@ -19,7 +19,6 @@ class MaticDeploy(SolutionsChatflowDeploy):
     ]
 
     CHART_LIMITS = {
-        "Silver": {"cpu": "2000m", "memory": "2024Mi"},
         "Gold": {"cpu": "4000m", "memory": "4096Mi"},
         "Platinum": {"cpu": "4000m", "memory": "8192Mi"},
     }
@@ -37,8 +36,13 @@ class MaticDeploy(SolutionsChatflowDeploy):
             "env.eth_walletaddr": self.config.chart_config.extra_config.get("eth_walletaddr", ""),
             "env.sentry_nodeid": self.config.chart_config.extra_config.get("sentry_nodeid", ""),
             "env.sentry_enodeid": self.config.chart_config.extra_config.get("sentry_enodeid", ""),
+            "env.heimdall_svcp": self.config.chart_config.extra_config["heimdall_svcp"],
+            "env.bor_svcp": self.config.chart_config.extra_config["bor_svcp"],
+            "ports.heimdall": self.config.chart_config.extra_config["heimdall_svcp"],
+            "ports.bor": self.config.chart_config.extra_config["bor_svcp"],
         }
 
+    @chatflow_step(title="Node Configuration")
     def _enter_nodetype(self):
         choices = [
             "Sentry Node",
@@ -54,10 +58,10 @@ class MaticDeploy(SolutionsChatflowDeploy):
             self._enter_sentry_info()
         else:
             pass
-
+        
     def _check_uniqueness(self):
         if get_deployments(self.SOLUTION_TYPE, self.config.username):
-            raise StopChatFlow("You can only have one Matic solution per VDC")
+           raise StopChatFlow("You can only have one Matic solution per VDC")
 
     def get_release_name(self):
         self._check_uniqueness()
@@ -94,17 +98,38 @@ class MaticDeploy(SolutionsChatflowDeploy):
         self.config.chart_config.extra_config["sentry_nodeid"] = sentry_nodeid.value
         self.config.chart_config.extra_config["sentry_enodeid"] = sentry_enodeid.value
 
+    @chatflow_step(title="Web Access")
     def _enter_access_code(self):
         self.config.chart_config.access_code = self.secret_ask(
             "Enter Access Code (This would be used to access your node's web page)", min_length=8, required=True
         )
 
-    @chatflow_step(title="Node Configuration")
+    @chatflow_step(title="Port Settings")
+    def _get_node_ports(self):
+        form = self.new_form()
+        heimdall_port = form.int_ask("Heimdall service port - default is 26656", default=26656, min=1000, max=65000)
+        bor_port = form.int_ask("Bor service port - default is 30303", default=30303, min=1000, max=65000)
+        form.ask(
+            "For multiple deployments, please ensure to use different ports for your nodes to avoid any conflicts",
+            is_slide=False,
+        )
+
+        self.config.chart_config.extra_config["heimdall_svcp"] = heimdall_port.value
+        self.config.chart_config.extra_config["bor_svcp"] = bor_port.value
+
     def set_config(self):
+        self._get_node_ports()
         self._enter_nodetype()
         self._enter_access_code()
+
+        bor_entrypoint = "ingbor" + self.config.release_name
+        heim_entrypoint = "ingheim" + self.config.release_name
+  
         self.vdc.get_deployer().kubernetes.add_traefik_entrypoints(
-            {"matic-bor": {"port": "30303"}, "matic-heimdall": {"port": "26656"}}
+            {
+                bor_entrypoint : {"port": self.config.chart_config.extra_config["bor_svcp"]},
+                heim_entrypoint : {"port": self.config.chart_config.extra_config["heimdall_svcp"]},
+            }
         )
 
 
