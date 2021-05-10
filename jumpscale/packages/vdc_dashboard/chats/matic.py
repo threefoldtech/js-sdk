@@ -110,8 +110,7 @@ class MaticDeploy(SolutionsChatflowDeploy):
         heimdall_port = form.int_ask("Heimdall service port - default is 26656", default=26656, min=1000, max=65000)
         bor_port = form.int_ask("Bor service port - default is 30303", default=30303, min=1000, max=65000)
         form.ask(
-            "For multiple deployments, please ensure to use different ports for your nodes to avoid any conflicts",
-            is_slide=False,
+            "For multiple deployments, please ensure to use different ports for your nodes"
         )
 
         self.config.chart_config.extra_config["heimdall_svcp"] = heimdall_port.value
