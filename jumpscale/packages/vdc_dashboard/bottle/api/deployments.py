@@ -326,36 +326,6 @@ def accept():
         )
 
 
-def get_last_commit_id():
-    rc, out, err = j.sals.process.execute("git log -1")
-    if rc:
-        j.logger.error(f"Couldn't get last commit ID, during updating the dashboard for details: {err}")
-    return out.splitlines()[0].split()[1]
-
-
-def check_poetry_install_status(cwd):
-    rc, out, err = j.sals.process.execute("poetry install", cwd=cwd)
-    if rc:
-        j.logger.error(f"Couldn't install poetry dependencies, during updating the dashboard for details: {err}")
-        return False
-    return True
-
-
-def able_update_poetry_dependencies(trials, cwd):
-    status = False
-    for _ in range(trials):
-        if check_poetry_install_status(cwd):
-            status = True
-            break
-    return status
-
-
-def rollback_last_commit(commit_id, cwd):
-    rc, out, err = j.sals.process.execute(f"git checkout {commit_id}", cwd=cwd)
-    if rc:
-        j.logger.error(f"Couldn't checkout last commit, during updating the dashboard for details: {err}")
-
-
 @app.route("/api/update", method="GET")
 @package_authorized("vdc_dashboard")
 def update():
