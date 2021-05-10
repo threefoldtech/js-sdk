@@ -73,6 +73,6 @@ if $RESET_SUCCEEDED; then
 fi
 
 # revert back to saved info if hard reset files to HEAD or installing the defined dependencies was failed
-git checkout $SAVED_BRANCH_NAME && git reset --hard $SAVED_COMMIT_HASH
+git checkout -f $SAVED_BRANCH_NAME && git reset --hard $SAVED_COMMIT_HASH
 git stash pop
 exit $ERR
