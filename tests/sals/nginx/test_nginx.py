@@ -45,7 +45,7 @@ class TestNginxSal(BaseTests):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        j.sals.process.kill_all("nginx")
+        j.sals.process.kill_process_by_name("nginx")
 
     def setUp(self):
         super().setUp()
