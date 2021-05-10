@@ -36,15 +36,14 @@ class MaticDeploy(SolutionsChatflowDeploy):
             "env.eth_walletaddr": self.config.chart_config.extra_config.get("eth_walletaddr", ""),
             "env.sentry_nodeid": self.config.chart_config.extra_config.get("sentry_nodeid", ""),
             "env.sentry_enodeid": self.config.chart_config.extra_config.get("sentry_enodeid", ""),
-
         }
-    
+
     def get_config_string_safe(self):
         return {
-            "env.heimdall_svcp": self.config.chart_config.extra_config['heimdall_svcp'],
-            "env.bor_svcp": self.config.chart_config.extra_config['heimdall_svcp'],
-            "ports.heimdall": self.config.chart_config.extra_config['heimdall_svcp'],
-            "ports.bor": self.config.chart_config.extra_config['bor_svcp'],            
+            "env.heimdall_svcp": self.config.chart_config.extra_config["heimdall_svcp"],
+            "env.bor_svcp": self.config.chart_config.extra_config["bor_svcp"],
+            "ports.heimdall": self.config.chart_config.extra_config["heimdall_svcp"],
+            "ports.bor": self.config.chart_config.extra_config["bor_svcp"],
         }
 
     @chatflow_step(title="Node Configuration")
@@ -63,10 +62,10 @@ class MaticDeploy(SolutionsChatflowDeploy):
             self._enter_sentry_info()
         else:
             pass
-        
+
     def _check_uniqueness(self):
         if get_deployments(self.SOLUTION_TYPE, self.config.username):
-           raise StopChatFlow("You can only have one Matic solution per VDC")
+            raise StopChatFlow("You can only have one Matic solution per VDC")
 
     def get_release_name(self):
         self._check_uniqueness()
@@ -114,12 +113,10 @@ class MaticDeploy(SolutionsChatflowDeploy):
         form = self.new_form()
         heimdall_port = form.int_ask("Heimdall service port - default is 26656", default=26656, min=1000, max=65000)
         bor_port = form.int_ask("Bor service port - default is 30303", default=30303, min=1000, max=65000)
-        form.ask(
-            "For multiple deployments, please ensure to use different ports for your nodes"
-        )
+        form.ask("For multiple deployments, please ensure to use different ports for your nodes")
 
-        self.config.chart_config.extra_config['heimdall_svcp'] = heimdall_port.value
-        self.config.chart_config.extra_config['bor_svcp'] = bor_port.value
+        self.config.chart_config.extra_config["heimdall_svcp"] = heimdall_port.value
+        self.config.chart_config.extra_config["bor_svcp"] = bor_port.value
 
     def set_config(self):
         self._get_node_ports()
@@ -128,11 +125,11 @@ class MaticDeploy(SolutionsChatflowDeploy):
 
         bor_entrypoint = "ingbor" + self.config.release_name
         heim_entrypoint = "ingheim" + self.config.release_name
-  
+
         self.vdc.get_deployer().kubernetes.add_traefik_entrypoints(
             {
-                bor_entrypoint : {"port": self.config.chart_config.extra_config['bor_svcp']},
-                heim_entrypoint : {"port": self.config.chart_config.extra_config['heimdall_svcp']},
+                bor_entrypoint: {"port": self.config.chart_config.extra_config["bor_svcp"]},
+                heim_entrypoint: {"port": self.config.chart_config.extra_config["heimdall_svcp"]},
             }
         )
 
