@@ -1,17 +1,13 @@
-import errno
-from contextlib import ContextDecorator
-
 from jumpscale.loader import j
 
 BASE_DIR = f"{j.core.dirs.CFGDIR}/chatflows"
 
 
-class CreateSessionDecorator(ContextDecorator):
+class CreateSessionContext:
     """
     """
 
-    def __init__(self, dir_name, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, dir_name):
         self.dir_name = dir_name
 
     def __enter__(self):
@@ -26,22 +22,18 @@ class CreateSessionDecorator(ContextDecorator):
             # |_ status
             j.sals.fs.touch(f"{path}/answers")
             j.sals.fs.touch(f"{path}/status")
-        except Exception as e:
-            if e.errno == errno.EEXIST:
-                j.logger.warning(f"The session directory {path} exist")
-            else:
-                j.logger.error(f"Can't create session directory with error {str(e)}")
+        except (FileExistsError, OSError) as e:
+            j.logger.error(f"Can't create session directory with error {str(e)}")
 
     def __exit__(self, *exc):
-        return False
+        return self
 
 
-class UpdateSessionDecorator(ContextDecorator):
+class UpdateSessionContext:
     """
     """
 
-    def __init__(self, dir_name: str, data: str, append: bool = True, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, dir_name: str, data: str, append: bool = True):
         self.dir_name = dir_name
         self.data = data
         self.append = append
@@ -54,15 +46,14 @@ class UpdateSessionDecorator(ContextDecorator):
         return self
 
     def __exit__(self, *exc):
-        return False
+        return self
 
 
-class DeleteSessionDecorator(ContextDecorator):
+class DeleteSessionContext:
     """
     """
 
-    def __init__(self, dir_name, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, dir_name):
         self.dir_name = dir_name
 
     def __enter__(self):
@@ -74,4 +65,4 @@ class DeleteSessionDecorator(ContextDecorator):
         return self
 
     def __exit__(self, *exc):
-        return False
+        return self

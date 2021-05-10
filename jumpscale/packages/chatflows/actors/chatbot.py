@@ -1,5 +1,5 @@
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.sals.chatflows.decorators import CreateSessionDecorator, DeleteSessionDecorator, UpdateSessionDecorator
+from jumpscale.sals.chatflows.session_context import CreateSessionContext, DeleteSessionContext, UpdateSessionContext
 from jumpscale.loader import j
 import base64
 import sys
@@ -16,7 +16,7 @@ class ChatFlows(BaseActor):
         self.username = None
 
     @actor_method
-    def new(self, package: str, chat: str, username: str, client_ip: str, query_params: dict = None) -> dict:
+    def new(self, package: str, chat: str, client_ip: str, query_params: dict = None) -> dict:
         package_object = self.chats.get(package)
         if not package_object:
             raise j.exceptions.Value(f"Package {package} not found")
@@ -28,58 +28,52 @@ class ChatFlows(BaseActor):
         if query_params is None:
             query_params = {}
         obj = chatflow(**query_params)
-        key = f"{username}_{package}_{chat}"
-        with CreateSessionDecorator(key):
-            self.sessions[key] = obj
-            return {"sessionId": obj.session_id, "title": obj.title}
+        session_id = obj.session_id
+        with CreateSessionContext(session_id):
+            self.sessions[session_id] = obj
+            return {"sessionId": session_id, "title": obj.title}
 
     @actor_method
-    def fetch(self, session_id: str, package: str, chat: str, username: str, restore: bool = False) -> dict:
-        key = f"{username}_{package}_{chat}"
-        chatflow = self.sessions.get(key)
+    def fetch(self, session_id: str, restore: bool = False) -> dict:
+        chatflow = self.sessions.get(session_id)
         if not chatflow:
             return {"payload": {"category": "end"}}
 
         result = chatflow.get_work(restore)
         j.logger.debug(result)
         if result["payload"].get("category") == "end":
-            with DeleteSessionDecorator(key):
-                self.sessions.pop(key)
+            with DeleteSessionContext(session_id):
+                self.sessions.pop(session_id)
         else:
-            with UpdateSessionDecorator(f"{key}/status", result, False):
+            with UpdateSessionContext(f"{session_id}/status", result, False):
                 return result
         return result
 
     @actor_method
-    def validate(self, session_id: str, username: str, package: str, chat: str) -> dict:
-        self.username = username
-        key = f"{self.username}_{package}_{chat}"
-        # check the fs
-        path = f"{j.core.dirs.CFGDIR}/chatflows/{key}"
+    def validate(self, session_id: str) -> dict:
+        path = f"{j.core.dirs.CFGDIR}/chatflows/{session_id}"
         if j.sals.fs.is_dir(path):
             # TODO:
             # load from fs
             # self.sessions[key] = chatflow.load_from_path(path)
             # return {"valid": True}
             j.logger.debug("dir exists")
-        return {"valid": key in self.sessions}
+        return {"valid": session_id in self.sessions}
 
     @actor_method
-    def end(self, session_id: str, username: str, package: str, chat: str) -> dict:
-        key = f"{username}_{package}_{chat}"
-        with DeleteSessionDecorator(key):
+    def end(self, session_id: str) -> dict:
+        with DeleteSessionContext(session_id):
+            self.sessions.pop(session_id)
             return {"ended": True}
 
     @actor_method
-    def report(self, session_id: str, package: str, chat: str, result: str = None):
-        key = f"{self.username}_{package}_{chat}"
-        chatflow = self.sessions.get(key)
-        chatflow.set_work(key, result)
+    def report(self, session_id: str, result: str = None):
+        chatflow = self.sessions.get(session_id)
+        chatflow.set_work(session_id, result)
 
     @actor_method
-    def back(self, session_id: str, package: str, chat: str):
-        key = f"{self.username}_{package}_{chat}"
-        chatflow = self.sessions.get(key)
+    def back(self, session_id: str):
+        chatflow = self.sessions.get(session_id)
         chatflow.go_back()
 
     @actor_method

@@ -193,9 +193,6 @@
           headers: {'Content-Type': 'application/json'},
           data: {
             session_id: sessionId,
-            username: this.userInfo.username.replace('.3bot',''),
-            package: this.package,
-            chat: this.chat
           }
         }).then((response) => {
 
@@ -210,7 +207,6 @@
           data: {
             package: this.package,
             chat: this.chat,
-            username: this.userInfo.username.replace('.3bot',''),
             client_ip: CLIENT_IP,
             query_params: this.$route.query
           }
@@ -241,9 +237,6 @@
                   method: "post",
                   data: {
                     session_id: this.sessionId,
-                    package: this.package,
-                    chat: this.chat,
-                    username: this.userInfo.username.replace('.3bot',''),
                     restore: restore
                   }
                 }).then((response) => {
@@ -270,8 +263,6 @@
           method: "post",
           data: {
             session_id: this.sessionId,
-            package: this.package,
-            chat: this.chat,
             result: result
           }
         })
@@ -294,8 +285,6 @@
           method: "post",
           data: {
             session_id: this.sessionId,
-            package: this.package,
-            chat: this.chat,
           }
         })
       },
@@ -305,13 +294,10 @@
           method: "post",
           data: {
             session_id: this.sessionId,
-            username: this.userInfo.username.replace(".3bot",""),
-            package: this.package,
-            chat: this.chat,
           }
         }).then(() => {
-          localStorage.clear()
-          location.reload()
+          localStorage.removeItem(this.chatUID);
+          location.reload();
         })
       },
       getCookie(cname) {

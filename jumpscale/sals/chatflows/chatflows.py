@@ -11,7 +11,7 @@ import html
 from jumpscale.loader import j
 import stellar_sdk
 
-from .decorators import UpdateSessionDecorator
+from .session_context import UpdateSessionContext
 
 
 class Result:
@@ -255,7 +255,7 @@ class GedisChatBot:
             return result
 
     def set_work(self, dir_name, data):
-        with UpdateSessionDecorator(f"{dir_name}/answers", data):
+        with UpdateSessionContext(f"{dir_name}/answers", data):
             return self._queue_in.put(data)
 
     def send_data(self, data, is_slide=False):
