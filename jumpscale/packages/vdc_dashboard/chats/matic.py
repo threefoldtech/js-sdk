@@ -126,8 +126,8 @@ class MaticDeploy(SolutionsChatflowDeploy):
   
         self.vdc.get_deployer().kubernetes.add_traefik_entrypoints(
             {
-                bor_entrypoint : {"port": self.config.chart_config.extra_config["bor_svcp"]},
-                heim_entrypoint : {"port": self.config.chart_config.extra_config["heimdall_svcp"]},
+                bor_entrypoint : {"port": self.config.chart_config.extra_config['bor_svcp']},
+                heim_entrypoint : {"port": self.config.chart_config.extra_config['heimdall_svcp']},
             }
         )
 
