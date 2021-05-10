@@ -59,6 +59,7 @@ class VDCStoredFactory(StoredFactory):
         return super().delete(name)
 
     def cleanup_vdc(self, vdc):
+        return
         identity_instance_name = f"vdc_ident_{vdc.solution_uuid}"
         identity = j.core.identity.find(identity_instance_name)
         if identity:
