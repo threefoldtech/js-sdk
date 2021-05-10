@@ -334,8 +334,6 @@ def update():
         branch = branch_param
     else:
         branch = os.environ.get("SDK_VERSION", "development")
-    # cmds = [f"git checkout {branch}", "git pull"]
-    # for cmd in cmds:
     cmd = f"bash /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard/scripts/update.sh {branch}"
     rc, out, err = j.sals.process.execute(cmd, cwd="/sandbox/code/github/threefoldtech/js-sdk")
     if rc:
