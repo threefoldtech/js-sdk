@@ -1999,7 +1999,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
     def deploy_etcd_containers(
         self,
-        pool_id,
+        pool_ids,
         node_ids,
         network_name,
         ip_addresses,
@@ -2021,8 +2021,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         """
         Deploy single and cluster etcd nodes
         Args:
-            pool_id : Pool used to deploy etcd solution
-            node_id : Node used to deploy etcd solution
+            pool_ids : Pools used to deploy etcd solution
+            node_ids : Nodes used to deploy etcd solution
             network_name : Network name used to deploy etcd solution
             ip_addresses (List): List of IP address for every etcd node
             etcd_cluster (str): Contains ETCD_INITIAL_CLUSTER value
@@ -2046,7 +2046,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         result = []
         for n, ip_address in enumerate(ip_addresses):
             env = {}
-            node_id = node_ids[n]
             if len(ip_addresses) > 1:
                 env.update(env_cluster)
             env.update(
@@ -2063,8 +2062,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             )
             result.append(
                 self.deploy_container(
-                    pool_id,
-                    node_id,
+                    pool_ids[n],
+                    node_ids[n],
                     network_name,
                     ip_address,
                     etcd_flist,

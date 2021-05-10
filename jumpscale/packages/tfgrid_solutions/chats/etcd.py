@@ -1,6 +1,7 @@
 import math
 import uuid
 import requests
+import gevent
 from textwrap import dedent
 
 from jumpscale.clients.explorer.models import DiskType
@@ -15,10 +16,9 @@ class EtcdDeploy(GedisChatBot):
         "etcd_name",
         "etcd_no_nodes",
         "containers_resources",
-        "select_pool",
-        "etcd_network",
         "ipv6_config",
-        "container_node_id",
+        "select_pools_and_nodes",
+        "etcd_network",
         "etcd_ip",
         "reservation",
         "success",
@@ -57,16 +57,6 @@ class EtcdDeploy(GedisChatBot):
     def containers_resources(self):
         self.resources = deployer.ask_container_resources(self, default_disk_size=1024)
 
-    @chatflow_step(title="Pool")
-    def select_pool(self):
-        query = {
-            "cru": self.resources["cpu"],
-            "mru": math.ceil(self.resources["memory"] / 1024),
-            "sru": math.ceil(self.resources["disk_size"] / 1024),
-        }
-        cloud_units = deployer.calculate_capacity_units(**query)
-        self.pool_id = deployer.select_pool(self, cu=cloud_units.cu, su=cloud_units.su, **query)
-
     @chatflow_step(title="Global IPv6 Address")
     def ipv6_config(self):
         self.public_ipv6 = deployer.ask_ipv6(self)
@@ -75,19 +65,31 @@ class EtcdDeploy(GedisChatBot):
         else:
             self.ip_version = None
 
-    @chatflow_step(title="Container(s) Node ID")
-    def container_node_id(self):
+    @chatflow_step(title="Pools and Nodes")
+    def select_pools_and_nodes(self):
+        timer = j.data.time.now().timestamp
+        while self.no_nodes.value > 1:
+            self.md_show_update(
+                dedent(
+                    f"""\
+                ## Select pool and container node for each etcd node
+                <br /> _It will appear {self.no_nodes.value} times_
+                """
+                ),
+                md=True,
+            )
+            if j.data.time.now().timestamp > timer + 5:
+                break
+            gevent.sleep(1)
+
         query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
-        self.selected_nodes = []
-        for n in range(self.no_nodes.value):
-            selected_node = deployer.ask_container_placement(self, self.pool_id, ip_version=self.ip_version, **query)
-            if not selected_node:
-                selected_node = deployer.schedule_container(self.pool_id, ip_version=self.ip_version, **query)
-            self.selected_nodes.append(selected_node)
+        self.selected_nodes, self.etcd_pools = deployer.ask_multi_pool_placement(
+            self, self.no_nodes.value, [query] * self.no_nodes.value, ip_version=self.ip_version
+        )
 
     @chatflow_step(title="Network")
     def etcd_network(self):
@@ -102,7 +104,7 @@ class EtcdDeploy(GedisChatBot):
             result = deployer.add_network_node(
                 self.network_view.name,
                 self.selected_nodes[n],
-                self.pool_id,
+                self.etcd_pools[n],
                 self.network_view,
                 bot=self,
                 owner=self.solution_metadata.get("owner"),
@@ -133,7 +135,7 @@ class EtcdDeploy(GedisChatBot):
         self.solution_metadata.update(metadata)
 
         self.resv_ids = deployer.deploy_etcd_containers(
-            self.pool_id,
+            self.etcd_pools,
             [selected_node.node_id for selected_node in self.selected_nodes],
             self.network_view.name,
             self.ip_addresses,
