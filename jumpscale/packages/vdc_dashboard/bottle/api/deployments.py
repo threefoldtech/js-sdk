@@ -3,32 +3,17 @@ import os
 from bottle import HTTPResponse, abort, redirect, request
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import (
-    authenticated,
-    get_user_info,
-    login_required,
-    package_authorized,
-)
+from jumpscale.packages.auth.bottle.auth import authenticated, get_user_info, login_required, package_authorized
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import (
-    _list_alerts,
-    get_vdc,
-    threebot_vdc_helper,
-)
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
-    get_all_deployments,
-    get_deployments,
-)
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts, get_vdc, threebot_vdc_helper
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
 
 from .root import app
 
 
 def _get_zstor_config(ip_version=6):
     if not j.sals.vdc.list_all():
-        abort(
-            500,
-            "Couldn't find any vdcs on this machine, Please make sure to have it configured properly",
-        )
+        abort(500, "Couldn't find any vdcs on this machine, Please make sure to have it configured properly")
     vdc_full_name = list(j.sals.vdc.list_all())[0]
     vdc = j.sals.vdc.find(vdc_full_name, load_info=True)
     vdc_zdb_monitor = vdc.get_zdb_monitor()
@@ -44,11 +29,7 @@ def _get_zstor_config(ip_version=6):
         "meta": {
             "type": "etcd",
             "config": {
-                "endpoints": [
-                    "http://127.0.0.1:2379",
-                    "http://127.0.0.1:22379",
-                    "http://127.0.0.1:32379",
-                ],
+                "endpoints": ["http://127.0.0.1:2379", "http://127.0.0.1:22379", "http://127.0.0.1:32379"],
                 "prefix": "someprefix",
             },
         },
@@ -66,17 +47,7 @@ def _get_zstor_config(ip_version=6):
             zdb_url = zdb.proxy_address
         else:
             return
-        data["groups"].append(
-            {
-                "backends": [
-                    {
-                        "address": zdb_url,
-                        "namespace": zdb.namespace,
-                        "password": password,
-                    }
-                ]
-            }
-        )
+        data["groups"].append({"backends": [{"address": zdb_url, "namespace": zdb.namespace, "password": password}]})
     return data
 
 
@@ -90,11 +61,7 @@ def get_kubeconfig() -> str:
     file_content = j.sals.fs.read_file(file_path)
 
     if not file_content:
-        return HTTPResponse(
-            status=400,
-            message="Invalid file!",
-            headers={"Content-Type": "application/json"},
-        )
+        return HTTPResponse(status=400, message="Invalid file!", headers={"Content-Type": "application/json"})
 
     return j.data.serializers.json.dumps({"data": file_content})
 
@@ -114,9 +81,7 @@ def delete_node():
         j.logger.info(f"Deleting node with wid: {wid}")
         deployer.delete_k8s_node(wid)
     except Exception as e:
-        j.logger.error(
-            f"Error: Failed to delete workload due to the following {str(e)}"
-        )
+        j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
         abort(500, "Error: Failed to delete workload")
     return j.data.serializers.json.dumps({"result": True})
 
@@ -136,9 +101,7 @@ def delete_zdb():
         j.logger.info(f"Deleting zdb with wid: {wid}")
         deployer.delete_s3_zdb(wid)
     except Exception as e:
-        j.logger.error(
-            f"Error: Failed to delete workload due to the following {str(e)}"
-        )
+        j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
         abort(500, "Error: Failed to delete workload")
     return j.data.serializers.json.dumps({"result": True})
 
@@ -153,11 +116,7 @@ def expose_s3() -> str:
     vdc_deployer = vdc.get_deployer()
     s3_domain = vdc_deployer.expose_s3()
     if not s3_domain:
-        return HTTPResponse(
-            status=400,
-            message="Failed to expose S3",
-            headers={"Content-Type": "application/json"},
-        )
+        return HTTPResponse(status=400, message="Failed to expose S3", headers={"Content-Type": "application/json"})
     return j.data.serializers.json.dumps({"data": s3_domain})
 
 
@@ -189,11 +148,7 @@ def list_all_deployments() -> str:
 @package_authorized("vdc_dashboard")
 def list_alerts() -> str:
     alerts = _list_alerts()
-    return HTTPResponse(
-        j.data.serializers.json.dumps(alerts),
-        status=200,
-        headers={"Content-Type": "application/json"},
-    )
+    return HTTPResponse(j.data.serializers.json.dumps(alerts), status=200, headers={"Content-Type": "application/json"})
 
 
 @app.route("/api/admins/list", method="GET")
@@ -244,9 +199,7 @@ def threebot_vdc():
     vdc = get_vdc()
     vdc_dict = threebot_vdc_helper(vdc=vdc)
     return HTTPResponse(
-        j.data.serializers.json.dumps(vdc_dict),
-        status=200,
-        headers={"Content-Type": "application/json"},
+        j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
     )
 
 
@@ -287,9 +240,7 @@ def cancel_deployment():
     k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
     vdc = get_vdc()
     if namespace == "default":
-        k8s_client.delete_deployed_release(
-            release=data["release"], vdc_instance=vdc, namespace=namespace
-        )
+        k8s_client.delete_deployed_release(release=data["release"], vdc_instance=vdc, namespace=namespace)
     else:
         k8s_client.execute_native_cmd(f"kubectl delete ns {namespace}")
     j.logger.info(f"Cancelling deployment for {data['solution_id']}")
@@ -309,13 +260,9 @@ def get_zstor_config():
     zstor_config = _get_zstor_config(ip_version)
     if not zstor_config:
         return HTTPResponse(
-            status=400,
-            message=f"unsupported ip version: {ip_version}",
-            headers={"Content-Type": "application/json"},
+            status=400, message=f"unsupported ip version: {ip_version}", headers={"Content-Type": "application/json"}
         )
-    return j.data.serializers.json.dumps(
-        {"data": j.data.serializers.toml.dumps(zstor_config)}
-    )
+    return j.data.serializers.json.dumps({"data": j.data.serializers.toml.dumps(zstor_config)})
 
 
 @app.route("/api/zdb/secret", method="GET")
@@ -337,11 +284,7 @@ def allowed():
     instances = user_factory.list_all()
     for name in instances:
         user_entry = user_factory.get(name)
-        if (
-            user_entry.tname == tname
-            and user_entry.explorer_url == explorer_url
-            and user_entry.has_agreed
-        ):
+        if user_entry.tname == tname and user_entry.explorer_url == explorer_url and user_entry.has_agreed:
             return j.data.serializers.json.dumps({"allowed": True})
     return j.data.serializers.json.dumps({"allowed": False})
 
@@ -363,9 +306,7 @@ def accept():
         explorer_name = "mainnet"
     else:
         return HTTPResponse(
-            j.data.serializers.json.dumps(
-                {"error": f"explorer {explorer_url} is not supported"}
-            ),
+            j.data.serializers.json.dumps({"error": f"explorer {explorer_url} is not supported"}),
             status=500,
             headers={"Content-Type": "application/json"},
         )
@@ -373,9 +314,7 @@ def accept():
     user_entry = user_factory.get(f"{explorer_name}_{tname.replace('.3bot', '')}")
     if user_entry.has_agreed:
         return HTTPResponse(
-            j.data.serializers.json.dumps({"allowed": True}),
-            status=200,
-            headers={"Content-Type": "application/json"},
+            j.data.serializers.json.dumps({"allowed": True}), status=200, headers={"Content-Type": "application/json"}
         )
     else:
         user_entry.has_agreed = True
@@ -383,9 +322,7 @@ def accept():
         user_entry.tname = tname
         user_entry.save()
         return HTTPResponse(
-            j.data.serializers.json.dumps({"allowed": True}),
-            status=201,
-            headers={"Content-Type": "application/json"},
+            j.data.serializers.json.dumps({"allowed": True}), status=201, headers={"Content-Type": "application/json"}
         )
 
 
@@ -403,25 +340,16 @@ def update():
     if rc:
         return HTTPResponse(
             j.data.serializers.json.dumps(
-                {
-                    "error": "failed to pull upstream",
-                    "stderr": err,
-                    "stdout": out,
-                    "code": rc,
-                    "cmd": cmd,
-                }
+                {"error": "failed to pull upstream", "stderr": err, "stdout": out, "code": rc, "cmd": cmd}
             ),
             status=500,
             headers={"Content-Type": "application/json"},
         )
     j.core.executors.run_tmux(
-        f"bash {sdk_path}/jumpscale/packages/tfgrid_solutions/scripts/threebot/restart.sh 5",
-        "restart",
+        f"bash {sdk_path}/jumpscale/packages/tfgrid_solutions/scripts/threebot/restart.sh 5", "restart"
     )
     return HTTPResponse(
-        j.data.serializers.json.dumps({"success": True}),
-        status=200,
-        headers={"Content-Type": "application/json"},
+        j.data.serializers.json.dumps({"success": True}), status=200, headers={"Content-Type": "application/json"}
     )
 
 
@@ -431,16 +359,12 @@ def check_update():
     vdc_dashboard_path = j.packages.vdc_dashboard.__file__
     sdk_repo_path = j.tools.git.find_git_path(vdc_dashboard_path)
     try:
-        _, out, _ = j.sals.process.execute(
-            "git ls-remote --tag | tail -n 1", cwd=sdk_repo_path
-        )
+        _, out, _ = j.sals.process.execute("git ls-remote --tag | tail -n 1", cwd=sdk_repo_path)
         latest_remote_tag = out.split("/tags/")[-1].rstrip("\n")
     except Exception as e:
         raise j.exceptions.Runtime(f"Failed to fetch remote releases. {str(e)}")
 
-    _, latest_local_tag, _ = j.sals.process.execute(
-        "git describe --tags --abbrev=0", cwd=sdk_repo_path
-    )
+    _, latest_local_tag, _ = j.sals.process.execute("git describe --tags --abbrev=0", cwd=sdk_repo_path)
     if latest_remote_tag != latest_local_tag.rstrip("\n"):
         return HTTPResponse(
             j.data.serializers.json.dumps({"new_release": latest_remote_tag}),
@@ -449,9 +373,7 @@ def check_update():
         )
 
     return HTTPResponse(
-        j.data.serializers.json.dumps({"new_release": ""}),
-        status=200,
-        headers={"Content-Type": "application/json"},
+        j.data.serializers.json.dumps({"new_release": ""}), status=200, headers={"Content-Type": "application/json"}
     )
 
 
@@ -463,9 +385,7 @@ def backup() -> str:
     service.job()
 
     return HTTPResponse(
-        j.data.serializers.json.dumps({"success": True}),
-        status=200,
-        headers={"Content-Type": "application/json"},
+        j.data.serializers.json.dumps({"success": True}), status=200, headers={"Content-Type": "application/json"}
     )
 
 
@@ -477,11 +397,7 @@ def get_wallet_qrcode_image():
     amount = request_data.get("amount")
     scale = request_data.get("scale", 5)
     if not all([address, amount, scale]):
-        return HTTPResponse(
-            "Not all parameters satisfied",
-            status=400,
-            headers={"Content-Type": "application/json"},
-        )
+        return HTTPResponse("Not all parameters satisfied", status=400, headers={"Content-Type": "application/json"})
 
     data = f"TFT:{address}?amount={amount}&message=topup&sender=me"
     qrcode_image = j.tools.qrcode.base64_get(data, scale=scale)
@@ -498,9 +414,7 @@ def redir(solution):
 @login_required
 def is_running():
     return HTTPResponse(
-        j.data.serializers.json.dumps({"running": True}),
-        status=200,
-        headers={"Content-Type": "application/json"},
+        j.data.serializers.json.dumps({"running": True}), status=200, headers={"Content-Type": "application/json"}
     )
 
 
@@ -522,9 +436,7 @@ def enable_quantumstorage():
     except Exception as e:
         j.logger.error(f"Failed to enable quantum storage on your vdc due to {str(e)}")
         return HTTPResponse(
-            "Failed to enable quantum storage on your vdc",
-            status=500,
-            headers={"Content-Type": "application/json"},
+            "Failed to enable quantum storage on your vdc", status=500, headers={"Content-Type": "application/json"}
         )
 
 
@@ -538,7 +450,5 @@ def get_sdk_version():
     for package in packages:
         data[package] = metadata.version(package)
     return HTTPResponse(
-        j.data.serializers.json.dumps({"data": data}),
-        status=200,
-        headers={"Content-Type": "application/json"},
+        j.data.serializers.json.dumps({"data": data}), status=200, headers={"Content-Type": "application/json"}
     )
