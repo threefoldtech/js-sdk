@@ -760,6 +760,8 @@ class VDCDeployer:
         self.vdc_instance.load_info()
         message = f"Deleting all workloads for vdc: {self.vdc_instance}"
         j.tools.alerthandler.alert_raise(app_name="vdc", message=message, alert_type="exception")
+        return
+
         if all([self.vdc_instance.threebot.domain, os.environ.get("VDC_NAME_USER"), os.environ.get("VDC_NAME_TOKEN")]):
             # delete domain record from name.com
             prefix = self.get_prefix()
