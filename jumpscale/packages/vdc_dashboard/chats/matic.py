@@ -53,9 +53,7 @@ class MaticDeploy(SolutionsChatflowDeploy):
             "Full Node",
             "Validator",
         ]
-        self.config.chart_config.node_type = self.single_choice(
-            "Select the Node Type, default is Sentry", choices, default="Sentry Node"
-        )
+        self.config.chart_config.node_type = self.single_choice("Select the node type", choices, default="Sentry Node")
         if self.config.chart_config.node_type == "Full Node":
             self._enter_rpc_url()
         elif self.config.chart_config.node_type == "Validator":
@@ -65,12 +63,7 @@ class MaticDeploy(SolutionsChatflowDeploy):
         else:
             pass
 
-    def _check_uniqueness(self):
-        if get_deployments(self.SOLUTION_TYPE, self.config.username):
-            raise StopChatFlow("You can only have one Matic solution per VDC")
-
     def get_release_name(self):
-        self._check_uniqueness()
         super().get_release_name()
         if len(self.config.release_name) > 10:
             raise StopChatFlow("Solution Name should not be more than 10 characters")
