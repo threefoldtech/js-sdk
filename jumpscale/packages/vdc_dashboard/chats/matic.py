@@ -53,7 +53,9 @@ class MaticDeploy(SolutionsChatflowDeploy):
             "Full Node",
             "Validator",
         ]
-        self.config.chart_config.node_type = self.single_choice("Select the Node Type", choices, default="Sentry Node")
+        self.config.chart_config.node_type = self.single_choice(
+            "Select the Node Type, default is Sentry", choices, default="Sentry Node"
+        )
         if self.config.chart_config.node_type == "Full Node":
             self._enter_rpc_url()
         elif self.config.chart_config.node_type == "Validator":
