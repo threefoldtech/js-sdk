@@ -36,10 +36,10 @@ class MaticDeploy(SolutionsChatflowDeploy):
             "env.eth_walletaddr": self.config.chart_config.extra_config.get("eth_walletaddr", ""),
             "env.sentry_nodeid": self.config.chart_config.extra_config.get("sentry_nodeid", ""),
             "env.sentry_enodeid": self.config.chart_config.extra_config.get("sentry_enodeid", ""),
-            "env.heimdall_svcp": self.config.chart_config.extra_config.get(heimdall_svcp, ""),
-            "env.bor_svcp": self.config.chart_config.extra_config.get(bor_svcp, ""),
-            "ports.heimdall": self.config.chart_config.extra_config.get(heimdall_svcp, ""),
-            "ports.bor": self.config.chart_config.extra_config.get(bor_svcp, ""),
+            "env.heimdall_svcp": self.config.chart_config.extra_config.get('heimdall_svcp', ""),
+            "env.bor_svcp": self.config.chart_config.extra_config.get('bor_svcp', ""),
+            "ports.heimdall": self.config.chart_config.extra_config.get('heimdall_svcp', ""),
+            "ports.bor": self.config.chart_config.extra_config.get('bor_svcp', ""),
         }
 
     @chatflow_step(title="Node Configuration")
@@ -113,8 +113,8 @@ class MaticDeploy(SolutionsChatflowDeploy):
             "For multiple deployments, please ensure to use different ports for your nodes"
         )
 
-        self.config.chart_config.extra_config["heimdall_svcp"] = heimdall_port.value
-        self.config.chart_config.extra_config["bor_svcp"] = bor_port.value
+        self.config.chart_config.extra_config['heimdall_svcp'] = heimdall_port.value
+        self.config.chart_config.extra_config['bor_svcp'] = bor_port.value
 
     def set_config(self):
         self._get_node_ports()
