@@ -25,7 +25,6 @@ class VDCGracePeriodFactory(StoredFactory):
         return False
 
     def is_eligible(self, vdc_instance) -> bool:
-        vdc_instance.load_info()
         if vdc_instance.is_empty():
             j.logger.debug(f"vdc {vdc_instance.vdc_name} is empty and not eligible")
             return False

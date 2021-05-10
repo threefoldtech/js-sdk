@@ -1,8 +1,7 @@
-from beaker.middleware import SessionMiddleware
 from bottle import Bottle, request, HTTPResponse, static_file
 
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
+from jumpscale.packages.auth.bottle.auth import login_required, get_user_info
 from jumpscale.packages.admin.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 
@@ -80,6 +79,3 @@ def export():
         download=f"export-{exporttime}.tar.gz",
         mimetype="application/gzip",
     )
-
-
-app = SessionMiddleware(app, SESSION_OPTS)

@@ -1,7 +1,9 @@
+import gevent
 from jumpscale.loader import j
+
+from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.sals.vdc import VDCFACTORY
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
-from jumpscale.clients.stellar import TRANSACTION_FEES
 
 
 class FundPricesDifference(BackgroundService):
@@ -21,9 +23,9 @@ class FundPricesDifference(BackgroundService):
         for vdc_name in VDCFACTORY.list_all():
             vdc_instance = VDCFACTORY.find(vdc_name)
             vdc_instance.load_info()
-            vdc_spec_price = vdc_instance.calculate_spec_price() / (24 * 30)  # user price
+            vdc_spec_price = vdc_instance.calculate_spec_price(load_info=False) / (24 * 30)  # user price
             # check if vdc in grace period
-            if vdc_instance.is_blocked or vdc_instance.is_empty():
+            if vdc_instance.is_blocked or vdc_instance.is_empty(load_info=False):
                 j.logger.info(f"FUND PRICES DIFF: VDC {vdc_instance.instance_name} is empty or in grace period")
                 continue
             # check if prepaid has enough money
@@ -63,6 +65,7 @@ class FundPricesDifference(BackgroundService):
                         f"FUND PRICES DIFF: Couldn't transfer {diff} to VDC {vdc_name} due to error: {str(e)}"
                     )
                 j.logger.info(f"FUND PRICES DIFF: VDC {vdc_instance.instance_name} funded with {diff} TFT")
+            gevent.sleep(0.1)
 
 
 service = FundPricesDifference()

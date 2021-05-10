@@ -3,6 +3,7 @@ from jumpscale.loader import j
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 MAIL_QUEUE = "MAIL_QUEUE"
+TELEGRAM_QUEUE = "TELEGRAM_QUEUE"
 
 
 class Notifier(BackgroundService):

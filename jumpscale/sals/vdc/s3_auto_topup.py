@@ -1,16 +1,17 @@
+from collections import defaultdict
 import random
 import re
-from collections import defaultdict
 from urllib.parse import urljoin
 
 import gevent
-from jumpscale.clients.explorer.models import DiskType, WorkloadType, ZDBMode
 from jumpscale.data import serializers
 from jumpscale.loader import j
+from jumpscale.tools import http
+
+from jumpscale.clients.explorer.models import DiskType, WorkloadType, ZDBMode
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from jumpscale.sals.zos import get as get_zos
-from jumpscale.tools import http
 
 from .scheduler import GlobalScheduler
 
@@ -154,7 +155,9 @@ def check_s3_utilization(url, threshold=0.7, clear_threshold=0.4, max_storage=No
     return disk_utilization, (required_capacity / (1024 ** 3))
 
 
-def extend_zdbs(name, pool_ids, solution_uuid, password, duration, size=10, wallet_name=None, nodes_ids=None):
+def extend_zdbs(
+    name, pool_ids, solution_uuid, password, duration, size=10, wallet_name=None, nodes_ids=None, disk_type=DiskType.HDD
+):
     """
     1- create/extend pools with enough cloud units for the new zdbs
     2- deploy a zdb with the same size and password for each wid
@@ -166,11 +169,15 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, duration, size=10, wall
     wallet_name = wallet_name or j.core.config.get("S3_AUTO_TOPUP_WALLET")
     wallet = j.clients.stellar.get(wallet_name)
     zos = get_zos()
-    reservation_ids = []
+    reservations = []
+
+    storage_query = {"hru": size}
+    if disk_type == DiskType.SSD:
+        storage_query = {"sru": size}
 
     pool_total_sus = defaultdict(int)
     for _, pool_id in enumerate(pool_ids):
-        cloud_units = deployer.calculate_capacity_units(hru=size)
+        cloud_units = deployer.calculate_capacity_units(**storage_query)
         su = cloud_units.su
         pool_total_sus[pool_id] += su
 
@@ -181,16 +188,19 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, duration, size=10, wall
             f"AUTO TOPUP: extending pool {pool_id} with sus: {su}, reservation_id: {pool_info.reservation_id}"
         )
         zos.billing.payout_farmers(wallet, pool_info)
-        reservation_ids.append(pool_info.reservation_id)
+        reservations.append({"pool_id": pool_id, "reservation_id": pool_info.reservation_id})
+
+    for reservation in reservations:
+        if not wait_pool_reservation(reservation["reservation_id"]):
+            j.logger.warning(
+                f"pool {reservation['pool_id']} extension timedout for reservation: {reservation['reservation_id']}"
+            )
+            continue
 
     gs = GlobalScheduler()
     wids = []
-    for idx, pool_id in enumerate(pool_ids):
-        reservation_id = reservation_ids[idx]
-        if not wait_pool_reservation(reservation_id):
-            j.logger.warning(f"pool {pool_id} extension timedout for reservation: {reservation_id}")
-            continue
-        nodes_generator = gs.nodes_by_capacity(pool_id=pool_id, hru=size, ip_version="IPv6")
+    for pool_id in pool_ids:
+        nodes_generator = gs.nodes_by_capacity(pool_id=pool_id, ip_version="IPv6", **storage_query)
         if nodes_ids:
             nodes_generator = list(nodes_generator)
             nodes_generator_ids = [node.node_id for node in nodes_generator]
@@ -205,7 +215,7 @@ def extend_zdbs(name, pool_ids, solution_uuid, password, duration, size=10, wall
                 pool_id=pool_id,
                 node_id=node.node_id,
                 size=size,
-                disk_type=DiskType.HDD,
+                disk_type=disk_type,
                 mode=ZDBMode.Seq,
                 password=password,
                 form_info={"chatflow": "minio"},

@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 cryptography = "3.0"
-js-ng = { git = "https://github.com/threefoldtech/js-ng.git", branch = "development_update_gevent" }
+js-ng = "11.0b13"
 python = "^3.6"
 captcha = "^0.3"
 pillow = "^7.1.0"
@@ -32,7 +32,20 @@ requests_unixsocket = "^0.2.0"
 protobuf = "^3.12.2"
 namecom = "^0.5.0"
 crontab = "^0.22.9"
+importlib-metadata = "^4.0.1"
+
+[tool.poetry.dev-dependencies]
+ipython = "^7.6"
+ipdb = "^0.12.1"
+black = {version = "^18.3-alpha.0", allow-prereleases = true}
+flake8 = "^3.7"
 parameterized = "^0.7.0"
+pytest = "^5.0"
+codecov = "^2.0"
+hypothesis = "^4.28"
+pytest-cov = "^2.7"
+objgraph = "^3.4.1"
+
 
 [tool.poetry.scripts]
 threebot = "jumpscale.entry_points.threebot:cli"

@@ -2,6 +2,7 @@ import random
 
 from jumpscale.loader import j
 
+from jumpscale.clients.explorer.models import DiskType
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.vdc.deployer import VDCIdentityError
 from jumpscale.sals.vdc.scheduler import CapacityChecker, GlobalCapacityChecker
@@ -10,7 +11,14 @@ from jumpscale.sals.vdc.size import VDC_SIZE, ZDB_STARTING_SIZE
 
 class ExtendStorageNodes(GedisChatBot):
     title = "Extend Storage Containers"
-    steps = ["different_farm", "select_farm", "add_node", "success"]
+    steps = ["disk_type", "different_farm", "select_farm", "add_node", "success"]
+
+    @chatflow_step(title="Disk Type")
+    def disk_type(self):
+        disk_type = self.single_choice(
+            "Choose the type of disk for the storage container", ["SSD", "HDD"], required=True, default="HDD"
+        )
+        self.zdb_disk_type = DiskType[disk_type]
 
     @chatflow_step(title="Farm Selection")
     def different_farm(self):
@@ -58,11 +66,15 @@ class ExtendStorageNodes(GedisChatBot):
             farm_names = zdb_config.get("farm_names")
             self.farm_name = random.choice(farm_names)
         cc = CapacityChecker(self.farm_name)
-        if not cc.add_query(hru=ZDB_STARTING_SIZE, ip_version="IPv6"):
+        storage_query = {"hru": ZDB_STARTING_SIZE}
+        if self.disk_type == DiskType.SSD:
+            storage_query = {"sru": ZDB_STARTING_SIZE}
+
+        if not cc.add_query(ip_version="IPv6", **storage_query):
             self.stop(f"There's no enough capacity in farm {self.farm_name} for adding storage node")
         j.logger.debug("found enough capacity, continue to payment")
 
-        success, _, payment_id = self.vdc.show_external_zdb_payment(self, self.farm_name)
+        success, _, payment_id = self.vdc.show_external_zdb_payment(self, self.farm_name, disk_type=self.zdb_disk_type)
         if not success:
             self.stop(f"payment timedout (in case you already paid, please contact support)")
 
@@ -79,6 +91,7 @@ class ExtendStorageNodes(GedisChatBot):
                 farm_names=[self.farm_name],
                 wallet_name="prepaid_wallet",
                 duration=60 * 60,
+                disk_type=self.zdb_disk_type,
             )
             deployer.extend_zdb_workload(duration, *wids)
         except Exception as e:

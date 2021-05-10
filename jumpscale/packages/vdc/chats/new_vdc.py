@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from jumpscale.loader import j
 
 from jumpscale.sals.vdc import VDC_INSTANCE_NAME_FORMAT
+from jumpscale.sals.vdc.vdc import VDCSTATE
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.vdc.proxy import VDC_PARENT_DOMAIN
 from jumpscale.sals.vdc.scheduler import GlobalCapacityChecker
@@ -32,7 +33,6 @@ class VDCDeploy(GedisChatBot):
         "network_farm_selection",
         "compute_farm_selection",
         "deploy",
-        "initializing",
         "success",
     ]
     VDC_INIT_WALLET_NAME = j.config.get("VDC_INITIALIZATION_WALLET", "vdc_init")
@@ -51,11 +51,11 @@ class VDCDeploy(GedisChatBot):
                     if w.get_balance_by_asset("XLM") < 10:
                         raise StopChatFlow(f"{wname} doesn't have enough XLM to support the deployment.")
                 except:
-                    raise StopChatFlow(f"couldn't get the balance for {wname} wallet")
+                    raise StopChatFlow(f"Couldn't get the balance for {wname} wallet")
                 else:
                     j.logger.info(f"{wname} is funded")
             else:
-                j.logger.info(f"this system doesn't have {wname} configured")
+                j.logger.info(f"This system doesn't have {wname} configured")
 
         # tft wallets check
         for wname in [self.VDC_INIT_WALLET_NAME, self.GRACE_PERIOD_WALLET_NAME]:
@@ -64,7 +64,7 @@ class VDCDeploy(GedisChatBot):
                 if w.get_balance_by_asset() < 50:
                     raise StopChatFlow(f"{wname} doesn't have enough TFT to support the deployment.")
             except:
-                raise StopChatFlow(f"couldn't get the balance for {wname} wallet")
+                raise StopChatFlow(f"Couldn't get the balance for {wname} wallet")
             else:
                 j.logger.info(f"{wname} is funded")
 
@@ -74,9 +74,13 @@ class VDCDeploy(GedisChatBot):
     def _rollback(self):
         j.sals.vdc.cleanup_vdc(self.vdc)
         j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
+        self.vdc.state = VDCSTATE.EMPTY
+        self.vdc.save()
 
     def _vdc_form(self):
-        vdc_names = [vdc.vdc_name for vdc in j.sals.vdc.list(self.username, load_info=True) if not vdc.is_empty()]
+        vdc_names = [
+            vdc.vdc_name for vdc in j.sals.vdc.list(self.username, load_info=True) if not vdc.is_empty(load_info=False)
+        ]
         vdc_flavors = [flavor for flavor in VDC_SIZE.VDC_FLAVORS]
         vdc_flavor_messages = []
         for flavor in vdc_flavors:
@@ -193,7 +197,7 @@ class VDCDeploy(GedisChatBot):
         alias.allow_user_to_bucket(
             f"{self.username}-{self.vdc_name.value}",
             backup_config["S3_BUCKET"],
-            prefix=f"{self.username.rstrip('.3bot')}/{self.vdc_name.value}",
+            prefix=f"{j.data.text.removesuffix(self.username, '.3bot')}/{self.vdc_name.value}",
         )
         self.backup_config = {
             "ak": f"{self.username}-{self.vdc_name.value}",
@@ -328,7 +332,9 @@ class VDCDeploy(GedisChatBot):
     @chatflow_step(title="VDC Deployment")
     def deploy(self):
         self.md_show_update(f"Initializing Deployer (This may take a few moments)....")
-        self.vdc_instance_name = VDC_INSTANCE_NAME_FORMAT.format(self.vdc_name.value, self.username.rstrip(".3bot"))
+        self.vdc_instance_name = VDC_INSTANCE_NAME_FORMAT.format(
+            self.vdc_name.value, j.data.text.removesuffix(self.username, ".3bot")
+        )
         if j.core.db.hget(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name):
             self.stop(f"Another deployment is running with the same name {self.vdc_name.value}")
         j.core.db.hset(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name, "DEPLOY")
@@ -337,7 +343,7 @@ class VDCDeploy(GedisChatBot):
         if self.vdc:
             if not self.vdc.is_empty():
                 j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
-                self.stop(f"There is another active vdc with name {self.vdc_name}")
+                self.stop(f"There is another active vdc with name {self.vdc_name.value}")
             j.sals.vdc.delete(self.vdc_instance_name)
         self.vdc = j.sals.vdc.new(
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDC_SIZE.VDCFlavor[self.vdc_flavor],
@@ -352,7 +358,7 @@ class VDCDeploy(GedisChatBot):
 
         try:
             self.deployer = self.vdc.get_deployer(
-                password=self.password,
+                password=self.vdc_secret,
                 bot=self,
                 restore=self.restore,
                 network_farm=self.network_farm,
@@ -382,7 +388,7 @@ class VDCDeploy(GedisChatBot):
                         f"Subdomain {subdomain} is not reserved on the explorer. continuing with the deployment."
                     )
 
-        success, amount, payment_id = self.vdc.show_vdc_payment(self)
+        success, amount, payment_id = self.vdc.show_vdc_payment(self, expiry=10)
         if not success:
             self._rollback()  # delete it?
             self.stop(f"payment timedout (in case you already paid, please contact support)")
@@ -427,9 +433,10 @@ class VDCDeploy(GedisChatBot):
         self.vdc.fund_difference(self.VDC_INIT_WALLET_NAME)
         self.md_show_update("Updating expiration...")
         self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
+        self.vdc.state = VDCSTATE.DEPLOYED
+        self.vdc.save()
+        j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
 
-    @chatflow_step(title="Initializing", disable_previous=True)
-    def initializing(self):
         threebot_url = f"https://{self.vdc.threebot.domain}/"
         self.md_show_update(
             f"Initializing your VDC 3Bot container at {threebot_url} ... ip: {self.vdc.threebot.ip_address}. public: {self.vdc.kubernetes[0].public_ip}"
@@ -459,7 +466,6 @@ class VDCDeploy(GedisChatBot):
             Visit https://{self.vdc.threebot.domain}/vdc_dashboard/api/refer/{solution} to deploy a new instance of {solution.capitalize()}.
             """
             )
-        j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
         self.md_show(dedent(msg), md=True)
 
 

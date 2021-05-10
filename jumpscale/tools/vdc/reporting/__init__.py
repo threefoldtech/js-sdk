@@ -63,8 +63,9 @@ def report_vdc_status(vdc_name: str):
         master_ip = vdc.kubernetes[0].public_ip
         threebot_ip = vdc.threebot.ip_address
         master_ip_state = "Up" if j.sals.nettools.tcp_connection_test(vdc.kubernetes[0].public_ip, 6443, 10) else "Down"
-        threebot_domain = vdc.threebot.domain
+        threebot_domain = f"https://{vdc.threebot.domain}"
         threebot_domain_state = "Up" if j.sals.nettools.wait_http_test(threebot_domain, timeout=10) else "Down"
+
     print(
         f"Creation time: {creation_time}\n"
         f"Expiration time: {expiration_time}\n"
@@ -76,22 +77,25 @@ def report_vdc_status(vdc_name: str):
     )
     workloads = _filter_vdc_workloads(vdc)
 
-    j.data.terminaltable.print_table(
-        f"Wallets",
-        [
-            ["Name", "Address", "Balance"],
+    try:
+        j.data.terminaltable.print_table(
+            f"Wallets",
             [
-                vdc.prepaid_wallet.instance_name,
-                vdc.prepaid_wallet.address,
-                f"{vdc.prepaid_wallet.get_balance().balances[0].balance} TFT",
+                ["Name", "Address", "Balance"],
+                [
+                    vdc.prepaid_wallet.instance_name,
+                    vdc.prepaid_wallet.address,
+                    f"{vdc.prepaid_wallet.get_balance().balances[0].balance} TFT",
+                ],
+                [
+                    vdc.provision_wallet.instance_name,
+                    vdc.provision_wallet.address,
+                    f"{vdc.provision_wallet.get_balance().balances[0].balance} TFT",
+                ],
             ],
-            [
-                vdc.provision_wallet.instance_name,
-                vdc.provision_wallet.address,
-                f"{vdc.provision_wallet.get_balance().balances[0].balance} TFT",
-            ],
-        ],
-    )
+        )
+    except:
+        print("\n<== No available wallets data. Expired or invalid vdc ==>")
     print("\n")
 
     workloads_list = [["Wid", "Type", "State", "Farm", "PoolID", "IPv4Units", "NodeID", "NState", "Message"]]

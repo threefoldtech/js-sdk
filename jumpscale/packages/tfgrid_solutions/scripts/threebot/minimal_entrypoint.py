@@ -141,8 +141,11 @@ j.core.config.set(
     },
 )
 
-j.core.config.set("NETWORK_FARMS", NETWORK_FARMS.split(","))
-j.core.config.set("COMPUTE_FARMS", COMPUTE_FARMS.split(","))
+if NETWORK_FARMS:
+    j.core.config.set("NETWORK_FARMS", NETWORK_FARMS.split(","))
+
+if COMPUTE_FARMS:
+    j.core.config.set("COMPUTE_FARMS", COMPUTE_FARMS.split(","))
 
 j.core.config.set("VDC_THREEBOT", True)
 

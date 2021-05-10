@@ -1,13 +1,14 @@
 import math
 
 from beaker.middleware import SessionMiddleware
+from bottle import Bottle, HTTPResponse, abort, redirect, request
+import gevent
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, get_user_info, login_required, package_authorized
+from jumpscale.packages.auth.bottle.auth import get_user_info, login_required, package_authorized
 from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
 from jumpscale.sals.vdc import VDCFACTORY
-
-from bottle import Bottle, HTTPResponse, abort, redirect, request
+from jumpscale.sals.vdc.vdc import VDCSTATE
 
 app = Bottle()
 
@@ -16,34 +17,29 @@ def _list_vdcs():
     user_info = j.data.serializers.json.loads(get_user_info())
     username = user_info["username"]
     result = []
-    vdcs = VDCFACTORY.list(username, load_info=True)
-    for vdc in vdcs:
+
+    def get_vdc(vdc):
+        if vdc.state == VDCSTATE.EMPTY:
+            return
+
         if vdc.is_empty():
             j.logger.warning(f"vdc {vdc.solution_uuid} is empty")
-            continue
+            vdc.state = VDCSTATE.EMPTY
+            vdc.save()
+            return
+
         vdc_dict = vdc.to_dict()
         vdc_dict.pop("s3")
         vdc_dict.pop("kubernetes")
-        vdc_dict["expiration"] = vdc.calculate_expiration_value(False)
-        vdc_dict["price"] = math.ceil(vdc.calculate_spec_price())
-        # Add wallet address
-        wallet = vdc.prepaid_wallet
-        balances = wallet.get_balance()
-        balances_data = []
-        for item in balances.balances:
-            # Add only TFT balance
-            if item.asset_code == "TFT":
-                balances_data.append(
-                    {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
-                )
-
-        vdc_dict["wallet"] = {
-            "address": wallet.address,
-            "network": wallet.network.value,
-            "secret": wallet.secret,
-            "balances": balances_data,
-        }
+        vdc_dict.pop("etcd")
         result.append(vdc_dict)
+
+    threads = []
+    vdcs = VDCFACTORY.list(username)
+    for vdc in vdcs:
+        thread = gevent.spawn(get_vdc, vdc)
+        threads.append(thread)
+    gevent.joinall(threads)
     return result
 
 
@@ -74,6 +70,26 @@ def get_vdc_info(name):
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     vdc_dict = vdc.to_dict()
+    vdc_dict.pop("s3")
+    vdc_dict.pop("kubernetes")
+    vdc_dict.pop("etcd")
+    vdc_dict["price"] = math.ceil(vdc.calculate_spec_price(False))
+    wallet = vdc.prepaid_wallet
+    balances = wallet.get_balance()
+    balances_data = []
+    for item in balances.balances:
+        # Add only TFT balance
+        if item.asset_code == "TFT":
+            balances_data.append(
+                {"balance": item.balance, "asset_code": item.asset_code, "asset_issuer": item.asset_issuer}
+            )
+
+    vdc_dict["wallet"] = {
+        "address": wallet.address,
+        "network": wallet.network.value,
+        "secret": wallet.secret,
+        "balances": balances_data,
+    }
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
     )
@@ -93,8 +109,11 @@ def delete_vdc():
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
 
     try:
+        j.logger.info(f"Attemting deleting vdc: {name}")
         vdc = VDCFACTORY.find(f"vdc_{vdc.vdc_name}_{vdc.owner_tname}")
         VDCFACTORY.cleanup_vdc(vdc)
+        vdc.state = VDCSTATE.EMPTY
+        vdc.save()
     except Exception as e:
         j.logger.error(f"Error deleting VDC {name} due to {str(e)}")
         return HTTPResponse(f"Error deleteing VDC {name}", status=400, headers={"Content-Type": "application/json"})
@@ -167,6 +186,3 @@ def get_wallet_qrcode_image():
     data = f"TFT:{address}?amount={amount}&message=topup&sender=me"
     qrcode_image = j.tools.qrcode.base64_get(data, scale=scale)
     return j.data.serializers.json.dumps({"data": qrcode_image})
-
-
-app = SessionMiddleware(app, SESSION_OPTS)

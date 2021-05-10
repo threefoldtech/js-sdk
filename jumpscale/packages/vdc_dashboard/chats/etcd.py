@@ -69,7 +69,7 @@ class EtcdDeploy(SolutionsChatflowDeploy):
             stop_message = error_message_template.format(
                 reason="Couldn't find resources in the cluster for the solution"
             )
-            self.k8s_client.delete_deployed_release(self.config.release_name)
+            self.rollback()
             self.stop(dedent(stop_message))
 
         self.is_certified = False
@@ -96,6 +96,7 @@ class EtcdDeploy(SolutionsChatflowDeploy):
         # Etcd using TCP, always response return this msg "404 page not found"
         if not "404 page not found" in str(request.content):
             stop_message = error_message_template.format(reason="Couldn't reach the website after deployment")
+            self.rollback()
             self.stop(dedent(stop_message))
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)

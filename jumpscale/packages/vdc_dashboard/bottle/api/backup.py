@@ -1,11 +1,8 @@
-from beaker.middleware import SessionMiddleware
 from bottle import Bottle, HTTPResponse, request
 from jumpscale.loader import j
+from jumpscale.packages.auth.bottle.auth import package_authorized
 
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, package_authorized
-
-
-app = Bottle()
+from .root import app
 
 VDC_BACKUP_PREFIX = "vdc-"
 CONFIG_BACKUP_PREFIX = "config-"
@@ -100,6 +97,7 @@ def create_backup():
     config_path = j.sals.fs.expanduser("~/.kube/config")
     client = j.sals.kubernetes.Manager(config_path=config_path)
     try:
+        j.logger.info(f"Creating backup with name: {name}")
         client.execute_native_cmd(
             f"velero create backup {CONFIG_BACKUP_PREFIX}{name} --include-resources secrets,configmaps"
         )
@@ -125,6 +123,7 @@ def delete_backup():
     client = j.sals.kubernetes.Manager(config_path=config_path)
 
     try:
+        j.logger.info(f"Deleting backup with name: {vdc_backup_name}")
         client.execute_native_cmd(f"velero delete backup {vdc_backup_name} --confirm")
         client.execute_native_cmd(f"velero delete backup {config_backup_name} --confirm")
         return HTTPResponse("Backup deleted successfully.", status=200, headers={"Content-Type": "application/json"})
@@ -149,6 +148,7 @@ def restore_backup():
     time = j.data.time.utcnow().format("YYYYMMDDHHMMSS")
 
     try:
+        j.logger.info(f"Restoring backup with name: {vdc_backup_name}")
         client.execute_native_cmd(
             f"velero create restore restore-{vdc_backup_name}-{time} --from-backup {vdc_backup_name}"
         )
@@ -163,6 +163,3 @@ def restore_backup():
     except Exception as e:
         j.logger.warning(f"Failed to restore backup due to {str(e)}")
         return HTTPResponse("Failed to restore backup.", status=500, headers={"Content-Type": "application/json"})
-
-
-app = SessionMiddleware(app, SESSION_OPTS)

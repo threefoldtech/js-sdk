@@ -1,29 +1,14 @@
-from beaker.middleware import SessionMiddleware
-from bottle import Bottle, request, HTTPResponse, abort, redirect
-
-from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import (
-    SESSION_OPTS,
-    login_required,
-    get_user_info,
-    authenticated,
-    package_authorized,
-)
-from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import (
-    get_vdc,
-    threebot_vdc_helper,
-    _list_alerts,
-)
-from jumpscale.core.base import StoredFactory
-
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
-    get_all_deployments,
-    get_deployments,
-)
 import os
 
-app = Bottle()
+from bottle import HTTPResponse, abort, redirect, request
+from jumpscale.core.base import StoredFactory
+from jumpscale.loader import j
+from jumpscale.packages.auth.bottle.auth import authenticated, get_user_info, login_required, package_authorized
+from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts, get_vdc, threebot_vdc_helper
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
+
+from .root import app
 
 
 def _get_zstor_config(ip_version=6):
@@ -95,6 +80,7 @@ def delete_node():
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     deployer = vdc.get_deployer()
     try:
+        j.logger.info(f"Deleting node with wid: {wid}")
         deployer.delete_k8s_node(wid)
     except Exception as e:
         j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
@@ -114,6 +100,7 @@ def delete_zdb():
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     deployer = vdc.get_deployer()
     try:
+        j.logger.info(f"Deleting zdb with wid: {wid}")
         deployer.delete_s3_zdb(wid)
     except Exception as e:
         j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
@@ -203,6 +190,7 @@ def remove_admin() -> str:
         raise j.exceptions.Value(f"Admin {name} does not exist")
     if len(package.admins) == 1:
         raise j.exceptions.Value(f"VDC should have at least one admin")
+    j.logger.info(f"Removing admin {name}")
     package.admins.remove(name)
     threebot.packages.save()
 
@@ -227,7 +215,7 @@ def install_deployment():
     vdc_name = data.get("vdc_name")
     if not vdc_name:
         abort(400, "Error: Not all required params was passed.")
-    config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{username.rstrip('.3bot')}/{vdc_name}.yaml"
+    config_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{j.data.text.removesuffix(username, '.3bot')}/{vdc_name}.yaml"
     k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
     k8s_client.add_helm_repo(data["repo_name"], data["repo_url"])
     k8s_client.update_repos()
@@ -257,6 +245,7 @@ def cancel_deployment():
         k8s_client.delete_deployed_release(release=data["release"], vdc_instance=vdc, namespace=namespace)
     else:
         k8s_client.execute_native_cmd(f"kubectl delete ns {namespace}")
+    j.logger.info(f"Cancelling deployment for {data['solution_id']}")
     j.sals.marketplace.solutions.cancel_solution_by_uuid(data["solution_id"])
     return j.data.serializers.json.dumps({"result": True})
 
@@ -466,6 +455,3 @@ def get_sdk_version():
     return HTTPResponse(
         j.data.serializers.json.dumps({"data": data}), status=200, headers={"Content-Type": "application/json"}
     )
-
-
-app = SessionMiddleware(app, SESSION_OPTS)
