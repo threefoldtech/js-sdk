@@ -13,7 +13,6 @@ class ChatFlows(BaseActor):
         super().__init__()
         self.chats = {}
         self.sessions = {}
-        self.username = None
 
     @actor_method
     def new(self, package: str, chat: str, client_ip: str, query_params: dict = None) -> dict:
@@ -58,7 +57,7 @@ class ChatFlows(BaseActor):
             # self.sessions[key] = chatflow.load_from_path(path)
             # return {"valid": True}
             j.logger.debug("dir exists")
-        return {"valid": session_id in self.sessions}
+        return {"valid": sessens}
 
     @actor_method
     def end(self, session_id: str) -> dict:
