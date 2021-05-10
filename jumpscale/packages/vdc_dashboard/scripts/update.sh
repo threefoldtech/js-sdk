@@ -14,7 +14,7 @@ if [ $1 ]; then SDK_BRANCH=$1; else SDK_BRANCH=development; fi
 echo "we will use origin/${SDK_BRANCH} branch to update the code"
 
 # find out if a remote git branch with $SDK_BRANCH name exists in the repository
-if ! git show-ref --quiet --verify "refs/remotes/origin//$SDK_BRANCH"; then
+if ! git show-ref --quiet --verify "refs/remotes/origin/$SDK_BRANCH"; then
   >&2 echo "error: can't find the branch <$SDK_BRANCH> in the repository"
   exit 64
 fi
