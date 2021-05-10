@@ -36,6 +36,10 @@ class MaticDeploy(SolutionsChatflowDeploy):
             "env.eth_walletaddr": self.config.chart_config.extra_config.get("eth_walletaddr", ""),
             "env.sentry_nodeid": self.config.chart_config.extra_config.get("sentry_nodeid", ""),
             "env.sentry_enodeid": self.config.chart_config.extra_config.get("sentry_enodeid", ""),
+            "env.heimdall_svcp": self.config.chart_config.extra_config.get("heimdall_svcp", ""),
+            "env.bor_svcp": self.config.chart_config.extra_config.get("bor_svcp", ""),
+            "ports.heimdall": self.config.chart_config.extra_config.get("heimdall_svcp", ""),
+            "ports.bor": self.config.chart_config.extra_config.get("bor_svcp", ""),
         }
 
     @chatflow_step(title="Node Configuration")
