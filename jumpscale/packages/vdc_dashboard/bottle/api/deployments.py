@@ -334,8 +334,9 @@ def update():
         branch = branch_param
     else:
         branch = os.environ.get("SDK_VERSION", "development")
-    cmd = f"bash /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard/scripts/update.sh {branch}"
-    rc, out, err = j.sals.process.execute(cmd, cwd="/sandbox/code/github/threefoldtech/js-sdk")
+    sdk_path = '/sandbox/code/github/threefoldtech/js-sdk'
+    cmd = f"bash jumpscale/packages/vdc_dashboard/scripts/update.sh {branch}"
+    rc, out, err = j.sals.process.execute(cmd, cwd=sdk_path)
     if rc:
         return HTTPResponse(
             j.data.serializers.json.dumps(
@@ -345,7 +346,7 @@ def update():
             headers={"Content-Type": "application/json"},
         )
     j.core.executors.run_tmux(
-        "bash /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/tfgrid_solutions/scripts/threebot/restart.sh 5",
+        f"bash {sdk_path}/jumpscale/packages/tfgrid_solutions/scripts/threebot/restart.sh 5",
         "restart",
     )
     return HTTPResponse(
