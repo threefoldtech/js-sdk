@@ -56,7 +56,7 @@ if $RESET_SUCCEEDED; then
     MAX_TRIES=4
     COUNT=0
     while [  $COUNT -lt $MAX_TRIES ]; do
-        poetry install --no-interaction --no-dev --remove-untracked
+        poetry install --no-interaction --no-dev
         if [ $? -eq 0 ];then
           git stash pop
           echo "Code updated and all defined dependencies successfully installed!"
