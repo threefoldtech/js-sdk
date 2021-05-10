@@ -103,6 +103,11 @@ class GedisChatBot:
         self._greenlet = None
         self._queue_out = gevent.queue.Queue()
         self._queue_in = gevent.queue.Queue()
+
+        _db = j.core.db
+        if _db.get("stopping_threebot_server"):
+            self.send_error("Can't start new chatflow, 3Bot server is stopping...")
+            raise j.exceptions.Runtime("Can't start new chatflow, 3Bot server is stopping...")
         self._start()
 
     @property

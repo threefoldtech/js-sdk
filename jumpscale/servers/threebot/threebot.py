@@ -6,6 +6,7 @@ import sys
 import toml
 import shutil
 import gevent
+import atexit
 import signal
 from urllib.parse import urlparse
 from gevent.pywsgi import WSGIServer
@@ -813,6 +814,7 @@ class ThreebotServer(Base):
     def start(self, wait: bool = False, cert: bool = True):
         # start default servers in the rack
         # handle signals
+        atexit.register(self.stop)
         for signal_type in (signal.SIGTERM, signal.SIGINT, signal.SIGKILL):
             gevent.signal_handler(signal_type, self.stop)
 
@@ -853,13 +855,27 @@ class ThreebotServer(Base):
         self.rack.start(wait=wait)  # to keep the server running
 
     def stop(self):
-        server_packages = self.packages.list_all()
-        for package_name in server_packages:
-            package = self.packages.get(package_name)
-            package.stop()
-        self.nginx.stop()
-        # mark app as stopped, do this before stopping redis
-        j.logger.unregister()
-        self.rack.stop()
-        self.redis.stop()
-        self._started = False
+        if self.is_running():
+            server_packages = self.packages.list_all()
+            # check if there is an active chatflow
+            path = f"{j.core.dirs.CFGDIR}/chatflows/"
+            # set flag to disable stating new deployment with expiration 30 seconds
+            _db = j.core.db
+            _db.set("stopping_threebot_server", 1, ex=3 * 60)
+            # recheck for 3 min
+            retries = 3
+            for _ in range(retries):
+                if not j.sals.fs.is_dir(path) or j.sals.fs.is_empty_dir(path):
+                    break
+                j.logger.warning("There is an active deployment, waiting 1 minuets")
+                gevent.sleep(60)
+            for package_name in server_packages:
+                package = self.packages.get(package_name)
+                package.stop()
+            self.nginx.stop()
+            # mark app as stopped, do this before stopping redis
+            j.logger.unregister()
+            self.rack.stop()
+            self.redis.stop()
+            self._started = False
+            _db.unlink("stopping_threebot_server")
