@@ -168,19 +168,15 @@ while not vdc.threebot.domain and j.data.time.now().timestamp < deadline:
 j.core.config.set("OVER_PROVISIONING", True)
 server = j.servers.threebot.get("default")
 server.packages.add("/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/billing")
-if TEST_CERT != "true":
-    package_config = toml.load(
-        "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard/package.toml"
-    )
-    package_config["servers"][0]["domain"] = vdc.threebot.domain
-    with open("/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard/package.toml", "w") as f:
-        toml.dump(package_config, f)
-    if ACME_SERVER_URL:
-        server.acme_server_type = "custom"
-        server.acme_server_url = ACME_SERVER_URL
+if TEST_CERT != "true" and ACME_SERVER_URL:
+    server.acme_server_type = "custom"
+    server.acme_server_url = ACME_SERVER_URL
 
 server.packages.add(
-    "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard", admins=[f"{vdc.owner_tname}.3bot"]
+    "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard",
+    admins=[f"{vdc.owner_tname}.3bot"],
+    default_domain=vdc.threebot.domain,
+    default_email=VDC_EMAIL,
 )
 server.save()
 

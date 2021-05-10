@@ -518,11 +518,13 @@ class PackageManager(Base):
             path = package_path
 
         admins = kwargs.pop("admins", [])
+        default_domain = kwargs.get("default_domain", self.threebot.domain)
+        default_email = kwargs.get("default_email", self.threebot.email)
 
         package = Package(
             path=path,
-            default_domain=self.threebot.domain,
-            default_email=self.threebot.email,
+            default_domain=default_domain,
+            default_email=default_email,
             giturl=giturl,
             kwargs=kwargs,
             admins=admins,
