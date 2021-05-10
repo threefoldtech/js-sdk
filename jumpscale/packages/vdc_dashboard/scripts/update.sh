@@ -34,14 +34,13 @@ fi
 
 git stash push jumpscale/packages/vdc_dashboard/package.toml
 
-# git ride of the uncommited local changes 
+# git ride of the uncommited local changes and switch the branch
 if ! git checkout -f $SDK_BRANCH; then
   >&2 echo "error: switch to the upstream branch <$SDK_BRANCH> failed"
   git stash pop
   exit 65
 fi
 
-# switch the branch
 RESET_SUCCEEDED=false
 if git reset --hard origin/$SDK_BRANCH; then
   RESET_SUCCEEDED=true
