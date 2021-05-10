@@ -55,7 +55,7 @@ class Test3BotServer(BaseTests):
         self.info("*** redis server ***")
         self.info(" * Check that redis server connection  works successfully and right port.")
         self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 6379, 5))
-        self.assertTrue(j.sals.process.get_pids("redis"), "redis didn't start correctly")
+        self.assertTrue(j.sals.process.get_pids("redis-server"), "redis didn't start correctly")
 
         self.info("*** gedis server ***")
         self.info(" * Check that gedis server connection  works successfully and right port.")
