@@ -41,6 +41,9 @@ class MaticDeploy(SolutionsChatflowDeploy):
     def get_config_string_safe(self):
         return {
             "env.heimdall_svcp": str(self.config.chart_config.extra_config["heimdall_svcp"]),
+            "env.bor_svcp": str(self.config.chart_config.extra_config["bor_svcp"]),
+            "ports.heimdall": str(self.config.chart_config.extra_config["heimdall_svcp"]),
+            "ports.bor": str(self.config.chart_config.extra_config["bor_svcp"]),
         }
 
     @chatflow_step(title="Node Configuration")
