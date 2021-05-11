@@ -1,9 +1,7 @@
 import math
 import uuid
-import requests
 from textwrap import dedent
 
-from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
 from jumpscale.sals.reservation_chatflow.models import SolutionType
@@ -15,10 +13,9 @@ class EtcdDeploy(GedisChatBot):
         "etcd_name",
         "etcd_no_nodes",
         "containers_resources",
-        "select_pool",
-        "etcd_network",
         "ipv6_config",
-        "container_node_id",
+        "select_pools_and_nodes",
+        "etcd_network",
         "etcd_ip",
         "reservation",
         "success",
@@ -57,16 +54,6 @@ class EtcdDeploy(GedisChatBot):
     def containers_resources(self):
         self.resources = deployer.ask_container_resources(self, default_disk_size=1024)
 
-    @chatflow_step(title="Pool")
-    def select_pool(self):
-        query = {
-            "cru": self.resources["cpu"],
-            "mru": math.ceil(self.resources["memory"] / 1024),
-            "sru": math.ceil(self.resources["disk_size"] / 1024),
-        }
-        cloud_units = deployer.calculate_capacity_units(**query)
-        self.pool_id = deployer.select_pool(self, cu=cloud_units.cu, su=cloud_units.su, **query)
-
     @chatflow_step(title="Global IPv6 Address")
     def ipv6_config(self):
         self.public_ipv6 = deployer.ask_ipv6(self)
@@ -75,16 +62,16 @@ class EtcdDeploy(GedisChatBot):
         else:
             self.ip_version = None
 
-    @chatflow_step(title="Container(s) Node ID")
-    def container_node_id(self):
+    @chatflow_step(title="Pools and Nodes")
+    def select_pools_and_nodes(self):
         query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),
             "sru": math.ceil(self.resources["disk_size"] / 1024),
         }
-        self.selected_node = deployer.ask_container_placement(self, self.pool_id, ip_version=self.ip_version, **query)
-        if not self.selected_node:
-            self.selected_node = deployer.schedule_container(self.pool_id, ip_version=self.ip_version, **query)
+        self.selected_nodes, self.etcd_pools = deployer.ask_multi_pool_placement(
+            self, self.no_nodes.value, [query] * self.no_nodes.value, ip_version=self.ip_version
+        )
 
     @chatflow_step(title="Network")
     def etcd_network(self):
@@ -93,26 +80,28 @@ class EtcdDeploy(GedisChatBot):
     @chatflow_step(title="ETCD Node(s) IP")
     @deployment_context()
     def etcd_ip(self):
-        result = deployer.add_network_node(
-            self.network_view.name,
-            self.selected_node,
-            self.pool_id,
-            self.network_view,
-            bot=self,
-            owner=self.solution_metadata.get("owner"),
-        )
-        if result:
-            self.md_show_update("Deploying Network on Nodes....")
-            for wid in result["ids"]:
-                success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_node.node_id)
-                if not success:
-                    raise DeploymentFailed(f"Failed to add node {self.selected_node.node_id} to network {wid}", wid=wid)
-            self.network_view = self.network_view.copy()
-
         self.ip_addresses = []
         self.etcd_clutser = ""
         for n in range(self.no_nodes.value):
-            free_ips = self.network_view.get_node_free_ips(self.selected_node)
+            result = deployer.add_network_node(
+                self.network_view.name,
+                self.selected_nodes[n],
+                self.etcd_pools[n],
+                self.network_view,
+                bot=self,
+                owner=self.solution_metadata.get("owner"),
+            )
+            if result:
+                self.md_show_update("Deploying Network on Nodes....")
+                for wid in result["ids"]:
+                    success = deployer.wait_workload(wid, self, breaking_node_id=self.selected_nodes[n].node_id)
+                    if not success:
+                        raise DeploymentFailed(
+                            f"Failed to add node {self.selected_nodes[n].node_id} to network {wid}", wid=wid
+                        )
+                self.network_view = self.network_view.copy()
+
+            free_ips = self.network_view.get_node_free_ips(self.selected_nodes[n])
             ip = self.drop_down_choice(
                 f"Please choose IP Address for ETCD Node {n+1}", free_ips, default=free_ips[0], required=True
             )
@@ -128,8 +117,8 @@ class EtcdDeploy(GedisChatBot):
         self.solution_metadata.update(metadata)
 
         self.resv_ids = deployer.deploy_etcd_containers(
-            self.pool_id,
-            [self.selected_node.node_id] * self.no_nodes.value,
+            self.etcd_pools,
+            [selected_node.node_id for selected_node in self.selected_nodes],
             self.network_view.name,
             self.ip_addresses,
             self.etcd_clutser,

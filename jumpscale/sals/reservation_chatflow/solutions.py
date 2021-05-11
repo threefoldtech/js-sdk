@@ -346,17 +346,19 @@ class ChatflowSolutions:
             wids = []
             ipsv4 = []
             ipsv6 = []
+            nodes = []
             for w_dict in c_dict:
                 wids.append(w_dict["wid"])
                 ipsv4.append(w_dict["ipv4"])
                 ipsv6.append(w_dict["ipv6"])
+                nodes.append(w_dict["node"])
             result.append(
                 {
                     "wids": wids,
                     "Name": name,
                     "IPv4 Address(es)": ipsv4,
                     "IPv6 Address(es)": ipsv6,
-                    "Node": c_dict[0]["node"],
+                    "Node(s)": nodes,
                     "Farm": c_dict[0]["farm"],
                     "Network": c_dict[0]["network"],
                 }
