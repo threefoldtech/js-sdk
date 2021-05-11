@@ -67,21 +67,6 @@ class EtcdDeploy(GedisChatBot):
 
     @chatflow_step(title="Pools and Nodes")
     def select_pools_and_nodes(self):
-        timer = j.data.time.now().timestamp
-        while self.no_nodes.value > 1:
-            self.md_show_update(
-                dedent(
-                    f"""\
-                ## Select pool and container node for each etcd node
-                <br /> _It will appear {self.no_nodes.value} times_
-                """
-                ),
-                md=True,
-            )
-            if j.data.time.now().timestamp > timer + 5:
-                break
-            gevent.sleep(1)
-
         query = {
             "cru": self.resources["cpu"],
             "mru": math.ceil(self.resources["memory"] / 1024),

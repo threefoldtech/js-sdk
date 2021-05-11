@@ -1464,6 +1464,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 if not nodes:
                     continue
                 pool_choices[p] = pools[p]
+            bot.md_show_update(f"## Setup pool and container node for node {i+1}", md=True)
+            gevent.sleep(2)
             pool_id = self.select_pool(bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su)
             node = self.ask_container_placement(
                 bot, pool_id, workload_name=workload_names[i], ip_version=ip_version, **resource_query_list[i]
