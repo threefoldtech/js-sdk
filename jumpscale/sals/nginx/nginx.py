@@ -224,7 +224,7 @@ class Website(Base):
     domain = fields.String()
     ssl = fields.Boolean()
     port = fields.Integer(default=PORTS.HTTP)
-    locations = fields.Factory(Location)
+    locations = fields.Factory(Location, stored=False)
     includes = fields.List(fields.String())
 
     selfsigned = fields.Boolean(default=True)
@@ -343,7 +343,7 @@ class Website(Base):
 
 
 class NginxConfig(Base):
-    websites = fields.Factory(Website)
+    websites = fields.Factory(Website, stored=False)
     cert = fields.Boolean(default=True)
 
     def __init__(self, *args, **kwargs):
