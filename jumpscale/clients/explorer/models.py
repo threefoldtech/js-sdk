@@ -464,6 +464,8 @@ class K8s(Base):
     datastore_endpoint = fields.String(default="")
     disable_default_ingress = fields.Boolean(default=True)
 
+    SIZES = VMSIZES
+
     def resource_units(self):
 
         resource_units = ResourceUnitAmount()
@@ -554,6 +556,8 @@ class VirtualMachine(Base):
     ssh_keys = fields.List(fields.String())
     public_ip = fields.Integer()
     ipaddress = fields.IPAddress()
+
+    SIZES = VMSIZES
 
     def resource_units(self):
 
