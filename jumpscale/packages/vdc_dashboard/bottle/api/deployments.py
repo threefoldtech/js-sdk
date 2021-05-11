@@ -336,7 +336,7 @@ def update():
         branch = os.environ.get("SDK_VERSION", "development")
     sdk_path = "/sandbox/code/github/threefoldtech/js-sdk"
     cmd = f"bash jumpscale/packages/vdc_dashboard/scripts/update.sh {branch}"
-    rc, out, err = j.sals.process.execute(cmd, cwd=sdk_path, showout=True)
+    rc, out, err = j.sals.process.execute(cmd, cwd=sdk_path, showout=True, timeout=1200)
     if rc:
         return HTTPResponse(
             j.data.serializers.json.dumps(
