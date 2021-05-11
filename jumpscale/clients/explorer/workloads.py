@@ -19,6 +19,7 @@ from .models import (
     WorkloadType,
     ZdbNamespace,
     PublicIP,
+    VirtualMachine,
 )
 from .pagination import get_all, get_page
 
@@ -43,6 +44,7 @@ class Decoder:
             WorkloadType.Gateway4to6: Gateway4to6,
             WorkloadType.Network_resource: NetworkResource,
             WorkloadType.Public_IP: PublicIP,
+            WorkloadType.Virtual_Machine: VirtualMachine,
         }
 
     def workload(self):
