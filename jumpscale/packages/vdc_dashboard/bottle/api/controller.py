@@ -1,7 +1,9 @@
+# controller API
+# need to have a separate app because it shouldn't be authenticated using "auth" package
 import random
 from math import ceil
 
-from bottle import HTTPResponse, request
+from bottle import Bottle, HTTPResponse, request
 from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.packages.vdc_dashboard.bottle.api.backup import _list as list_backups
@@ -11,7 +13,7 @@ from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_kubeconfig_file, get_zstor_config_file
 from jumpscale.sals.vdc.size import VDC_SIZE, ZDB_STARTING_SIZE
 
-from .root import app
+app = Bottle()
 
 
 @app.route("/api/controller/vdc", method="GET")
