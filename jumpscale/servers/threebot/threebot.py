@@ -609,18 +609,26 @@ class PackageManager(Base):
                 raise j.exceptions.NotFound(f"Cannot find static dir {path}")
 
         # add bottle servers
+        # we first merge all apps of a package into a single app
+        # then mount this app on threebot main app
+        # this will work with multiple non-standalone apps
+        package_app = j.server.appserver.make_main_app()
         for bottle_server in package.bottle_servers:
             path = j.sals.fs.join_paths(package.path, bottle_server["file_path"])
             if not j.sals.fs.exists(path):
                 raise j.exceptions.NotFound(f"Cannot find bottle server path {path}")
 
-            if hasattr(bottle_server, "standalone") and bottle_server.standalone:
+            is_standalone = bottle_server.get("standalone", False)
+            if standalone:
                 bottle_wsgi_server = package.get_bottle_server(path, bottle_server["host"], bottle_server["port"])
                 self.threebot.rack.add(f"{package.name}_{bottle_server['name']}", bottle_wsgi_server)
             else:
                 bottle_app = package.get_package_bottle_app(path)
-                j.logger.info(f"registering subapp {package.name}")
-                self.threebot.mainapp.mount(f"/{package.name}", bottle_app)
+                package_app.merge(bottle_app)
+
+        if package_app.routes:
+            j.logger.info(f"registering {package.name} package app")
+            self.threebot.mainapp.mount(f"/{package.name}", package_app)
 
         # register gedis actors
         if package.actors_dir:
