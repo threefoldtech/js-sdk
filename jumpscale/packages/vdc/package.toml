@@ -17,8 +17,6 @@ file_path = "bottle/api.py"
 path_url = "/api/"
 path_dest = "/api/"
 host = "0.0.0.0"
-port = 5562
-
 
 [[servers]]
 name = "vdc_proxy"
