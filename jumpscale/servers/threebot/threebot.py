@@ -612,13 +612,13 @@ class PackageManager(Base):
         # we first merge all apps of a package into a single app
         # then mount this app on threebot main app
         # this will work with multiple non-standalone apps
-        package_app = j.server.appserver.make_main_app()
+        package_app = j.servers.appserver.make_main_app()
         for bottle_server in package.bottle_servers:
             path = j.sals.fs.join_paths(package.path, bottle_server["file_path"])
             if not j.sals.fs.exists(path):
                 raise j.exceptions.NotFound(f"Cannot find bottle server path {path}")
 
-            is_standalone = bottle_server.get("standalone", False)
+            standalone = bottle_server.get("standalone", False)
             if standalone:
                 bottle_wsgi_server = package.get_bottle_server(path, bottle_server["host"], bottle_server["port"])
                 self.threebot.rack.add(f"{package.name}_{bottle_server['name']}", bottle_wsgi_server)
