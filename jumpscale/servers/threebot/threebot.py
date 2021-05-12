@@ -214,9 +214,7 @@ class NginxPackageConfig:
                         loc.is_package_authorized = location.get("is_package_authorized", False)
                         loc.package_name = self.package.name
 
-                website.save()
                 website.configure(generate_certificates=self.nginx.cert)
-                self.nginx.save()
 
 
 class Package:
