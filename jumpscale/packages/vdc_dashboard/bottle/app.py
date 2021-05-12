@@ -1,6 +1,5 @@
 import jumpscale.packages.vdc_dashboard.bottle.api.root
 import jumpscale.packages.vdc_dashboard.bottle.api.backup
-import jumpscale.packages.vdc_dashboard.bottle.api.controller
 import jumpscale.packages.vdc_dashboard.bottle.api.deployments
 import jumpscale.packages.vdc_dashboard.bottle.api.export
 

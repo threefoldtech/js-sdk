@@ -8,7 +8,6 @@ file_path = "bottle/polls_bottle.py"
 path_url = "/api/"
 path_dest = "/api/"
 host = "0.0.0.0"
-port = 8554
 
 [[servers]]
 name = "root"
