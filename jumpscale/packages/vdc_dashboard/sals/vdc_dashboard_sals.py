@@ -241,3 +241,18 @@ def _get_ingress_used_ports():
                 ports.add(path["backend"]["servicePort"])
 
     return ports
+
+def _get_ingresstcp_used_ports():
+    ports = set()
+    config_path = j.sals.fs.expanduser("~/.kube/config")
+    k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
+    out = k8s_client.execute_native_cmd("kubectl get IngressRouteTCP -A -o json")
+    deployed_ingress = j.data.serializers.json.loads(out)["items"]
+    for ingress in deployed_ingress:
+        rules = ingress["spec"]["rules"]
+        for rule in rules:
+            paths = rule["http"]["paths"]
+            for path in paths:
+                ports.add(path["backend"]["servicePort"])
+
+    return ports
