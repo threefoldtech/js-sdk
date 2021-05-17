@@ -63,10 +63,18 @@ class MaticDeploy(SolutionsChatflowDeploy):
         else:
             pass
 
+    @chatflow_step(title="Solution Name")    
     def get_release_name(self):
         super().get_release_name()
-        if len(self.config.release_name) > 10:
-            raise StopChatFlow("Solution Name should not be more than 10 characters")
+        message = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
+        releases = [
+            release["name"]
+            for release in self.k8s_client.list_deployed_releases()
+            if release["namespace"].startswith(self.chart_name)
+        ]
+        self.config.release_name = self.string_ask(
+            message, required=True, is_identifier=True, not_exist=["solution name", releases], md=True, max_length=10
+        )
 
     def _enter_rpc_url(self):
         self.config.chart_config.extra_config["eth_rpc_url"] = self.string_ask(
