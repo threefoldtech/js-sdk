@@ -119,7 +119,7 @@ class MaticDeploy(SolutionsChatflowDeploy):
         self.config.chart_config.extra_config["heimdall_svcp"] = heimdall_port.value
         self.config.chart_config.extra_config["bor_svcp"] = bor_port.value
 
-    @chatflow_step(title="Node Configuration ")
+    @chatflow_step(title="Node Configuration")
     def set_config(self):
         self._get_node_ports()
         self._enter_nodetype()
