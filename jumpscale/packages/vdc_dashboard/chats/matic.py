@@ -46,7 +46,6 @@ class MaticDeploy(SolutionsChatflowDeploy):
             "ports.bor": str(self.config.chart_config.extra_config["bor_svcp"]),
         }
 
-    @chatflow_step(title="Node Configuration")
     def _enter_nodetype(self):
         choices = [
             "Sentry Node",
