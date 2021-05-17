@@ -63,9 +63,8 @@ class MaticDeploy(SolutionsChatflowDeploy):
         else:
             pass
 
-    @chatflow_step(title="Solution Name")    
+    @chatflow_step(title="Solution Name")
     def get_release_name(self):
-        super().get_release_name()
         message = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
         releases = [
             release["name"]
