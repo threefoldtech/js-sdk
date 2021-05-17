@@ -8,8 +8,7 @@ license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 cryptography = "3.0"
-js-ng = "11.0b12"
-greenlet = "0.4.16"
+js-ng = "11.0b13"
 python = "^3.6"
 captcha = "^0.3"
 pillow = "^7.1.0"

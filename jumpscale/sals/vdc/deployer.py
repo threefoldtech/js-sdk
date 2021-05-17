@@ -340,10 +340,23 @@ class VDCDeployer:
         farm_resources[compute_farm]["cus"] += cus
         farm_resources[compute_farm]["sus"] += sus
 
-        for farm_name, cloud_units in farm_resources.items():
+        def create_and_wait_vdc_pools(farm_name, cloud_units):
             _, reservation_id = self.get_pool_id_and_reservation_id(farm_name, **cloud_units)
             if reservation_id and not self.wait_pool_payment(reservation_id):
                 raise j.exceptions.Runtime(f"Failed to pay for pool: {reservation_id}")
+            return True
+
+        pools_threads = []
+        for farm_name, cloud_units in farm_resources.items():
+            thread = gevent.spawn(create_and_wait_vdc_pools, farm_name, cloud_units)
+            thread.deployer = self
+            thread.link_exception(on_exception)
+            pools_threads.append(thread)
+        gevent.joinall(pools_threads)
+        for thread in pools_threads:
+            if thread.value:
+                continue
+            raise j.exceptions.Runtime("Failed to create VDC pools")
 
     def deploy_vdc_network(self):
         """
@@ -571,7 +584,7 @@ class VDCDeployer:
         #     )
 
         # initialize VDC pools
-        self.bot_show_update("Initializing VDC")
+        self.bot_show_update("Creating VDC Pools")
         self.init_vdc(self.compute_farm, self.network_farm, zdb_farms=zdb_farms)
         self.bot_show_update("Deploying network")
         if not self.deploy_vdc_network():

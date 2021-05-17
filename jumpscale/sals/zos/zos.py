@@ -11,6 +11,7 @@ from .container import ContainerGenerator
 from .gateway import GatewayGenerator
 from .gateway_finder import GatewayFinder
 from .kubernetes import KubernetesGenerator
+from .virtual_machine import VMGenerator
 from .network import NetworkGenerator
 from .node_finder import NodeFinder
 from .pools import Pools
@@ -52,6 +53,10 @@ class Zosv2:
     @property
     def kubernetes(self):
         return KubernetesGenerator(self._identity)
+
+    @property
+    def vm(self):
+        return VMGenerator(self._identity)
 
     @property
     def nodes_finder(self):

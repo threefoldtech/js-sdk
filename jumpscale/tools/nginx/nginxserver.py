@@ -29,7 +29,6 @@ class NginxServer(Base):
         """
         nginx = j.sals.nginx.get(self.server_name)
         nginx.configure()
-        nginx.save()
         cmd = j.tools.startupcmd.get(f"nginx_{self.server_name}")
         cmd.start_cmd = f"nginx -c {self.config_path}"
         cmd.stop_cmd = f"nginx -c {self.config_path} -s stop"

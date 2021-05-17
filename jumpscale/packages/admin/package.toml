@@ -15,4 +15,3 @@ file_path = "bottle/admin.py"
 path_url = "/api/"
 path_dest = "/api/"
 host = "0.0.0.0"
-port = 8989

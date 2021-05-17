@@ -149,7 +149,7 @@ class Payment(Base):
                         f"failed to update payment {self.instance_name} with transaction {transaction_hash} due to error {str(e)}"
                     )
                     continue
-                if trans_amount >= Decimal(self.amount):
+                if trans_amount >= Decimal(self.amount) or abs(trans_amount - Decimal(self.amount)) <= 0.000001:
                     j.logger.info(
                         f"payment: {self.payment_id} fulfilled by transaction: {transaction_hash} with amount: {trans_amount}"
                     )
