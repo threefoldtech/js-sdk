@@ -1,6 +1,6 @@
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments, _get_ingresstcp_used_ports
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments, get_ingresstcp_used_ports
 
 
 class MaticDeploy(SolutionsChatflowDeploy):
@@ -111,7 +111,7 @@ class MaticDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Port Settings")
     def _get_node_ports(self):
-        usedports = _get_ingresstcp_used_ports()
+        usedports = get_ingresstcp_used_ports()
         msg = "For multiple deployments, please ensure to use different ports. TCP Ports already in use are " + str(
             usedports
         )

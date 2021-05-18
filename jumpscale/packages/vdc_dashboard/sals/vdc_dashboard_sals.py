@@ -243,7 +243,7 @@ def _get_ingress_used_ports():
     return ports
 
 
-def _get_ingresstcp_used_ports():
+def get_ingresstcp_used_ports():
     tcp_ports = set()
     config_path = j.sals.fs.expanduser("~/.kube/config")
     k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
