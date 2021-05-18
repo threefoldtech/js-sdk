@@ -247,7 +247,13 @@ def get_ingresstcp_used_ports():
     tcp_ports = set()
     config_path = j.sals.fs.expanduser("~/.kube/config")
     k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
-    out = k8s_client.execute_native_cmd("kubectl get IngressRouteTCP -A -o json")
+
+    try:
+        out = k8s_client.execute_native_cmd("kubectl get IngressRouteTCP -A -o json")
+    except j.exceptions.Runtime as e:
+        j.logger.error(f"Failed to get IngressRouteTCP due to {str(e)}")
+        raise j.exceptions.Runtime("Failed to get used Ingress tcp routes ports")
+
     deployed_ingress = j.data.serializers.json.loads(out)["items"]
     for tcp_ingress in deployed_ingress:
         routes = tcp_ingress["spec"]["routes"]
