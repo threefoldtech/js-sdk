@@ -120,8 +120,13 @@ class MaticDeploy(SolutionsChatflowDeploy):
         bor_port = form.int_ask("Bor service port - default is 30303", default=30303, min=1000, max=65000)
         form.ask(msg)
 
-        if heimdall_port.value in usedports or bor_port.value in usedports:
-            raise StopChatFlow("Ports are already in use, please try different ports")
+        valid = False
+        error_msg = "Ports are already in use, please try ports other than " + str(usedports)
+        while not valid:
+            if heimdall_port.value in usedports or bor_port.value in usedports:
+                form.ask(error_msg)
+            else:
+                valid = True
 
         self.config.chart_config.extra_config["heimdall_svcp"] = heimdall_port.value
         self.config.chart_config.extra_config["bor_svcp"] = bor_port.value
