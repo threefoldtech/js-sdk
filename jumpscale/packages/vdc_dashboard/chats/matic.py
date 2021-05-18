@@ -1,6 +1,6 @@
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments, get_ingresstcp_used_ports
 
 
 class MaticDeploy(SolutionsChatflowDeploy):
@@ -19,7 +19,6 @@ class MaticDeploy(SolutionsChatflowDeploy):
     ]
 
     CHART_LIMITS = {
-        "Silver": {"cpu": "2000m", "memory": "2024Mi"},
         "Gold": {"cpu": "4000m", "memory": "4096Mi"},
         "Platinum": {"cpu": "4000m", "memory": "8192Mi"},
     }
@@ -39,13 +38,21 @@ class MaticDeploy(SolutionsChatflowDeploy):
             "env.sentry_enodeid": self.config.chart_config.extra_config.get("sentry_enodeid", ""),
         }
 
+    def get_config_string_safe(self):
+        return {
+            "env.heimdall_svcp": str(self.config.chart_config.extra_config["heimdall_svcp"]),
+            "env.bor_svcp": str(self.config.chart_config.extra_config["bor_svcp"]),
+            "ports.heimdall": str(self.config.chart_config.extra_config["heimdall_svcp"]),
+            "ports.bor": str(self.config.chart_config.extra_config["bor_svcp"]),
+        }
+
     def _enter_nodetype(self):
         choices = [
             "Sentry Node",
             "Full Node",
             "Validator",
         ]
-        self.config.chart_config.node_type = self.single_choice("Select the Node Type", choices, default="Sentry Node")
+        self.config.chart_config.node_type = self.single_choice("Select the node type", choices, default="Sentry Node")
         if self.config.chart_config.node_type == "Full Node":
             self._enter_rpc_url()
         elif self.config.chart_config.node_type == "Validator":
@@ -55,15 +62,17 @@ class MaticDeploy(SolutionsChatflowDeploy):
         else:
             pass
 
-    def _check_uniqueness(self):
-        if get_deployments(self.SOLUTION_TYPE, self.config.username):
-            raise StopChatFlow("You can only have one Matic solution per VDC")
-
+    @chatflow_step(title="Solution Name")
     def get_release_name(self):
-        self._check_uniqueness()
-        super().get_release_name()
-        if len(self.config.release_name) > 10:
-            raise StopChatFlow("Solution Name should not be more than 10 characters")
+        message = "Please enter a name for your solution (will be used in listing and deletions in the future and in having a unique url)"
+        releases = [
+            release["name"]
+            for release in self.k8s_client.list_deployed_releases()
+            if release["namespace"].startswith(self.chart_name)
+        ]
+        self.config.release_name = self.string_ask(
+            message, required=True, is_identifier=True, not_exist=["solution name", releases], md=True, max_length=10
+        )
 
     def _enter_rpc_url(self):
         self.config.chart_config.extra_config["eth_rpc_url"] = self.string_ask(
@@ -94,17 +103,48 @@ class MaticDeploy(SolutionsChatflowDeploy):
         self.config.chart_config.extra_config["sentry_nodeid"] = sentry_nodeid.value
         self.config.chart_config.extra_config["sentry_enodeid"] = sentry_enodeid.value
 
+    @chatflow_step(title="Web Access")
     def _enter_access_code(self):
         self.config.chart_config.access_code = self.secret_ask(
             "Enter Access Code (This would be used to access your node's web page)", min_length=8, required=True
         )
 
+    @chatflow_step(title="Port Settings")
+    def _get_node_ports(self):
+        usedports = get_ingresstcp_used_ports()
+        msg = "For multiple deployments, please ensure to use different ports. TCP Ports already in use are " + str(
+            usedports
+        )
+        form = self.new_form()
+        heimdall_port = form.int_ask("Heimdall service port - default is 26656", default=26656, min=1000, max=65000)
+        bor_port = form.int_ask("Bor service port - default is 30303", default=30303, min=1000, max=65000)
+        form.ask(msg)
+
+        valid = False
+        error_msg = "Ports are already in use, please try ports other than " + str(usedports)
+        while not valid:
+            if heimdall_port.value in usedports or bor_port.value in usedports:
+                form.ask(error_msg)
+            else:
+                valid = True
+
+        self.config.chart_config.extra_config["heimdall_svcp"] = heimdall_port.value
+        self.config.chart_config.extra_config["bor_svcp"] = bor_port.value
+
     @chatflow_step(title="Node Configuration")
     def set_config(self):
+        self._get_node_ports()
         self._enter_nodetype()
         self._enter_access_code()
+
+        bor_entrypoint = "ingbor" + self.config.release_name
+        heim_entrypoint = "ingheim" + self.config.release_name
+
         self.vdc.get_deployer().kubernetes.add_traefik_entrypoints(
-            {"matic-bor": {"port": "30303"}, "matic-heimdall": {"port": "26656"}}
+            {
+                bor_entrypoint: {"port": self.config.chart_config.extra_config["bor_svcp"]},
+                heim_entrypoint: {"port": self.config.chart_config.extra_config["heimdall_svcp"]},
+            }
         )
 
 
