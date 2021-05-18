@@ -1,6 +1,6 @@
 from jumpscale.sals.chatflows.chatflows import StopChatFlow, chatflow_step
 from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments, _get_ingresstcp_used_ports
 
 
 class MaticDeploy(SolutionsChatflowDeploy):
@@ -111,10 +111,17 @@ class MaticDeploy(SolutionsChatflowDeploy):
 
     @chatflow_step(title="Port Settings")
     def _get_node_ports(self):
+        usedports = _get_ingresstcp_used_ports()
+        msg = "For multiple deployments, please ensure to use different ports. TCP Ports already in use are " + str(
+            usedports
+        )
         form = self.new_form()
         heimdall_port = form.int_ask("Heimdall service port - default is 26656", default=26656, min=1000, max=65000)
         bor_port = form.int_ask("Bor service port - default is 30303", default=30303, min=1000, max=65000)
-        form.ask("For multiple deployments, please ensure to use different ports for your nodes")
+        form.ask(msg)
+
+        if heimdall_port.value in usedports or bor_port.value in usedports:
+            raise StopChatFlow("Ports are already in use, please try different ports")
 
         self.config.chart_config.extra_config["heimdall_svcp"] = heimdall_port.value
         self.config.chart_config.extra_config["bor_svcp"] = bor_port.value
