@@ -22,13 +22,16 @@ class CheckThreebot(BackgroundService):
             zos = get_zos(identity_name=f"vdc_ident_{vdc_instance.solution_uuid}")
             if not j.sals.nettools.wait_http_test(f"https://{vdc_instance.threebot.domain}", timeout=10):
                 j.logger.info(f"{vdc_instance.vdc_name} threebot is DOWN")
-                workloads = zos.workloads.list_workloads(vdc_instance.identity_tid)
-                j.logger.debug(f"Threebot Workloads:\n {workload}")
+                workloads = [
+                    workload
+                    for workload in zos.workloads.list_workloads(vdc_instance.identity_tid)
+                    if workload.info.workload_type in threebot_workload_types
+                ]
+                j.logger.debug(f"Threebot Workloads:\n {workloads}")
                 for workload in workloads:
-                    if workload.info.workload_type in threebot_workload_types:
-                        zos.workloads.decomission(workload.id)
-                        wid = zos.workloads.deploy(workload)
-                        j.logger.debug(f"{workload.info.workload_type} new id is {wid}")
+                    zos.workloads.decomission(workload.id)
+                    wid = zos.workloads.deploy(workload)
+                    j.logger.debug(f"{workload.info.workload_type} new id is {wid}")
                 j.logger.info(f"{vdc_instance.vdc_name} threebot redeployed")
             else:
                 j.logger.debug(f"{vdc_instance.vdc_name} threebot is UP")
