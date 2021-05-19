@@ -20,8 +20,8 @@ class CheckThreebot(BackgroundService):
         for vdc_name in VDCFACTORY.list_all():
             vdc_instance = VDCFACTORY.find(vdc_name)
 
-            if vdc_instance.expiration < j.data.time.now().timestamp:
-                j.logger.info(f"{vdc_name} is expired")
+            if vdc_instance.threebot.domain and vdc_instance.expiration < j.data.time.now().timestamp:
+                j.logger.info(f"{vdc_name} is expired or not found")
                 continue
 
             zos = get_zos(identity_name=f"vdc_ident_{vdc_instance.solution_uuid}")
