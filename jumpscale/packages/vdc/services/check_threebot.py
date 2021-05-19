@@ -19,11 +19,15 @@ class CheckThreebot(BackgroundService):
         j.logger.info("Check if Threebot containers in all VDCs is UP")
         for vdc_name in VDCFACTORY.list_all():
             vdc_instance = VDCFACTORY.find(vdc_name)
-            zos = get_zos(identity_name=f"vdc_ident_{vdc_instance.solution_uuid}")
+
             if vdc_instance.expiration < j.data.time.now().timestamp:
+                j.logger.info(f"{vdc_name} is expired")
                 continue
+
+            zos = get_zos(identity_name=f"vdc_ident_{vdc_instance.solution_uuid}")
+
             if not j.sals.nettools.wait_http_test(f"https://{vdc_instance.threebot.domain}", timeout=10):
-                j.logger.info(f"{vdc_instance.instance_name} threebot is DOWN")
+                j.logger.info(f"{vdc_name} threebot is DOWN")
                 workloads = [
                     workload
                     for workload in zos.workloads.list_workloads(vdc_instance.identity_tid)
@@ -33,9 +37,9 @@ class CheckThreebot(BackgroundService):
                     zos.workloads.decomission(workload.id)
                     wid = zos.workloads.deploy(workload)
                     j.logger.debug(f"{workload.info.workload_type} new id is {wid}")
-                j.logger.info(f"{vdc_instance.vdc_name} threebot redeployed")
+                j.logger.info(f"{vdc_name} threebot redeployed")
             else:
-                j.logger.debug(f"{vdc_instance.vdc_name} threebot is UP")
+                j.logger.debug(f"{vdc_name} threebot is UP")
 
 
 service = CheckThreebot()
