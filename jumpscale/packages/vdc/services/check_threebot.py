@@ -53,8 +53,10 @@ class CheckThreebot(BackgroundService):
                 decomission_status = True
                 # Decomission All the workloads related to threebot
                 for workload in workloads:
-                    zos.workloads.decomission(workload.id)
+                    if workload.info.workload_type == WorkloadType.Container:
+                        zdb_farms = workload.environment["S3_AUTO_TOPUP_FARMS"]
 
+                    zos.workloads.decomission(workload.id)
                     # Check if workload decomission failed
                     if not j.sals.reservation_chatflow.deployer.wait_workload_deletion(
                         workload.id, identity_name=vdc_indentity
@@ -62,9 +64,6 @@ class CheckThreebot(BackgroundService):
                         decomission_status = False
                         j.logger.error(f"Check VDC threebot service: Failed to decomission {workload.id}")
                         break
-                    else:
-                        if workload.info.workload_type == WorkloadType.Container:
-                            zdb_farms = workload.environment["S3_AUTO_TOPUP_FARMS"]
 
                 if decomission_status:
                     # Deploy a new threebot container
