@@ -6,7 +6,7 @@ from jumpscale.clients.explorer.models import WorkloadType
 
 
 class CheckThreebot(BackgroundService):
-    def __init__(self, interval=60, *args, **kwargs):
+    def __init__(self, interval=60 * 60, *args, **kwargs):
         """Check that Threebot Container is UP and Redeploy if DOWN
         """
         super().__init__(interval, *args, **kwargs)
