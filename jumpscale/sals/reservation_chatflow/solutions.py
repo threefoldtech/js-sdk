@@ -112,6 +112,33 @@ class ChatflowSolutions:
             result.append(solution_dict)
         return result
 
+    def list_vmachine_solutions(self, next_action=NextAction.DEPLOY, sync=True):
+        if sync:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Virtual_Machine]:
+            j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
+        result = []
+        wids = []
+        for vmachine_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
+            WorkloadType.Virtual_Machine
+        ].values():
+            for workload in vmachine_workloads:
+                wids.append(workload.id)
+                public_ip = ""
+                if workload.public_ip:
+                    wids.append(public_ip)
+                    workload_public_ip = j.sals.zos.get().workloads.get(workload.public_ip)
+                    public_ip = workload_public_ip.ipaddress.split("/")[0] if workload_public_ip else ""
+                result.append(
+                    {
+                        "wids": wids,
+                        "Name": workload.name,
+                        "Node": workload.info.node_id,
+                        "IP": public_ip if public_ip else workload.ipaddress,
+                    }
+                )
+        return result
+
     def list_kubernetes_solutions(self, next_action=NextAction.DEPLOY, sync=True):
         if sync:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)

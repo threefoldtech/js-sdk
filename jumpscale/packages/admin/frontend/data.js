@@ -54,6 +54,14 @@ const SOLUTIONS = {
     helpLink: `${DOCS_BASE_URL}/sdk__solution_expose`,
     description: "Access your web application running on the grid using a FQDN"
   },
+  vmachine: {
+    name: "Virtual Machine",
+    type: "vmachine",
+    image: "./assets/vmachine.png",
+    url: "/solutions/vmachine",
+    helpLink: ``,
+    description: "Create a generic virtual machine"
+  },
   flist: {
     name: "Generic Container",
     type: "flist",
