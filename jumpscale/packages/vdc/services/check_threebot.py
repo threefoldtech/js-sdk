@@ -50,7 +50,7 @@ class CheckThreebot(BackgroundService):
                     for workload in zos.workloads.list_workloads(vdc_instance.identity_tid)
                     if workload.info.workload_type in threebot_workload_types
                 ]
-
+                decomission_status = True
                 # Decomission All the workloads related to threebot
                 for workload in workloads:
                     zos.workloads.decomission(workload.id)
@@ -59,23 +59,26 @@ class CheckThreebot(BackgroundService):
                     if not j.sals.reservation_chatflow.deployer.wait_workload_deletion(
                         workload.id, identity_name=vdc_indentity
                     ):
+                        decomission_status = False
                         j.logger.error(f"Check VDC threebot service: Failed to decomission {workload.id}")
                         break
                     else:
+                        if workload.info.workload_type == WorkloadType.Container:
+                            zdb_farms = workload.environment["S3_AUTO_TOPUP_FARMS"]
 
-                        # Deploy a new threebot container
-                        deployer = vdc_instance.get_deployer()
-                        kubeconfig = deployer.kubernetes.download_kube_config(master_ip)
-                        pool_id = vdc_instance.threebot.pool_id
-                        minio_wid = 0
-                        zdb_farms = workload.environment["S3_AUTO_TOPUP_FARMS"]
-                        threebot_wid = deployer.threebot.deploy_threebot(
-                            minio_wid, pool_id, kubeconfig, zdb_farms=zdb_farms
-                        )
-                        if not threebot_wid:
-                            j.logger.error(f"Check VDC threebot service: Can't deploy threebot for {vdc_name} ")
-                        else:
-                            j.logger.info(f"Check VDC threebot service: {vdc_name} threebot new wid: {threebot_wid}")
+                if decomission_status:
+                    # Deploy a new threebot container
+                    deployer = vdc_instance.get_deployer()
+                    kubeconfig = deployer.kubernetes.download_kube_config(master_ip)
+                    pool_id = vdc_instance.threebot.pool_id
+                    minio_wid = 0
+                    threebot_wid = deployer.threebot.deploy_threebot(
+                        minio_wid, pool_id, kubeconfig, zdb_farms=zdb_farms
+                    )
+                    if not threebot_wid:
+                        j.logger.error(f"Check VDC threebot service: Can't deploy threebot for {vdc_name} ")
+                    else:
+                        j.logger.info(f"Check VDC threebot service: {vdc_name} threebot new wid: {threebot_wid}")
             else:
                 j.logger.info(f"Check VDC threebot service: {vdc_name} threebot is UP")
 
