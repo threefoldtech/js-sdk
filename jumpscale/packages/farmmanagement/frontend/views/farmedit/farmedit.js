@@ -25,7 +25,8 @@ module.exports = new Promise(async (resolve, reject) => {
                 newIpAddressError: '',
                 rules: {
                     required: value => !!value || 'Required.',
-                    validIp: value => new window.Address4(value).isValid()
+                    validIp: value => new window.Address4(value).isValid(),
+                    length: value => value.length == 56 || 'Invalid wallet',
                 },
             }
         },

@@ -23,7 +23,8 @@
         <h3>Wallet Address management</h3>
         <v-row v-for="(wallet, i) in farm.wallet_addresses" :key="wallet.id">
           <v-col cols="12" sm="4">
-            <v-text-field v-model="wallet.address" label="Wallet address"></v-text-field>
+            <v-text-field v-model="wallet.address" label="Wallet address" :rules="[rules.required, rules.length]">
+            </v-text-field>
           </v-col>
           <v-col cols="12" sm="4">
             <v-text-field v-model="wallet.asset" label="Asset Code"></v-text-field>
