@@ -1,5 +1,5 @@
 from jumpscale.loader import j
-
+import gevent
 from jumpscale.sals.zos import get as get_zos
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 from jumpscale.clients.explorer.models import WorkloadType
@@ -21,6 +21,7 @@ class CheckThreebot(BackgroundService):
             # Check if vdc is empty
             if vdc_instance.is_empty():
                 j.logger.warning(f"Check VDC threebot service: {vdc_name} is empty")
+                gevent.sleep(0.1)
                 continue
 
             vdc_instance.load_info()
@@ -28,6 +29,7 @@ class CheckThreebot(BackgroundService):
             # Check if vdc has not minmal Components
             if not vdc_instance.has_minimal_components():
                 j.logger.warning(f"Check VDC threebot service: {vdc_name} is expired or not found")
+                gevent.sleep(0.1)
                 continue
 
             master_ip = vdc_instance.kubernetes[0].public_ip
@@ -36,6 +38,7 @@ class CheckThreebot(BackgroundService):
                 j.logger.warning(
                     f"Check VDC threebot service: {vdc_name} master node is not reachable on public ip: {master_ip}"
                 )
+                gevent.sleep(0.1)
                 continue
 
             vdc_indentity = "vdc_ident_" + vdc_instance.solution_uuid
@@ -80,6 +83,8 @@ class CheckThreebot(BackgroundService):
                         j.logger.info(f"Check VDC threebot service: {vdc_name} threebot new wid: {threebot_wid}")
             else:
                 j.logger.info(f"Check VDC threebot service: {vdc_name} threebot is UP")
+
+            gevent.sleep(0.1)
 
 
 service = CheckThreebot()
