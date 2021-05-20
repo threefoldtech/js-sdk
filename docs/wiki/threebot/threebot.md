@@ -30,13 +30,13 @@ Content:
 It can be used without any options to start a threebot server on standard ports (http and https).
 
 ```
-threebot
+threebot start
 ```
 
 In case you need to start a local threebot, ny passing `--local` option will, it will search for free port on `80xx` range and starts threebot on this port.
 
 ```
-threebot --local
+threebot start --local
 ```
 
 ### Manual start
