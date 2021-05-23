@@ -1,14 +1,22 @@
 from collections import defaultdict
 import datetime
+from enum import Enum
 import random
 import uuid
-from enum import Enum
 
+from gevent.lock import Semaphore
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 import netaddr
 
-from jumpscale.clients.explorer.models import DiskType, NextAction, WorkloadType, ZdbNamespace, K8s, PublicIP
+from jumpscale.clients.explorer.models import (
+    DiskType,
+    K8s,
+    NextAction,
+    PublicIP,
+    WorkloadType,
+    ZdbNamespace,
+)
 from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.sals.vdc.quantum_storage import QuantumStorage
@@ -55,6 +63,7 @@ class UserVDC(Base):
     explorer_url = fields.String(default=lambda: j.core.identity.me.explorer_url)
     _flavor = fields.String()
     state = fields.Enum(VDCSTATE)
+    __lock = Semaphore(1)
 
     @property
     def flavor(self):
@@ -205,6 +214,7 @@ class UserVDC(Base):
         return QuantumStorage(self, ip_version)
 
     def load_info(self, load_proxy=False):
+        self.__lock.acquire()
         self.kubernetes = []
         self.etcd = []
         self.s3 = S3()
@@ -222,6 +232,7 @@ class UserVDC(Base):
         self._get_threebot_subdomain(proxies)
         if load_proxy:
             self._build_zdb_proxies()
+        self.__lock.release()
 
     def _build_zdb_proxies(self):
         proxies = self._list_socat_proxies()
