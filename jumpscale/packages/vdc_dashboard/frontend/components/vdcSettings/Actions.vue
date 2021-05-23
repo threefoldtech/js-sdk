@@ -10,6 +10,7 @@
       <template #default v-else-if="title == 'Create'">
         Please enter backup name to confirm.
         <v-text-field v-model="confirmName" dense></v-text-field>
+        <p v-if="disableSubmit" style="color:red">{{errorMsg}}</p>
       </template>
       <template #actions>
         <v-btn text @click="close">Cancel</v-btn>
@@ -41,7 +42,7 @@ module.exports = {
     disableSubmit() {
       if (this.title == "Delete" && this.confirmName === this.name.toString()) {
         return false;
-      } else if (this.title == "Create" && this.confirmName) {
+      } else if (this.title == "Create" && this.verifyBackupName(this.confirmName)) {
         return false;
       }
       return true;
@@ -55,7 +56,7 @@ module.exports = {
     };
   },
   mixins: [dialog],
-  props: ["name", "title", "vdcbackup", "configbackup"],
+  props: ["name", "title", "vdcbackup", "configbackup","backups"],
   methods: {
     del() {
       this.loading = true;
@@ -90,6 +91,21 @@ module.exports = {
     getlist(timeout=2000) {
       this.$emit("reload-backups", timeout, { message: "Backup list reloaded!" });
     },
+    verifyBackupName(backupName){
+      currentBackupsName = this.backups.map(item => item.name)
+      if (!backupName) {
+        this.errorMsg = ""
+        return false
+      }else if (currentBackupsName.includes(backupName)){
+        this.errorMsg = "Can't use the same name twice, Please use another name"
+        return false
+      }else if (backupName.indexOf(' ') > 0) {
+        this.errorMsg = "Space is not allowed"
+        return false
+      }else{
+        return true
+      }
+    }
   },
   mounted() {
     this.show = false;
