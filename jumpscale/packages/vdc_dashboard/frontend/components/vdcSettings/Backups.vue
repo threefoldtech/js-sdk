@@ -92,6 +92,7 @@
       :name="selectedBackup"
       :vdcbackup="vdcBackupName"
       :configbackup="configBackupName"
+      :backups="backups"
       @reload-backups="reload"
     ></actions>
     <restore-backup
