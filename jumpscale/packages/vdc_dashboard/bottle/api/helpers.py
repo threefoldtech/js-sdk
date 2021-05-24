@@ -6,8 +6,15 @@ from functools import wraps
 from bottle import parse_auth, request, response
 from jumpscale.loader import j
 
+from ..models import APIKeyFactory
 from ..vdc_helpers import threebot_vdc_helper
-from .exceptions import BaseError, InvalidCredentials, MissingAuthorizationHeader, UnknownError, VDCNotFound
+from .exceptions import (
+    BaseError,
+    InvalidCredentials,
+    MissingAuthorizationHeader,
+    UnknownError,
+    VDCNotFound,
+)
 
 
 def logger(function):
@@ -92,13 +99,21 @@ def vdc_route(serialize=True):
                         500, "No VDCs where found, Please make sure to have it configured properly",
                     )
 
-                # Get vdc and password password from request Authorization header with Basic type
+                # Get vdc name and password from request Authorization header with Basic type
                 auth_header = request.headers.get("Authorization")
                 if not auth_header:
                     raise MissingAuthorizationHeader(403, "Authorization header is not set")
 
-                vdc_name, password = parse_auth(auth_header)
-                if not vdc.validate_password(password) or vdc_name != vdc.vdc_name:
+                name, password = parse_auth(auth_header)
+                authorized = False
+                if vdc.validate_password(password) and name == vdc.vdc_name:
+                    authorized = True
+                elif name in APIKeyFactory.list_all():
+                    api_key = APIKeyFactory.find(name)
+                    if password == api_key.key:
+                        authorized = True
+
+                if not authorized:
                     raise InvalidCredentials(403, "Invalid credentials")
 
                 result = function(vdc, *args, **kwargs)

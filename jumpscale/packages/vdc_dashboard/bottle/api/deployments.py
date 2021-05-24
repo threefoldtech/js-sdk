@@ -3,10 +3,23 @@ import os
 from bottle import HTTPResponse, abort, redirect, request
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import authenticated, get_user_info, login_required, package_authorized
-from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts, get_vdc, threebot_vdc_helper
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
+
+from jumpscale.packages.auth.bottle.auth import (
+    authenticated,
+    get_user_info,
+    login_required,
+    package_authorized,
+)
+from jumpscale.packages.vdc_dashboard.bottle.models import APIKeyFactory, UserEntry
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import (
+    _list_alerts,
+    get_vdc,
+    threebot_vdc_helper,
+)
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
+    get_all_deployments,
+    get_deployments,
+)
 
 from .root import app
 
@@ -452,3 +465,31 @@ def get_sdk_version():
     return HTTPResponse(
         j.data.serializers.json.dumps({"data": data}), status=200, headers={"Content-Type": "application/json"}
     )
+
+
+@app.route("/api/api_key", method="GET")
+@login_required
+def get_api_keys():
+    api_keys = []
+    for name in APIKeyFactory.list_all():
+        api_key = APIKeyFactory.find(name)
+        api_keys.append(api_key.to_dict())
+    return api_keys
+
+
+@app.route("/api/api_key", method="POST")
+@login_required
+def generate_api_keys(name):
+    if APIKeyFactory.find(name):
+        raise j.exceptions.Value(f"API key with name '{name}' is already exist")
+    api_key = APIKeyFactory.new(name)
+    return api_key.to_dict()
+
+
+@app.route("/api/api_key", method="DELETE")
+@login_required
+def delete_api_keys(name):
+    if not APIKeyFactory.find(name):
+        return j.exceptions.Value(f"API key with name '{name}' is not exist")
+    APIKeyFactory.delete(name)
+    return True
