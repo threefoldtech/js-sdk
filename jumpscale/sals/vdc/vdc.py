@@ -4,7 +4,7 @@ from enum import Enum
 import random
 import uuid
 
-from gevent.lock import Semaphore
+from gevent.lock import BoundedSemaphore
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 import netaddr
@@ -63,7 +63,7 @@ class UserVDC(Base):
     explorer_url = fields.String(default=lambda: j.core.identity.me.explorer_url)
     _flavor = fields.String()
     state = fields.Enum(VDCSTATE)
-    __lock = Semaphore(1)
+    __lock = BoundedSemaphore(1)
 
     @property
     def flavor(self):
@@ -215,24 +215,26 @@ class UserVDC(Base):
 
     def load_info(self, load_proxy=False):
         self.__lock.acquire()
-        self.kubernetes = []
-        self.etcd = []
-        self.s3 = S3()
-        self.threebot = VDCThreebot()
-        instance_vdc_workloads = self._filter_vdc_workloads()
-        subdomains = []
-        proxies = []
-        for workload in instance_vdc_workloads:
-            self._update_instance(workload)
-            if workload.info.workload_type == WorkloadType.Subdomain:
-                subdomains.append(workload)
-            if workload.info.workload_type == WorkloadType.Reverse_proxy:
-                proxies.append(workload)
-        self._get_s3_subdomains(subdomains)
-        self._get_threebot_subdomain(proxies)
-        if load_proxy:
-            self._build_zdb_proxies()
-        self.__lock.release()
+        try:
+            self.kubernetes = []
+            self.etcd = []
+            self.s3 = S3()
+            self.threebot = VDCThreebot()
+            instance_vdc_workloads = self._filter_vdc_workloads()
+            subdomains = []
+            proxies = []
+            for workload in instance_vdc_workloads:
+                self._update_instance(workload)
+                if workload.info.workload_type == WorkloadType.Subdomain:
+                    subdomains.append(workload)
+                if workload.info.workload_type == WorkloadType.Reverse_proxy:
+                    proxies.append(workload)
+            self._get_s3_subdomains(subdomains)
+            self._get_threebot_subdomain(proxies)
+            if load_proxy:
+                self._build_zdb_proxies()
+        finally:
+            self.__lock.release()
 
     def _build_zdb_proxies(self):
         proxies = self._list_socat_proxies()
@@ -395,6 +397,7 @@ class UserVDC(Base):
                 self.s3.domain_wid = workload.id
 
     def _get_threebot_subdomain(self, proxy_workloads):
+        # TODO: get the threebot domain from vdc name and 3bot id instead of getting the subdomain workload.
         # threebot is exposed over gateway
         threebot_wid = self.threebot.wid
         if not threebot_wid:
