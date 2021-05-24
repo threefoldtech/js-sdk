@@ -10,6 +10,7 @@ from .scheduler import CapacityChecker, Scheduler
 from .size import *
 from jumpscale.clients.explorer.models import K8s, NextAction
 from jumpscale.sals.vdc.kubernetes_auto_extend import KubernetesMonitor
+from jumpscale.sals.kubernetes import Manager
 import gevent
 import random
 
@@ -73,7 +74,17 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
         return pool_id
 
-    def _check_drain_availability(self, wid):
+    def check_drain_availability(self, wid):
+        """Check for availability of using drain on a kubernetes node
+
+        Args:
+            wid (int): workload id for the kubernetes node
+
+        Returns:
+            bool: Check if drain is available without deleting any pods or not
+            list: List of the pods that will be affected (deleted) if drain is not available
+        """
+        kube_manager = Manager()
         kube_monitor = KubernetesMonitor(self.vdc_instance)
         all_node_stats = kube_monitor.node_stats
         all_nodes_reservations = kube_monitor.fetch_resource_reservations()
@@ -88,7 +99,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 all_nodes_reservations.remove(node)
 
         # Get pods on the node we want to delete
-        out = self.manager.execute_native_cmd(
+        out = kube_manager.execute_native_cmd(
             f"kubectl get pods -A -o json --field-selector spec.nodeName={node_name_to_delete}"
         )
         all_pods_to_redeploy = j.data.serializers.json.loads(out)
@@ -96,7 +107,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         # Check if every pod can be deployed again in another node
         for pod in all_pods_to_redeploy["items"]:
             # Exclude system pods, as it is not needed
-            if pod["namespace"] in system_namespaces:
+            if pod["metadata"]["namespace"] in system_namespaces:
                 continue
             # Get pod resources
             cpu = memory = 0
