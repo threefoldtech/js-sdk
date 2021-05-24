@@ -11,7 +11,7 @@ import html
 from jumpscale.loader import j
 import stellar_sdk
 
-from .session_context import UpdateSessionContext
+from .session_context import UpdateSessionContext, GoBackContext
 
 
 class Result:
@@ -95,6 +95,7 @@ class GedisChatBot:
         self.session_id = str(uuid.uuid4())
         self.kwargs = kwargs
         self.spawn = kwargs.get("spawn", True)
+        self.creation_time = j.data.time.now()
         self._state = {}
         self._current_step = 0
         self._steps_info = {}
@@ -106,7 +107,6 @@ class GedisChatBot:
 
         _db = j.core.db
         if _db.get("stopping_threebot_server"):
-            self.send_error("Can't start new chatflow, 3Bot server is stopping...")
             raise j.exceptions.Runtime("Can't start new chatflow, 3Bot server is stopping...")
         self._start()
 
@@ -143,6 +143,7 @@ class GedisChatBot:
             "first_slide": self.is_first_slide,
             "slide": self.step_info.get("slide", 1),
             "final_step": self.step_info.get("final_step"),
+            "creation_time": str(self.creation_time),
         }
 
     def _execute_current_step(self, spawn=None):
@@ -152,7 +153,8 @@ class GedisChatBot:
         def wrapper(step_name):
             internal_error = False
             try:
-                getattr(self, step_name)()
+                with UpdateSessionContext(f"{self.session_id}/answers", "{new_step}"):
+                    getattr(self, step_name)()
             except StopChatFlow as e:
                 internal_error = True
                 j.logger.exception(f"chatflow stopped in step {step_name}. exception: {str(e)}", exception=e)
@@ -237,9 +239,9 @@ class GedisChatBot:
                 return
             else:
                 self._current_step -= 1
-
-        self._greenlet.kill()
-        return self._execute_current_step()
+        with GoBackContext(self.session_id, self.info, not self.is_first_slide):
+            self._greenlet.kill()
+            return self._execute_current_step()
 
     def get_work(self, restore=False):
         if self._fetch_greenlet:
@@ -254,8 +256,8 @@ class GedisChatBot:
         if not isinstance(result, gevent.GreenletExit):
             return result
 
-    def set_work(self, dir_name, data):
-        with UpdateSessionContext(f"{dir_name}/answers", data):
+    def set_work(self, data):
+        with UpdateSessionContext(f"{self.session_id}/answers", data):
             return self._queue_in.put(data)
 
     def send_data(self, data, is_slide=False):

@@ -55,9 +55,10 @@ class ChatFlows(BaseActor):
             # TODO:
             # load from fs
             # self.sessions[key] = chatflow.load_from_path(path)
+            # answers.extend([ answer for answer in step_answers.split("\n") if answer])
             # return {"valid": True}
             j.logger.debug("dir exists")
-        return {"valid": sessens}
+        return {"valid": session_id in self.sessions}
 
     @actor_method
     def end(self, session_id: str) -> dict:
@@ -68,7 +69,7 @@ class ChatFlows(BaseActor):
     @actor_method
     def report(self, session_id: str, result: str = None):
         chatflow = self.sessions.get(session_id)
-        chatflow.set_work(session_id, result)
+        chatflow.set_work(result)
 
     @actor_method
     def back(self, session_id: str):

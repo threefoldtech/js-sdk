@@ -49,6 +49,40 @@ class UpdateSessionContext:
         return self
 
 
+class GoBackContext:
+    """
+    """
+
+    def __init__(self, session_id: str, data: str, slide: bool = False):
+        self.session_id = session_id
+        self.data = data
+        self.slide = slide
+
+    def __enter__(self):
+        try:
+            # update the status
+            j.sals.fs.write_text(f"{BASE_DIR}/{self.session_id}/status", f"{self.data}\n")
+
+            text = j.sals.fs.read_text(f"{BASE_DIR}/{self.session_id}/answers")
+            all_step_answers = text.split("{new_step}")[1:-1]
+            last_step_answers = "\n".join(all_step_answers[-1].split("\n")[1:-2])
+            if last_step_answers:
+                # remove one answer
+                answers = "{new_step}".join(all_step_answers[:-1].append(last_step_answers))
+            else:
+                # remove the last step answers
+                answers = "{new_step}".join(all_step_answers[:-1])
+            # write in fs
+            j.sals.fs.write_text(f"{BASE_DIR}/{self.session_id}/answers", answers)
+
+        except Exception as e:
+            j.logger.error(f"Can't write in file {self.session_id} with error {str(e)}")
+        return self
+
+    def __exit__(self, *exc):
+        return self
+
+
 class DeleteSessionContext:
     """
     """
