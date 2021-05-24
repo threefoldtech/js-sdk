@@ -467,29 +467,28 @@ def get_sdk_version():
     )
 
 
-@app.route("/api/api_key", method="GET")
+@app.route("/api/api_keys", method="GET")
 @login_required
 def get_api_keys():
     api_keys = []
     for name in APIKeyFactory.list_all():
         api_key = APIKeyFactory.find(name)
         api_keys.append(api_key.to_dict())
-    return api_keys
+    return j.data.serializers.json.dumps({"data": api_keys})
 
 
-@app.route("/api/api_key", method="POST")
+@app.route("/api/api_keys", method="POST")
 @login_required
 def generate_api_keys(name):
     if APIKeyFactory.find(name):
         raise j.exceptions.Value(f"API key with name '{name}' is already exist")
     api_key = APIKeyFactory.new(name)
-    return api_key.to_dict()
+    api_key.save()
 
 
-@app.route("/api/api_key", method="DELETE")
+@app.route("/api/api_keys", method="DELETE")
 @login_required
 def delete_api_keys(name):
     if not APIKeyFactory.find(name):
         return j.exceptions.Value(f"API key with name '{name}' is not exist")
     APIKeyFactory.delete(name)
-    return True
