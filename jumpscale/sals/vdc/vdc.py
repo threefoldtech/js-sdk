@@ -214,31 +214,35 @@ class UserVDC(Base):
         return QuantumStorage(self, ip_version)
 
     def load_info(self, load_proxy=False):
+        instance_vdc_workloads = self._filter_vdc_workloads()
+        kubernetes = []
+        s3 = S3()
+        etcd = []
+        threebot = VDCThreebot()
+        subdomains = []
+        proxies = []
+        for workload in instance_vdc_workloads:
+            self._update_instance(workload, kubernetes, s3, threebot, etcd)
+            if workload.info.workload_type == WorkloadType.Subdomain:
+                subdomains.append(workload)
+            if workload.info.workload_type == WorkloadType.Reverse_proxy:
+                proxies.append(workload)
+        self._get_s3_subdomains(subdomains)
+        self._get_threebot_subdomain(proxies)
+        if load_proxy:
+            self._build_zdb_proxies(s3)
         self.__lock.acquire()
         try:
-            self.kubernetes = []
-            self.etcd = []
-            self.s3 = S3()
-            self.threebot = VDCThreebot()
-            instance_vdc_workloads = self._filter_vdc_workloads()
-            subdomains = []
-            proxies = []
-            for workload in instance_vdc_workloads:
-                self._update_instance(workload)
-                if workload.info.workload_type == WorkloadType.Subdomain:
-                    subdomains.append(workload)
-                if workload.info.workload_type == WorkloadType.Reverse_proxy:
-                    proxies.append(workload)
-            self._get_s3_subdomains(subdomains)
-            self._get_threebot_subdomain(proxies)
-            if load_proxy:
-                self._build_zdb_proxies()
+            self.kubernetes = kubernetes
+            self.etcd = etcd
+            self.s3 = s3
+            self.threebot = threebot
         finally:
             self.__lock.release()
 
-    def _build_zdb_proxies(self):
+    def _build_zdb_proxies(self, s3):
         proxies = self._list_socat_proxies()
-        for zdb in self.s3.zdbs:
+        for zdb in s3.zdbs:
             zdb_proxies = proxies[zdb.ip_address]
             if not zdb_proxies:
                 continue
@@ -307,7 +311,7 @@ class UserVDC(Base):
             result.append(workload)
         return result
 
-    def _update_instance(self, workload):
+    def _update_instance(self, workload, kubernetes, s3, threebot, etcd):
         k8s_sizes = [
             VDC_SIZE.K8SNodeFlavor.MICRO.value,
             VDC_SIZE.K8SNodeFlavor.SMALL.value,
@@ -335,7 +339,7 @@ class UserVDC(Base):
                 if workload.size in k8s_sizes
                 else VDC_SIZE.K8SNodeFlavor.SMALL.value
             )
-            self.kubernetes.append(node)
+            kubernetes.append(node)
         elif workload.info.workload_type == WorkloadType.Container:
             if "minio" in workload.flist:
                 container = S3Container()
@@ -343,21 +347,21 @@ class UserVDC(Base):
                 container.pool_id = workload.info.pool_id
                 container.wid = workload.id
                 container.ip_address = workload.network_connection[0].ipaddress
-                self.s3.minio = container
+                s3.minio = container
             elif "js-sdk" in workload.flist:
                 container = VDCThreebot()
                 container.node_id = workload.info.node_id
                 container.pool_id = workload.info.pool_id
                 container.wid = workload.id
                 container.ip_address = workload.network_connection[0].ipaddress
-                self.threebot = container
+                threebot = container
             elif "etcd" in workload.flist:
                 node = ETCDNode()
                 node.node_id = workload.info.node_id
                 node.pool_id = workload.info.pool_id
                 node.wid = workload.id
                 node.ip_address = workload.network_connection[0].ipaddress
-                self.etcd.append(node)
+                etcd.append(node)
         elif workload.info.workload_type == WorkloadType.Zdb:
             result_json = j.data.serializers.json.loads(workload.info.result.data_json)
             if not result_json:
@@ -377,7 +381,7 @@ class UserVDC(Base):
             zdb.ip_address = ip
             zdb.port = port
             zdb.namespace = namespace
-            self.s3.zdbs.append(zdb)
+            s3.zdbs.append(zdb)
 
     def _get_s3_subdomains(self, subdomain_workloads):
         minio_wid = self.s3.minio.wid
