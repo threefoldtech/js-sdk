@@ -73,8 +73,8 @@ module.exports = new Promise(async (resolve, reject) => {
                         }
                         setTimeout(() => {
                             this.editFarmAlert = undefined
-                        }, 2000)
-                        if (goBack) this.$router.push('/')
+                        }, 15000)
+                        // if (goBack) this.$router.push('/')
                     })
             },
             addWallet(farm) {
