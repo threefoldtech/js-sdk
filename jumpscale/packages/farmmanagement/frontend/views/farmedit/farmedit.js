@@ -74,7 +74,6 @@ module.exports = new Promise(async (resolve, reject) => {
                         setTimeout(() => {
                             this.editFarmAlert = undefined
                         }, 15000)
-                        // if (goBack) this.$router.push('/')
                     })
             },
             addWallet(farm) {
