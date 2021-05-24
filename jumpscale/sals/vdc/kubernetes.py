@@ -95,7 +95,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 # Get name of the node we want to delete
                 node_name_to_delete = node.name
                 # Remove it from the all node stats and reservations
-                all_node_stats.pop(node)
+                all_node_stats.pop(node.name)
                 all_nodes_reservations.remove(node)
 
         # Get pods on the node we want to delete
@@ -134,6 +134,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
             if not can_deploy:
                 pods_to_delete.append(pod)
+                j.logger.warning(f"Pod: {pod['metadata']['name']} can't be redeployed on any other node")
+
         # Return bool for check, and pods that can not redeployed again
         return len(pods_to_delete) == 0, pods_to_delete
 
