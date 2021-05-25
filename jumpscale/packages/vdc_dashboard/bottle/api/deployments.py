@@ -71,12 +71,20 @@ def get_kubeconfig() -> str:
 def delete_node():
     data = j.data.serializers.json.loads(request.body.read())
     wid = data.get("wid")
+    pods_to_delete = data.get("pods_to_delete")
     if not wid:
         abort(400, "Error: Not all required params was passed.")
     vdc = get_vdc()
     if not vdc:
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     deployer = vdc.get_deployer()
+
+    # Delete pods that can't be redeployed on other nodes due to resources limitations
+    for pod_ns in pods_to_delete:
+        deployer.vdc_k8s_manager.execute_native_cmd(f"kubectl delete ns {pod_ns}")
+        j.logger.info(f"{pod_ns} deleted")
+
+    # Delete the node
     try:
         j.logger.info(f"Deleting node with wid: {wid}")
         deployer.delete_k8s_node(wid)

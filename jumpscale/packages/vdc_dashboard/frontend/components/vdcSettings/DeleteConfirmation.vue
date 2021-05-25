@@ -9,16 +9,10 @@
   >
     <template #default>
       {{ messages.confirmationMsg }}
-    </template>
-    <v-alert
-      border="bottom"
-      colored-border
-      type="warning"
-      elevation="2"
-      v-if="isnodereadytodelete"
-    >
-      {{ message.warningMsg }}
+      <v-alert v-if="isnodereadytodelete == false" border="top" colored-border type="warning" elevation="2">
+        {{ messages.warningMsg }}
       </v-alert>
+    </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
       <v-btn text color="error" @click="submit">Confirm</v-btn>
@@ -41,7 +35,7 @@ module.exports = {
     submit() {
       this.loading = true;
       this.error = null;
-      this.$api.solutions[this.api](this.wid)
+      this.$api.solutions[this.api](this.wid, this.podstodelete)
         .then((response) => {
           this.alert(this.messages.successMsg, "success");
           this.close();
