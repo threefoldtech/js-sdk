@@ -94,8 +94,8 @@
       title="Delete Worker"
       :messages="deletionMessages"
       :wid="selectedworker"
-      :isNodeReadyToDelete="isNodeReadyToDelete"
-      :podsToDelete="podsToDelete"
+      :isnodereadytodelete="isNodeReadyToDelete"
+      :podstodelete="podsToDelete"
       @reload-vdcinfo="reloadVdcInfo"
     ></cancel-workload>
     <download-kubeconfig v-model="dialogs.downloadKube"></download-kubeconfig>
@@ -132,6 +132,7 @@ module.exports = {
       kubernetesSizeMap: KUBERNETES_VM_SIZE_MAP,
       deletionMessages: {
         confirmationMsg: "Are you sure you want to delete this worker?",
+        warningMsg: "",
         successMsg: "Worker deleted successfully",
       },
       isNodeReadyToDelete: false,
@@ -158,7 +159,7 @@ module.exports = {
           this.isNodeReadyToDelete = response.data.is_ready;
           this.podsToDelete = response.data.pods_to_delete;
           if (!this.isNodeReadyToDelete) {
-            this.deletionMessages.confirmationMsg += "<br> The following Pods will be deleted:<br>" + this.podsToDelete;
+            this.deletionMessages.warningMsg = "The following Pods will be deleted: " + this.podsToDelete;
           }
           console.log("Deletion msg:" ,this.deletionMessages);
         }).finally(() => {

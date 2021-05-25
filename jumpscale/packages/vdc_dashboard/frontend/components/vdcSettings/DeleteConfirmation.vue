@@ -9,6 +9,15 @@
   >
     <template #default>
       {{ messages.confirmationMsg }}
+      <v-alert
+        border="bottom"
+        colored-border
+        type="warning"
+        elevation="2"
+        v-if="isnodereadytodelete"
+      >
+        {{ message.warningMsg }}
+      </v-alert>
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
@@ -25,8 +34,8 @@ module.exports = {
     api: String,
     wid: Number,
     messages: Object,
-    isNodeReadyToDelete: Boolean,
-    podsToDelete: Array
+    isnodereadytodelete: Boolean,
+    podstodelete: Array
   },
   methods: {
     submit() {
