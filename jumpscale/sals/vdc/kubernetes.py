@@ -133,7 +133,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     break
 
             if not can_deploy:
-                pods_to_delete.append(pod)
+                pods_to_delete.append(pod["metadata"]["namespace"])
                 j.logger.warning(f"Pod: {pod['metadata']['name']} can't be redeployed on any other node")
 
         # Return bool for check, and pods that can not redeployed again

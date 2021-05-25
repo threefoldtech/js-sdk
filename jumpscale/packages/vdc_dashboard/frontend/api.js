@@ -104,6 +104,14 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
+    checkBeforeDeleteWorkerWorkload: (wid) => {
+      return axios({
+        url: `${baseURL}/kube/nodes/check_before_delete`,
+        method: "post",
+        data: { wid: wid },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
     deleteZdb: (wid) => {
       return axios({
         url: `${baseURL}/s3/zdbs/delete`,

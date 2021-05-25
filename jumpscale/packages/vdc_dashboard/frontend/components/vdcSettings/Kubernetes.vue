@@ -94,6 +94,8 @@
       title="Delete Worker"
       :messages="deletionMessages"
       :wid="selectedworker"
+      :isNodeReadyToDelete="isNodeReadyToDelete"
+      :podsToDelete="podsToDelete"
       @reload-vdcinfo="reloadVdcInfo"
     ></cancel-workload>
     <download-kubeconfig v-model="dialogs.downloadKube"></download-kubeconfig>
@@ -132,6 +134,8 @@ module.exports = {
         confirmationMsg: "Are you sure you want to delete this worker?",
         successMsg: "Worker deleted successfully",
       },
+      isNodeReadyToDelete: false,
+      podsToDelete: null
     };
   },
   methods: {
@@ -147,6 +151,16 @@ module.exports = {
     },
     deleteNode(wid) {
       this.selectedworker = wid;
+      this.$api.solutions['checkBeforeDeleteWorkerWorkload'](wid)
+        .then((response) => {
+          console.log(`Check Before Delete Node Response: ${response.data}`)
+          this.isNodeReadyToDelete = response.data.is_ready
+          this.podsToDelete = response.data.pods_to_delete
+          if (!this.isNodeReadyToDelete) {
+            this.deletionMessages.confirmationMsg += "\nThe following Pods will be deleted:\n" + this.podsToDelete
+          }
+          console.log(`Deletion msg: ${this.deletionMessages}`)
+        })
       this.dialogs.cancelWorkload = true;
     },
 

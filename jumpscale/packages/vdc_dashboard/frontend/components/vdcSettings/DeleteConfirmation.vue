@@ -25,6 +25,8 @@ module.exports = {
     api: String,
     wid: Number,
     messages: Object,
+    isNodeReadyToDelete: Boolean,
+    podsToDelete: Array
   },
   methods: {
     submit() {
