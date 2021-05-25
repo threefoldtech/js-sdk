@@ -25,7 +25,8 @@ module.exports = new Promise(async (resolve, reject) => {
                 newIpAddressError: '',
                 rules: {
                     required: value => !!value || 'Required.',
-                    validIp: value => new window.Address4(value).isValid()
+                    validIp: value => new window.Address4(value).isValid(),
+                    length: value => value.length == 56 || 'Invalid wallet',
                 },
             }
         },
@@ -72,8 +73,7 @@ module.exports = new Promise(async (resolve, reject) => {
                         }
                         setTimeout(() => {
                             this.editFarmAlert = undefined
-                        }, 2000)
-                        if (goBack) this.$router.push('/')
+                        }, 15000)
                     })
             },
             addWallet(farm) {
