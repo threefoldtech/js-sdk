@@ -9,16 +9,16 @@
   >
     <template #default>
       {{ messages.confirmationMsg }}
-      <v-alert
-        border="bottom"
-        colored-border
-        type="warning"
-        elevation="2"
-        v-if="isnodereadytodelete"
-      >
-        {{ message.warningMsg }}
-      </v-alert>
     </template>
+    <v-alert
+      border="bottom"
+      colored-border
+      type="warning"
+      elevation="2"
+      v-if="isnodereadytodelete"
+    >
+      {{ message.warningMsg }}
+      </v-alert>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
       <v-btn text color="error" @click="submit">Confirm</v-btn>

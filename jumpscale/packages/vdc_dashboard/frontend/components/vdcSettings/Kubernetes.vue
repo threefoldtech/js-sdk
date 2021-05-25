@@ -163,8 +163,8 @@ module.exports = {
           }
           console.log("Deletion msg:" ,this.deletionMessages);
         }).finally(() => {
-          this.dialogs.cancelWorkload = true;
           this.loading = false;
+          this.dialogs.cancelWorkload = true;
         });
     },
 
