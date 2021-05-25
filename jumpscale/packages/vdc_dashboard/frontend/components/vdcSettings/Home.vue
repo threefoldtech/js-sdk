@@ -56,6 +56,11 @@
           <admins :vdc="vdc" :loading="tableloading"></admins>
         </v-card>
       </v-tab-item>
+      <v-tab-item class="ml-2">
+        <v-card flat>
+          <apikeys></apikeys>
+        </v-card>
+      </v-tab-item>
     </v-tabs>
     <div class="version">JS-NG v{{ NGVersion }}, JS-SDK v{{ SDKVersion }}</div>
 
@@ -147,6 +152,7 @@ module.exports = {
         { icon: "mdi-backup-restore", title: "Backup & Restore" },
         { icon: "mdi-alert-outline", title: "Alerts" },
         { icon: "mdi-account-lock", title: "Admins" },
+        { icon: "mdi-shield-key", title: "API Keys" },
       ],
       activetab: 0,
       NGVersion: null,

@@ -23,26 +23,27 @@ const apiClient = {
         url: "/auth/authenticated/"
       })
     },
-    list: ()=>{
+    list: () => {
       return axios({
         url: `${baseURL}/admins/list`
-    })
+      })
     },
     add: (name) => {
       return axios({
-          url: `${baseURL}/admins/add`,
-          method: "post",
-          headers: { 'Content-Type': 'application/json' },
-          data: { name: name }
+        url: `${baseURL}/admins/add`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { name: name }
       })
     },
     remove: (name) => {
       return axios({
-          url: `${baseURL}/admins/remove`,
-          method: "post",
-          headers: { 'Content-Type': 'application/json' },
-          data: { name: name }
-      })}
+        url: `${baseURL}/admins/remove`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { name: name }
+      })
+    }
   },
   solutions: {
     getSolutions: (solutionType) => {
@@ -212,6 +213,37 @@ const apiClient = {
         url: `${baseURL}/quantumstorage/enable`,
         headers: { 'Content-Type': 'application/json' },
         method: "get"
+      })
+    }
+  },
+  apikeys: {
+    list: () => {
+      return axios({
+        url: `${baseURL}/api_keys`
+      })
+    },
+    generate: (name, role) => {
+      return axios({
+        url: `${baseURL}/api_keys`,
+        method: "post",
+        headers: { 'Content-Type': 'application/json' },
+        data: { name: name, role: role }
+      })
+    },
+    edit: (name, role) => {
+      return axios({
+        url: `${baseURL}/api_keys`,
+        method: "put",
+        headers: { 'Content-Type': 'application/json' },
+        data: { name: name, role: role }
+      })
+    },
+    delete: (name) => {
+      return axios({
+        url: `${baseURL}/api_keys`,
+        method: "delete",
+        headers: { 'Content-Type': 'application/json' },
+        data: { name: name }
       })
     }
   }

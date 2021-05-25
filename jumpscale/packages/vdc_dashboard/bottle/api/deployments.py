@@ -479,16 +479,40 @@ def get_api_keys():
 
 @app.route("/api/api_keys", method="POST")
 @login_required
-def generate_api_keys(name):
+def generate_api_keys():
+    data = j.data.serializers.json.loads(request.body.read())
+    name = data.get("name")
+    role = data.get("role")
     if APIKeyFactory.find(name):
-        raise j.exceptions.Value(f"API key with name '{name}' is already exist")
-    api_key = APIKeyFactory.new(name)
+        return HTTPResponse(
+            f"API key with name '{name}' is already exist", status=500, headers={"Content-Type": "application/json"}
+        )
+    api_key = APIKeyFactory.new(name, role=role)
+    api_key.save()
+
+
+@app.route("/api/api_keys", method="PUT")
+@login_required
+def generate_api_keys():
+    data = j.data.serializers.json.loads(request.body.read())
+    name = data.get("name")
+    role = data.get("role")
+    api_key = APIKeyFactory.find(name)
+    if not api_key:
+        return HTTPResponse(
+            f"API key with name '{name}' is not exist", status=500, headers={"Content-Type": "application/json"}
+        )
+    api_key.role = role
     api_key.save()
 
 
 @app.route("/api/api_keys", method="DELETE")
 @login_required
-def delete_api_keys(name):
+def delete_api_keys():
+    data = j.data.serializers.json.loads(request.body.read())
+    name = data.get("name")
     if not APIKeyFactory.find(name):
-        return j.exceptions.Value(f"API key with name '{name}' is not exist")
+        return HTTPResponse(
+            f"API key with name '{name}' is not exist", status=500, headers={"Content-Type": "application/json"}
+        )
     APIKeyFactory.delete(name)
