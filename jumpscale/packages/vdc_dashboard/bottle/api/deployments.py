@@ -483,21 +483,30 @@ def generate_api_keys():
     data = j.data.serializers.json.loads(request.body.read())
     name = data.get("name")
     role = data.get("role")
+    if not name:
+        return HTTPResponse(f"Please specify a name", status=500, headers={"Content-Type": "application/json"})
+    if not role:
+        return HTTPResponse(f"Please specify a role", status=500, headers={"Content-Type": "application/json"})
+
     if APIKeyFactory.find(name):
         return HTTPResponse(
             f"API key with name '{name}' is already exist", status=500, headers={"Content-Type": "application/json"}
         )
-    api_key = APIKeyFactory.new(name, role=role)
+    api_key = APIKeyFactory.new(name.lower(), role=role)
     api_key.save()
 
 
 @app.route("/api/api_keys", method="PUT")
 @login_required
-def generate_api_keys():
+def edit_api_keys():
     data = j.data.serializers.json.loads(request.body.read())
     name = data.get("name")
     role = data.get("role")
-    api_key = APIKeyFactory.find(name)
+    if not name:
+        return HTTPResponse(f"Please specify a name", status=500, headers={"Content-Type": "application/json"})
+    if not role:
+        return HTTPResponse(f"Please specify a role", status=500, headers={"Content-Type": "application/json"})
+    api_key = APIKeyFactory.find(name.lower(), role)
     if not api_key:
         return HTTPResponse(
             f"API key with name '{name}' is not exist", status=500, headers={"Content-Type": "application/json"}
