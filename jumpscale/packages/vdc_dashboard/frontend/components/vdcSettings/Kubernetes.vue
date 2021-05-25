@@ -151,17 +151,20 @@ module.exports = {
     },
     deleteNode(wid) {
       this.selectedworker = wid;
-      this.$api.solutions['checkBeforeDeleteWorkerWorkload'](wid)
+      this.loading = true;
+      this.$api.solutions.checkBeforeDeleteWorkerWorkload(wid)
         .then((response) => {
-          console.log(`Check Before Delete Node Response: ${response.data}`)
-          this.isNodeReadyToDelete = response.data.is_ready
-          this.podsToDelete = response.data.pods_to_delete
+          console.log("Check Before Delete Node Response:" , response.data);
+          this.isNodeReadyToDelete = response.data.is_ready;
+          this.podsToDelete = response.data.pods_to_delete;
           if (!this.isNodeReadyToDelete) {
-            this.deletionMessages.confirmationMsg += "\nThe following Pods will be deleted:\n" + this.podsToDelete
+            this.deletionMessages.confirmationMsg += "<br> The following Pods will be deleted:<br>" + this.podsToDelete;
           }
-          console.log(`Deletion msg: ${this.deletionMessages}`)
-        })
-      this.dialogs.cancelWorkload = true;
+          console.log("Deletion msg:" ,this.deletionMessages);
+        }).finally(() => {
+          this.dialogs.cancelWorkload = true;
+          this.loading = false;
+        });
     },
 
     downloadKubeConfigFile() {
