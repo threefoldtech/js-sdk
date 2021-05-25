@@ -506,7 +506,7 @@ def edit_api_keys():
         return HTTPResponse(f"Please specify a name", status=500, headers={"Content-Type": "application/json"})
     if not role:
         return HTTPResponse(f"Please specify a role", status=500, headers={"Content-Type": "application/json"})
-    api_key = APIKeyFactory.find(name.lower(), role)
+    api_key = APIKeyFactory.find(name.lower())
     if not api_key:
         return HTTPResponse(
             f"API key with name '{name}' is not exist", status=500, headers={"Content-Type": "application/json"}

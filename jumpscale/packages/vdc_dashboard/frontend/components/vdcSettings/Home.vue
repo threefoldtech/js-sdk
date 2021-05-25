@@ -58,7 +58,7 @@
       </v-tab-item>
       <v-tab-item class="ml-2">
         <v-card flat>
-          <apikeys></apikeys>
+          <api-keys></api-keys>
         </v-card>
       </v-tab-item>
     </v-tabs>

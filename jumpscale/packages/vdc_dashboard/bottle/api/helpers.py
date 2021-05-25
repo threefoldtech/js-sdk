@@ -96,14 +96,10 @@ def _is_authorized(vdc):
         if vdc.validate_password(password) and name == vdc.vdc_name:
             return True
     else:
-        api_keys = APIKeyFactory.list_all()
-        for header in request.headers.keys():
-            header = header.lower()  # lower as the APIKey is sent capitalized in headers
-            if header not in api_keys:
-                continue
-            password = request.headers.get(header)
-            api_key = APIKeyFactory.find(header)
-            if password == api_key.key:
+        api_key_header = request.headers.get("X-API-KEY")
+        for name in APIKeyFactory.list_all():
+            api_key = APIKeyFactory.find(name)
+            if api_key_header == api_key.key:
                 return True
 
 
