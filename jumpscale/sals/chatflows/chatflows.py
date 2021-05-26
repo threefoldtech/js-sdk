@@ -96,6 +96,7 @@ class GedisChatBot:
         self.kwargs = kwargs
         self.spawn = kwargs.get("spawn", True)
         self.creation_time = j.data.time.now()
+        self.have_to_wait = False
         self._state = {}
         self._current_step = 0
         self._steps_info = {}
@@ -138,6 +139,7 @@ class GedisChatBot:
             "steps": len(self.steps),
             "title": self.step_info.get("title"),
             "previous": previous,
+            "have_to_wait": self.have_to_wait,
             "last_step": self.is_last_step,
             "first_step": self.is_first_step,
             "first_slide": self.is_first_slide,
@@ -677,11 +679,13 @@ class GedisChatBot:
         self.send_data({"category": "end"})
 
 
-def chatflow_step(title=None, final_step=False, disable_previous=False):
+def chatflow_step(title=None, final_step=False, deployment=False, payment=False, disable_previous=False):
     def decorator(func):
         def wrapper(*args, **kwargs):
             self_ = args[0]
             self_.step_info.update(title=title, slide=0, previous=(not disable_previous), final_step=final_step)
+            if deployment or payment:
+                self_.have_to_wait = True
             return func(*args, **kwargs)
 
         return wrapper

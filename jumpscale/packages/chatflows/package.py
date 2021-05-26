@@ -19,7 +19,7 @@ class chatflows:
                 j.logger.debug("there is no active deployment")
                 break
             # check the creation time for every active chatflow and check if the previous is True then skip this chatflow and don't wait
-            # go_previous is true mean there is no payment or deployment started  so we can stop the chatflow
+            # have_to_wait is False means there is no payment or deployment started  so we can stop the chatflow
             for session_dir in j.sals.fs.walk(path, pat="*-*-*"):
                 # read chatflow status
                 replacements = {"\n": "", "False": "false", "True": "true", "'": '"'}
@@ -29,10 +29,10 @@ class chatflows:
                 session_info = j.data.serializers.json.loads(
                     pattern.sub(lambda m: replacements[re.escape(m.group(0))], text)
                 )
-                go_previous = session_info["info"]["previous"]
+                have_to_wait = session_info["info"]["have_to_wait"]
                 creation_time = j.data.time.get(session_info["info"]["creation_time"])
                 diff_time = (j.data.time.now() - creation_time) / 60  # by min
-                if not go_previous:
+                if have_to_wait:
                     break
             else:
                 ready_to_stop = True
