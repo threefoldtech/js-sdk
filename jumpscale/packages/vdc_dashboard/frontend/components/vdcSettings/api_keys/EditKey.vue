@@ -29,7 +29,7 @@ module.exports = {
   props: ["name"],
   data() {
     return {
-      roles: ["ADMIN", "USER"],
+      roles: USER_ROLES,
     };
   },
   methods: {

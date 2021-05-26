@@ -1,4 +1,5 @@
 import os
+from uuid import uuid4
 
 from bottle import HTTPResponse, abort, redirect, request
 from jumpscale.core.base import StoredFactory
@@ -473,7 +474,9 @@ def get_api_keys():
     api_keys = []
     for name in APIKeyFactory.list_all():
         api_key = APIKeyFactory.find(name)
-        api_keys.append(api_key.to_dict())
+        api_key = api_key.to_dict()
+        api_key.pop("key")
+        api_keys.append(api_key)
     return j.data.serializers.json.dumps({"data": api_keys})
 
 
@@ -494,6 +497,7 @@ def generate_api_keys():
         )
     api_key = APIKeyFactory.new(name.lower(), role=role)
     api_key.save()
+    return j.data.serializers.json.dumps({"data": api_key.to_dict()})
 
 
 @app.route("/api/api_keys", method="PUT")
@@ -502,17 +506,29 @@ def edit_api_keys():
     data = j.data.serializers.json.loads(request.body.read())
     name = data.get("name")
     role = data.get("role")
+    regenerate = data.get("regenerate")
     if not name:
         return HTTPResponse(f"Please specify a name", status=500, headers={"Content-Type": "application/json"})
-    if not role:
-        return HTTPResponse(f"Please specify a role", status=500, headers={"Content-Type": "application/json"})
+
+    if not any([role, regenerate]) or all([role, regenerate]):
+        return HTTPResponse(
+            f"Please specify a role or set 'regenerate' to true to regenerate the key",
+            status=500,
+            headers={"Content-Type": "application/json"},
+        )
+
     api_key = APIKeyFactory.find(name.lower())
     if not api_key:
         return HTTPResponse(
             f"API key with name '{name}' is not exist", status=500, headers={"Content-Type": "application/json"}
         )
-    api_key.role = role
-    api_key.save()
+    if role:
+        api_key.role = role
+        api_key.save()
+    if regenerate:
+        api_key.key = uuid4().hex
+        api_key.save()
+        return j.data.serializers.json.dumps({"data": api_key.to_dict()})
 
 
 @app.route("/api/api_keys", method="DELETE")
@@ -520,8 +536,19 @@ def edit_api_keys():
 def delete_api_keys():
     data = j.data.serializers.json.loads(request.body.read())
     name = data.get("name")
-    if not APIKeyFactory.find(name):
+    delete_all = data.get("all")
+    if not any([name, delete_all]):
         return HTTPResponse(
-            f"API key with name '{name}' is not exist", status=500, headers={"Content-Type": "application/json"}
+            f"Please specify a name or set 'all' to true to delete all keys",
+            status=500,
+            headers={"Content-Type": "application/json"},
         )
-    APIKeyFactory.delete(name)
+    if name:
+        if not APIKeyFactory.find(name):
+            return HTTPResponse(
+                f"API key with name '{name}' is not exist", status=500, headers={"Content-Type": "application/json"}
+            )
+        APIKeyFactory.delete(name)
+    else:
+        for api_key in APIKeyFactory.list_all():
+            APIKeyFactory.delete(api_key)

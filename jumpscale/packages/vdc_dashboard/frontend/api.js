@@ -230,6 +230,14 @@ const apiClient = {
         data: { name: name, role: role }
       })
     },
+    regenerate: (name) => {
+      return axios({
+        url: `${baseURL}/api_keys`,
+        method: "put",
+        headers: { 'Content-Type': 'application/json' },
+        data: { name: name, regenerate: true }
+      })
+    },
     edit: (name, role) => {
       return axios({
         url: `${baseURL}/api_keys`,
@@ -245,6 +253,14 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' },
         data: { name: name }
       })
-    }
+    },
+    deleteAll: () => {
+      return axios({
+        url: `${baseURL}/api_keys`,
+        method: "delete",
+        headers: { 'Content-Type': 'application/json' },
+        data: { all: true }
+      })
+    },
   }
 }
