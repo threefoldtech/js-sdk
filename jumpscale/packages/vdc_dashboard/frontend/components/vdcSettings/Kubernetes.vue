@@ -159,8 +159,12 @@ module.exports = {
           console.log("Check Before Delete Node Response:" , response.data);
           this.isNodeReadyToDelete = response.data.is_ready;
           this.podsToDelete = response.data.pods_to_delete;
+          podsString = "<br>"
+          for (pod in this.podsToDelete){
+            podsString += this.podsToDelete[pod] + "<br>"
+          }
           if (!this.isNodeReadyToDelete) {
-            this.deletionMessages.warningMsg = "The following release will be deleted: " + this.podsToDelete;
+            this.deletionMessages.warningMsg = "The following release/s will be deleted: " + podsString;
           }
           console.log("Deletion msg:" ,this.deletionMessages);
         }).finally(() => {

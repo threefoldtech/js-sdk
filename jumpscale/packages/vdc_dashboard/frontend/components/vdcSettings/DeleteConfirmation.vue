@@ -10,7 +10,7 @@
     <template #default>
       {{ messages.confirmationMsg }}
       <v-alert v-if="isnodereadytodelete == false" border="top" colored-border type="warning" elevation="2">
-        {{ messages.warningMsg }}
+        <span v-html="messages.warningMsg"></span>
       </v-alert>
     </template>
     <template #actions>
