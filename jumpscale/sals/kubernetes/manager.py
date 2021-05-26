@@ -97,13 +97,24 @@ class Manager:
         return out
 
     @helm_required
-    def install_chart(self, release, chart_name, namespace="default", extra_config=None, chart_values_file=None):
-        """deployes a helm chart
+    def install_chart(
+        self,
+        release,
+        chart_name,
+        namespace="default",
+        extra_config=None,
+        chart_values_file=None,
+        extra_config_string_safe=None,
+        timeout="7m0s",
+    ):
+        """deploy a helm chart
 
         Args:
             release (str): name of the release to be deployed
             chart_name (str): the name of the chart you need to deploy
             extra_config: dict containing extra paramters passed to install command with --set
+            extra_config_string_safe: dict container extra paramters passed to install command with --set-string
+                      to ensure that the values of type string and prevent wrong type casting
 
         Raises:
             j.exceptions.Runtime: in case the helm command failed to execute
@@ -115,7 +126,12 @@ class Manager:
         params = ""
         for key, arg in extra_config.items():
             params += f" --set {key}={quote(arg)}"
-        cmd = f"helm --kubeconfig {self.config_path} --namespace {namespace} install --create-namespace {release} {chart_name} {params}"
+
+        if extra_config_string_safe:
+            for key, arg in extra_config_string_safe.items():
+                params += f" --set-string {key}={quote(arg)}"
+
+        cmd = f"helm --kubeconfig {self.config_path} --namespace {namespace} install --timeout {timeout} --create-namespace {release} {chart_name} {params}"
         if chart_values_file:
             cmd += f" -f {chart_values_file}"
         rc, out, err = self._execute(cmd)
@@ -168,7 +184,7 @@ class Manager:
 
             # Validate service running
             ssh_client = self.get_k8s_sshclient(instance=release, host=k8s_master_ip)
-            rc, out, err = ssh_client.sshclient.run(f"sudo rc-service -l | grep -i '{release}-socat-'", warn=True,)
+            rc, out, err = ssh_client.sshclient.run(f"sudo rc-service -l | grep -i '{release}-socat-'", warn=True)
 
             if rc == 0:
                 results = out.split("\n")
@@ -182,13 +198,17 @@ class Manager:
         return out
 
     @helm_required
-    def list_deployed_releases(self, namespace="default"):
+    def list_deployed_releases(self, namespace=""):
         """list deployed helm releases
-
+        Args:
+            namespace: default empty will list all releases in all namepaces
         Returns:
             list: output of the helm command as dicts
         """
-        rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} --namespace {namespace} list -o json")
+        if namespace:
+            rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} --namespace {namespace} list -o json")
+        else:
+            rc, out, err = self._execute(f"helm --kubeconfig {self.config_path} list -A -o json")
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to list charts, error was {err}")
         return j.data.serializers.json.loads(out)
@@ -213,7 +233,8 @@ class Manager:
         Returns:
             str: output of the kubectl/helm command
         """
-        cmd = f"{cmd} --kubeconfig {self.config_path}"
+        main_command, *sub_commands = cmd.split(" ")
+        cmd = f"{main_command} --kubeconfig {self.config_path} {' '.join(sub_commands)}"
         rc, out, err = self._execute(cmd)
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to execute: {cmd}, error was {err}")

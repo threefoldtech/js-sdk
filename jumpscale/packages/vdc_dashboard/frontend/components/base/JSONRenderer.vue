@@ -7,19 +7,33 @@
       <v-simple-table>
         <template v-slot:default>
           <tbody>
-            <tr v-for="(item, key)  in jsonobj" :key="key">
+            <tr v-for="(item, key) in jsonobj" :key="key">
               <th v-if="!ignored.includes(key) && item !== ''">{{ key }}</th>
               <td v-if="typelist.includes(key)" class="pt-2">
-                <v-chip class="ma-1" v-for="node in item" :key="node">{{ node }}</v-chip>
+                <v-chip class="ma-1" v-for="node in item" :key="node">{{
+                  node
+                }}</v-chip>
               </td>
               <td v-else-if="typedict.includes(key)" class="pt-2">
                 <v-chip
                   class="ma-1"
                   v-for="(subItem, subkey) in item"
                   :key="subkey"
-                >{{ subkey }} : {{ subItem }}</v-chip>
+                  >{{ subkey }} : {{ subItem }}</v-chip
+                >
               </td>
-              <td v-else-if="!ignored.includes(key) && item !== ''">{{ item }}</td>
+              <td
+                v-else-if="
+                  !ignored.includes(key) &&
+                  item !== '' &&
+                  (key == 'expiration' ||
+                    key == 'start_timestamp' ||
+                    key == 'completion_timestamp')
+                "
+              >
+                {{ timeDifference(item) }}
+              </td>
+              <td v-else>{{ item }}</td>
             </tr>
           </tbody>
         </template>
@@ -50,6 +64,13 @@ module.exports = {
     ignored: { type: Array, default: () => [] },
     typelist: { type: Array, default: () => [] },
     typedict: { type: Array, default: () => [] },
+  },
+  methods: {
+    timeDifference(ts) {
+      var now = new Date();
+      var timestamp = moment.unix(now / 1000);
+      return timestamp.to(ts * 1000);
+    },
   },
   updated() {
     if (this.jsonobj !== this.lastObj) this.tab = 0;

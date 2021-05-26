@@ -1,11 +1,10 @@
 <template>
   <v-dialog v-model="dialog" width="700">
     <v-card :loading="loading" :disabled="loading">
-      <v-card-title class="headline">{{title}}</v-card-title>
+      <v-card-title class="headline">{{ title }}</v-card-title>
       <v-card-text class="pa-5">
-
         <v-alert v-if="error" dense outlined type="error" class="mb-5">
-          {{error}}
+          {{ error }}
         </v-alert>
 
         <slot name="default"></slot>
@@ -20,22 +19,22 @@
 </template>
 
 <script>
-  module.exports = {
-    props: {
-      value: Boolean,
-      title: String,
-      error: String,
-      loading: Boolean
-    },
-    computed: {
-      dialog: {
-        get () {
-          return this.value
-        },
-        set (value) {
-          this.$emit('input', value)
-        }
+module.exports = {
+  props: {
+    value: Boolean,
+    title: String,
+    error: String,
+    loading: Boolean,
+  },
+  computed: {
+    dialog: {
+      get() {
+        return this.value;
       },
-    }
-  }
+      set(value) {
+        this.$emit("input", value);
+      },
+    },
+  },
+};
 </script>

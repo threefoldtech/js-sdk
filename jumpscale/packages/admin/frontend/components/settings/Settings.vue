@@ -249,6 +249,14 @@
                 class="my-2 ml-2"
                 small
                 color="success"
+                @click="downloadThreebotStateFile()"
+                >Export 3Bot state</v-btn
+              >
+              <v-btn
+                hide-details
+                class="my-2 ml-2"
+                small
+                color="success"
                 @click="clearBlockedManagedDomains()"
                 >Clear blocked domains</v-btn
               >
@@ -547,6 +555,23 @@ module.exports = {
         })
         .catch((error) => {
           this.alert("Failed to clear blocked nodes", "error");
+        });
+    },
+    downloadThreebotStateFile() {
+      this.$api.admins
+        .getThreebotState()
+        .then((response) => {
+          const blob = new Blob([response.data], {type: response.headers["content-type"]});
+          const url = URL.createObjectURL(blob);
+          let filename = response.headers['content-disposition'].split('filename="')[1].slice(0, -1)
+          const link = document.createElement("a");
+          link.href = url;
+          link.setAttribute("download", filename);
+          link.click();
+          URL.revokeObjectURL(link.href);
+        })
+        .catch((err) => {
+          console.log("Failed to download threebot state due to " + err);
         });
     },
     clearBlockedManagedDomains() {

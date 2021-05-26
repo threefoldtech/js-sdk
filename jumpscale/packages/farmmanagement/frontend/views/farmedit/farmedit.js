@@ -6,7 +6,7 @@ module.exports = new Promise(async (resolve, reject) => {
 
     resolve({
         name: "farmedit",
-        data () {
+        data() {
             return {
                 countries,
                 editFarmAlert: undefined,
@@ -25,11 +25,12 @@ module.exports = new Promise(async (resolve, reject) => {
                 newIpAddressError: '',
                 rules: {
                     required: value => !!value || 'Required.',
-                    validIp: value => new window.Address4(value).isValid()
+                    validIp: value => new window.Address4(value).isValid(),
+                    length: value => value.length == 56 || 'Invalid wallet',
                 },
             }
         },
-        async mounted () {
+        async mounted() {
             await this.getFarm(this.$router.history.current.params.id)
         },
         methods: {
@@ -72,8 +73,7 @@ module.exports = new Promise(async (resolve, reject) => {
                         }
                         setTimeout(() => {
                             this.editFarmAlert = undefined
-                        }, 2000)
-                        if (goBack) this.$router.push('/')
+                        }, 15000)
                     })
             },
             addWallet(farm) {
@@ -85,10 +85,10 @@ module.exports = new Promise(async (resolve, reject) => {
             cancelEditFarm() {
                 this.$router.push('/')
             },
-            deleteIpAddressFarmer (ipaddress) {
+            deleteIpAddressFarmer(ipaddress) {
                 const del = {
                     farm_id: this.farm.id,
-                    ipaddress: ipaddress.ipaddress
+                    ipaddress: ipaddress.address
                 }
                 this.deleteIpAddress(del)
                     .then(response => {
@@ -123,7 +123,7 @@ module.exports = new Promise(async (resolve, reject) => {
                         this.openDeleteModal = false
                     })
             },
-            createIpAddressFarmer () {
+            createIpAddressFarmer() {
                 const insert = {
                     farm_id: this.farm.id,
                     address: this.newIpAddress.ipaddress,

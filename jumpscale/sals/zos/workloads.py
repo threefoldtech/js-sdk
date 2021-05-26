@@ -11,6 +11,7 @@ from jumpscale.clients.explorer.models import (
     K8s,
     NetworkResource,
     NextAction,
+    VirtualMachine,
     Volume,
     ZdbNamespace,
     PublicIP,
@@ -164,6 +165,7 @@ class Workloads:
             Volume,
             ZdbNamespace,
             PublicIP,
+            VirtualMachine,
         ],
     ) -> int:
         """deploy a workload on a node

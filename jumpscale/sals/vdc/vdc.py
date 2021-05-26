@@ -1,22 +1,34 @@
 from collections import defaultdict
 import datetime
+from enum import Enum
+import random
 import uuid
 
-from jumpscale.clients.explorer.models import NextAction, WorkloadType
+from gevent.lock import BoundedSemaphore
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
-from jumpscale.sals.zos import get as get_zos
-from jumpscale.clients.stellar import TRANSACTION_FEES
 
-from .deployer import VDCDeployer
+from jumpscale.clients.explorer.models import (
+    DiskType,
+    K8s,
+    NextAction,
+    PublicIP,
+    WorkloadType,
+    ZdbNamespace,
+)
+from jumpscale.clients.stellar import TRANSACTION_FEES
+from jumpscale.clients.stellar import TRANSACTION_FEES
+from jumpscale.sals.vdc.quantum_storage import QuantumStorage
+from jumpscale.sals.vdc.scheduler import CapacityChecker
+from jumpscale.sals.zos import get as get_zos
+
+from .deployer import SSH_KEY_PREFIX, VDCDeployer
+from .kubernetes_auto_extend import KubernetesMonitor
 from .models import *
-from .size import VDC_SIZE, PROXY_FARM, FARM_DISCOUNT
+from .size import FARM_DISCOUNT, PROXY_FARMS, VDC_SIZE, ZDB_STARTING_SIZE
+from .snapshot import SnapshotManager
 from .wallet import VDC_WALLET_FACTORY
 from .zdb_auto_topup import ZDBMonitor
-from .kubernetes_auto_extend import KubernetesMonitor
-import netaddr
-import hashlib
-from .snapshot import SnapshotManager
 
 VDC_WORKLOAD_TYPES = [
     WorkloadType.Container,
@@ -25,6 +37,13 @@ VDC_WORKLOAD_TYPES = [
     WorkloadType.Subdomain,
     WorkloadType.Reverse_proxy,
 ]
+
+
+class VDCSTATE(Enum):
+    CREATING = "CREATING"
+    DEPLOYED = "DEPLOYED"
+    ERROR = "ERROR"
+    EMPTY = "EMPTY"
 
 
 class UserVDC(Base):
@@ -37,10 +56,13 @@ class UserVDC(Base):
     etcd = fields.List(fields.Object(ETCDNode))
     threebot = fields.Object(VDCThreebot)
     created = fields.DateTime(default=datetime.datetime.utcnow)
+    expiration = fields.Float(default=lambda: j.data.time.utcnow().timestamp + 30 * 24 * 60 * 60)
     last_updated = fields.DateTime(default=datetime.datetime.utcnow)
     is_blocked = fields.Boolean(default=False)  # grace period action is applied
     explorer_url = fields.String(default=lambda: j.core.identity.me.explorer_url)
     _flavor = fields.String()
+    state = fields.Enum(VDCSTATE)
+    __lock = BoundedSemaphore(1)
 
     @property
     def flavor(self):
@@ -62,10 +84,17 @@ class UserVDC(Base):
             node["size"] = node["_size"]
         return d
 
-    def is_empty(self):
+    def is_empty(self, load_info=True):
+        if load_info:
+            self.load_info()
         if any([self.kubernetes, self.threebot.wid, self.threebot.domain, self.s3.minio.wid, self.s3.zdbs]):
             return False
         return True
+
+    def has_minimal_components(self):
+        if all([self.kubernetes, self.threebot.wid, self.threebot.domain]):
+            return True
+        return False
 
     @property
     def expiration_date(self):
@@ -123,8 +152,10 @@ class UserVDC(Base):
         deployment_logs=False,
         ssh_key_path=None,
         restore=False,
+        network_farm=None,
+        compute_farm=None,
     ):
-        proxy_farm_name = proxy_farm_name or PROXY_FARM.get()
+        proxy_farm_name = proxy_farm_name or random.choice(PROXY_FARMS.get())
         if not password and not identity:
             identity = self._get_identity()
 
@@ -137,16 +168,26 @@ class UserVDC(Base):
             deployment_logs=deployment_logs,
             ssh_key_path=ssh_key_path,
             restore=restore,
+            network_farm=network_farm,
+            compute_farm=compute_farm,
         )
 
-    def validate_password(self, password):
-        password_hash = hashlib.md5(password.encode()).hexdigest()
+    def get_password(self):
         identity = self._get_identity(default=False)
         if not identity:
+            j.logger.error("Couldn't find identity")
+            return
+        password_hash = j.data.encryption.mnemonic_to_key(identity.words)
+        return password_hash.decode()
+
+    def validate_password(self, password):
+        password = j.data.hash.md5(password)
+        vdc_password = self.get_password()
+        if not vdc_password:
             # identity was not generated for this vdc instance
             return True
-        words = j.data.encryption.key_to_mnemonic(password_hash.encode())
-        if identity.words == words:
+
+        if password == vdc_password:
             return True
         return False
 
@@ -168,28 +209,24 @@ class UserVDC(Base):
     def get_snapshot_manager(self, snapshots_dir=None):
         return SnapshotManager(self, snapshots_dir)
 
-    def load_info(self, load_proxy=False):
-        self.kubernetes = []
-        self.etcd = []
-        self.s3 = S3()
-        self.threebot = VDCThreebot()
-        instance_vdc_workloads = self._filter_vdc_workloads()
-        subdomains = []
-        proxies = []
-        for workload in instance_vdc_workloads:
-            self._update_instance(workload)
-            if workload.info.workload_type == WorkloadType.Subdomain:
-                subdomains.append(workload)
-            if workload.info.workload_type == WorkloadType.Reverse_proxy:
-                proxies.append(workload)
-        self._get_s3_subdomains(subdomains)
-        self._get_threebot_subdomain(proxies)
-        if load_proxy:
-            self._build_zdb_proxies()
+    def get_quantumstorage_manager(self, ip_version=4):
+        return QuantumStorage(self, ip_version)
 
-    def _build_zdb_proxies(self):
+    def load_info(self, load_proxy=False):
+        kubernetes, s3, etcd, threebot = self.get_vdc_workloads(load_proxy=load_proxy)
+
+        self.__lock.acquire()
+        try:
+            self.kubernetes = kubernetes
+            self.etcd = etcd
+            self.s3 = s3
+            self.threebot = threebot
+        finally:
+            self.__lock.release()
+
+    def _build_zdb_proxies(self, s3):
         proxies = self._list_socat_proxies()
-        for zdb in self.s3.zdbs:
+        for zdb in s3.zdbs:
             zdb_proxies = proxies[zdb.ip_address]
             if not zdb_proxies:
                 continue
@@ -209,8 +246,8 @@ class UserVDC(Base):
     def _list_socat_proxies(self, public_ip=None):
         public_ip = public_ip or self.get_public_ip()
         if not public_ip:
-            raise j.exceptions.Runtime(f"couldn't get a public ip for vdc: {self.vdc_name}")
-        ssh_client = self.get_ssh_client("socat_list", public_ip, "rancher",)
+            raise j.exceptions.Runtime(f"Couldn't get a public ip for vdc: {self.vdc_name}")
+        ssh_client = self.get_ssh_client("socat_list", public_ip, "rancher")
         result = defaultdict(list)
         rc, out, _ = ssh_client.sshclient.run(f"sudo ps -ef | grep -v grep | grep socat", warn=True)
         if rc != 0:
@@ -242,7 +279,7 @@ class UserVDC(Base):
 
     def _filter_vdc_workloads(self):
         zos = get_zos()
-        user_workloads = zos.workloads.list(self.identity_tid, next_action=NextAction.DEPLOY)
+        user_workloads = zos.workloads.list_workloads(self.identity_tid, next_action=NextAction.DEPLOY)
         result = []
         for workload in user_workloads:
             if workload.info.workload_type not in VDC_WORKLOAD_TYPES:
@@ -258,95 +295,61 @@ class UserVDC(Base):
             result.append(workload)
         return result
 
-    def _update_instance(self, workload):
-        k8s_sizes = [
-            VDC_SIZE.K8SNodeFlavor.MICRO.value,
-            VDC_SIZE.K8SNodeFlavor.SMALL.value,
-            VDC_SIZE.K8SNodeFlavor.MEDIUM.value,
-            VDC_SIZE.K8SNodeFlavor.BIG.value,
-        ]
-        if workload.info.workload_type == WorkloadType.Kubernetes:
-            node = KubernetesNode()
-            node.wid = workload.id
-            node.ip_address = workload.ipaddress
-            if workload.master_ips:
-                node.role = KubernetesRole.WORKER
-            else:
-                node.role = KubernetesRole.MASTER
-            node.node_id = workload.info.node_id
-            node.pool_id = workload.info.pool_id
-            if workload.public_ip:
-                zos = get_zos()
-                public_ip_workload = zos.workloads.get(workload.public_ip)
-                address = str(netaddr.IPNetwork(public_ip_workload.ipaddress).ip)
-                node.public_ip = address
+    def get_vdc_workloads(self, load_proxy=False):
+        kubernetes = []
+        s3 = S3()
+        etcd = []
+        threebot = None
 
-            node._size = (
-                VDC_SIZE.K8SNodeFlavor(workload.size).value
-                if workload.size in k8s_sizes
-                else VDC_SIZE.K8SNodeFlavor.SMALL.value
-            )
-            self.kubernetes.append(node)
-        elif workload.info.workload_type == WorkloadType.Container:
-            if "minio" in workload.flist:
-                container = S3Container()
-                container.node_id = workload.info.node_id
-                container.pool_id = workload.info.pool_id
-                container.wid = workload.id
-                container.ip_address = workload.network_connection[0].ipaddress
-                self.s3.minio = container
-            elif "js-sdk" in workload.flist:
-                container = VDCThreebot()
-                container.node_id = workload.info.node_id
-                container.pool_id = workload.info.pool_id
-                container.wid = workload.id
-                container.ip_address = workload.network_connection[0].ipaddress
-                self.threebot = container
-            elif "etcd" in workload.flist:
-                node = ETCDNode()
-                node.node_id = workload.info.node_id
-                node.pool_id = workload.info.pool_id
-                node.wid = workload.id
-                node.ip_address = workload.network_connection[0].ipaddress
-                self.etcd.append(node)
-        elif workload.info.workload_type == WorkloadType.Zdb:
-            result_json = j.data.serializers.json.loads(workload.info.result.data_json)
-            if "IPs" in result_json:
-                ip = result_json["IPs"][0]
-            else:
-                ip = result_json["IP"]
-            namespace = result_json["Namespace"]
-            port = result_json["Port"]
-            zdb = S3ZDB()
-            zdb.node_id = workload.info.node_id
-            zdb.pool_id = workload.info.pool_id
-            zdb.wid = workload.id
-            zdb.size = workload.size
-            zdb.ip_address = ip
-            zdb.port = port
-            zdb.namespace = namespace
-            self.s3.zdbs.append(zdb)
+        proxies = []
+        for workload in self._filter_vdc_workloads():
+            if workload.info.workload_type == WorkloadType.Kubernetes:
+                kubernetes.append(KubernetesNode.from_workload(workload))
+            elif workload.info.workload_type == WorkloadType.Container:
+                if "minio" in workload.flist:
+                    container = S3Container.from_workload(workload)
+                    s3.minio = container
+                elif "js-sdk" in workload.flist:
+                    container = VDCThreebot.from_workload(workload)
+                    threebot = container
+                elif "etcd" in workload.flist:
+                    node = ETCDNode.from_workload(workload)
+                    etcd.append(node)
+            elif workload.info.workload_type == WorkloadType.Zdb:
+                zdb = S3ZDB.from_workload(workload)
+                s3.zdbs.append(zdb)
+            elif workload.info.workload_type == WorkloadType.Subdomain:
+                s3_domain = self._check_s3_subdomains(workload)
+                if s3_domain:
+                    s3.domain = workload.domain
+                    s3.domain_wid = workload.id
+            elif workload.info.workload_type == WorkloadType.Reverse_proxy:
+                proxies.append(workload)
 
-    def _get_s3_subdomains(self, subdomain_workloads):
+        threebot.domain = self._get_threebot_subdomain(proxies, threebot)
+        if load_proxy:
+            self._build_zdb_proxies(s3)
+
+        return kubernetes, s3, etcd, threebot
+
+    def _check_s3_subdomains(self, workload):
         minio_wid = self.s3.minio.wid
         if not minio_wid:
             return
-        for workload in subdomain_workloads:
-            if not workload.info.description:
-                continue
-            try:
-                desc = j.data.serializers.json.loads(workload.info.description)
-            except Exception as e:
-                j.logger.warning(f"failed to load workload {workload.id} description due to error {e}")
-                continue
-            exposed_wid = desc.get("exposed_wid")
-            if exposed_wid == minio_wid:
-                self.s3.domain = workload.domain
-                self.s3.domain_wid = workload.id
 
-    def _get_threebot_subdomain(self, proxy_workloads):
-        # threebot is exposed over gateway
-        threebot_wid = self.threebot.wid
+        if not workload.info.description:
+            return
+        try:
+            desc = j.data.serializers.json.loads(workload.info.description)
+        except Exception as e:
+            j.logger.warning(f"Failed to load workload {workload.id} description due to error {e}")
+            return
+        exposed_wid = desc.get("exposed_wid")
+        if exposed_wid == minio_wid:
+            return True
+
+    def _get_threebot_subdomain(self, proxy_workloads, threebot):
+        threebot_wid = threebot.wid
         if not threebot_wid:
             return
         non_matching_domains = []
@@ -356,15 +359,15 @@ class UserVDC(Base):
             try:
                 desc = j.data.serializers.json.loads(workload.info.description)
             except Exception as e:
-                j.logger.warning(f"failed to load workload {workload.id} description due to error {e}")
+                j.logger.warning(f"Failed to load workload {workload.id} description due to error {e}")
                 continue
             exposed_wid = desc.get("exposed_wid")
             if exposed_wid == threebot_wid:
-                self.threebot.domain = workload.domain
+                return workload.domain
             else:
                 non_matching_domains.append(workload.domain)
-        if not self.threebot.domain and non_matching_domains:
-            self.threebot.domain = non_matching_domains[-1]
+        if not threebot.domain and non_matching_domains:
+            return non_matching_domains[-1]
 
     def apply_grace_period_action(self):
         self.load_info()
@@ -373,16 +376,8 @@ class UserVDC(Base):
             ip_address = k8s.public_ip
             if ip_address == "::/128":
                 continue
-            ssh_key = j.clients.sshkey.get(self.vdc_name)
-            PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
-            if not j.sals.fs.exists(PRIV_KEY_PATH):
-                raise j.exceptions.NotFound(f"Can not find ssh key for vdc {self.vdc_name} in {PRIV_KEY_PATH}")
-            ssh_key.private_key_path = PRIV_KEY_PATH
-            ssh_key.load_from_file_system()
             try:
-                ssh_client = j.clients.sshclient.get(
-                    self.instance_name, user="rancher", host=str(ip_address), sshkey=self.vdc_name
-                )
+                ssh_client = self.get_ssh_client(self.instance_name, user="rancher", ip_address=str(ip_address))
                 rc, out, err = ssh_client.sshclient.run("sudo ip link set cni0 down", warn=True)
                 if rc:
                     j.logger.critical(
@@ -415,16 +410,8 @@ class UserVDC(Base):
             ip_address = k8s.public_ip
             if ip_address == "::/128":
                 continue
-            ssh_key = j.clients.sshkey.get(self.vdc_name)
-            PRIV_KEY_PATH = f"{j.core.dirs.CFGDIR}/vdc/keys/{self.owner_tname}/{self.vdc_name}/id_rsa"
-            if not j.sals.fs.exists(PRIV_KEY_PATH):
-                raise j.exceptions.NotFound(f"Can not find ssh key for vdc {self.vdc_name} in {PRIV_KEY_PATH}")
-            ssh_key.private_key_path = PRIV_KEY_PATH
-            ssh_key.load_from_file_system()
             try:
-                ssh_client = j.clients.sshclient.get(
-                    self.instance_name, user="rancher", host=str(ip_address), sshkey=self.vdc_name
-                )
+                ssh_client = self.get_ssh_client(self.instance_name, user="rancher", ip_address=str(ip_address))
                 rc, out, err = ssh_client.sshclient.run("sudo ip link set cni0 up", warn=True)
                 if rc:
                     j.logger.critical(
@@ -460,7 +447,7 @@ class UserVDC(Base):
             refund_extra=False,
             expiry=expiry,
             description=j.data.serializers.json.dumps(
-                {"type": "VDC_INIT", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
+                {"type": "VDC_INIT", "owner": self.owner_tname, "solution_uuid": self.solution_uuid}
             ),
         )
 
@@ -472,27 +459,41 @@ class UserVDC(Base):
         else:
             return True, amount, payment_id
 
-    def show_external_node_payment(self, bot, size, no_nodes=1, expiry=5, wallet_name=None, public_ip=False):
+    def show_external_node_payment(self, bot, farm_name, size, no_nodes=1, expiry=5, wallet_name=None, public_ip=False):
         discount = FARM_DISCOUNT.get()
+        duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
+        month = 60 * 60 * 24 * 30
+        if duration > month:
+            duration = month
 
+        zos = j.sals.zos.get()
+        farm_id = zos._explorer.farms.get(farm_name=farm_name).id
+        k8s = K8s()
         if isinstance(size, str):
-            size = VDC_SIZE.K8SNodeFlavor[size.upper()]
-        amount = VDC_SIZE.PRICES["nodes"][size] * no_nodes
-        if public_ip:
-            amount += VDC_SIZE.PRICES["services"][VDC_SIZE.Services.IP]
+            size = VDC_SIZE.K8SNodeFlavor[size.upper()].value
+        k8s.size = size
+        amount = j.tools.zos.consumption.cost(k8s, duration, farm_id) + TRANSACTION_FEES
 
-        amount *= 1 - discount
-        node_price = amount
+        if public_ip:
+            pub_ip = PublicIP()
+            amount += j.tools.zos.consumption.cost(pub_ip, duration, farm_id)
+        amount *= no_nodes
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
-            result = bot.single_choice(
-                f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
-                ["Yes", "No"],
-                required=True,
-            )
-            if result == "Yes":
+            if bot:
+                result = bot.single_choice(
+                    f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
+                    ["Yes", "No"],
+                    required=True,
+                )
+                if result == "Yes":
+                    amount = 0
+            else:
                 amount = 0
+        elif not bot:
+            # Not enough funds in prepaid wallet and no bot passed to use to view QRcode
+            return False, amount, None
 
         payment_id, _ = j.sals.billing.submit_payment(
             amount=amount,
@@ -500,7 +501,7 @@ class UserVDC(Base):
             refund_extra=False,
             expiry=expiry,
             description=j.data.serializers.json.dumps(
-                {"type": "VDC_K8S_EXTEND", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
+                {"type": "VDC_K8S_EXTEND", "owner": self.owner_tname, "solution_uuid": self.solution_uuid}
             ),
         )
         if amount > 0:
@@ -509,7 +510,57 @@ class UserVDC(Base):
                 notes = ["For testing purposes, we applied a discount of {:.0f}%".format(discount * 100)]
             return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
         else:
-            return True, node_price, payment_id
+            return True, amount, payment_id
+
+    def show_external_zdb_payment(
+        self, bot, farm_name, size=ZDB_STARTING_SIZE, no_nodes=1, expiry=5, wallet_name=None, disk_type=DiskType.HDD
+    ):
+        discount = FARM_DISCOUNT.get()
+        duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
+        month = 60 * 60 * 24 * 30
+        if duration > month:
+            duration = month
+
+        zos = j.sals.zos.get()
+        farm_id = zos._explorer.farms.get(farm_name=farm_name).id
+        zdb = ZdbNamespace()
+        zdb.size = size
+        zdb.disk_type = disk_type
+        amount = j.tools.zos.consumption.cost(zdb, duration, farm_id) + TRANSACTION_FEES
+        amount *= no_nodes
+
+        prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
+        if prepaid_balance >= amount:
+            if bot:
+                result = bot.single_choice(
+                    f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
+                    ["Yes", "No"],
+                    required=True,
+                )
+                if result == "Yes":
+                    amount = 0
+            else:
+                amount = 0
+        elif not bot:
+            # Not enough funds in prepaid wallet and no bot passed to use to view QRcode
+            return False, amount, None
+
+        payment_id, _ = j.sals.billing.submit_payment(
+            amount=amount,
+            wallet_name=wallet_name or self.prepaid_wallet.instance_name,
+            refund_extra=False,
+            expiry=expiry,
+            description=j.data.serializers.json.dumps(
+                {"type": "VDC_ZDB_EXTEND", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
+            ),
+        )
+        if amount > 0:
+            notes = []
+            if discount:
+                notes = ["For testing purposes, we applied a discount of {:.0f}%".format(discount * 100)]
+            return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
+        else:
+            return True, amount, payment_id
 
     def transfer_to_provisioning_wallet(self, amount, wallet_name=None):
         if not amount:
@@ -531,8 +582,10 @@ class UserVDC(Base):
         for t_hash in transaction_hashes:
             effects = initial_wallet.get_transaction_effects(t_hash)
             for effect in effects:
-                amount += effect.amount + TRANSACTION_FEES  # transaction fees to not drain the initialization wallet
-        amount = round(abs(amount), 6)
+                amount += (
+                    abs(float(effect.amount)) + TRANSACTION_FEES
+                )  # transaction fees to not drain the initialization wallet
+        amount = round(amount, 6)
         if not amount:
             return True
         return self.pay_amount(initial_wallet.address, amount, wallet)
@@ -563,13 +616,13 @@ class UserVDC(Base):
                         else:
                             has_funds = False
                             raise j.exceptions.Validation(
-                                f"not enough funds in wallet {wallet.instance_name} to pay amount: {amount}. current balance: {b.balance}"
+                                f"Not enough funds in wallet {wallet.instance_name} to pay amount: {amount}. current balance: {b.balance}"
                             )
                 except Exception as e:
                     if has_funds is False:
-                        j.logger.error(f"not enough funds in wallet {wallet.instance_name} to pay amount: {amount}")
+                        j.logger.error(f"Not enough funds in wallet {wallet.instance_name} to pay amount: {amount}")
                         raise e
-                    j.logger.warning(f"failed to get wallet {wallet.instance_name} balance due to error: {str(e)}")
+                    j.logger.warning(f"Failed to get wallet {wallet.instance_name} balance due to error: {str(e)}")
                     continue
 
             try:
@@ -579,10 +632,10 @@ class UserVDC(Base):
             except Exception as e:
                 j.logger.warning(f"failed to submit payment to stellar due to error {str(e)}")
         j.logger.critical(
-            f"failed to submit payment to stellar in time to: {address} amount: {amount} for wallet: {wallet.instance_name}"
+            f"Failed to submit payment to stellar in time to: {address} amount: {amount} for wallet: {wallet.instance_name}"
         )
         raise j.exceptions.Runtime(
-            f"failed to submit payment to stellar in time to: {address} amount: {amount} for wallet: {wallet.instance_name}"
+            f"Failed to submit payment to stellar in time to: {address} amount: {amount} for wallet: {wallet.instance_name}"
         )
 
     def get_pools_expiration(self):
@@ -639,9 +692,9 @@ class UserVDC(Base):
         metadata = j.sals.reservation_chatflow.deployer.decrypt_metadata(workload.info.metadata, identity.instance_name)
         return j.data.serializers.json.loads(metadata)
 
-    def calculate_spec_price(self):
+    def calculate_spec_price(self, load_info=True):
         discount = FARM_DISCOUNT.get()
-        current_spec = self.get_current_spec()
+        current_spec = self.get_current_spec(load_info)
         total_price = (
             VDC_SIZE.PRICES["plans"][self.flavor]
             + current_spec["services"][VDC_SIZE.Services.IP] * VDC_SIZE.PRICES["services"][VDC_SIZE.Services.IP]
@@ -659,7 +712,7 @@ class UserVDC(Base):
         prepaid_wallet_balance = self._get_wallet_balance(self.prepaid_wallet)
         provision_wallet_balance = self._get_wallet_balance(self.provision_wallet)
 
-        days_prepaid_can_fund = (prepaid_wallet_balance / self.calculate_spec_price()) * 30
+        days_prepaid_can_fund = (prepaid_wallet_balance / self.calculate_spec_price(load_info)) * 30
         days_provisioning_can_fund = provision_wallet_balance / (self.calculate_active_units_price() * 60 * 60 * 24)
         return days_prepaid_can_fund + days_provisioning_can_fund
 
@@ -698,10 +751,47 @@ class UserVDC(Base):
         if not j.sals.fs.exists(private_key_path):
             raise j.exceptions.Input(f"couldn't find key at default locations")
         j.logger.info(f"getting ssh_client to: {user}@{ip_address} using key: {private_key_path}")
-        j.clients.sshkey.delete(name)
-        ssh_key = j.clients.sshkey.get(name)
+        client_name = SSH_KEY_PREFIX + name
+        j.clients.sshkey.delete(client_name)
+        ssh_key = j.clients.sshkey.get(client_name)
         ssh_key.private_key_path = private_key_path
         ssh_key.load_from_file_system()
-        j.clients.sshclient.delete(name)
-        ssh_client = j.clients.sshclient.get(name, user=user, host=ip_address, sshkey=self.vdc_name)
+        j.clients.sshclient.delete(client_name)
+        ssh_client = j.clients.sshclient.get(client_name, user=user, host=ip_address, sshkey=client_name)
         return ssh_client
+
+    def find_worker_farm(self, flavor, farm_name=None, public_ip=False):
+        if farm_name:
+            return farm_name, self._check_added_worker_capacity(flavor, farm_name, public_ip)
+        farms = j.config.get("NETWORK_FARMS", []) if public_ip else j.config.get("COMPUTE_FARMS", [])
+        for farm in farms:
+            if self._check_added_worker_capacity(flavor, farm, public_ip):
+                return farm, True
+        else:
+            self.load_info()
+            farm_name = j.sals.marketplace.deployer.get_pool_farm_name(self.kubernetes[0].pool_id)
+            return farm_name, self._check_added_worker_capacity(flavor, farm_name, public_ip)
+
+    def _check_added_worker_capacity(self, flavor, farm_name, public_ip=False):
+        if public_ip:
+            zos = j.sals.zos.get()
+            farm = zos._explorer.farms.get(farm_name=farm_name)
+            available_ips = False
+            for address in farm.ipaddresses:
+                if not address.reservation_id:
+                    available_ips = True
+                    break
+            if not available_ips:
+                return False
+
+        old_node_ids = []
+        self.load_info()
+        for k8s_node in self.kubernetes:
+            old_node_ids.append(k8s_node.node_id)
+        cc = CapacityChecker(farm_name)
+        cc.exclude_nodes(*old_node_ids)
+        if isinstance(flavor, str):
+            flavor = VDC_SIZE.K8SNodeFlavor[flavor.upper()]
+        if not cc.add_query(**VDC_SIZE.K8S_SIZES[flavor]):
+            return False
+        return True

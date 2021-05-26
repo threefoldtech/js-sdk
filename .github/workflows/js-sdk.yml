@@ -8,7 +8,6 @@ on:
     branches: [ development ]
     paths:
     - '**.py'
-    - '.github/workflows/**.yml'
     - 'pyproject.toml'
     - 'poetry.lock'
   pull_request:
@@ -21,20 +20,42 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      # max-parallel: 9
+      matrix:
+        os: [ubuntu-18.04, ubuntu-20.04]
+        python-version: [3.6, 3.7, 3.8]
+        experimental: [false]
+        include:
+          - os: ubuntu-20.04
+            python-version: 3.8
+            experimental: true
+            name: Experimental build - latest Ubuntu
+          - os: ubuntu-20.04
+            python-version: 3.9
+            experimental: true
+            name: Experimental build - latest Python
     steps:
       - uses: actions/checkout@master
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Gathering deps
         run: |
           sudo apt-get update
           sudo apt-get install -y git python3-pip python3-venv python3-setuptools tmux redis restic nginx cron
           sudo service redis stop
           sudo service nginx stop
-          sudo pip3 install poetry
-          sudo poetry run pip3 install pytest selenium
+          pip3 install poetry
       - name: Install
         run: |
-          sudo poetry install
+          poetry config virtualenvs.in-project true
+          poetry run pip3 install pytest selenium
+          poetry install
       - name: Run tests
         env:
           TNAME: ${{ secrets.TNAME }}
@@ -43,5 +64,6 @@ jobs:
           FAKE_EMAIL: ${{ secrets.FAKE_EMAIL }}
           FAKE_GITHUB_TOKEN: ${{ secrets.FAKE_GITHUB_TOKEN }}
         run: |
+          POETRY=$(which poetry)
           sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN \
-          poetry run pytest tests -sv -m "unittests"
+          $POETRY run pytest tests -sv -m "unittests"

@@ -75,11 +75,13 @@
         </v-tooltip>
       </template>
     </v-data-table>
-    
-    <template v-if="this.vdc && this.vdc.kubernetes.length < this.vdc.total_capacity">
+
+    <template
+      v-if="this.vdc && this.vdc.kubernetes.length < this.vdc.total_capacity"
+    >
       <p>The VDC will autoscale to the plan limit.</p>
     </template>
-    
+
     <solution-info
       v-if="selected"
       v-model="dialogs.info"
@@ -88,7 +90,11 @@
     <cancel-workload
       v-if="selectedworker"
       v-model="dialogs.cancelWorkload"
+      api="deleteWorkerWorkload"
+      title="Delete Worker"
+      :messages="deletionMessages"
       :wid="selectedworker"
+      @reload-vdcinfo="reloadVdcInfo"
     ></cancel-workload>
     <download-kubeconfig v-model="dialogs.downloadKube"></download-kubeconfig>
   </div>
@@ -98,7 +104,7 @@
 module.exports = {
   components: {
     "solution-info": httpVueLoader("../base/Info.vue"),
-    "cancel-workload": httpVueLoader("./Delete.vue"),
+    "cancel-workload": httpVueLoader("./DeleteConfirmation.vue"),
     "download-kubeconfig": httpVueLoader("./DownloadKubeconfig.vue"),
   },
   props: ["vdc", "loading"],
@@ -122,6 +128,10 @@ module.exports = {
         { text: "Actions", value: "actions", sortable: false },
       ],
       kubernetesSizeMap: KUBERNETES_VM_SIZE_MAP,
+      deletionMessages: {
+        confirmationMsg: "Are you sure you want to delete this worker?",
+        successMsg: "Worker deleted successfully",
+      },
     };
   },
   methods: {
@@ -142,6 +152,29 @@ module.exports = {
 
     downloadKubeConfigFile() {
       this.dialogs.downloadKube = true;
+    },
+    reloadVdcInfo() {
+      this.dialogs.cancelWorkload = false;
+      this.$emit("reload-vdcinfo", {
+        message: "VDC info has been reloaded successfully!",
+      });
+    },
+    downloadThreebotStateFile() {
+      this.$api.solutions
+        .getThreebotState()
+        .then((response) => {
+          const blob = new Blob([response.data], {type: response.headers["content-type"]});
+          const url = URL.createObjectURL(blob);
+          let filename = response.headers['content-disposition'].split('filename="')[1].slice(0, -1)
+          const link = document.createElement("a");
+          link.href = url;
+          link.setAttribute("download", filename);
+          link.click();
+          URL.revokeObjectURL(link.href);
+        })
+        .catch((err) => {
+          console.log("Failed to download threebot state due to " + err);
+        });
     },
   },
   computed: {

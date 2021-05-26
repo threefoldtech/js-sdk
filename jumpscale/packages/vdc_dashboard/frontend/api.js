@@ -9,12 +9,40 @@ const apiClient = {
       })
     }
   },
+  server: {
+    isRunning: () => {
+      return axios({
+        url: `${baseURL}/vdc/status`,
+        method: "get"
+      })
+    }
+  },
   admins: {
     getCurrentUser: () => {
       return axios({
         url: "/auth/authenticated/"
       })
     },
+    list: ()=>{
+      return axios({
+        url: `${baseURL}/admins/list`
+    })
+    },
+    add: (name) => {
+      return axios({
+          url: `${baseURL}/admins/add`,
+          method: "post",
+          headers: { 'Content-Type': 'application/json' },
+          data: { name: name }
+      })
+    },
+    remove: (name) => {
+      return axios({
+          url: `${baseURL}/admins/remove`,
+          method: "post",
+          headers: { 'Content-Type': 'application/json' },
+          data: { name: name }
+      })}
   },
   solutions: {
     getSolutions: (solutionType) => {
@@ -60,9 +88,25 @@ const apiClient = {
         method: "get"
       })
     },
+    getThreebotState: () => {
+      return axios({
+        url: `${baseURL}/threebot/export`,
+        headers: { 'Content-Type': 'application/json' },
+        responseType: 'arraybuffer',
+        method: "get"
+      })
+    },
     deleteWorkerWorkload: (wid) => {
       return axios({
         url: `${baseURL}/kube/nodes/delete`,
+        method: "post",
+        data: { wid: wid },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
+    deleteZdb: (wid) => {
+      return axios({
+        url: `${baseURL}/s3/zdbs/delete`,
         method: "post",
         data: { wid: wid },
         headers: { 'Content-Type': 'application/json' }
@@ -105,6 +149,11 @@ const apiClient = {
         method: "get"
       })
     },
+    getSDKVersion: () => {
+      return axios({
+        url: `${baseURL}/get_sdk_version`
+      })
+    },
   },
   wallets: {
     walletQRCodeImage: (address, amount, scale) => {
@@ -123,28 +172,47 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    create: () => {
+    create: (name) => {
       return axios({
         url: `${baseURL}/backup/create`,
         method: "post",
+        data: { name: name },
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    delete: (name) => {
+    delete: (vdcBackup, configBackup) => {
       return axios({
         url: `${baseURL}/backup/delete`,
         method: "post",
-        data: { name: name },
+        data: { vdc_backup_name: vdcBackup, config_backup_name: configBackup },
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    restore: (name) => {
+    restore: (vdcBackup, configBackup) => {
       return axios({
         url: `${baseURL}/backup/restore`,
         method: "post",
-        data: { name: name },
+        data: { vdc_backup_name: vdcBackup, config_backup_name: configBackup },
         headers: { 'Content-Type': 'application/json' }
       })
     },
   },
+  alerts: {
+    listAlerts: () => {
+      return axios({
+        url: `${baseURL}/alerts`,
+        method: "get",
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  },
+  quantumstorage: {
+    enable: () => {
+      return axios({
+        url: `${baseURL}/quantumstorage/enable`,
+        headers: { 'Content-Type': 'application/json' },
+        method: "get"
+      })
+    }
+  }
 }

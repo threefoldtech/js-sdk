@@ -47,15 +47,15 @@ class Test3BotServer(BaseTests):
     def check_threebot_main_running_servers(self):
         self.info("Make sure that server started successfully by check nginx_main, redis_default and gedis work.")
         self.info("*** nginx server ***")
-        self.assertTrue(j.sals.process.get_pids("nginx"), "Nginx didn't start correctly")
         self.info(" * Check that nginx server connection works successfully and right port.")
         self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 80, 5))
         self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 443, 5))
+        self.assertTrue(j.sals.process.get_pids("nginx"), "Nginx didn't start correctly")
 
         self.info("*** redis server ***")
-        self.assertTrue(j.sals.process.get_pids("redis"), "redis didn't start correctly")
         self.info(" * Check that redis server connection  works successfully and right port.")
         self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 6379, 5))
+        self.assertTrue(j.sals.process.get_pids("redis-server"), "redis didn't start correctly")
 
         self.info("*** gedis server ***")
         self.info(" * Check that gedis server connection  works successfully and right port.")

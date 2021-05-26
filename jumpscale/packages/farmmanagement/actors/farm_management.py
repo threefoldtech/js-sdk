@@ -2,6 +2,8 @@ from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from jumpscale.clients.explorer.models import Farm
 from jumpscale.loader import j
 
+import requests
+
 
 class FarmManagemenet(BaseActor):
     def __init__(self):
@@ -13,9 +15,12 @@ class FarmManagemenet(BaseActor):
 
     @actor_method
     def update_farm(self, farm_id, farm):
-        farm = Farm.from_dict(farm)
-        farm.id = farm_id
-        self._explorer.farms.update(farm)
+        try:
+            farm = Farm.from_dict(farm)
+            farm.id = farm_id
+            self._explorer.farms.update(farm)
+        except requests.exceptions.HTTPError as e:
+            raise j.exceptions.NotFound(str(e))
 
     @actor_method
     def delete_node_farm(self, farm_id, node_id):
@@ -36,7 +41,7 @@ class FarmManagemenet(BaseActor):
     def get_farm(self, farm_id) -> str:
         farm = self._explorer.farms.get(farm_id).to_dict()
         farm["explorer_prices"] = self._explorer.farms.get_explorer_prices()
-        return j.data.serializers.json.dumps()
+        return j.data.serializers.json.dumps(farm)
 
     @actor_method
     def add_ip_addresses(self, farm_id, ip_addresses):

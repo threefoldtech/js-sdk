@@ -1,6 +1,10 @@
-from jumpscale.loader import j
 import math
-from .s3_auto_topup import get_zdb_farms_distribution, get_farm_pool_id, extend_zdbs
+
+from jumpscale.loader import j
+
+from jumpscale.clients.explorer.models import DiskType
+
+from .s3_auto_topup import extend_zdbs, get_farm_pool_id, get_zdb_farms_distribution
 
 
 class ZDBMonitor:
@@ -31,11 +35,8 @@ class ZDBMonitor:
             return False, util
         return True, util
 
-    def check_utilization(self):
-        """
-        connect to all zdbs and check data utilization
-        """
-        used_size = 0
+    def get_zdbs_usage(self):
+        zdbs_usage = {}
         for zdb in self.zdbs:
             client = j.clients.redis.get(f"zdb_{zdb.wid}")
             client.hostname = zdb.ip_address
@@ -49,8 +50,17 @@ class ZDBMonitor:
             if not all(["data_size_bytes" in nsinfo, "data_limits_bytes" in nsinfo]):
                 j.logger.warning(f"missing data_size and data_limits keys in namespace info for zdb: {zdb}")
                 continue
-            used_size += float(nsinfo["data_size_bytes"]) / 1024 ** 3
-        return used_size / self.zdb_total_size
+            zdbs_usage[zdb.wid] = float(nsinfo["data_size_bytes"]) / 1024 ** 3 / zdb.size
+        return zdbs_usage
+
+    def check_utilization(self):
+        """
+        connect to all zdbs and check data utilization
+        """
+        total_usage = 0
+        for usage in self.get_zdbs_usage().values():
+            total_usage += usage
+        return total_usage
 
     def _parse_info(self, info: str):
         result = {}
@@ -96,11 +106,28 @@ class ZDBMonitor:
             if not metadata_dict.get("password"):
                 continue
             return metadata_dict["password"]
-        raise j.exceptions.Runtime("couldn't get password for any zdb of vdc")
+        else:
+            password = self.vdc_instance.get_password()
+            if password:
+                return password
+        raise j.exceptions.Runtime("Couldn't get password for any zdb of vdc")
 
-    def extend(self, required_capacity, farm_names, extension_size=10):
+    def extend(
+        self,
+        required_capacity,
+        farm_names,
+        wallet_name="provision_wallet",
+        extension_size=10,
+        nodes_ids=None,
+        duration=None,
+        disk_type=DiskType.HDD,
+    ):
+        if not duration:
+            duration = self.vdc_instance.get_pools_expiration() - j.data.time.utcnow().timestamp
+            two_weeks = 2 * 7 * 24 * 60 * 60
+            duration = duration if duration < two_weeks else two_weeks
         password = self.get_password()
-        no_zdbs = math.floor(required_capacity / extension_size)
+        no_zdbs = math.ceil(required_capacity / extension_size)
         if no_zdbs < 1:
             return
         solution_uuid = self.vdc_instance.solution_uuid
@@ -113,15 +140,19 @@ class ZDBMonitor:
                 pool_id = get_farm_pool_id(farm_name)
                 farm_pools[farm_name] = pool_id
             pool_ids.append(pool_id)
+        wallet = getattr(self.vdc_instance, wallet_name)
         wids, _ = extend_zdbs(
             self.vdc_instance.vdc_name,
             pool_ids,
             solution_uuid,
             password,
-            self.vdc_instance.get_pools_expiration(),
+            duration,
             extension_size,
-            wallet_name=self.vdc_instance.provision_wallet.instance_name,
+            wallet_name=wallet.instance_name,
+            nodes_ids=nodes_ids,
+            disk_type=disk_type,
         )
         j.logger.info(f"zdbs extended with wids: {wids}")
         if len(wids) != no_zdbs:
-            j.logger.error(f"AUTO_TOPUP: couldn't deploy all required zdbs. successful workloads {wids}")
+            j.logger.error(f"AUTO_TOPUP: Couldn't deploy all required zdbs. successful workloads {wids}")
+        return wids

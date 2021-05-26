@@ -8,6 +8,8 @@ from .size import (
     S3_AUTO_TOPUP_FARMS,
     S3_NO_DATA_NODES,
     S3_NO_PARITY_NODES,
+    NETWORK_FARMS,
+    COMPUTE_FARMS,
 )
 from jumpscale.loader import j
 from .scheduler import Scheduler
@@ -48,7 +50,9 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 self._branch = "development"
         return self._branch
 
-    def deploy_threebot(self, minio_wid, pool_id, kube_config, embed_trc=True, backup_config=None, zdb_farms=None):
+    def deploy_threebot(
+        self, minio_wid, pool_id, kube_config, embed_trc=True, backup_config=None, zdb_farms=None,
+    ):
         backup_config = backup_config or {}
         etcd_backup_config = j.core.config.get("VDC_S3_CONFIG", {})
         flist = THREEBOT_TRC_FLIST if embed_trc else THREEBOT_FLIST
@@ -64,7 +68,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "BACKUP_CONFIG": j.data.serializers.json.dumps(backup_config),
             "VDC_OWNER_TNAME": self.vdc_deployer.tname,
             "VDC_EMAIL": self.vdc_deployer.email,
-            "VDC_PASSWORD_HASH": self.vdc_deployer.password_hash,
+            "VDC_PASSWORD_HASH": self.vdc_deployer.vdc_instance.get_password(),
             "KUBE_CONFIG": kube_config,
             "PROVISIONING_WALLET_SECRET": self.vdc_deployer.vdc_instance.provision_wallet.secret,
             "PREPAID_WALLET_SECRET": self.vdc_deployer.vdc_instance.prepaid_wallet.secret,
@@ -87,6 +91,8 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 )
             ),
             "S3_AUTO_TOPUP_FARMS": ",".join(S3_AUTO_TOPUP_FARMS.get()) if not zdb_farms else ",".join(zdb_farms),
+            "NETWORK_FARMS": ",".join(NETWORK_FARMS.get()),
+            "COMPUTE_FARMS": ",".join(COMPUTE_FARMS.get()),
             # "VDC_MINIO_ADDRESS": minio_ip_address,
             "SDK_VERSION": self.branch,
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),
@@ -131,7 +137,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                     if not network_updated:
                         raise DeploymentFailed()
                 except DeploymentFailed:
-                    self.vdc_deployer.error(f"failed to deploy network on node {node.node_id}")
+                    self.vdc_deployer.error(f"Failed to deploy network on node {node.node_id}")
                     continue
             network_view = network_view.copy()
             ip_address = network_view.get_free_ip(node)
@@ -213,17 +219,17 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 secret=secret,
             )
             self.vdc_deployer.info(
-                f"reserving proxy on gateway {gateway.node_id} for subdomain: {subdomain} wid: {wid}"
+                f"Reserving proxy on gateway {gateway.node_id} for subdomain: {subdomain} wid: {wid}"
             )
             try:
                 success = deployer.wait_workload(wid, self.bot, expiry=5, identity_name=self.identity.instance_name)
                 if not success:
-                    raise DeploymentFailed()
+                    raise DeploymentFailed(f"failed to deploy reverse proxy on gateway: {gateway.node_id} wid: {wid}")
             except DeploymentFailed:
-                self.vdc_deployer.error(f"failed to deploy reverse proxy on gateway: {gateway.node_id} wid: {wid}")
+                self.vdc_deployer.error(f"Failed to deploy reverse proxy on gateway: {gateway.node_id} wid: {wid}")
                 continue
 
             remote = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
         if not remote:
-            self.vdc_deployer.error(f"all tries to reseve a proxy on pool: {gateway_pool_id} has failed")
+            self.vdc_deployer.error(f"All attempts to reseve a proxy on pool: {gateway_pool_id} has failed")
         return subdomain, secret, remote

@@ -20,7 +20,7 @@
         <v-card-title class="mx-2 font-weight-black">
           {{ app.name }}
           <v-tooltip top>
-            <template v-slot:activator="{ on, attrs }">
+            <template v-if="app.helpLink" v-slot:activator="{ on, attrs }">
               <a class="chatflowInfo" :href="app.helpLink" target="blank">
                 <v-icon color="primary" v-bind="attrs" v-on="on" right>mdi-information-outline</v-icon>
               </a>

@@ -1,3 +1,5 @@
+const DOCS_BASE_URL = "https://marketplace.threefold.io/apps"
+
 const DECENTRALIZED_OFFICE = {
     titleToolTip: null,
     apps: {
@@ -5,8 +7,8 @@ const DECENTRALIZED_OFFICE = {
             name: "Taiga",
             type: "taiga",
             image: "./assets/taiga.png",
-            disable: true,
-            helpLink: "https://now.threefold.io/docs/dmcircles/",
+            disable: false,
+            helpLink: `${DOCS_BASE_URL}/taiga`,
             description: "Taiga is a P2P alternative to centralized project management tool for multi-functional agile teams."
         },
         cryptpad: {
@@ -14,7 +16,7 @@ const DECENTRALIZED_OFFICE = {
             type: "cryptpad",
             image: "./assets/cryptpad.png",
             disable: false,
-            helpLink: "https://now.threefold.io/docs/dmcollab/",
+            helpLink: `${DOCS_BASE_URL}/cryptpad`,
             description: "Cryptpad is a fully-secured, encrypted alternative to popular office tools and cloud services."
         },
         mattermost: {
@@ -22,7 +24,7 @@ const DECENTRALIZED_OFFICE = {
             type: "mattermost",
             image: "./assets/mattermost.png",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/mattermost/",
+            helpLink: `${DOCS_BASE_URL}/mattermost`,
             description: "Mattermost is a flexible, open source messaging platform that enables secure team collaboration."
         },
         documentserver: {
@@ -30,7 +32,7 @@ const DECENTRALIZED_OFFICE = {
             type: "documentserver",
             image: "./assets/document_server.jpg",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/documentserver/",
+            helpLink: `${DOCS_BASE_URL}/document_server`,
             description: "Document Server is a free collaborative online office suite comprising viewers and editors for texts, spreadsheets and presentations, fully compatible with Office Open XML formats: .docx, .xlsx, .pptx and enabling collaborative editing in real time"
         },
         filebrowser: {
@@ -38,7 +40,7 @@ const DECENTRALIZED_OFFICE = {
             type: "filebrowser",
             image: "./assets/file_browser.jpg",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/file-browser/",
+            helpLink: `${DOCS_BASE_URL}/file_browser`,
             description: "File browser is an open source solution that provides a file managing interface"
         },
         crm: {
@@ -46,18 +48,9 @@ const DECENTRALIZED_OFFICE = {
             type: "crm",
             image: "./assets/crm.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/dmcustomers/",
+            helpLink: `${DOCS_BASE_URL}/crm`,
             description: "Full featured Customer Relationship Management system."
         },
-        commento: {
-            name: "Commento",
-            type: "commento",
-            image: "./assets/commento.png",
-            disable: true,
-            helpLink: "https://now.threefold.io/now/docs/commento/",
-            description: "Collaborate on online content without giving up your privacy."
-        },
-
     },
 }
 
@@ -70,7 +63,7 @@ const DECENTRALIZED_WE = {
             type: "blog",
             image: "./assets/blog.png",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
+            helpLink: `${DOCS_BASE_URL}/blog_publisher`,
             description: "Blog is a P2P alternative to centralized blogging platforms like Tumblr or Blogspot."
         },
         website: {
@@ -78,7 +71,7 @@ const DECENTRALIZED_WE = {
             type: "website",
             image: "./assets/web.png",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
+            helpLink: `${DOCS_BASE_URL}/website_publisher`,
             description: "Website is a P2P alternative to centralized cloud-hosted websites. Host your own website with access via a public web address."
         },
 
@@ -87,31 +80,47 @@ const DECENTRALIZED_WE = {
             type: "wiki",
             image: "./assets/doc-flat.svg",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/publishing-tool/",
+            helpLink: `${DOCS_BASE_URL}/wiki_publisher`,
             description: "Wiki is a versatile online encyclopedia builder, accessible via a public web address."
         },
         discourse: {
             name: "Discourse",
             type: "discourse",
             image: "./assets/discourse.png",
-            disable: true,
-            helpLink: "https://now.threefold.io/now/docs/discourse/",
+            disable: false,
+            helpLink: `${DOCS_BASE_URL}/discourse`,
             description: "Discourse is an open source Internet forum and mailing list management software application built to educate members about civil community engagement."
+        },
+        mastodon: {
+            name: "Mastodon",
+            type: "mastodon",
+            image: "./assets/mastodon.png",
+            disable: false,
+            helpLink: "https://docs.joinmastodon.org/",
+            description: "Similar to how blogging is the act of publishing updates to a website, microblogging is the act of publishing small updates to a stream of updates on your profile. You can publish text posts and optionally attach media such as pictures, audio, video, or polls. Mastodon lets you follow friends and discover new ones."
         },
         peertube: {
             name: "Peertube",
             type: "peertube",
             image: "./assets/peertube.png",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/video-sharing/",
+            helpLink: `${DOCS_BASE_URL}/peertube`,
             description: "Peertube is an open-source video platform that uses peer-to-peer technologies to reduce load on individual servers when viewing videos."
+        },
+        owncloud: {
+            name: "Owncloud",
+            type: "owncloud",
+            image: "./assets/owncloud.png",
+            disable: false,
+            helpLink: "https://doc.owncloud.com/server/10.6/",
+            description: "ownCloud is a suite of client-server software for creating and using file hosting services. ownCloud functionally has similarities to the widely used Dropbox."
         },
         meetings: {
             name: "Video Chat",
             type: "meetings",
             image: "./assets/video_chat.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/video-conf/",
+            helpLink: `${DOCS_BASE_URL}/video_chat`,
             description: "P2P alternative to centralised video conferencing solution such as Zoom."
         },
         virtualspaces: {
@@ -119,7 +128,7 @@ const DECENTRALIZED_WE = {
             type: "virtualspaces",
             image: "./assets/virtual_spaces.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/virtual-spaces/",
+            helpLink: `${DOCS_BASE_URL}/virtual_spaces`,
             description: "Meetup experiences and collaboration in virtual reality."
         },
         knowledgebase: {
@@ -127,8 +136,16 @@ const DECENTRALIZED_WE = {
             type: "knowledgebase",
             image: "./assets/_base.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/knowledge-base/",
+            helpLink: `${DOCS_BASE_URL}/knowledge_base`,
             description: "A simple, self-hosted, easy-to-use platform for organizing and storing information."
+        },
+        commento: {
+            name: "Commento",
+            type: "commento",
+            image: "./assets/commento.png",
+            disable: true,
+            helpLink: `${DOCS_BASE_URL}/commento`,
+            description: "Commento lets you embed comments without giving up your privacy."
         },
     },
 }
@@ -141,7 +158,7 @@ const DECENTRALIZED_DEV = {
             type: "gitea",
             image: "./assets/gitea.png",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/gitea/",
+            helpLink: `${DOCS_BASE_URL}/gitea`,
             description: "Gitea is a painless self-hosted Git service. It is similar to GitHub, Bitbucket, and GitLab."
         },
         serverless: {
@@ -149,7 +166,7 @@ const DECENTRALIZED_DEV = {
             type: "serverless",
             image: "./assets/serverless.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/serverless/",
+            helpLink: `${DOCS_BASE_URL}/serverless`,
             description: "Collaborate on online content without giving up your privacy."
         },
         gridsome: {
@@ -157,7 +174,7 @@ const DECENTRALIZED_DEV = {
             type: "gridsome",
             image: "./assets/gridsome.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/gridsome/",
+            helpLink: `${DOCS_BASE_URL}/gridsome`,
             description: "Gridsome makes it easy to build Jamstack websites using data from multiple sources."
         },
         monitoringstack: {
@@ -173,7 +190,7 @@ const DECENTRALIZED_DEV = {
             type: "zeroci",
             image: "./assets/zero-ci-dark.png",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/zeroci/",
+            helpLink: `${DOCS_BASE_URL}/zeroci`,
             description: "Continuous integration system useful for all programming languages."
         },
         kubeapps: {
@@ -181,7 +198,7 @@ const DECENTRALIZED_DEV = {
             type: "kubeapps",
             image: "./assets/kubeapps.png",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/kubeapps/",
+            helpLink: "",
             description: "Kubeapps is a web-based UI for deploying and managing applications in Kubernetes clusters."
         },
         etcd: {
@@ -191,6 +208,15 @@ const DECENTRALIZED_DEV = {
             disable: false,
             helpLink: "",
             description: "A distributed, reliable key-value store for the most critical data of a distributed system. Used by kubectl"
+        },
+
+        minio: {
+            name: "Minio Quantum Storage",
+            type: "minio",
+            image: "./assets/minio.png",
+            disable: false,
+            helpLink: "",
+            description: "Quantum Storage solution uses MinIO which is a high performance object storage. With the assist of the chatflow the user will deploy a machine with MinIO along with a number of zdbs needed for storage."
         },
     },
 }
@@ -203,7 +229,7 @@ const BC_SOLUTIONS = {
             type: "dash",
             image: "./assets/dash.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/dash/",
+            helpLink: `${DOCS_BASE_URL}/dash`,
             description: "Open source peer-to-peer cryptocurrency with a strong focus on the payments industry."
         },
         digibyte: {
@@ -211,7 +237,7 @@ const BC_SOLUTIONS = {
             type: "digibyte",
             image: "./assets/digibyte.png",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/digibyte/",
+            helpLink: `${DOCS_BASE_URL}/digibyte`,
             description: "Safest, fastest, longest, and most decentralized UTXO blockchains in existence."
         },
         presearch: {
@@ -219,7 +245,7 @@ const BC_SOLUTIONS = {
             type: "presearch",
             image: "./assets/presearch.png",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/presearch/",
+            helpLink: `${DOCS_BASE_URL}/presearch`,
             description: "Presearch is a decentralized search engine powered by blockchain technology."
         },
         elrond: {
@@ -227,7 +253,7 @@ const BC_SOLUTIONS = {
             type: "elrond",
             image: "./assets/elrond.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/elrond/",
+            helpLink: `${DOCS_BASE_URL}/elrond`,
             description: "The internet-scale blockchain, designed from scratch to bring a 1000-fold cumulative improvement in throughput and execution speed."
         },
         harmony: {
@@ -235,23 +261,23 @@ const BC_SOLUTIONS = {
             type: "harmony",
             image: "./assets/harmony.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/harmony/",
+            helpLink: `${DOCS_BASE_URL}/harmony`,
             description: "Fast and open blockchain for decentralized applications."
         },
-        Matic: {
-            name: "Matic",
+        matic: {
+            name: "Polygon",
             type: "matic",
-            image: "./assets/matic.png",
+            image: "./assets/polygon.png",
             disable: false,
-            helpLink: "https://now.threefold.io/now/docs/matic/",
-            description: "Decentralized scalability platform solution using an adapted version of the Plasma framework that empowers Ethereum-based DApps."
+            helpLink: `${DOCS_BASE_URL}/polygon`,
+            description: "Protocol and framework for building Ethereum-compatible blockchain networks."
         },
         neo: {
             name: "Neo",
             type: "neo",
             image: "./assets/neo.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/neo/",
+            helpLink: `${DOCS_BASE_URL}/neo`,
             description: "Scalable, fast, and ultra-secure Blockchain drove by a global community of developers and node operators."
         },
         scale: {
@@ -259,7 +285,7 @@ const BC_SOLUTIONS = {
             type: "scale",
             image: "./assets/Skale.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/skalelabs/",
+            helpLink: `${DOCS_BASE_URL}/skalelabs`,
             description: "An elastic blockchain network that gives developers the ability to easily provision highly configurable chains compatible with Ethereum."
         },
         tomochain: {
@@ -267,7 +293,7 @@ const BC_SOLUTIONS = {
             type: "tomochain",
             image: "./assets/TomoChain.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/tomochain/",
+            helpLink: `${DOCS_BASE_URL}/tomochain`,
             description: "Scalable blockchain-powered via Proof-of-Stake Voting consensus and used commercially by companies globally."
         },
         waykichain: {
@@ -275,8 +301,16 @@ const BC_SOLUTIONS = {
             type: "waykichain",
             image: "./assets/WaykiChain.png",
             disable: true,
-            helpLink: "https://now.threefold.io/now/docs/waykichain/",
+            helpLink: `${DOCS_BASE_URL}/waykichain`,
             description: "Prominent blockchain platform based in China with a global community."
+        },
+        casperlabs: {
+            name: "CasperLabs",
+            type: "casperlabs",
+            image: "./assets/casperlabs.png",
+            disable: true,
+            helpLink: `${DOCS_BASE_URL}/casperlabs`,
+            description: "CasperLabs is the team behind the Casper Network, first blockchain built for enterprise adoption"
         },
     },
 }
@@ -318,3 +352,27 @@ const KUBERNETES_VM_SIZE_MAP =
     17: { "vcpu": 4, "memory": 8, "storage": 50 },
     18: { "vcpu": 1, "memory": 1, "storage": 25 },
 }
+
+const LEVELS = {
+    50: { value: 50, text: "CRITICAL", color: "#A93226" },
+    40: { value: 40, text: "ERROR", color: "#CB4335" },
+    30: { value: 30, text: "WARNING", color: "#F39C12" },
+    20: { value: 20, text: "INFO", color: "#148F77" },
+    15: { value: 15, text: "STDOUT", color: "#5499C7" },
+    10: { value: 10, text: "DEBUG", color: "#839192" }
+};
+
+const STATES = [
+    'closed',
+    'new',
+    'open',
+    'reopen'
+]
+
+const TYPES = [
+    'bug',
+    'question',
+    'event_system',
+    'event_monitor',
+    'event_operator',
+]

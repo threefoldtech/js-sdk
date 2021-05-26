@@ -54,6 +54,7 @@ class VDCStoredFactory(StoredFactory):
         vdc = self.find(name)
         if vdc:
             # don't delete vdc wallets
+            j.logger.info(f"Deleting vdc {vdc.vdc_name} with solution uuid: {vdc.solution_uuid}")
             self.cleanup_vdc(vdc)
         return super().delete(name)
 

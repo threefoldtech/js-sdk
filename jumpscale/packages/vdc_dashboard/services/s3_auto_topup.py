@@ -2,7 +2,6 @@ from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 from jumpscale.loader import j
 from jumpscale.sals.vdc.s3_auto_topup import (
     check_s3_utilization,
-    extend_zdbs,
     get_zdb_farms_distribution,
     get_farm_pool_id,
     extend_zdbs,
@@ -75,7 +74,7 @@ class S3AutoTopUp(BackgroundService):
                 pool_ids,
                 sol_config["solution_uuid"],
                 uuid.uuid4().hex,
-                sol_config["current_expiration"],
+                sol_config["duration"],
                 sol_config["extension_size"],
             )
             if len(wids) != no_zdbs:
@@ -153,6 +152,7 @@ class S3AutoTopUp(BackgroundService):
                 continue
             minio_solution = minio_solutions[sol_name]
             minio_pool = zos.pools.get(minio_solution["Primary Pool"])
+            duration = minio_pool.empty_at - j.data.time.utcnow().timestamp
             workload = zos.workloads.get(minio_solution["wids"][0])
             solution_uuid = solutions.get_solution_uuid(workload)
             if not isinstance(sol_config, dict) or not all(
@@ -176,7 +176,7 @@ class S3AutoTopUp(BackgroundService):
                 "max_storage": sol_config.get("max_storage", default_max_storage),
                 "threshold": sol_config.get("threshold", default_threshold),
                 "clear_threshold": sol_config.get("clear_threshold", default_clear_threshold),
-                "current_expiration": minio_pool.empty_at,
+                "duration": duration,
                 "farm_names": sol_config.get("farm_names", default_farm_names),
             }
 

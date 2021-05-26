@@ -1,6 +1,5 @@
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import chatflow_step, StopChatFlow
-from jumpscale.sals.vdc import VDCFACTORY
 from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsChatflowDeploy
 from jumpscale.sals.marketplace import deployer
 from jumpscale.sals.reservation_chatflow import DeploymentFailed
@@ -19,11 +18,12 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
     }
 
     steps = [
+        "init_chatflow",
         "check_already_deployed",
         "get_release_name",
+        "choose_flavor",
         "create_prometheus_subdomain",
         "create_grafane_subdomain",
-        "set_config",
         "install_chart",
         "initializing",
         "success",
@@ -36,11 +36,16 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
         {"cpu": 100, "memory": 25},  # prometheus.config-reloader
     ]
 
+    def get_config(self):
+        return {
+            "prometheus.ingress.hosts[0]": self.config.chart_config.domain,
+            "grafana.ingress.hosts[0]": self.config.chart_config.grafana_domain,
+            "grafana.adminPassword": "prom-operator",
+        }
+
     @chatflow_step(title="Checking deployed solutions")
     def check_already_deployed(self):
-        username = self.user_info()["username"]
-        self.md_show_update("Preparing the chatflow...")
-        if get_deployments(self.SOLUTION_TYPE, username):
+        if get_deployments(self.SOLUTION_TYPE, self.config.username):
             raise StopChatFlow("You can only have one Monitoring Stack solution per VDC")
 
     @chatflow_step(title="Create Prometheus subdomain")
@@ -51,15 +56,15 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
     def create_grafane_subdomain(self):
         self.workload_ids = []
         metadata = {
-            "name": self.release_name,
-            "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.release_name},
+            "name": self.config.release_name,
+            "form_info": {"chatflow": self.SOLUTION_TYPE, "Solution name": self.config.release_name},
         }
-        self.grafana_domain = f"grafana-{self.domain}"
+        self.config.chart_config.grafana_domain = f"grafana-{self.config.chart_config.domain}"
         self.workload_ids.append(
             deployer.create_subdomain(
                 pool_id=self.gateway_pool.pool_id,
                 gateway_id=self.gateway.node_id,
-                subdomain=self.grafana_domain,
+                subdomain=self.config.chart_config.grafana_domain,
                 addresses=[self.vdc_info["public_ip"]],
                 solution_uuid=self.solution_id,
                 identity_name=self.identity_name,
@@ -69,26 +74,13 @@ class InstallMonitoringStack(SolutionsChatflowDeploy):
         success = deployer.wait_workload(self.workload_ids[0], self)
         if not success:
             raise DeploymentFailed(
-                f"Failed to create subdomain {self.grafana_domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.",
+                f"Failed to create subdomain {self.config.chart_config.grafana_domain} on gateway {self.gateway.node_id} {self.workload_ids[0]}. The resources you paid for will be re-used in your upcoming deployments.",
                 wid=self.workload_ids[0],
             )
 
-    @chatflow_step(title="Configurations")
-    def set_config(self):
-        self._choose_flavor(chart_limits=self.CHART_LIMITS)
-        self.chart_config.update(
-            {
-                "prometheus.ingress.hosts[0]": self.domain,
-                "grafana.ingress.hosts[0]": self.grafana_domain,
-                "grafana.adminPassword": "prom-operator",
-                "prometheus.prometheusSpec.resources.limits.cpu": self.resources_limits["cpu"],
-                "prometheus.prometheusSpec.resources.limits.memory": self.resources_limits["memory"],
-            }
-        )
-
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
-        extra_info = f'Grafana can be accessed by <a href="https://{self.grafana_domain}" target="_blank">https://{self.grafana_domain}</a>, user/pass: admin/prom-operator'
+        extra_info = f'Grafana can be accessed by <a href="https://{self.config.chart_config.grafana_domain}" target="_blank">https://{self.config.chart_config.grafana_domain}</a>, user/pass: admin/prom-operator'
         super().success(extra_info=extra_info)
 
 

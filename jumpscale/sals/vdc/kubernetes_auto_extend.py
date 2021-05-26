@@ -82,24 +82,27 @@ class KubernetesMonitor:
                 memory_usage = float(splits[3][:-2])
                 memory_percentage = float(splits[4][:-1]) / 100
             except Exception as e:
-                j.logger.warning(f"k8s monitor: failed to get node: {node_name} usage due to error: {e}")
-                continue
-            cpu_percentage = cpu_percentage or 1
-            memory_percentage = memory_percentage or 1
+                j.logger.warning(
+                    f"k8s monitor: failed to get node: {node_name} usage due to error: {e}, vdc uuid: {self.vdc_instance.solution_uuid}"
+                )
+                cpu_mill = cpu_percentage = memory_usage = memory_percentage = 0
+
+            cpu_percentage = cpu_percentage or 1 / 100
+            memory_percentage = memory_percentage or 1 / 100
             self._node_stats[node_name] = {
-                "cpu": {"used": cpu_mill, "total": cpu_mill / cpu_percentage,},
+                "cpu": {"used": cpu_mill, "total": cpu_mill / cpu_percentage},
                 "memory": {"used": memory_usage, "total": memory_usage / memory_percentage},
             }
         out = self.manager.execute_native_cmd("kubectl get nodes -o wide -o json")
         result_dict = j.data.serializers.json.loads(out)
         ip_to_wid = {node.ip_address: node.wid for node in self.nodes}
         for node in result_dict["items"]:
-            node_name = node["metadata"]["labels"]["k3s.io/hostname"]
-            node_ip = node["metadata"]["annotations"]["flannel.alpha.coreos.com/public-ip"]
-            if not node_name in self._node_stats:
+            node_name = node["metadata"]["labels"].get("kubernetes.io/hostname")
+            node_ip = node["metadata"]["annotations"].get("flannel.alpha.coreos.com/public-ip")
+            if (not node_name and node_name not in self._node_stats) or not node_ip:
                 continue
             self._node_stats[node_name]["wid"] = ip_to_wid.get(node_ip)
-        j.logger.info(f"kubernetes stats: {self.node_stats}")
+        j.logger.info(f"Kubernetes stats: {self.node_stats}")
         self.stats_history.update(self._node_stats)
 
     def is_extend_triggered(self, cpu_threshold=0.7, memory_threshold=0.7):
@@ -176,8 +179,15 @@ class KubernetesMonitor:
         if no_nodes < 1:
             return []
         deployer = deployer or self.vdc_instance.get_deployer(bot=bot)
+        farm_name, capacity_check = self.vdc_instance.find_worker_farm(flavor, farm_name)
+        if not capacity_check:
+            j.logger.warning(f"There is no capacity to add worker node")
+        duration = self.vdc_instance.get_pools_expiration() - j.data.time.utcnow().timestamp
+        two_weeks = 2 * 7 * 24 * 60 * 60
+        if duration > two_weeks:
+            duration = two_weeks
         wids = deployer.add_k8s_nodes(flavor, farm_name, no_nodes=no_nodes, external=False)
-        deployer.extend_k8s_workloads(14 - (INITIAL_RESERVATION_DURATION / 24), *wids)
+        deployer.extend_k8s_workloads(duration, *wids)
         return wids
 
     def fetch_resource_reservations(self):

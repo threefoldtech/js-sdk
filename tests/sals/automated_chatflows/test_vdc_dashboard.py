@@ -19,7 +19,11 @@ class VDCDashboard(VDCBase):
         cls._import_wallet("demos_wallet")
         no_deployment = "single"
         cls.flavor = "platinum"
-        cls.kube_config = cls.deploy_vdc()
+
+        if cls.no_deployment == "single":
+            cls.kube_config = cls.deploy_vdc()
+        else:
+            cls.kube_config = cls.deploy_vdc(hours=2)
 
         if not cls.kube_config:
             raise RuntimeError("VDC is not deployed")
@@ -62,7 +66,10 @@ class VDCDashboard(VDCBase):
         kubernetes = K8s()
         kubernetes.size = VDC_SIZE.K8SNodeFlavor.MEDIUM.value
         # It will be deployed for an hour.
-        price = j.tools.zos.consumption.cost(kubernetes, 60 * 60) + TRANSACTION_FEES  # transactions fees.
+        zos = j.sals.zos.get()
+        farm_name = cls.get_farm_name()
+        farm_id = zos._explorer.farms.get(farm_name=farm_name).id
+        price = j.tools.zos.consumption.cost(kubernetes, 60 * 60, farm_id) + TRANSACTION_FEES  # transactions fees.
         cls.vdc.transfer_to_provisioning_wallet(round(price, 6), "test_wallet")
 
         # Timeout for any exposed solution to be reachable and certified.
@@ -151,12 +158,14 @@ class VDCDashboard(VDCBase):
             self.solutions.append(wiki_second)
 
         self.info("Check that the Wiki is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{wiki.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{wiki.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":
             self.info("Check that second Wiki deployed successfully.")
-            request_second = j.tools.http.get(url=f"https://{wiki_second.domain}", timeout=self.timeout, verify=False)
+            request_second = j.tools.http.get(
+                url=f"https://{wiki_second.config.chart_config.domain}", timeout=self.timeout, verify=False
+            )
             self.assertEqual(request_second.status_code, 200)
 
     def test02_blog(self):
@@ -184,12 +193,14 @@ class VDCDashboard(VDCBase):
             self.solutions.append(blog_second)
 
         self.info("Check that the Blog is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{blog.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{blog.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":
             self.info("Check that second Blog deployed successfully.")
-            request_second = j.tools.http.get(url=f"https://{blog_second.domain}", timeout=self.timeout, verify=False)
+            request_second = j.tools.http.get(
+                url=f"https://{blog_second.config.chart_config.domain}", timeout=self.timeout, verify=False
+            )
             self.assertEqual(request_second.status_code, 200)
 
     def test03_website(self):
@@ -217,13 +228,13 @@ class VDCDashboard(VDCBase):
             self.solutions.append(website_second)
 
         self.info("Check that the Website is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{website.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{website.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":
             self.info("Check that second Website deployed successfully.")
             request_second = j.tools.http.get(
-                url=f"https://{website_second.domain}", timeout=self.timeout, verify=False
+                url=f"https://{website_second.config.chart_config.domain}", timeout=self.timeout, verify=False
             )
             self.assertEqual(request_second.status_code, 200)
 
@@ -250,13 +261,13 @@ class VDCDashboard(VDCBase):
             self.solutions.append(cryptpad_second)
 
         self.info("Check that Cryptpad is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{cryptpad.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{cryptpad.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":
             self.info("Check that second Cryptpad deployed successfully.")
             request_second = j.tools.http.get(
-                url=f"https://{cryptpad_second.domain}", timeout=self.timeout, verify=False
+                url=f"https://{cryptpad_second.config.chart_config.domain}", timeout=self.timeout, verify=False
             )
             self.assertEqual(request_second.status_code, 200)
 
@@ -283,12 +294,14 @@ class VDCDashboard(VDCBase):
             self.solutions.append(gitea_second)
 
         self.info("Check that Gitea is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{gitea.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{gitea.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":
             self.info("Check that second Gitea deployed successfully.")
-            request_second = j.tools.http.get(url=f"https://{gitea_second.domain}", timeout=self.timeout, verify=False)
+            request_second = j.tools.http.get(
+                url=f"https://{gitea_second.config.chart_config.domain}", timeout=self.timeout, verify=False
+            )
             self.assertEqual(request_second.status_code, 200)
 
     @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/2630")
@@ -337,13 +350,13 @@ class VDCDashboard(VDCBase):
             self.solutions.append(discourse_second)
 
         self.info("Check that Discourse is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{discourse.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{discourse.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":
             self.info("Check that second Discourse deployed successfully.")
             request_second = j.tools.http.get(
-                url=f"https://{discourse_second.domain}", timeout=self.timeout, verify=False
+                url=f"https://{discourse_second.config.chart_config.domain}", timeout=self.timeout, verify=False
             )
             self.assertEqual(request_second.status_code, 200)
 
@@ -389,7 +402,7 @@ class VDCDashboard(VDCBase):
         self.solutions.append(kubeapps)
 
         self.info("Check that Kubeapps is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{kubeapps.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{kubeapps.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":
@@ -421,13 +434,13 @@ class VDCDashboard(VDCBase):
             self.solutions.append(peertube_second)
 
         self.info("Check that Peertube is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{peertube.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{peertube.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":
             self.info("Check that second Peertube deployed successfully.")
             request_second = j.tools.http.get(
-                url=f"https://{peertube_second.domain}", timeout=self.timeout, verify=False
+                url=f"https://{peertube_second.config.chart_config.domain}", timeout=self.timeout, verify=False
             )
             self.assertEqual(request_second.status_code, 200)
 
@@ -456,12 +469,14 @@ class VDCDashboard(VDCBase):
             self.solutions.append(taiga_second)
 
         self.info("Check that Taiga is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{taiga.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{taiga.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":
             self.info("Check that second Taiga deployed successfully.")
-            request_second = j.tools.http.get(url=f"https://{taiga_second.domain}", timeout=self.timeout, verify=False)
+            request_second = j.tools.http.get(
+                url=f"https://{taiga_second.config.chart_config.domain}", timeout=self.timeout, verify=False
+            )
             self.assertEqual(request_second.status_code, 200)
 
     def test11_Mattermost(self):
@@ -500,13 +515,13 @@ class VDCDashboard(VDCBase):
             self.solutions.append(mattermost_second)
 
         self.info("Check that Mattermost is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{mattermost.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{mattermost.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":
             self.info("Check that second Mattermost deployed successfully.")
             request_second = j.tools.http.get(
-                url=f"https://{mattermost_second.domain}", timeout=self.timeout, verify=False
+                url=f"https://{mattermost_second.config.chart_config.domain}", timeout=self.timeout, verify=False
             )
             self.assertEqual(request_second.status_code, 200)
 
@@ -533,12 +548,14 @@ class VDCDashboard(VDCBase):
             self.solutions.append(zeroci_second)
 
         self.info("Check that ZeroCI is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{zeroci.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{zeroci.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":
             self.info("Check that second ZeroCI deployed successfully.")
-            request_second = j.tools.http.get(url=f"https://{zeroci_second.domain}", timeout=self.timeout, verify=False)
+            request_second = j.tools.http.get(
+                url=f"https://{zeroci_second.config.chart_config.domain}", timeout=self.timeout, verify=False
+            )
             self.assertEqual(request_second.status_code, 200)
 
     def test13_MonitoringStack(self):
@@ -557,7 +574,7 @@ class VDCDashboard(VDCBase):
         self.solutions.append(monitoring)
 
         self.info("Check that MonitoringStack is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{monitoring.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{monitoring.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":
@@ -585,7 +602,7 @@ class VDCDashboard(VDCBase):
         self.solutions.append(digibyte)
 
         self.info("Check that Digibyte is reachable and certified.")
-        request = self._get_and_wait_ssl(domain=f"https://{digibyte.domain}")
+        request = self._get_and_wait_ssl(domain=f"https://{digibyte.config.chart_config.domain}")
         self.assertEqual(request.status_code, 200)
 
         if self.no_deployment == "double":

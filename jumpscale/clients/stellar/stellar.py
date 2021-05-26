@@ -14,9 +14,11 @@ from jumpscale.loader import j
 from stellar_sdk import Asset, TransactionBuilder
 
 from .wrapped import Account, Server
-from .balance import AccountBalances, Balance, EscrowAccount
+from .balance import AccountBalances, Balance, EscrowAccount, VestingAccount
 from .transaction import Effect, PaymentSummary, TransactionSummary
 from .exceptions import UnAuthorized
+from .vesting import is_vesting_account, VESTING_SCHEME
+
 
 XLM_TRANSACTION_FEES = 0.00001
 ACTIVATION_ADDRESS = "GCKLGWHEYT2V63HC2VDJRDWEY3G54YSHHPOA6Q3HAPQUGA5OZDWZL7KW"
@@ -120,6 +122,8 @@ class Stellar(Client):
     def _get_unlockhash_transaction(self, unlockhash):
         data = {"unlockhash": unlockhash}
         resp = j.tools.http.post(self._get_url("GET_UNLOCK"), json={"args": data})
+        if resp.status_code == j.tools.http.status_codes.codes.NOT_FOUND:
+            return None
         resp.raise_for_status()
         return resp.json()
 
@@ -147,8 +151,7 @@ class Stellar(Client):
         self._create_unlockhash_transaction(unlock_hash=unlock_hash, transaction_xdr=txe.to_xdr())
 
     def get_balance(self, address=None):
-        """Gets the balances for a stellar address
-        """
+        """Gets the balances for a stellar address"""
         if address is None:
             address = self.address
         all_balances = self._get_free_balances(address)
@@ -170,7 +173,10 @@ class Stellar(Client):
             response = accounts_endpoint.call()
             next_link = response["_links"]["next"]["href"]
             next_link_query = parse.urlsplit(next_link).query
-            new_cursor = parse.parse_qs(next_link_query)["cursor"][0]
+            cursor = parse.parse_qs(next_link_query).get("cursor")
+            if not cursor:
+                break
+            new_cursor = cursor[0]
             accounts = response["_embedded"]["records"]
             for account in accounts:
                 account_id = account["account_id"]
@@ -183,15 +189,24 @@ class Stellar(Client):
                 balances = []
                 for response_balance in account["balances"]:
                     balances.append(Balance.from_horizon_response(response_balance))
-
-                escrow_account = EscrowAccount(
-                    account_id,
-                    preauth_signers,
-                    balances,
+                if is_vesting_account(
+                    account,
+                    address,
+                    self.network.value,
                     _NETWORK_PASSPHRASES[self.network.value],
                     self._get_unlockhash_transaction,
-                )
-                escrow_accounts.append(escrow_account)
+                ):
+                    escrow_accounts.append(VestingAccount(account_id, balances, VESTING_SCHEME))
+                else:
+                    escrow_accounts.append(
+                        EscrowAccount(
+                            account_id,
+                            preauth_signers,
+                            balances,
+                            _NETWORK_PASSPHRASES[self.network.value],
+                            self._get_unlockhash_transaction,
+                        )
+                    )
         return escrow_accounts
 
     def claim_locked_funds(self):
@@ -249,8 +264,7 @@ class Stellar(Client):
         server.submit_transaction(transaction)
 
     def activate_through_friendbot(self):
-        """Activates and funds a testnet account using friendbot
-        """
+        """Activates and funds a testnet account using friendbot"""
         if self.network.value != "TEST":
             raise Exception("Account activation through friendbot is only available on testnet")
 
@@ -281,8 +295,7 @@ class Stellar(Client):
             )
 
     def activate_through_activation_wallet(self, wallet_name="activation_wallet"):
-        """Activate your wallet through activation wallet.
-        """
+        """Activate your wallet through activation wallet."""
         if wallet_name in j.clients.stellar.list_all() and self.instance_name != wallet_name:
             j.logger.info(f"trying to fund the wallet ourselves with the activation wallet")
             j.logger.info(f"activation wallet {self.instance_name}")
@@ -452,7 +465,11 @@ class Stellar(Client):
         Returns:
             [type]: [description]
         """
-        while retries > 0:
+        if decimal.Decimal(amount) <= 0:
+            j.logger.warning("Can not transfer empty or zero amount transaction")
+            return
+        nretries = 0
+        while nretries < retries:
             try:
                 return self._transfer(
                     destination_address=destination_address,
@@ -468,7 +485,7 @@ class Stellar(Client):
                     sign=sign,
                 )
             except Exception as e:
-                retries -= 1
+                nretries += 1
                 j.logger.warning(str(e))
 
         raise j.exceptions.Runtime(f"Failed to make transaction for {retries} times, Please try again later")
@@ -742,7 +759,7 @@ class Stellar(Client):
         escrow_account = server.load_account(escrow_kp.public_key)
         escrow_account.increment_sequence_number()
         tx = (
-            stellar_sdk.TransactionBuilder(escrow_account)
+            stellar_sdk.TransactionBuilder(escrow_account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
             .append_set_options_op(master_weight=0, low_threshold=1, med_threshold=1, high_threshold=1)
             .add_time_bounds(unlock_time, 0)
             .build()
@@ -757,7 +774,7 @@ class Stellar(Client):
         else:
             account = server.load_account(address)
         tx = (
-            stellar_sdk.TransactionBuilder(account)
+            stellar_sdk.TransactionBuilder(account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
             .append_pre_auth_tx_signer(preauth_tx_hash, 1)
             .append_ed25519_public_key_signer(public_key_signer, 1)
             .append_set_options_op(master_weight=1, low_threshold=2, med_threshold=2, high_threshold=2)
@@ -794,7 +811,9 @@ class Stellar(Client):
         account = self.load_account()
         source_keypair = stellar_sdk.Keypair.from_secret(self.secret)
 
-        transaction_builder = stellar_sdk.TransactionBuilder(account)
+        transaction_builder = stellar_sdk.TransactionBuilder(
+            account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value]
+        )
         # set the signing options
         transaction_builder.append_set_options_op(
             low_threshold=low_treshold,
@@ -820,7 +839,7 @@ class Stellar(Client):
             return tx.to_xdr()
 
     def sign(self, tx_xdr: str, submit: bool = True):
-        """ sign signs a transaction xdr and optionally submits it to the network
+        """sign signs a transaction xdr and optionally submits it to the network
 
         Args:
             tx_xdr (str): transaction to sign in xdr format
@@ -860,7 +879,11 @@ class Stellar(Client):
         """
         server = self._get_horizon_server()
         account = self.load_account()
-        tx = stellar_sdk.TransactionBuilder(account).append_ed25519_public_key_signer(public_key_signer, 0).build()
+        tx = (
+            stellar_sdk.TransactionBuilder(account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value])
+            .append_ed25519_public_key_signer(public_key_signer, 0)
+            .build()
+        )
 
         source_keypair = stellar_sdk.Keypair.from_secret(self.secret)
 
@@ -941,9 +964,7 @@ class Stellar(Client):
             asset_issuer = _NETWORK_KNOWN_TRUSTS[network].get(code, None)
             return Asset(code, asset_issuer)
 
-    def cancel_sell_order(
-        self, offer_id, selling_asset: str, buying_asset: str, price: Union[str, decimal.Decimal],
-    ):
+    def cancel_sell_order(self, offer_id, selling_asset: str, buying_asset: str, price: Union[str, decimal.Decimal]):
         """Deletes a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
 
         Args:
@@ -1052,7 +1073,7 @@ class Stellar(Client):
         base_fee = horizon_server.fetch_base_fee()
         transaction = (
             stellar_sdk.TransactionBuilder(
-                source_account=account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value], base_fee=base_fee,
+                source_account=account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value], base_fee=base_fee
             )
             .append_manage_data_op(name, value)
             .set_timeout(30)

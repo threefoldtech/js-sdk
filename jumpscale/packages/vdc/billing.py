@@ -1,12 +1,16 @@
 import os
-import requests
-from jumpscale.loader import j
+
 from jumpscale.clients.stellar import TRANSACTION_FEES
+from jumpscale.loader import j
 
 BASE_CAPACITY = int(os.getenv("BASE_CAPACITY", 14))
 
 
 def get_vdc_instance():
+    if not j.sals.vdc.list_all():
+        raise j.exceptions.Value(
+            "Billing service couldn't find any vdcs on this machine, Please make sure to have it configured properly"
+        )
     vdc_instance_name = list(j.sals.vdc.list_all())[0]
     vdc_instance = j.sals.vdc.find(name=vdc_instance_name, load_info=True)
     if not vdc_instance:
@@ -14,20 +18,19 @@ def get_vdc_instance():
         j.tools.alerthandler.alert_raise(
             app_name="get_vdc_instance",
             category="internal_errors",
-            message=f"threebot_vdc: couldn't get instance of VDC with name {vdc_instance} due to error: {str(e)}",
+            message=f"threebot_vdc: couldn't get instance of VDC with name {vdc_instance}",
             alert_type="exception",
         )
     return vdc_instance
 
 
 def transfer_prepaid_to_provision_wallet():
-    """Used to transfer the funds from prepaid wallet to provisioning wallet on an hourly basis
-    """
+    """Used to transfer the funds from prepaid wallet to provisioning wallet on an hourly basis"""
     vdc_instance = get_vdc_instance()
     prepaid_wallet = vdc_instance.prepaid_wallet
     provision_wallet = vdc_instance.provision_wallet
     tft = prepaid_wallet._get_asset("TFT")
-    hourly_amount = vdc_instance.calculate_spec_price() * 60 * 60
+    hourly_amount = vdc_instance.calculate_spec_price() / (24 * 30)
     j.logger.info(
         f"starting the hourly transaction from prepaid wallet to provision wallet with total hourly amount {hourly_amount}"
     )

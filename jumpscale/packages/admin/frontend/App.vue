@@ -207,14 +207,6 @@ module.exports = {
   components: {
     identities: httpVueLoader("./Identity.vue"),
   },
-  methods: {
-    logout() {
-      // clear cache on logout
-      var backlen = history.length;
-      history.go(-backlen);
-      window.location.href = "/auth/logout";
-    }
-  },
   computed: {
     announcement_dialog() {
       return !this.announced
@@ -290,6 +282,12 @@ module.exports = {
           this.notifications = JSON.parse(response.data).data;
           this.notificationsCount = 0;
         });
+    },
+    logout() {
+      // clear cache on logout
+      var backlen = history.length;
+      history.go(-backlen);
+      window.location.href = "/auth/logout";
     },
   },
   mounted() {

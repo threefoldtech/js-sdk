@@ -3,6 +3,8 @@ import math
 from jumpscale.clients.explorer.models import DiskType, ZDBMode
 from jumpscale.sals.reservation_chatflow import deployer
 from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
+from jumpscale.clients.explorer.models import NextAction
+
 
 from .base_component import VDCBaseComponent
 from .size import MINIO_CPU, MINIO_MEMORY, MINIO_DISK, S3_NO_DATA_NODES, S3_NO_PARITY_NODES
@@ -23,12 +25,12 @@ class VDCS3Deployer(VDCBaseComponent):
             self.vdc_deployer.info(f"node {node.node_id} selected for minio")
             try:
                 result = deployer.add_network_node(
-                    self.vdc_name, node, pool_id, network_view, self.bot, self.identity.instance_name,
+                    self.vdc_name, node, pool_id, network_view, self.bot, self.identity.instance_name
                 )
                 if result:
                     for wid in result["ids"]:
                         success = deployer.wait_workload(
-                            wid, self.bot, 5, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                            wid, self.bot, 5, identity_name=self.identity.instance_name, cancel_by_uuid=False
                         )
                         if not success:
                             self.vdc_deployer.error(f"workload {wid} failed when adding node to network")
@@ -75,7 +77,7 @@ class VDCS3Deployer(VDCBaseComponent):
             wid = result[0]
             try:
                 success = deployer.wait_workload(
-                    wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                    wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False
                 )
                 if not success:
                     raise DeploymentFailed()
@@ -117,7 +119,7 @@ class VDCS3Deployer(VDCBaseComponent):
             for wid in result:
                 try:
                     success = deployer.wait_workload(
-                        wid, bot=self.bot, expiry=5, identity_name=self.identity.instance_name, cancel_by_uuid=False,
+                        wid, bot=self.bot, expiry=5, identity_name=self.identity.instance_name, cancel_by_uuid=False
                     )
                     if not success:
                         raise DeploymentFailed()
@@ -132,7 +134,7 @@ class VDCS3Deployer(VDCBaseComponent):
             deployment_nodes = []
         self.vdc_deployer.error("no nodes available to deploy zdb")
 
-    def expose_zdbs(self, starting_port=9900):
+    def expose_zdbs(self, starting_port=9910):
         if not self.vdc_instance.s3.zdbs:
             self.vdc_instance.load_info(load_proxy=True)
         for zdb in self.vdc_instance.s3.zdbs:
@@ -149,3 +151,10 @@ class VDCS3Deployer(VDCBaseComponent):
                 except Exception as e:
                     self.vdc_deployer.error(f"failed to proxy zdb: {zdb.wid} due to error: {str(e)}")
             starting_port += 1
+
+    def delete_zdb(self, wid):
+        workload = self.zos.workloads.get(wid)
+        if workload.info.next_action == NextAction.DEPLOY:
+            self.zos.workloads.decomission(wid)
+
+        return workload

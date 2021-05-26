@@ -1,27 +1,32 @@
 <template>
   <v-container fluid class="grey lighten-5 mt-5">
-    <v-tabs class="text--left" background-color="transparent" vertical>
-      <v-tab>
-        <v-icon left> mdi-memory </v-icon>
-        Compute Nodes
-      </v-tab>
-      <v-tab>
-        <v-icon left> mdi-server </v-icon>
-        Storage Nodes
-      </v-tab>
-      <v-tab>
-        <v-icon left> mdi-wallet </v-icon>
-        Wallet Information
+    <v-tabs
+      v-model="activetab"
+      class="text--left"
+      background-color="transparent"
+      vertical
+    >
+      <v-tab v-for="(tab, index) in tabs" :key="index">
+        <v-icon left>{{ tab.icon }} </v-icon>
+        {{ tab.title }}
       </v-tab>
 
       <v-tab-item class="ml-2">
         <v-card flat>
-          <kubernetes :vdc="vdc" :loading="loading"></kubernetes>
+          <kubernetes
+            :vdc="vdc"
+            :loading="tableloading"
+            @reload-vdcinfo="vdcInfo"
+          ></kubernetes>
         </v-card>
       </v-tab-item>
       <v-tab-item class="ml-2">
         <v-card flat>
-          <s3 :vdc="vdc"></s3>
+          <s3
+            :vdc="vdc"
+            :tableloading="tableloading"
+            @reload-vdcinfo="vdcInfo"
+          ></s3>
         </v-card>
       </v-tab-item>
       <v-tab-item class="ml-2">
@@ -35,7 +40,25 @@
           ></wallet>
         </v-card>
       </v-tab-item>
+      <v-tab-item class="ml-2">
+        <v-card flat>
+          <backups :vdc="vdc" :loading="tableloading"></backups>
+        </v-card>
+      </v-tab-item>
+      <v-tab-item class="ml-2">
+        <v-card flat>
+          <alerts :alertid="parseInt(alertid)"></alerts>
+        </v-card>
+      </v-tab-item>
+
+      <v-tab-item class="ml-2">
+        <v-card flat>
+          <admins :vdc="vdc" :loading="tableloading"></admins>
+        </v-card>
+      </v-tab-item>
     </v-tabs>
+    <div class="version">JS-NG v{{ NGVersion }}, JS-SDK v{{ SDKVersion }}</div>
+
     <v-dialog v-if="dialog.expiration" v-model="dialog.expiration" width="400">
       <v-card
         v-if="vdc"
@@ -63,11 +86,7 @@
       </v-card>
     </v-dialog>
     <v-dialog v-if="release" v-model="dialog.release" width="400">
-      <v-card
-        class="pt-4 pb-2"
-        color="info"
-        dark
-      >
+      <v-card class="pt-4 pb-2" color="info" dark>
         <v-card-text>
           <v-row align="center" justify="center">
             <v-icon class="my-4" align="center" x-large justify="center" center
@@ -75,7 +94,8 @@
             >
           </v-row>
           <b class="font-weight-bold">
-            New release {{ this.release }} is available. You can update it later from the user menu in the topbar.
+            New release {{ this.release }} is available. You can update it later
+            from the user menu in the topbar.
           </b>
         </v-card-text>
         <v-card-actions>
@@ -84,15 +104,11 @@
             class="text--lighten-2"
             color="grey"
             text
-            @click="dialog.release=false"
+            @click="dialog.release = false"
           >
             Later
           </v-btn>
-          <v-btn
-            color="white"
-            outlined
-            @click="$emit('update-dashboard')"
-          >
+          <v-btn color="white" outlined @click="$emit('update-dashboard')">
             Update now
           </v-btn>
         </v-card-actions>
@@ -103,9 +119,15 @@
 
 <script>
 module.exports = {
+  props: {
+    alertid: {
+      type: String,
+      default: null,
+    },
+  },
   data() {
     return {
-      loading: true,
+      tableloading: true,
       vdc: null,
       name: null,
       wallet: null,
@@ -118,11 +140,22 @@ module.exports = {
         release: false,
       },
       release: null,
+      tabs: [
+        { icon: "mdi-memory", title: "Compute Nodes" },
+        { icon: "mdi-server", title: "Storage Containers" },
+        { icon: "mdi-wallet", title: "Wallet Information" },
+        { icon: "mdi-backup-restore", title: "Backup & Restore" },
+        { icon: "mdi-alert-outline", title: "Alerts" },
+        { icon: "mdi-account-lock", title: "Admins" },
+      ],
+      activetab: 0,
+      NGVersion: null,
+      SDKVersion: null,
     };
   },
   methods: {
     vdcInfo() {
-      this.loading = true;
+      this.tableloading = true;
       this.$api.solutions
         .getVdcInfo()
         .then((response) => {
@@ -140,24 +173,34 @@ module.exports = {
               : `${(this.vdc.expiration_days * 24).toFixed(0)} hours,`;
         })
         .finally(() => {
-          this.loading = false;
+          this.tableloading = false;
         });
     },
+
     checkDashboardUpdates() {
-      this.$api.version
-        .checkForUpdate()
-        .then((response) => {
-          let new_release = response.data.new_release;
-          if (new_release) {
-            this.release = new_release;
-            this.dialog.release = true;
-          }
-        })
+      this.$api.version.checkForUpdate().then((response) => {
+        let new_release = response.data.new_release;
+        if (new_release) {
+          this.release = new_release;
+          this.dialog.release = true;
+        }
+      });
+    },
+    getSDKVersion() {
+      this.$api.version.getSDKVersion().then((response) => {
+        const versions = response.data.data;
+        this.NGVersion = versions["js-ng"];
+        this.SDKVersion = versions["js-sdk"];
+      });
     },
   },
   mounted() {
+    this.getSDKVersion();
     this.vdcInfo();
     this.checkDashboardUpdates();
+    if (this.alertid) {
+      this.activetab = 4;
+    }
   },
   updated() {
     if (this.raiseExpirationAlert && this.vdc) {

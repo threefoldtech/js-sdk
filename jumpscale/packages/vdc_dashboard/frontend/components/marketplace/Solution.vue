@@ -9,7 +9,7 @@
             </v-avatar>
             <span>{{solution.name}}</span>
             <v-tooltip top>
-              <template v-slot:activator="{ on, attrs }">
+              <template v-if="solution.helpLink" v-slot:activator="{ on, attrs }">
                 <a
                   v-if="type!='all'"
                   class="chatflowInfo"

@@ -19,6 +19,7 @@ from .models import (
     WorkloadType,
     ZdbNamespace,
     PublicIP,
+    VirtualMachine,
 )
 from .pagination import get_all, get_page
 
@@ -43,6 +44,7 @@ class Decoder:
             WorkloadType.Gateway4to6: Gateway4to6,
             WorkloadType.Network_resource: NetworkResource,
             WorkloadType.Public_IP: PublicIP,
+            WorkloadType.Virtual_Machine: VirtualMachine,
         }
 
     def workload(self):
@@ -277,16 +279,15 @@ class Workloads:
         else:
             # get pages number
             query = _build_query(customer_tid=customer_tid, next_action=next_action)
-            _, pages_no = get_page(self._session, 1, Decoder, url, query)
+            workloads, pages_no = get_page(self._session, 1, Decoder, url, query)
 
             def get_page_workloads(page):
                 workloads.extend(self.list(customer_tid, next_action, page=page))
 
             threads = []
-            for p in range(1, pages_no + 1):
+            for p in range(2, pages_no + 1):
                 thread = gevent.spawn(get_page_workloads, p)
                 threads.append(thread)
-
             gevent.joinall(threads)
 
         return workloads

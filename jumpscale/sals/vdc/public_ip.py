@@ -1,15 +1,15 @@
 from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from .base_component import VDCBaseComponent
-from .size import NETWORK_FARM
+from .size import NETWORK_FARMS
 import random
 from jumpscale.sals.reservation_chatflow import deployer
 import uuid
 
 
 class VDCPublicIP(VDCBaseComponent):
-    def __init__(self, vdc_deployer, farm_name=None):
+    def __init__(self, vdc_deployer, farm_name):
         super().__init__(vdc_deployer)
-        self.farm_name = farm_name or NETWORK_FARM.get()
+        self.farm_name = farm_name
         self._farm = None
 
     @property
@@ -47,13 +47,13 @@ class VDCPublicIP(VDCBaseComponent):
                     wid, self.bot, 5, cancel_by_uuid=False, identity_name=self.identity.instance_name
                 )
                 if not success:
-                    raise DeploymentFailed(f"public ip workload failed. wid: {wid}")
+                    raise DeploymentFailed(f"Public ip workload failed. wid: {wid}")
                 return wid
             except DeploymentFailed as e:
                 self.vdc_deployer.error(
-                    f"failed to reserve public ip {address} on node {node_id} due to error {str(e)}"
+                    f"Failed to reserve public ip {address} on node {node_id} due to error {str(e)}"
                 )
                 continue
         self.vdc_deployer.error(
-            f"all tries to reserve a public ip failed on farm: {self.farm_name} pool: {pool_id} node: {node_id}"
+            f"All tries to reserve a public ip failed on farm: {self.farm_name} pool: {pool_id} node: {node_id}"
         )

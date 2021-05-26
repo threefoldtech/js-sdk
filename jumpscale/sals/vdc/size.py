@@ -40,7 +40,7 @@ class FarmConfigBase:
             try:
                 cls._CONF = j.data.serializers.json.load_from_file(conf_file_path)
             except Exception as e:
-                j.logger.warning(f"failed to load vdc farm config from path: {conf_file_path} due to error: {e}")
+                j.logger.warning(f"Failed to load vdc farm config from path: {conf_file_path} due to error: {e}")
             cls._LAST_LOADED = j.data.time.now().timestamp
 
     @classmethod
@@ -68,25 +68,25 @@ class ZDB_FARMS(FarmConfigBase):
     mainnet = ["freefarm", "freefarm"]
 
 
-class PREFERED_FARM(FarmConfigBase):
-    KEY = "PREFERED_FARM"
-    devnet = "lochristi_dev_lab"
-    testnet = "freefarm"
-    mainnet = "freefarm"
+class COMPUTE_FARMS(FarmConfigBase):
+    KEY = "COMPUTE_FARMS"
+    devnet = ["lochristi_dev_lab"]
+    testnet = ["freefarm"]
+    mainnet = ["freefarm"]
 
 
-class NETWORK_FARM(FarmConfigBase):
-    KEY = "NETWORK_FARM"
-    devnet = "lochristi_dev_lab"
-    testnet = "freefarm"
-    mainnet = "freefarm"
+class NETWORK_FARMS(FarmConfigBase):
+    KEY = "NETWORK_FARMS"
+    devnet = ["lochristi_dev_lab"]
+    testnet = ["freefarm"]
+    mainnet = ["freefarm"]
 
 
-class PROXY_FARM(FarmConfigBase):
-    KEY = "PROXY_FARM"
-    devnet = "csfarmer"
-    testnet = "csfarmer"
-    mainnet = "csfarmer"
+class PROXY_FARMS(FarmConfigBase):
+    KEY = "PROXY_FARMS"
+    devnet = ["csfarmer"]
+    testnet = ["csfarmer"]
+    mainnet = ["csfarmer"]
 
 
 class FARM_DISCOUNT(FarmConfigBase):
@@ -198,7 +198,7 @@ class VDCSize:
             self._workload_sizes = workloads_res.json()
             j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/size/workload_sizes.json", workloads_res.text)
         except Exception as e:
-            j.logger.warning(f"failed to download workload_size due to error {str(e)}")
+            j.logger.warning(f"Failed to download workload_size due to error {str(e)}")
             if not j.sals.fs.exists(f"{j.core.dirs.CFGDIR}/vdc/size/workload_sizes.json"):
                 raise e
             workloads_data = j.sals.fs.read_file(f"{j.core.dirs.CFGDIR}/vdc/size/workload_sizes.json")
@@ -210,7 +210,7 @@ class VDCSize:
             self._plans_data = plans_res.json()
             j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/size/plans.json", plans_res.text)
         except Exception as e:
-            j.logger.warning(f"failed to download plans_data due to error {str(e)}")
+            j.logger.warning(f"Failed to download plans_data due to error {str(e)}")
             if not j.sals.fs.exists(f"{j.core.dirs.CFGDIR}/vdc/size/plans.json"):
                 raise e
             plans_data = j.sals.fs.read_file(f"{j.core.dirs.CFGDIR}/vdc/size/plans.json")
@@ -222,7 +222,7 @@ class VDCSize:
             self._prices_data = prices_res.json()
             j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/size/prices.json", prices_res.text)
         except Exception as e:
-            j.logger.warning(f"failed to download prices due to error {str(e)}")
+            j.logger.warning(f"Failed to download prices due to error {str(e)}")
             if not j.sals.fs.exists(f"{j.core.dirs.CFGDIR}/vdc/size/prices.json"):
                 raise e
             prices_data = j.sals.fs.read_file(f"{j.core.dirs.CFGDIR}/vdc/size/prices.json")

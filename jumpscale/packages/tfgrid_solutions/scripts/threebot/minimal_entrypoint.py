@@ -25,6 +25,8 @@ Required env variables:
 - VDC_MINIO_ADDRESS  -> used for monitoring to trigger auto-top up and reconfig
 - VDC_S3_MAX_STORAGE  -> used for auto top up
 - S3_AUTO_TOPUP_FARMS  -> used for auto top up
+- NETWORK_FARMS -> used for deploying extra workers with public ip
+- COMPUTE_FARMS -> used for deploying extra workers
 - VDC_INSTANCE -> json string from the VDC instance on deployer
 - PREPAID_WALLET_SECRET -> secret for prepaid wallet
 - PROVISIONING_WALLET_SECRET -> secret for provisioning wallet
@@ -47,6 +49,8 @@ VDC_PASSWORD_HASH = os.environ.get("VDC_PASSWORD_HASH")
 EXPLORER_URL = os.environ.get("EXPLORER_URL")
 VDC_S3_MAX_STORAGE = os.environ.get("VDC_S3_MAX_STORAGE")
 S3_AUTO_TOPUP_FARMS = os.environ.get("S3_AUTO_TOPUP_FARMS")
+NETWORK_FARMS = os.environ.get("NETWORK_FARMS")
+COMPUTE_FARMS = os.environ.get("COMPUTE_FARMS")
 VDC_MINIO_ADDRESS = os.environ.get("VDC_MINIO_ADDRESS")
 MONITORING_SERVER_URL = os.environ.get("MONITORING_SERVER_URL")
 TEST_CERT = os.environ.get("TEST_CERT", "false")
@@ -79,6 +83,8 @@ VDC_VARS = {
     "EXPLORER_URL": EXPLORER_URL,
     "VDC_S3_MAX_STORAGE": VDC_S3_MAX_STORAGE,
     "S3_AUTO_TOPUP_FARMS": S3_AUTO_TOPUP_FARMS,
+    "NETWORK_FARMS": NETWORK_FARMS,
+    "COMPUTE_FARMS": COMPUTE_FARMS,
     "VDC_MINIO_ADDRESS": VDC_MINIO_ADDRESS,
     "MONITORING_SERVER_URL": MONITORING_SERVER_URL,
     "TEST_CERT": TEST_CERT,
@@ -135,6 +141,11 @@ j.core.config.set(
     },
 )
 
+if NETWORK_FARMS:
+    j.core.config.set("NETWORK_FARMS", NETWORK_FARMS.split(","))
+
+if COMPUTE_FARMS:
+    j.core.config.set("COMPUTE_FARMS", COMPUTE_FARMS.split(","))
 
 j.core.config.set("VDC_THREEBOT", True)
 
@@ -255,10 +266,10 @@ try:
 
         # create backup schedule for automatic backups
         j.sals.process.execute(
-            '/sbin/velero create schedule vdc --schedule="@every 1h" -l "backupType=vdc"', showout=True
+            '/sbin/velero create schedule vdc --schedule="@every 12h" -l "backupType=vdc"', showout=True
         )
         j.sals.process.execute(
-            '/sbin/velero create schedule config --schedule="@every 1h" --include-resources secrets,configmaps',
+            '/sbin/velero create schedule config --schedule="@every 12h" --include-resources secrets,configmaps',
             showout=True,
         )
 except Exception as e:

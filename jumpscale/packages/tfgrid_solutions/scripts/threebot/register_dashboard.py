@@ -41,6 +41,8 @@ def register_dashboard():
         data["signature"] = signature
         url = urllib.parse.urljoin(MONITORING_SERVER_URL, "register")
         try:
-            requests.post(url, json=data)
+            req = requests.post(url, json=data)
+            if req.status_code != 200:
+                raise j.exceptions.Runtime(f"Failed to register dashboard with status code: {req.status_code}")
         except Exception as e:
             j.logger.error(f"Failed to register dashboard, URL:{url}, exception: {str(e)}")

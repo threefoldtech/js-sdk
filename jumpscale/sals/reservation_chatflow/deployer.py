@@ -453,8 +453,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             pool_info = j.sals.zos.get().pools.create(cu, su, ipv4u, farm, currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to reserve pool.\n{str(e)}")
-        qr_code = self.show_payment(pool_info, bot)
-        self.wait_pool_reservation(pool_info.reservation_id, 30, qr_code=qr_code, bot=bot)
+        # Make sure we have amount to pay can set the custom farm prices to 0
+        # Or gateways farms which don't require payment
+        if pool_info.escrow_information.amount > 0:
+            qr_code = self.show_payment(pool_info, bot)
+            self.wait_pool_reservation(pool_info.reservation_id, 30, qr_code=qr_code, bot=bot)
         return pool_info
 
     def extend_pool(self, bot, pool_id):
@@ -1227,6 +1230,26 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         public_ip.info.description = description
         return zos.workloads.deploy(public_ip)
 
+    def deploy_vmachine(
+        self, node_id, network_name, name, ip_address, ssh_keys, pool_id, size=1, enable_public_ip=False, **metadata
+    ):
+        identity_name = metadata.get("owner", j.core.identity.me.instance_name)
+        public_ip_wid = 0
+        public_ip = ""
+        if enable_public_ip:
+            # Reserve public_Ip on node_id[0]
+            if enable_public_ip:
+                public_ip_wid, public_ip = self.create_public_ip(
+                    pool_id, node_id, solution_uuid=metadata.get("solution_uuid")
+                )
+                if not public_ip_wid or not public_ip:
+                    raise DeploymentFailed(f"Can not get public ip for your solutions")
+                public_ip = public_ip.split("/")[0] if public_ip else ""
+        vmachine = j.sals.zos.get(identity_name).vm.create(
+            node_id, network_name, name, ip_address, ssh_keys, pool_id, size, public_ip_wid
+        )
+        return j.sals.zos.get(identity_name).workloads.deploy(vmachine), public_ip
+
     def deploy_kubernetes_master(
         self,
         pool_id,
@@ -1461,6 +1484,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 if not nodes:
                     continue
                 pool_choices[p] = pools[p]
+            bot.md_show_update(f"## Setup pool and container node for node {i+1}", md=True)
+            gevent.sleep(2)
             pool_id = self.select_pool(bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su)
             node = self.ask_container_placement(
                 bot, pool_id, workload_name=workload_names[i], ip_version=ip_version, **resource_query_list[i]
@@ -1996,7 +2021,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
     def deploy_etcd_containers(
         self,
-        pool_id,
+        pool_ids,
         node_ids,
         network_name,
         ip_addresses,
@@ -2018,8 +2043,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         """
         Deploy single and cluster etcd nodes
         Args:
-            pool_id : Pool used to deploy etcd solution
-            node_id : Node used to deploy etcd solution
+            pool_ids : Pools used to deploy etcd solution
+            node_ids : Nodes used to deploy etcd solution
             network_name : Network name used to deploy etcd solution
             ip_addresses (List): List of IP address for every etcd node
             etcd_cluster (str): Contains ETCD_INITIAL_CLUSTER value
@@ -2043,7 +2068,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         result = []
         for n, ip_address in enumerate(ip_addresses):
             env = {}
-            node_id = node_ids[n]
             if len(ip_addresses) > 1:
                 env.update(env_cluster)
             env.update(
@@ -2060,8 +2084,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             )
             result.append(
                 self.deploy_container(
-                    pool_id,
-                    node_id,
+                    pool_ids[n],
+                    node_ids[n],
                     network_name,
                     ip_address,
                     etcd_flist,

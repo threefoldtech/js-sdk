@@ -83,9 +83,7 @@ module.exports = {
       var backlen = history.length;
       history.go(-backlen);
       window.location.href = "/auth/logout";
-    }
-  },
-  methods: {
+    },
     getCurrentUser() {
       this.$api.admins.getCurrentUser().then((response) => {
         this.user = response.data;

@@ -44,6 +44,7 @@ class Pools:
         """
         cu = int(cu)
         su = int(su)
+        ipv4us = int(ipv4us)
         if not currencies:
             currencies = ["TFT"]
 
@@ -88,6 +89,7 @@ class Pools:
         """
         cu = int(cu)
         su = int(su)
+        ipv4us = int(ipv4us)
         p = self.get(pool_id)
         if not currencies:
             currencies = ["TFT"]

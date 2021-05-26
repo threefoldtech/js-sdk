@@ -9,6 +9,10 @@ class VDCDomainsValidation(BackgroundService):
 
     def job(self):
         # redeploy subdomain
+        if not j.sals.vdc.list_all():
+            raise j.exceptions.Value(
+                "Couldn't find any vdcs on this machine, Please make sure to have it configured properly"
+            )
         vdc = j.sals.vdc.get(list(j.sals.vdc.list_all())[0])
         vdc.load_info()
         domains = set()

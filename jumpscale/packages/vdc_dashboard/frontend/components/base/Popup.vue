@@ -6,19 +6,17 @@
 
 <script>
 module.exports = {
-  data () {
+  props: ["msg"],
+  data() {
     return {
       show: false,
-      msg: null,
-      status: 'success'
+      status: "success",
+    };
+  },
+  mounted() {
+    if (this.msg) {
+      this.show = true;
     }
   },
-  mounted () {
-    this.$root.$on('popup', (msg, status) => {
-      this.show = true
-      this.msg = msg
-      this.status = status
-    })
-  }
-}
+};
 </script>

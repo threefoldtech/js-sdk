@@ -163,3 +163,101 @@ def get_all_vdc_deployments(vdc_name):
         all_deployments.append(deployment_info)
         deployment_names.append(release_name)
     return all_deployments
+
+
+def get_kubeconfig_file() -> str:
+    file_path = j.sals.fs.expanduser("~/.kube/config")
+    if not j.sals.fs.exists(file_path):
+        raise j.exceptions.NotFound("Kubeconfig not found!")
+
+    file_content = j.sals.fs.read_file(file_path)
+
+    if not file_content:
+        raise j.exceptions.Value("Invalid file found!")
+
+    return file_content
+
+
+def _get_zstor_config(ip_version=6):
+    if not j.sals.vdc.list_all():
+        raise j.exceptions.NotFound(
+            "Couldn't find any vdcs on this machine, Please make sure to have it configured properly"
+        )
+    vdc_full_name = list(j.sals.vdc.list_all())[0]
+    vdc = j.sals.vdc.find(vdc_full_name, load_info=True)
+    vdc_zdb_monitor = vdc.get_zdb_monitor()
+    password = vdc_zdb_monitor.get_password()
+    encryption_key = password[:32].encode().zfill(32).hex()
+    data = {
+        "data_shards": 2,
+        "parity_shards": 1,
+        "redundant_groups": 0,
+        "redundant_nodes": 0,
+        "encryption": {"algorithm": "AES", "key": encryption_key},
+        "compression": {"algorithm": "snappy"},
+        "meta": {
+            "type": "etcd",
+            "config": {
+                "endpoints": ["http://127.0.0.1:2379", "http://127.0.0.1:22379", "http://127.0.0.1:32379"],
+                "prefix": "someprefix",
+            },
+        },
+        "groups": [],
+    }
+    if ip_version == 4:
+        deployer = vdc.get_deployer()
+        vdc.load_info(load_proxy=True)
+        deployer.s3.expose_zdbs()
+
+    for zdb in vdc.s3.zdbs:
+        if ip_version == 6:
+            zdb_url = f"[{zdb.ip_address}]:{zdb.port}"
+        elif ip_version == 4:
+            zdb_url = zdb.proxy_address
+        else:
+            return
+        data["groups"].append({"backends": [{"address": zdb_url, "namespace": zdb.namespace, "password": password}]})
+    return data
+
+
+def get_zstor_config_file(ip_version):
+    zstor_config = _get_zstor_config(ip_version)
+    if not zstor_config:
+        raise j.exceptions.Value(f"unsupported ip version: {ip_version}")
+    return j.data.serializers.toml.dumps(zstor_config)
+
+
+def _get_ingress_used_ports():
+    ports = set()
+    config_path = j.sals.fs.expanduser("~/.kube/config")
+    k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
+    out = k8s_client.execute_native_cmd("kubectl get ingress -A -o json")
+    deployed_ingress = j.data.serializers.json.loads(out)["items"]
+    for ingress in deployed_ingress:
+        rules = ingress["spec"]["rules"]
+        for rule in rules:
+            paths = rule["http"]["paths"]
+            for path in paths:
+                ports.add(path["backend"]["servicePort"])
+
+    return ports
+
+
+def get_ingresstcp_used_ports():
+    tcp_ports = set()
+    config_path = j.sals.fs.expanduser("~/.kube/config")
+    k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
+
+    try:
+        out = k8s_client.execute_native_cmd("kubectl get IngressRouteTCP -A -o json")
+    except j.exceptions.Runtime as e:
+        j.logger.error(f"Failed to get IngressRouteTCP due to {str(e)}")
+        raise j.exceptions.Runtime("Failed to get used Ingress tcp routes ports")
+
+    deployed_ingress = j.data.serializers.json.loads(out)["items"]
+    for tcp_ingress in deployed_ingress:
+        routes = tcp_ingress["spec"]["routes"]
+        for used_ports in routes[0]["services"]:
+            tcp_ports.add(used_ports["port"])
+
+    return tcp_ports
