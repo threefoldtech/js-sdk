@@ -87,7 +87,7 @@ def delete_node():
     # Delete the node
     try:
         j.logger.info(f"Deleting node with wid: {wid}")
-        deployer.delete_k8s_node(wid)
+        deployer.delete_k8s_node(wid, True)
     except Exception as e:
         j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
         abort(500, "Error: Failed to delete workload")

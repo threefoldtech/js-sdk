@@ -23,7 +23,7 @@
     <v-data-table
       :headers="headers"
       :items="kubernetesData"
-      :loading="loading"
+      :loading="loading || tableLoading"
       class="elevation-1"
     >
       <template slot="no-data">No VDC instances available</template>
@@ -115,6 +115,7 @@ module.exports = {
     return {
       selected: null,
       selectedworker: null,
+      tableLoading: false,
       dialogs: {
         info: false,
         cancelWorkload: false,
@@ -152,18 +153,18 @@ module.exports = {
     },
     deleteNode(wid) {
       this.selectedworker = wid;
-      this.loading = true;
+      this.tableLoading = true;
       this.$api.solutions.checkBeforeDeleteWorkerWorkload(wid)
         .then((response) => {
           console.log("Check Before Delete Node Response:" , response.data);
           this.isNodeReadyToDelete = response.data.is_ready;
           this.podsToDelete = response.data.pods_to_delete;
           if (!this.isNodeReadyToDelete) {
-            this.deletionMessages.warningMsg = "The following Pods will be deleted: " + this.podsToDelete;
+            this.deletionMessages.warningMsg = "The following release will be deleted: " + this.podsToDelete;
           }
           console.log("Deletion msg:" ,this.deletionMessages);
         }).finally(() => {
-          this.loading = false;
+          this.tableLoading = false;
           this.dialogs.cancelWorkload = true;
         });
     },

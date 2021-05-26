@@ -87,16 +87,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         kube_manager = Manager()
         kube_monitor = KubernetesMonitor(self.vdc_instance)
         all_node_stats = kube_monitor.node_stats
-        all_nodes_reservations = kube_monitor.fetch_resource_reservations()
-        node_name_to_delete = None
+        node_name_to_delete = [node for node in all_node_stats.keys() if all_node_stats[node]["wid"] == wid]
+        remaining_nodes_reservations = kube_monitor.fetch_resource_reservations(exclude_nodes=node_name_to_delete)
         system_namespaces = ["k3os-system", "kube-public", "kube-system", " velero"]
-        for node in all_nodes_reservations:
-            if all_node_stats[node.name]["wid"] == wid:
-                # Get name of the node we want to delete
-                node_name_to_delete = node.name
-                # Remove it from the all node stats and reservations
-                all_node_stats.pop(node.name)
-                all_nodes_reservations.remove(node)
 
         # Get pods on the node we want to delete
         out = kube_manager.execute_native_cmd(
@@ -126,7 +119,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     memory *= 1024
 
             # Check if it can be deployed in another node
-            for node in all_nodes_reservations:
+            for node in remaining_nodes_reservations:
                 if node.has_enough_resources(cpu=cpu, memory=memory):
                     can_deploy = True
                     node.update(cpu=cpu, memory=memory)
@@ -469,9 +462,14 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml", out)
         return out
 
-    def delete_worker(self, wid):
+    def delete_worker(self, wid, is_ready=False):
+        kube_manager = Manager()
+        kube_monitor = KubernetesMonitor(self.vdc_instance)
         workloads_to_delete = []
         workload = self.zos.workloads.get(wid)
+        all_node_stats = kube_monitor.node_stats
+        node_name = [node for node in all_node_stats.keys() if all_node_stats[node]["wid"] == wid][0]
+
         if not workload.master_ips:
             raise j.exceptions.Input("Can't delete controller node")
         if workload.info.next_action == NextAction.DEPLOY:
@@ -480,7 +478,15 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             public_ip_workload = self.zos.workloads.get(workload.public_ip)
             if public_ip_workload.info.next_action == NextAction.DEPLOY:
                 workloads_to_delete.append(public_ip_workload.id)
-        # TODO: CHECK BEFORE DELETE FOR PODS
+        if is_ready:
+            # Drain node to safely delete it.
+            kube_manager.execute_native_cmd(
+                f"kubectl drain {node_name} --delete-local-data --ignore-daemonsets --force"
+            )
+
+        # Delete node to remove it from the cluster
+        kube_manager.execute_native_cmd(f"kubectl delete nodes {node_name}")
+
         for wid in workloads_to_delete:
             self.zos.workloads.decomission(wid)
         return workloads_to_delete
