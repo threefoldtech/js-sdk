@@ -1,6 +1,10 @@
 from enum import Enum
 
 from jumpscale.core.base import Base, fields
+from jumpscale.loader import j
+import netaddr
+
+from jumpscale.sals.zos import get as get_zos
 
 from .size import VDC_SIZE
 

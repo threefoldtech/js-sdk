@@ -7,7 +7,6 @@ import uuid
 from gevent.lock import BoundedSemaphore
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
-import netaddr
 
 from jumpscale.clients.explorer.models import (
     DiskType,
