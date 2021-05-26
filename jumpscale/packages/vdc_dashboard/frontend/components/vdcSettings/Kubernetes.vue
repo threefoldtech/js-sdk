@@ -160,11 +160,12 @@ module.exports = {
           this.isNodeReadyToDelete = response.data.is_ready;
           this.podsToDelete = response.data.pods_to_delete;
           podsString = "<br>"
+          timeWarning = "<br> This operation may take time, to safely delete your worker"
           for (pod in this.podsToDelete){
-            podsString += this.podsToDelete[pod] + "<br>"
+            podsString += "- " + this.podsToDelete[pod] + "<br>"
           }
           if (!this.isNodeReadyToDelete) {
-            this.deletionMessages.warningMsg = "The following release/s will be deleted: " + podsString;
+            this.deletionMessages.warningMsg = "The following release/s will be deleted: " + podsString + timeWarning;
           }
           console.log("Deletion msg:" ,this.deletionMessages);
         }).finally(() => {
