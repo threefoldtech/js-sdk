@@ -93,7 +93,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
         # Get pods on the node we want to delete
         out = kube_manager.execute_native_cmd(
-            f"kubectl get pods -A -o json --field-selector spec.nodeName={node_name_to_delete[0]}"
+            f"kubectl get pods -A -o json --sort-by='.metadata.namespace' --field-selector spec.nodeName={node_name_to_delete[0]}"
         )
         all_pods_to_redeploy = j.data.serializers.json.loads(out)
         pods_to_delete = []
