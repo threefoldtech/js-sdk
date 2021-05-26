@@ -63,7 +63,7 @@ class ChatFlows(BaseActor):
     @actor_method
     def end(self, session_id: str) -> dict:
         with DeleteSessionContext(session_id):
-            self.sessions.pop(session_id)
+            self.sessions.pop(session_id, None)
             return {"ended": True}
 
     @actor_method
