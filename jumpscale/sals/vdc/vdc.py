@@ -4,10 +4,9 @@ from enum import Enum
 import random
 import uuid
 
-from gevent.lock import Semaphore
+from gevent.lock import BoundedSemaphore
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
-import netaddr
 
 from jumpscale.clients.explorer.models import (
     DiskType,
@@ -63,7 +62,7 @@ class UserVDC(Base):
     explorer_url = fields.String(default=lambda: j.core.identity.me.explorer_url)
     _flavor = fields.String()
     state = fields.Enum(VDCSTATE)
-    __lock = Semaphore(1)
+    __lock = BoundedSemaphore(1)
 
     @property
     def flavor(self):
@@ -214,29 +213,20 @@ class UserVDC(Base):
         return QuantumStorage(self, ip_version)
 
     def load_info(self, load_proxy=False):
-        self.__lock.acquire()
-        self.kubernetes = []
-        self.etcd = []
-        self.s3 = S3()
-        self.threebot = VDCThreebot()
-        instance_vdc_workloads = self._filter_vdc_workloads()
-        subdomains = []
-        proxies = []
-        for workload in instance_vdc_workloads:
-            self._update_instance(workload)
-            if workload.info.workload_type == WorkloadType.Subdomain:
-                subdomains.append(workload)
-            if workload.info.workload_type == WorkloadType.Reverse_proxy:
-                proxies.append(workload)
-        self._get_s3_subdomains(subdomains)
-        self._get_threebot_subdomain(proxies)
-        if load_proxy:
-            self._build_zdb_proxies()
-        self.__lock.release()
+        kubernetes, s3, etcd, threebot = self.get_vdc_workloads(load_proxy=load_proxy)
 
-    def _build_zdb_proxies(self):
+        self.__lock.acquire()
+        try:
+            self.kubernetes = kubernetes
+            self.etcd = etcd
+            self.s3 = s3
+            self.threebot = threebot
+        finally:
+            self.__lock.release()
+
+    def _build_zdb_proxies(self, s3):
         proxies = self._list_socat_proxies()
-        for zdb in self.s3.zdbs:
+        for zdb in s3.zdbs:
             zdb_proxies = proxies[zdb.ip_address]
             if not zdb_proxies:
                 continue
@@ -305,98 +295,61 @@ class UserVDC(Base):
             result.append(workload)
         return result
 
-    def _update_instance(self, workload):
-        k8s_sizes = [
-            VDC_SIZE.K8SNodeFlavor.MICRO.value,
-            VDC_SIZE.K8SNodeFlavor.SMALL.value,
-            VDC_SIZE.K8SNodeFlavor.MEDIUM.value,
-            VDC_SIZE.K8SNodeFlavor.BIG.value,
-        ]
-        if workload.info.workload_type == WorkloadType.Kubernetes:
-            node = KubernetesNode()
-            node.wid = workload.id
-            node.ip_address = workload.ipaddress
-            if workload.master_ips:
-                node.role = KubernetesRole.WORKER
-            else:
-                node.role = KubernetesRole.MASTER
-            node.node_id = workload.info.node_id
-            node.pool_id = workload.info.pool_id
-            if workload.public_ip:
-                zos = get_zos()
-                public_ip_workload = zos.workloads.get(workload.public_ip)
-                address = str(netaddr.IPNetwork(public_ip_workload.ipaddress).ip)
-                node.public_ip = address
+    def get_vdc_workloads(self, load_proxy=False):
+        kubernetes = []
+        s3 = S3()
+        etcd = []
+        threebot = None
 
-            node._size = (
-                VDC_SIZE.K8SNodeFlavor(workload.size).value
-                if workload.size in k8s_sizes
-                else VDC_SIZE.K8SNodeFlavor.SMALL.value
-            )
-            self.kubernetes.append(node)
-        elif workload.info.workload_type == WorkloadType.Container:
-            if "minio" in workload.flist:
-                container = S3Container()
-                container.node_id = workload.info.node_id
-                container.pool_id = workload.info.pool_id
-                container.wid = workload.id
-                container.ip_address = workload.network_connection[0].ipaddress
-                self.s3.minio = container
-            elif "js-sdk" in workload.flist:
-                container = VDCThreebot()
-                container.node_id = workload.info.node_id
-                container.pool_id = workload.info.pool_id
-                container.wid = workload.id
-                container.ip_address = workload.network_connection[0].ipaddress
-                self.threebot = container
-            elif "etcd" in workload.flist:
-                node = ETCDNode()
-                node.node_id = workload.info.node_id
-                node.pool_id = workload.info.pool_id
-                node.wid = workload.id
-                node.ip_address = workload.network_connection[0].ipaddress
-                self.etcd.append(node)
-        elif workload.info.workload_type == WorkloadType.Zdb:
-            result_json = j.data.serializers.json.loads(workload.info.result.data_json)
-            if not result_json:
-                j.logger.warning(f"Couldn't get result details for zdb workload: {workload.id}")
-                return
-            if "IPs" in result_json:
-                ip = result_json["IPs"][0]
-            else:
-                ip = result_json["IP"]
-            namespace = result_json["Namespace"]
-            port = result_json["Port"]
-            zdb = S3ZDB()
-            zdb.node_id = workload.info.node_id
-            zdb.pool_id = workload.info.pool_id
-            zdb.wid = workload.id
-            zdb.size = workload.size
-            zdb.ip_address = ip
-            zdb.port = port
-            zdb.namespace = namespace
-            self.s3.zdbs.append(zdb)
+        proxies = []
+        for workload in self._filter_vdc_workloads():
+            if workload.info.workload_type == WorkloadType.Kubernetes:
+                kubernetes.append(KubernetesNode.from_workload(workload))
+            elif workload.info.workload_type == WorkloadType.Container:
+                if "minio" in workload.flist:
+                    container = S3Container.from_workload(workload)
+                    s3.minio = container
+                elif "js-sdk" in workload.flist:
+                    container = VDCThreebot.from_workload(workload)
+                    threebot = container
+                elif "etcd" in workload.flist:
+                    node = ETCDNode.from_workload(workload)
+                    etcd.append(node)
+            elif workload.info.workload_type == WorkloadType.Zdb:
+                zdb = S3ZDB.from_workload(workload)
+                s3.zdbs.append(zdb)
+            elif workload.info.workload_type == WorkloadType.Subdomain:
+                s3_domain = self._check_s3_subdomains(workload)
+                if s3_domain:
+                    s3.domain = workload.domain
+                    s3.domain_wid = workload.id
+            elif workload.info.workload_type == WorkloadType.Reverse_proxy:
+                proxies.append(workload)
 
-    def _get_s3_subdomains(self, subdomain_workloads):
+        threebot.domain = self._get_threebot_subdomain(proxies, threebot)
+        if load_proxy:
+            self._build_zdb_proxies(s3)
+
+        return kubernetes, s3, etcd, threebot
+
+    def _check_s3_subdomains(self, workload):
         minio_wid = self.s3.minio.wid
         if not minio_wid:
             return
-        for workload in subdomain_workloads:
-            if not workload.info.description:
-                continue
-            try:
-                desc = j.data.serializers.json.loads(workload.info.description)
-            except Exception as e:
-                j.logger.warning(f"Failed to load workload {workload.id} description due to error {e}")
-                continue
-            exposed_wid = desc.get("exposed_wid")
-            if exposed_wid == minio_wid:
-                self.s3.domain = workload.domain
-                self.s3.domain_wid = workload.id
 
-    def _get_threebot_subdomain(self, proxy_workloads):
-        # threebot is exposed over gateway
-        threebot_wid = self.threebot.wid
+        if not workload.info.description:
+            return
+        try:
+            desc = j.data.serializers.json.loads(workload.info.description)
+        except Exception as e:
+            j.logger.warning(f"Failed to load workload {workload.id} description due to error {e}")
+            return
+        exposed_wid = desc.get("exposed_wid")
+        if exposed_wid == minio_wid:
+            return True
+
+    def _get_threebot_subdomain(self, proxy_workloads, threebot):
+        threebot_wid = threebot.wid
         if not threebot_wid:
             return
         non_matching_domains = []
@@ -410,11 +363,11 @@ class UserVDC(Base):
                 continue
             exposed_wid = desc.get("exposed_wid")
             if exposed_wid == threebot_wid:
-                self.threebot.domain = workload.domain
+                return workload.domain
             else:
                 non_matching_domains.append(workload.domain)
-        if not self.threebot.domain and non_matching_domains:
-            self.threebot.domain = non_matching_domains[-1]
+        if not threebot.domain and non_matching_domains:
+            return non_matching_domains[-1]
 
     def apply_grace_period_action(self):
         self.load_info()
