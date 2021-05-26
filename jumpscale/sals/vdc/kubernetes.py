@@ -89,7 +89,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         all_node_stats = kube_monitor.node_stats
         node_name_to_delete = [node for node in all_node_stats.keys() if all_node_stats[node]["wid"] == wid]
         remaining_nodes_reservations = kube_monitor.fetch_resource_reservations(exclude_nodes=node_name_to_delete)
-        system_namespaces = ["k3os-system", "kube-public", "kube-system", " velero"]
+        system_namespaces = ["k3os-system", "kube-public", "kube-system", "velero"]
 
         # Get pods on the node we want to delete
         out = kube_manager.execute_native_cmd(
