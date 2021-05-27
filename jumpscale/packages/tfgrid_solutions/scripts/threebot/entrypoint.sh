@@ -9,7 +9,7 @@ chmod -R 500 /etc/ssh
 service ssh restart
 echo $SSHKEY > /root/.ssh/authorized_keys
 
-chmod u+x /root/.poetry/bin/poetry
+chmod u+x $HOME/.poetry/bin/poetry
 
 echo "[*] Switching to the correct version (${SDK_VERSION}) ..."
 cd ${SDK_PATH}
