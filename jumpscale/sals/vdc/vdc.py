@@ -299,7 +299,7 @@ class UserVDC(Base):
         kubernetes = []
         s3 = S3()
         etcd = []
-        threebot = None
+        threebot = VDCThreebot()
 
         proxies = []
         for workload in self._filter_vdc_workloads():
