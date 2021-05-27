@@ -10,7 +10,7 @@
           <v-icon left>mdi-plus</v-icon>Generate New Key
         </v-btn>
          <v-btn text @click.stop="deleteAll()" color="#810000" :disabled="keys.length === 0">
-          <v-icon left color="#810000">mdi-delete color</v-icon>Invoke All Keys
+          <v-icon left color="#810000">mdi-delete color</v-icon>Revoke All Keys
         </v-btn>
       </template>
 
