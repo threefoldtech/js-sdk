@@ -19,6 +19,7 @@ class UserRole(Enum):
 class APIKey(Base):
     key = fields.String(default=lambda: uuid4().hex)
     role = fields.Enum(UserRole)
+    created_at = fields.Float(default=lambda: j.data.time.utcnow().timestamp)
 
     def to_dict(self):
         d = super().to_dict()

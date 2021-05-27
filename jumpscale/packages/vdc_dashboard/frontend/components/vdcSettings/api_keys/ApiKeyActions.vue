@@ -10,7 +10,7 @@
         v-if="action.name === 'generate' || action.name === 'edit'"
         #default
       >
-        {{ message }}
+        <p><span v-html="message"></span></p>
         <v-form ref="form">
           <v-text-field
             v-if="action.name === 'generate'"
@@ -29,7 +29,7 @@
         </v-form>
       </template>
       <template v-else #default>
-        {{ message }}
+        <p><span v-html="message"></span></p>
       </template>
       <template #actions>
         <v-btn text @click="close">Close</v-btn>
@@ -46,7 +46,7 @@
 module.exports = {
   mixins: [dialog],
   props: {
-    name: String,
+    name: { type: String, default: "" },
     title: String,
     message: String,
     action: Object,
@@ -57,6 +57,7 @@ module.exports = {
   data() {
     return {
       key: null,
+      oldName: null,
       dialogs: {
         showKey: false,
       },
@@ -75,7 +76,6 @@ module.exports = {
       this[name]();
     },
     generate() {
-      console.log("called");
       this.error = null;
       if (this.$refs.form.validate()) {
         this.loading = true;
@@ -85,7 +85,6 @@ module.exports = {
             this.key = response.data.data.key;
             this.dialogs.showKey = true;
             this.done("Key is generated");
-            this.$refs.form.resetValidation();
           })
           .catch((error) => {
             this.error = error.response.data;
@@ -119,7 +118,6 @@ module.exports = {
           .edit(this.name, this.form.role)
           .then((response) => {
             this.done("Key is edited");
-            this.$refs.form.resetValidation();
           })
           .catch((error) => {
             this.error = error.response.data;
@@ -159,6 +157,15 @@ module.exports = {
           this.loading = false;
         });
     },
+  },
+  updated() {
+    if (
+      (this.oldName != this.name && this.action.name == "edit") ||
+      (this.action.name == "generate" && this.dialog == true)
+    ) {
+      this.oldName = this.name;
+      this.$refs.form.resetValidation();
+    }
   },
 };
 </script>

@@ -19,17 +19,10 @@
       :headers="headers"
       :items="keys"
       :sort-by.sync="sortBy"
+      sort-desc
       class="elevation-1"
     >
       <template slot="no-data">No keys yet</template>
-      <template v-slot:item.name="{ item }">
-        <div>{{ item.name }}</div>
-      </template>
-
-      <template v-slot:item.role="{ item }">
-        <div>{{ item.role }}</div>
-      </template>
-
       <template v-slot:item.actions="{ item }">
         <v-tooltip top>
           <template v-slot:activator="{ on, attrs }">
@@ -84,7 +77,7 @@ module.exports = {
   data() {
     return {
       selected: null,
-      sortBy: "name",
+      sortBy: "created_at",
       loading: false,
       message: null,
       title: null,
@@ -97,7 +90,9 @@ module.exports = {
       },
       keys: [],
       headers: [
+        { text: "ID", value: "id" },
         { text: "Name", value: "name" },
+        { text: "Creation Time", value: "created_at" },
         { text: "Role", value: "role" },
         { text: "Actions", value: "actions", sortable: false },
       ],
@@ -109,7 +104,17 @@ module.exports = {
       this.$api.apikeys
         .list()
         .then((response) => {
-          this.keys = response.data.data;
+          let apikeys = [...response.data.data];
+          apikeys.sort((a, b) => (a.created_at < b.created_at) ? 1 : -1)
+          for (let i = 0; i < apikeys.length; i++) {
+            apikey = apikeys[i];
+            let created_at = new Date(apikey.created_at * 1000);
+            apikey.created_at = created_at.toLocaleString("en-GB");
+          }
+          this.keys = apikeys.map((item, index) => ({
+            id: index + 1,
+            ...item,
+          }));
         })
         .finally(() => {
           this.loading = false;
@@ -126,7 +131,7 @@ module.exports = {
       this.selected = name;
       this.dialogs.keyAction = true;
       this.title = "Regenerate Key";
-      this.message = `Are you sure you want to regenerate this key ${name}?  be aware that any scripts or applications using this key will need to be updated.`;
+      this.message = `Are you sure you want to regenerate this key <strong>${name}</strong>? be aware that any scripts or applications using this key will need to be updated.`;
       this.action.name = "regenerate";
       this.action.buttonName = "Confirm";
     },
@@ -134,7 +139,7 @@ module.exports = {
       this.selected = name;
       this.dialogs.keyAction = true;
       this.title = "Edit Key Role";
-      this.message = `Please specify a role for key ${name}`;
+      this.message = `Please specify a role for key <strong>${name}</strong>.`;
       this.action.name = "edit";
       this.action.buttonName = "Submit";
     },
@@ -142,7 +147,7 @@ module.exports = {
       this.selected = name;
       this.dialogs.keyAction = true;
       this.title = "Remove Key";
-      this.message = `Are you sure you want to remove ${name} from API Keys`;
+      this.message = `Are you sure you want to remove <strong>${name}</strong> from API Keys`;
       this.action.name = "delete";
       this.action.buttonName = "Confirm";
     },
@@ -159,14 +164,3 @@ module.exports = {
   },
 };
 </script>
-
-<style scoped>
-h1 {
-  color: #1b4f72;
-}
-
-.v-input {
-  width: 20%;
-  margin-left: auto;
-}
-</style>
