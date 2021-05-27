@@ -5,18 +5,17 @@
         Make sure to copy your new key now. You won’t be able to see it again!
         <br />
       </p>
-      <p>
-        <v-text-field
-          :value="apikey"
-          readonly
-          filled
-          dense
-          outlined
-          color="indigo"
-          :append-icon="copyicon"
-          @click:append="copyText"
-        ></v-text-field></p
-    ></template>
+      <v-text-field
+        :value="apikey"
+        readonly
+        filled
+        dense
+        outlined
+        color="indigo"
+        :append-icon="copyicon"
+        @click:append="copyText"
+      ></v-text-field>
+    </template>
   </base-dialog>
 </template>
 
