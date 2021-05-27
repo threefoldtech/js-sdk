@@ -5,7 +5,7 @@ ARG TRC=false
 RUN apt-get update && apt-get install curl wget git python3-pip python3-venv redis-server tmux nginx restic -y
 
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
-RUN bash -c 'echo PATH=/root/.poetry/bin:\${PATH} >> ~/.bashrc'
+RUN bash -c 'echo "export PATH=/root/.poetry/bin:\${PATH}" >> ~/.bashrc'
 ENV PATH=/root/.poetry/bin:$PATH
 RUN mkdir -p /sandbox/code/github/threefoldtech
 
