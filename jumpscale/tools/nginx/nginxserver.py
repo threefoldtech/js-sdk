@@ -1,6 +1,7 @@
+import re
+import shutil
 from jumpscale.loader import j
 from jumpscale.core.base import Base, fields
-import shutil
 
 
 class NginxServer(Base):
@@ -34,6 +35,7 @@ class NginxServer(Base):
         cmd.stop_cmd = f"nginx -c {self.config_path} -s stop"
         cmd.path = nginx.cfg_dir
         cmd.timeout = 10
+        cmd.check_cmd = f'test -f "{self.get_pid_file_path()}"'
         cmd.process_strings_regex = [self.check_command_string]
         cmd.save()
         if not cmd.is_running():
@@ -47,10 +49,18 @@ class NginxServer(Base):
         cmd.stop()
 
     def is_running(self):
+        """Check if nginxserver is running
+        
+        Returns:
+            bool: True if Nginx master process is running, otherwise False.
         """
-        Check if nginxserver is running
-        """
-        return j.tools.startupcmd.get(f"nginx_{self.server_name}").is_running()
+        try:
+            pid_file_path = self.get_pid_file_path()
+        except FileNotFoundError:
+            # nginx conf file created after the server run for first time, so this possible first time to run the threebot server.
+            j.logger.warning(f"can't find the Nginx configuration file {self.config_path}, not created yet?")
+            return False
+        return j.sals.fs.exists(pid_file_path)
 
     def reload(self):
         """
@@ -64,3 +74,22 @@ class NginxServer(Base):
         """
         self.stop()
         self.start()
+
+    def get_pid_file_path(self):
+        """Return the path to nginx.pid file as specified in the Nginx configuration file
+        Raises:
+            j.exceptions.Runtime: if pid directive not found in the Nginx configuration file
+            FileNotFoundError: if the Nginx configuration file not found
+        Returns:
+            str: the path to the file that process ID of the Nginx master process is written to.
+        """
+        with open(j.sals.fs.expanduser(self.config_path), "r") as file:
+            for line in file:
+                m = re.match(r"^pid\s+(.*);", line)
+                if m:
+                    pid_file_path = m.group(1)
+                    return pid_file_path
+            else:
+                raise j.exceptions.Runtime(
+                    f"can't read the PID directive in the Nginx configuration file {self.config_path}"
+                )
