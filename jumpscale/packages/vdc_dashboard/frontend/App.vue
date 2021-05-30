@@ -99,6 +99,20 @@
       <router-view @update-dashboard="updateDashboard"></router-view>
       <popup></popup>
     </v-main>
+    <v-footer inset absolute>
+      <v-col class="text-left" cols="6">
+        &copy; {{ new Date().getFullYear() }} JS-SDK
+      </v-col>
+      <v-col class="text-right" cols="6">
+        <v-btn
+          depressed
+          color="primary"
+          href="https://support.grid.tf/"
+          target="_blank"
+          >Support</v-btn
+        >
+      </v-col>
+    </v-footer>
     <v-dialog v-model="dialog" hide-overlay persistent width="300">
       <v-card :color="dialogColor" dark>
         <v-card-text class="pt-4">
@@ -202,3 +216,9 @@ module.exports = {
   },
 };
 </script>
+
+<style scoped>
+.v-footer {
+  background-color: #fbfcfc !important;
+}
+</style>
