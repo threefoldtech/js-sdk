@@ -156,6 +156,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         solution_uuid,
         network_view,
         datastore_endpoint="",
+        network_subnet="",
+        public_ip_wid=None,
     ):
         master_ip = None
         # deploy_master
@@ -173,7 +175,13 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 # add node to network
                 try:
                     result = deployer.add_network_node(
-                        self.vdc_name, master_node, pool_id, network_view, self.bot, self.identity.instance_name
+                        self.vdc_name,
+                        master_node,
+                        pool_id,
+                        network_view,
+                        self.bot,
+                        self.identity.instance_name,
+                        subnet=network_subnet,
                     )
                     if result:
                         for wid in result["ids"]:
@@ -193,9 +201,10 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 raise j.exceptions.Runtime("All attempts to deploy kubernetes master node have failed")
 
             # reserve public_ip
-            public_ip_wid = self.vdc_deployer.public_ip.get_public_ip(
-                pool_id, master_node.node_id, solution_uuid=solution_uuid
-            )
+            if not public_ip_wid:
+                public_ip_wid = self.vdc_deployer.public_ip.get_public_ip(
+                    pool_id, master_node.node_id, solution_uuid=solution_uuid
+                )
             if not public_ip_wid:
                 self.vdc_deployer.error(f"Failed to reserve public ip on node {master_node.node_id}")
                 continue
@@ -552,9 +561,9 @@ ports:
             log_config = j.core.config.get("VDC_LOG_CONFIG", {})
             if log_config:
                 log_config["channel_name"] = f"{self.vdc_instance.instance_name}_{explorer}"
-
+            pool_ids = [pool_id for i in range(no_nodes)]
             wids = deployer.deploy_etcd_containers(
-                pool_id,
+                pool_ids,
                 node_ids,
                 network_view.name,
                 ip_addresses,
