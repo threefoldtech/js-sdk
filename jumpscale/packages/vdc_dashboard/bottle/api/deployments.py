@@ -85,6 +85,34 @@ def get_kubeconfig() -> str:
 def delete_node():
     data = j.data.serializers.json.loads(request.body.read())
     wid = data.get("wid")
+    pods_to_delete = data.get("pods_to_delete")
+    if not wid:
+        abort(400, "Error: Not all required params was passed.")
+    vdc = get_vdc()
+    if not vdc:
+        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
+    deployer = vdc.get_deployer()
+
+    # Delete pods that can't be redeployed on other nodes due to resources limitations
+    for pod_ns in pods_to_delete:
+        deployer.vdc_k8s_manager.execute_native_cmd(f"kubectl delete ns {pod_ns}")
+        j.logger.info(f"{pod_ns} deleted")
+
+    # Delete the node
+    try:
+        j.logger.info(f"Deleting node with wid: {wid}")
+        deployer.delete_k8s_node(wid, True)
+    except Exception as e:
+        j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
+        abort(500, "Error: Failed to delete workload")
+    return j.data.serializers.json.dumps({"result": True})
+
+
+@app.route("/api/kube/nodes/check_before_delete", method="POST")
+@package_authorized("vdc_dashboard")
+def check_before_delete_node():
+    data = j.data.serializers.json.loads(request.body.read())
+    wid = data.get("wid")
     if not wid:
         abort(400, "Error: Not all required params was passed.")
     vdc = get_vdc()
@@ -92,12 +120,11 @@ def delete_node():
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     deployer = vdc.get_deployer()
     try:
-        j.logger.info(f"Deleting node with wid: {wid}")
-        deployer.delete_k8s_node(wid)
+        is_ready, pods_to_delete = deployer.kubernetes.check_drain_availability(wid)
     except Exception as e:
-        j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
-        abort(500, "Error: Failed to delete workload")
-    return j.data.serializers.json.dumps({"result": True})
+        j.logger.error(f"Error: Failed to check before delete workload due to the following {str(e)}")
+        abort(500, "Error: Failed to check before delete workload")
+    return j.data.serializers.json.dumps({"is_ready": is_ready, "pods_to_delete": pods_to_delete})
 
 
 @app.route("/api/s3/zdbs/delete", method="POST")

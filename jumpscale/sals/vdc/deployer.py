@@ -763,8 +763,8 @@ class VDCDeployer:
             raise j.exceptions.Runtime(f"All tries to deploy on farm {farm_name} has failed")
         return wids
 
-    def delete_k8s_node(self, wid):
-        return self.kubernetes.delete_worker(wid)
+    def delete_k8s_node(self, wid, is_ready=False):
+        return self.kubernetes.delete_worker(wid, is_ready)
 
     def delete_s3_zdb(self, wid):
         return self.s3.delete_zdb(wid)

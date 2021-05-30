@@ -9,6 +9,9 @@
   >
     <template #default>
       {{ messages.confirmationMsg }}
+      <v-alert v-if="isnodereadytodelete == false" border="top" colored-border type="warning" elevation="2">
+        <span v-html="messages.warningMsg"></span>
+      </v-alert>
     </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
@@ -25,12 +28,14 @@ module.exports = {
     api: String,
     wid: Number,
     messages: Object,
+    isnodereadytodelete: Boolean,
+    podstodelete: Array
   },
   methods: {
     submit() {
       this.loading = true;
       this.error = null;
-      this.$api.solutions[this.api](this.wid)
+      this.$api.solutions[this.api](this.wid, this.podstodelete)
         .then((response) => {
           this.alert(this.messages.successMsg, "success");
           this.close();
