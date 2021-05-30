@@ -79,10 +79,9 @@ class TestNginxSal(BaseTests):
         self.assertIn("Welcome to 3Bot", request_content(http_link))
         self.info("Cleaning up the config and stoping the server")
         self.nginx_server.stop()
-        self.nginx_conf.clean()
 
         self.info("Checking the server is stopped")
-        self.assertFalse(j.sals.fs.is_file(j.sals.fs.join_paths(self.config_base_dir, NGINX_CONFIG_FILE)))
+        self.assertFalse(j.sals.nettools.wait_http_test(http_link, 5))
         self.assertTrue(wait_connection_lost_test(http_link, 5))
 
     def test02_static_location(self):
