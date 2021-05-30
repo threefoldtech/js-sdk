@@ -3,7 +3,7 @@ from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsCh
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments
 
 
-class DigibyteDeploy(SolutionsChatflowDeploy):
+class DashDeploy(SolutionsChatflowDeploy):
     SOLUTION_TYPE = "dash"
     title = "Dash"
     HELM_REPO_NAME = "marketplace"
