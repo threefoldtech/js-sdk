@@ -228,7 +228,7 @@ const BC_SOLUTIONS = {
             name: "Dash",
             type: "dash",
             image: "./assets/dash.png",
-            disable: true,
+            disable: false,
             helpLink: `${DOCS_BASE_URL}/dash`,
             description: "Open source peer-to-peer cryptocurrency with a strong focus on the payments industry."
         },
