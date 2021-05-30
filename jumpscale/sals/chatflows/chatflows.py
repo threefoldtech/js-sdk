@@ -1,7 +1,6 @@
 import base64
 import sys
 import uuid
-from captcha.image import ImageCaptcha
 from importlib import import_module
 import inspect
 import json
@@ -569,26 +568,6 @@ class GedisChatBot:
         qrcode = j.tools.qrcode.base64_get(data, scale=scale)
         self.send_data({"category": "qrcode_show", "msg": msg, "qrcode": qrcode, "kwargs": kwargs}, is_slide=True)
         self._queue_in.get()
-
-    def captcha_msg(self, **kwargs):
-        image = ImageCaptcha()
-        captcha = j.data.idgenerator.generateXCharID(4)
-        data = image.generate(captcha)
-        kwargs["value"] = captcha
-        return (
-            captcha,
-            {
-                "category": "captcha_ask",
-                "captcha": base64.b64encode(data.read()).decode(),
-                "value": captcha,
-                "msg": "Are you human?",
-                "kwargs": kwargs,
-            },
-        )
-
-    def captcha_ask(self, **kwargs):
-        captcha, message = self.captcha_msg(required=True, **kwargs)
-        return self.ask(message) == captcha
 
     def md_msg(self, msg, **kwargs):
         return {"category": "md_show", "msg": msg, "kwargs": kwargs}
