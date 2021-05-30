@@ -1,9 +1,9 @@
 // require('./farmmanagement/weblibs/gmaps/vue-google-maps.js')
-module.exports = new Promise(async(resolve, reject) => {
+module.exports = new Promise(async (resolve, reject) => {
     const vuex = await
-    import (
-        "/weblibs/vuex/vuex.esm.browser.js"
-    );
+        import(
+            "/weblibs/vuex/vuex.esm.browser.js"
+        );
     resolve({
         name: "farmManagement",
         components: {
@@ -78,7 +78,9 @@ module.exports = new Promise(async(resolve, reject) => {
                 nameError: [],
                 mailError: [],
                 countries: [],
-                loading: false
+                loading: false,
+                upgrade: false,
+                showUpgradeConfirmation: false,
             }
         },
         computed: {
@@ -108,7 +110,46 @@ module.exports = new Promise(async(resolve, reject) => {
                 "setDefaultFarmPrices",
                 "createOrUpdateFarmThreebotCustomPrice",
                 "setFarm",
+                "updateFarm",
             ]),
+            upgradeToGrid3(farm) {
+                this.upgrade = true;
+                // change the grid 3 flag to be true
+                farm.is_grid3_compliant = true;
+                this.updateFarm(farm)
+                    .then(response => {
+                        if (response.status == 200) {
+                            this.editFarmAlert = {
+                                message: "farm configuration updated",
+                                type: "success",
+                            }
+                            this.upgrade = false;
+                            this.showUpgradeConfirmation = false;
+                        } else {
+                            this.editFarmAlert = {
+                                message: response.data['error'],
+                                type: "error",
+                            }
+                        }
+                        setTimeout(() => {
+                            this.editFarmAlert = undefined
+                        }, 2000)
+                    }).catch(err => {
+                        var msg = "server error"
+                        if (err.response) {
+                            // The request was made and the server responded with a status code
+                            // that falls out of the range of 2xx
+                            msg = err.response.data['error'] ? err.response.data['error'] : "server error"
+                        }
+                        this.editFarmAlert = {
+                            message: msg,
+                            type: "error",
+                        }
+                        setTimeout(() => {
+                            this.editFarmAlert = undefined
+                        }, 15000)
+                    })
+            },
             initialiseRefresh() {
                 const that = this;
                 this.refreshInterval = setInterval(() => {
@@ -128,7 +169,7 @@ module.exports = new Promise(async(resolve, reject) => {
                 this.setCustomPricesList(item.id)
                 this.farmSelected = item;
                 this.setFarm(item);
-                this.farm_price = item.farm_cloudunits_price && Object.assign(this.farm_price, item.farm_cloudunits_price) || {cu:item.explorer_prices.cu, su:item.explorer_prices.su, ipv4u: item.explorer_prices.ipv4u};
+                this.farm_price = item.farm_cloudunits_price && Object.assign(this.farm_price, item.farm_cloudunits_price) || { cu: item.explorer_prices.cu, su: item.explorer_prices.su, ipv4u: item.explorer_prices.ipv4u };
             },
             viewSettings(farm) {
                 this.farmToEdit = farm;
@@ -157,10 +198,10 @@ module.exports = new Promise(async(resolve, reject) => {
                 this.registerFarm(this.newFarm).then(response => {
                     if (response.data) {
                         this.newFarmAlert = {
-                                message: "farm created",
-                                type: "success",
-                            }
-                            // update in memory farms
+                            message: "farm created",
+                            type: "success",
+                        }
+                        // update in memory farms
                         this.getFarms();
                     } else {
                         this.newFarmAlert = {
@@ -239,7 +280,7 @@ module.exports = new Promise(async(resolve, reject) => {
                             this.addCustomModelError = null;
                             this.$refs.customPriceForm.resetValidation();
                         }).catch(err => {
-                            console.log("Error: ",err.response.data.error)
+                            console.log("Error: ", err.response.data.error)
                             this.addCustomModelError = err.response.data.error
                         })
                 }

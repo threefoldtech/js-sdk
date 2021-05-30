@@ -55,6 +55,40 @@
                 Add a Deal
               </v-btn>
 
+              <v-tooltip top v-if="!item.is_grid3_compliant">
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn :loading="upgrade" :disabled="upgrade" color="blue-grey" small class="ma-2 white--text" fab
+                    v-bind="attrs" v-on="on" @click="showUpgradeConfirmation = true">
+                    <v-icon dark small>
+                      fa-arrow-alt-circle-up
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>UPGRADE TO GRID 3 PRICING</span>
+              </v-tooltip>
+
+              <v-dialog v-model="showUpgradeConfirmation" max-width="700px">
+                <v-card style="width: 100%">
+                  <v-card-title primary-title class="primary py-3 mb-5 white--text">
+                    Upgrade To Grid 3 Pricing
+                    <v-spacer />
+                  </v-card-title>
+                  <v-card-text>
+                    <v-container>
+                      <v-row>
+                        <span>Do you want to upgrade to Grid 3 Pricing?</span>
+                      </v-row>
+                    </v-container>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn text class="mr-3" @click="showUpgradeConfirmation = false">Cancel</v-btn>
+                    <v-btn text color="secondary" class="mr-3"
+                      @click="upgradeToGrid3(farmSelected)">Upgrade</v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+
               <v-dialog v-model="showSetFarmPrice" scrollable max-width="700px">
                 <v-card style="width: 100%">
                   <v-card-title primary-title class="primary py-3 mb-5 white--text">
@@ -95,45 +129,50 @@
               <v-dialog v-model="openAddCustomModel" persistent max-width="700px"
                 @keydown.esc="openAddCustomModel = false">
                 <v-form ref="customPriceForm">
-                <v-card>
-                  <v-card-title primary-title class="primary py-3 mb-5 white--text">
-                    <span class="headline">Add custom price</span>
-                  </v-card-title>
-                  <v-card-text>
-                    <v-alert v-if="addCustomModelError" dense outlined type="error" class="mb-5">{{ addCustomModelError }}</v-alert>
-                    <v-container>
-                      <v-row>
-                        <span>Add custom prices for a 3Bot</span>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="12">
-                          <v-text-field v-model="customPrice.threebotName" label="3Bot Name*" :rules="[v => !!v || '3Bot name is required']"></v-text-field>
-                        </v-col>
-                        <v-col cols="12" sm="6" md="4">
-                          <v-text-field v-model="customPrice.cu" label="CU*" :rules="[v => !!v || 'field is required']"></v-text-field>
-                        </v-col>
-                        <v-col cols="12" sm="6" md="4">
-                          <v-text-field v-model="customPrice.su" label="SU*" :rules="[v => !!v || 'field is required']"></v-text-field>
-                        </v-col>
-                        <v-col cols="12" sm="6" md="4">
-                          <v-text-field v-model="customPrice.ipv4u" label="IPv4U*" :rules="[v => !!v || 'field is required']"></v-text-field>
-                        </v-col>
-                      </v-row>
-                    </v-container>
-                    <small>*indicates required field</small>
-                  </v-card-text>
-                  <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="black darken-1" text @click="openAddCustomModel = false">
-                      Close
-                    </v-btn>
-                    <v-btn color="blue darken-1" text
-                      @click="addCustomPrice(customPrice.threebotName, customPrice.cu, customPrice.su, customPrice.ipv4u)">
-                      Save
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
-              </v-form>
+                  <v-card>
+                    <v-card-title primary-title class="primary py-3 mb-5 white--text">
+                      <span class="headline">Add custom price</span>
+                    </v-card-title>
+                    <v-card-text>
+                      <v-alert v-if="addCustomModelError" dense outlined type="error" class="mb-5">{{
+                        addCustomModelError }}</v-alert>
+                      <v-container>
+                        <v-row>
+                          <span>Add custom prices for a 3Bot</span>
+                        </v-row>
+                        <v-row>
+                          <v-col cols="12">
+                            <v-text-field v-model="customPrice.threebotName" label="3Bot Name*"
+                              :rules="[v => !!v || '3Bot name is required']"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6" md="4">
+                            <v-text-field v-model="customPrice.cu" label="CU*"
+                              :rules="[v => !!v || 'field is required']"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6" md="4">
+                            <v-text-field v-model="customPrice.su" label="SU*"
+                              :rules="[v => !!v || 'field is required']"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6" md="4">
+                            <v-text-field v-model="customPrice.ipv4u" label="IPv4U*"
+                              :rules="[v => !!v || 'field is required']"></v-text-field>
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                      <small>*indicates required field</small>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn color="black darken-1" text @click="openAddCustomModel = false">
+                        Close
+                      </v-btn>
+                      <v-btn color="blue darken-1" text
+                        @click="addCustomPrice(customPrice.threebotName, customPrice.cu, customPrice.su, customPrice.ipv4u)">
+                        Save
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-form>
               </v-dialog>
             </template>
           </v-data-table>
