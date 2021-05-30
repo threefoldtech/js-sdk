@@ -30,23 +30,12 @@ module.exports = {
   },
   methods: {
     copyText() {
-      const elem = document.createElement("textarea");
-      elem.value = this.apikey;
-      elem.textContent = this.apikey;
-      document.body.appendChild(elem);
-      var selection = document.getSelection();
-      var range = document.createRange();
-      range.selectNode(elem);
-      selection.removeAllRanges();
-      selection.addRange(range);
-      document.execCommand("copy");
+      navigator.clipboard.writeText(this.apikey);
       this.copyicon = "mdi-check";
       setTimeout(() => {
         this.copyicon = "mdi-content-copy";
       }, 1000);
-      selection.removeAllRanges();
 
-      document.body.removeChild(elem);
     },
   },
 };

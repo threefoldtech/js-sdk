@@ -520,7 +520,7 @@ def edit_api_keys():
     api_key = APIKeyFactory.find(name.lower())
     if not api_key:
         return HTTPResponse(
-            f"API key with name '{name}' is not exist", status=500, headers={"Content-Type": "application/json"}
+            f"API key with name '{name}' does not exist", status=500, headers={"Content-Type": "application/json"}
         )
     if role:
         api_key.role = role
@@ -546,7 +546,7 @@ def delete_api_keys():
     if name:
         if not APIKeyFactory.find(name):
             return HTTPResponse(
-                f"API key with name '{name}' is not exist", status=500, headers={"Content-Type": "application/json"}
+                f"API key with name '{name}' does not exist", status=500, headers={"Content-Type": "application/json"}
             )
         APIKeyFactory.delete(name)
     else:
