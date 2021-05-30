@@ -2,7 +2,7 @@
   <v-dialog v-model="dialog" width="700">
     <v-card :loading="loading" :disabled="loading">
       <v-card-title class="headline">{{ title }}</v-card-title>
-      <v-card-text class="pa-5">
+      <v-card-text :class="`pa-5 ${textcolor}--text`" :color="textcolor">
         <v-alert v-if="error" dense outlined type="error" class="mb-5">
           {{ error }}
         </v-alert>
@@ -25,6 +25,7 @@ module.exports = {
     title: String,
     error: String,
     loading: Boolean,
+    textcolor: { type: String, default: "black" },
   },
   computed: {
     dialog: {

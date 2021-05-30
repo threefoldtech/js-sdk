@@ -37,6 +37,7 @@ const vdcSettings = httpVueLoader('./components/vdcSettings/Home.vue')
 const wallet = httpVueLoader('./components/vdcSettings/Wallet.vue')
 const alerts = httpVueLoader('./components/vdcSettings/alerts/Alerts.vue')
 const code = httpVueLoader('./components/base/Code.vue')
+const apikeys = httpVueLoader('./components/vdcSettings/api_keys/ApiKeys.vue')
 
 const app = httpVueLoader('./App.vue')
 const marketplaceHome = httpVueLoader('./components/marketplace/Home.vue')
@@ -62,6 +63,7 @@ Vue.component("wallet", wallet)
 Vue.component("backups", backups)
 Vue.component("alerts", alerts)
 Vue.component("code-area", code)
+Vue.component("api-keys", apikeys)
 
 const router = new VueRouter({
     routes: [

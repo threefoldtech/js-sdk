@@ -376,3 +376,8 @@ const TYPES = [
     'event_monitor',
     'event_operator',
 ]
+
+const USER_ROLES = [
+    "ADMIN",
+    "USER",
+]

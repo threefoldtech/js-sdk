@@ -6,8 +6,15 @@ from functools import wraps
 from bottle import parse_auth, request, response
 from jumpscale.loader import j
 
+from ..models import APIKeyFactory
 from ..vdc_helpers import threebot_vdc_helper
-from .exceptions import BaseError, InvalidCredentials, MissingAuthorizationHeader, UnknownError, VDCNotFound
+from .exceptions import (
+    BaseError,
+    InvalidCredentials,
+    MissingAuthorizationHeader,
+    UnknownError,
+    VDCNotFound,
+)
 
 
 def logger(function):
@@ -79,6 +86,23 @@ def get_full_vdc_info(vdc):
     return threebot_vdc_helper(vdc=vdc)
 
 
+def _is_authorized(vdc):
+    """Check if the user is authorized through BasicAuth or API Keys.
+    """
+    auth_header = request.headers.get("Authorization")
+    if auth_header:
+        # Get vdc name and password from request Authorization header with Basic type
+        name, password = parse_auth(auth_header)
+        if vdc.validate_password(password) and name == vdc.vdc_name:
+            return True
+    else:
+        api_key_header = request.headers.get("X-API-KEY")
+        for name in APIKeyFactory.list_all():
+            api_key = APIKeyFactory.find(name)
+            if api_key_header == api_key.key:
+                return True
+
+
 def vdc_route(serialize=True):
     def decorator(function):
         def wrapper(*args, **kwargs):
@@ -92,13 +116,8 @@ def vdc_route(serialize=True):
                         500, "No VDCs where found, Please make sure to have it configured properly",
                     )
 
-                # Get vdc and password password from request Authorization header with Basic type
-                auth_header = request.headers.get("Authorization")
-                if not auth_header:
-                    raise MissingAuthorizationHeader(403, "Authorization header is not set")
-
-                vdc_name, password = parse_auth(auth_header)
-                if not vdc.validate_password(password) or vdc_name != vdc.vdc_name:
+                # Check Authorization
+                if not _is_authorized(vdc):
                     raise InvalidCredentials(403, "Invalid credentials")
 
                 result = function(vdc, *args, **kwargs)
