@@ -143,13 +143,13 @@ class NetworkView:
                         break
                 else:
                     raise StopChatFlow("Failed to find free network")
-            network = j.sals.zos.get(self.identity_name).network.create(self.iprange, self.name)
-            node_workloads = {}
-            for net_workload in self.network_workloads:
-                node_workloads[net_workload.info.node_id] = net_workload
-            network.network_resources = list(node_workloads.values())  # add only latest network resource for each node
-            j.sals.zos.get(self.identity_name).network.add_node(network, node.node_id, str(subnet), pool_id)
-            return network
+        network = j.sals.zos.get(self.identity_name).network.create(self.iprange, self.name)
+        node_workloads = {}
+        for net_workload in self.network_workloads:
+            node_workloads[net_workload.info.node_id] = net_workload
+        network.network_resources = list(node_workloads.values())  # add only latest network resource for each node
+        j.sals.zos.get(self.identity_name).network.add_node(network, node.node_id, str(subnet), pool_id)
+        return network
 
     def add_multiple_nodes(self, node_ids, pool_ids):
         used_ip_ranges = set()
