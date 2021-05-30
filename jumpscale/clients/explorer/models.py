@@ -69,6 +69,7 @@ class Farm(Base):
     ipaddresses = fields.List(fields.Object(FarmerIP))
     enable_custom_pricing = fields.Boolean(default=False)
     farm_cloudunits_price = fields.Object(CloudUnitMonthPrice)
+    is_grid3_compliant = fields.Boolean(default=False)
 
     def __str__(self):
         return " - ".join([x for x in [self.name, str(self.location)] if x])
