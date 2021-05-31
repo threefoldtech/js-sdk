@@ -12,23 +12,23 @@
         <v-icon left>mdi-bank</v-icon>List transactions
       </v-btn>
     </div>
-    <v-simple-table loading="vdc.wallet">
+    <v-simple-table v-if="wallet">
       <template v-slot:default>
         <tbody>
           <tr>
             <td>Network</td>
-            <td>{{ vdc.wallet.network }}</td>
+            <td>{{ wallet.network }}</td>
           </tr>
           <tr>
             <td>Address</td>
-            <td>{{ vdc.wallet.address }}</td>
+            <td>{{ wallet.address }}</td>
           </tr>
           <tr>
             <td>Secret</td>
             <td>
               <v-text-field
                 hide-details
-                :value="vdc.wallet.secret"
+                :value="wallet.secret"
                 readonly
                 solo
                 flat
@@ -45,13 +45,13 @@
                 outlined
                 class="ma-2"
                 :color="
-                  vdc.expiration_days < 2
+                  expirationdays < 2
                     ? 'error'
-                    : vdc.expiration_days < 14
+                    : expirationdays < 14
                     ? 'warning'
                     : 'primary'
                 "
-                v-for="(balance, i) in vdc.wallet.balances"
+                v-for="(balance, i) in wallet.balances"
                 :key="i"
               >
                 {{ balance.balance }} {{ balance.asset_code }}
@@ -61,7 +61,7 @@
           <tr>
             <td>VDC expiration date</td>
             <td class="ml-2">
-              {{ new Date(vdc.expiration_date * 1000).toLocaleString("en-GB") }}
+              {{ new Date(expirationdate * 1000).toLocaleString("en-GB") }}
             </td>
           </tr>
           <tr>
@@ -88,25 +88,38 @@
         </tbody>
       </template>
     </v-simple-table>
+    <v-skeleton-loader
+      v-else
+      v-bind="attrs"
+      type="date-picker"
+    ></v-skeleton-loader>
   </div>
 </template>
 
 <script>
 module.exports = {
   props: {
-    vdc: Object,
+    wallet: Object,
+    expirationdays: Number,
+    expirationdate: Number,
+    price: Number,
   },
   mixins: [dialog],
   data() {
     return {
       showSecret: false,
       qrcode: "",
+      attrs: {
+        class: "mb-6",
+        boilerplate: true,
+        elevation: 2,
+      },
     };
   },
   methods: {
     getQRCode() {
       this.$api.wallets
-        .walletQRCodeImage(this.vdc.wallet.address, this.vdc.price, 3)
+        .walletQRCodeImage(this.wallet.address, this.price, 3)
         .then((result) => {
           this.qrcode = result.data.data;
         })
@@ -116,7 +129,7 @@ module.exports = {
     },
   },
   mounted() {
-    if (this.vdc.wallet) {
+    if (this.wallet) {
       this.getQRCode();
     }
   },

@@ -32,7 +32,10 @@
       <v-tab-item class="ml-2">
         <v-card flat>
           <wallet
-            :vdc="vdc"
+            :wallet="wallet"
+            :expirationdays="vdc.expiration_days"
+            :expirationdate="vdc.expiration_date"
+            :price="vdc.price"
           ></wallet>
         </v-card>
       </v-tab-item>
