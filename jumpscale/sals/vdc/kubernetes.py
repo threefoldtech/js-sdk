@@ -667,6 +667,7 @@ ports:
             ):
                 old_network_workload = workload
                 self.zos.workloads.decomission(workload.id)
+                deployer.wait_workload_deletion(workload.id)
                 break
         master_size = VDC_SIZE.VDC_FLAVORS[self.vdc_deployer.flavor]["k8s"]["controller_size"]
         pub_keys = [self.vdc_deployer.ssh_key.public_key.strip()]
