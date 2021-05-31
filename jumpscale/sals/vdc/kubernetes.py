@@ -204,7 +204,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
             # reserve public_ip
             if public_ip_wid:
-                self.vdc_deployer.public_ip._atomic_transfer_public_ip(
+                public_ip_wid = self.vdc_deployer.public_ip._atomic_transfer_public_ip(
                     public_ip_wid, master_node.node_id, solution_uuid=solution_uuid
                 )
             else:
@@ -637,7 +637,7 @@ ports:
 
     def _get_latest_master_workload(self):
         latest_workload = None
-        workloads = self.zos.workloads.list_workloads(self.vdc_instance.customer_tid)
+        workloads = self.zos.workloads.list_workloads(self.vdc_instance.identity_tid)
         for workload in workloads:
             if workload.info.workload_type == WorkloadType.Kubernetes and not workload.master_ips:
                 latest_workload = workload
@@ -660,17 +660,17 @@ ports:
 
         # deleting network old network
         old_network_workload = None
-        workloads = self.zos.workloads.list_workloads(self.vdc_instance.customer_tid, NextAction.DEPLOY)
+        workloads = self.zos.workloads.list_workloads(self.vdc_instance.identity_tid, NextAction.DEPLOY)
         for workload in workloads:
             if workload.info.workload_type == WorkloadType.Network_resource and self._ip_in_network(
-                old_master_workload.ip_address, workload.iprange
+                old_master_workload.ipaddress, workload.iprange
             ):
                 old_network_workload = workload
                 self.zos.workloads.decomission(workload.id)
                 break
         master_size = VDC_SIZE.VDC_FLAVORS[self.vdc_deployer.flavor]["k8s"]["controller_size"]
         pub_keys = [self.vdc_deployer.ssh_key.public_key.strip()]
-        gs = GlobalScheduler()
+        gs = GlobalScheduler()  # need to used nodes
         nv = deployer.get_network_view(
             self.vdc_instance.vdc_name, identity_name=self.vdc_deployer.identity.instance_name
         )
@@ -686,6 +686,6 @@ ports:
             nv,
             endpoints,
             old_network_workload.iprange,
-            old_master_workload.ip_address,
+            old_master_workload.ipaddress,
             old_master_workload.public_ip,
         )
