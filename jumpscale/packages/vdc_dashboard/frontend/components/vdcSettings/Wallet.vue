@@ -12,7 +12,7 @@
         <v-icon left>mdi-bank</v-icon>List transactions
       </v-btn>
     </div>
-    <v-simple-table v-if="wallet">
+    <v-simple-table loading="wallet">
       <template v-slot:default>
         <tbody>
           <tr>

@@ -234,7 +234,7 @@ def remove_admin() -> str:
     threebot.packages.save()
 
 
-@app.route("/api/threebot_capacity", method="GET")
+@app.route("/api/vdc/capacity", method="GET")
 @package_authorized("vdc_dashboard")
 def threebot_vdc():
     vdc = get_vdc()
@@ -244,7 +244,7 @@ def threebot_vdc():
     )
 
 
-@app.route("/api/threebot_vdc", method="GET")
+@app.route("/api/vdc/plan", method="GET")
 @package_authorized("vdc_dashboard")
 def threebot_vdc():
     vdc = get_vdc()

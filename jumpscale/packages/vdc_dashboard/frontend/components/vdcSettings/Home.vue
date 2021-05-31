@@ -32,7 +32,6 @@
       <v-tab-item class="ml-2">
         <v-card flat>
           <wallet
-            v-if="vdc"
             :wallet="wallet"
             :expirationdays="vdc.expiration_days"
             :expirationdate="vdc.expiration_date"
@@ -167,16 +166,19 @@ module.exports = {
         .then((response) => {
           this.vdc = response.data;
           this.name = this.vdc.vdc_name;
-          this.wallet = this.vdc.wallet;
-          this.flavor = this.vdc.flavor;
-          this.price = this.vdc.price;
-          this.expirationTime =
-            this.vdc.expiration_days > 1
-              ? `${this.vdc.expiration_days.toFixed(0)} days and ${(
-                  (this.vdc.expiration_days % 1) *
-                  24
-                ).toFixed(0)} hours,`
-              : `${(this.vdc.expiration_days * 24).toFixed(0)} hours,`;
+          this.$api.solutions.getVdcFullInfo().then((response) => {
+            this.vdc = response.data;
+            this.wallet = this.vdc.wallet;
+            this.flavor = this.vdc.flavor;
+            this.price = this.vdc.price;
+            this.expirationTime =
+              this.vdc.expiration_days > 1
+                ? `${this.vdc.expiration_days.toFixed(0)} days and ${(
+                    (this.vdc.expiration_days % 1) *
+                    24
+                  ).toFixed(0)} hours,`
+                : `${(this.vdc.expiration_days * 24).toFixed(0)} hours,`;
+          });
         })
         .finally(() => {
           this.tableloading = false;
