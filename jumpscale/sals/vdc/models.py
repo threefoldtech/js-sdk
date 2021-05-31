@@ -64,7 +64,7 @@ class KubernetesNode(VDCHostBase):
 
         node._size = (
             VDC_SIZE.K8SNodeFlavor(workload.size).value
-            if workload.size in K8S_SIZES
+            if workload.size in [size.value for size in K8S_SIZES]
             else VDC_SIZE.K8SNodeFlavor.SMALL.value
         )
         return node
