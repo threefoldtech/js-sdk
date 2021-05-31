@@ -12,23 +12,23 @@
         <v-icon left>mdi-bank</v-icon>List transactions
       </v-btn>
     </div>
-    <v-simple-table loading="wallet">
+    <v-simple-table loading="vdc.wallet">
       <template v-slot:default>
         <tbody>
           <tr>
             <td>Network</td>
-            <td>{{ wallet.network }}</td>
+            <td>{{ vdc.wallet.network }}</td>
           </tr>
           <tr>
             <td>Address</td>
-            <td>{{ wallet.address }}</td>
+            <td>{{ vdc.wallet.address }}</td>
           </tr>
           <tr>
             <td>Secret</td>
             <td>
               <v-text-field
                 hide-details
-                :value="wallet.secret"
+                :value="vdc.wallet.secret"
                 readonly
                 solo
                 flat
@@ -45,13 +45,13 @@
                 outlined
                 class="ma-2"
                 :color="
-                  expirationdays < 2
+                  vdc.expiration_days < 2
                     ? 'error'
-                    : expirationdays < 14
+                    : vdc.expiration_days < 14
                     ? 'warning'
                     : 'primary'
                 "
-                v-for="(balance, i) in wallet.balances"
+                v-for="(balance, i) in vdc.wallet.balances"
                 :key="i"
               >
                 {{ balance.balance }} {{ balance.asset_code }}
@@ -61,7 +61,7 @@
           <tr>
             <td>VDC expiration date</td>
             <td class="ml-2">
-              {{ new Date(expirationdate * 1000).toLocaleString("en-GB") }}
+              {{ new Date(vdc.expiration_date * 1000).toLocaleString("en-GB") }}
             </td>
           </tr>
           <tr>
@@ -94,10 +94,7 @@
 <script>
 module.exports = {
   props: {
-    wallet: Object,
-    expirationdays: Number,
-    expirationdate: Number,
-    price: Number,
+    vdc: Object,
   },
   mixins: [dialog],
   data() {
@@ -109,7 +106,7 @@ module.exports = {
   methods: {
     getQRCode() {
       this.$api.wallets
-        .walletQRCodeImage(this.wallet.address, this.price, 3)
+        .walletQRCodeImage(this.vdc.wallet.address, this.vdc.price, 3)
         .then((result) => {
           this.qrcode = result.data.data;
         })
@@ -119,7 +116,7 @@ module.exports = {
     },
   },
   mounted() {
-    if (this.wallet) {
+    if (this.vdc.wallet) {
       this.getQRCode();
     }
   },
