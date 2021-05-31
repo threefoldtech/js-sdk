@@ -8,9 +8,10 @@ from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 from .base_component import VDCBaseComponent
 from .scheduler import CapacityChecker, Scheduler
 from .size import *
-from jumpscale.clients.explorer.models import K8s, NextAction
+from jumpscale.clients.explorer.models import K8s, NextAction, WorkloadType
 import gevent
-import random
+import ipaddress
+from .scheduler import GlobalScheduler
 
 
 ETCD_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-etcd-latest.flist"
@@ -157,6 +158,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         network_view,
         datastore_endpoint="",
         network_subnet="",
+        private_ip_address="",
         public_ip_wid=None,
     ):
         master_ip = None
@@ -201,25 +203,31 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 raise j.exceptions.Runtime("All attempts to deploy kubernetes master node have failed")
 
             # reserve public_ip
-            if not public_ip_wid:
+            if public_ip_wid:
+                self.vdc_deployer.public_ip._atomic_transfer_public_ip(
+                    public_ip_wid, master_node.node_id, solution_uuid=solution_uuid
+                )
+            else:
                 public_ip_wid = self.vdc_deployer.public_ip.get_public_ip(
                     pool_id, master_node.node_id, solution_uuid=solution_uuid
                 )
+
             if not public_ip_wid:
                 self.vdc_deployer.error(f"Failed to reserve public ip on node {master_node.node_id}")
                 continue
 
             # deploy master
-            network_view = network_view.copy()
-            ip_address = network_view.get_free_ip(master_node)
-            self.vdc_deployer.info(f"Kubernetes master ip: {ip_address}")
+            if not private_ip_address:
+                network_view = network_view.copy()
+                private_ip_address = network_view.get_free_ip(master_node)
+            self.vdc_deployer.info(f"Kubernetes master ip: {private_ip_address}")
             wid = deployer.deploy_kubernetes_master(
                 pool_id,
                 master_node.node_id,
                 network_view.name,
                 cluster_secret,
                 ssh_keys,
-                ip_address,
+                private_ip_address,
                 size=k8s_flavor.value,
                 identity_name=self.identity.instance_name,
                 # form_info={"chatflow": "kubernetes"},
@@ -238,7 +246,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 )
                 if not success:
                     raise DeploymentFailed()
-                master_ip = ip_address
+                master_ip = private_ip_address
                 return master_ip
             except DeploymentFailed:
                 self.zos.workloads.decomission(public_ip_wid)
@@ -626,3 +634,58 @@ ports:
             }
         config_yaml = j.data.serializers.yaml.dumps(config_json)
         k8s_client.upgrade_release("traefik", "traefik/traefik", "kube-system", config_yaml)
+
+    def _get_latest_master_workload(self):
+        latest_workload = None
+        workloads = self.zos.workloads.list_workloads(self.vdc_instance.customer_tid)
+        for workload in workloads:
+            if workload.info.workload_type == WorkloadType.Kubernetes and not workload.master_ips:
+                latest_workload = workload
+        return latest_workload
+
+    def _ip_in_network(self, ip, network):
+        ip_addr = ipaddress.ip_address(ip)
+        net = ipaddress.ip_network(network)
+        return ip_addr in net
+
+    def redeploy_master(self):
+        old_master_workload = self._get_latest_master_workload()
+        if not old_master_workload:
+            self.vdc_deployer.error("Couldn't find old master workload")
+            return
+
+        # delete old master in case of next action is deploy
+        if old_master_workload.info.next_action == NextAction.DEPLOY:
+            self.zos.workloads.decomission(old_master_workload.id)
+
+        # deleting network old network
+        old_network_workload = None
+        workloads = self.zos.workloads.list_workloads(self.vdc_instance.customer_tid, NextAction.DEPLOY)
+        for workload in workloads:
+            if workload.info.workload_type == WorkloadType.Network_resource and self._ip_in_network(
+                old_master_workload.ip_address, workload.iprange
+            ):
+                old_network_workload = workload
+                self.zos.workloads.decomission(workload.id)
+                break
+        master_size = VDC_SIZE.VDC_FLAVORS[self.vdc_deployer.flavor]["k8s"]["controller_size"]
+        pub_keys = [self.vdc_deployer.ssh_key.public_key.strip()]
+        gs = GlobalScheduler()
+        nv = deployer.get_network_view(
+            self.vdc_instance.vdc_name, identity_name=self.vdc_deployer.identity.instance_name
+        )
+        self.vdc_instance.load_info()
+        endpoints = ",".join([f"http://{etcd.ip_address}:2379" for etcd in self.vdc_instance.etcd])
+        self.deploy_master(
+            old_master_workload.info.pool_id,
+            gs,
+            master_size,
+            self.vdc_instance.get_password(),
+            pub_keys,
+            self.vdc_instance.solution_uuid,
+            nv,
+            endpoints,
+            old_network_workload.iprange,
+            old_master_workload.ip_address,
+            old_master_workload.public_ip,
+        )
