@@ -46,9 +46,9 @@
                 outlined
                 class="ma-2"
                 :color="
-                  vdc.expirationdays < 2
+                  vdc.expiration_days < 2
                     ? 'error'
-                    : vdc.expirationdays < 14
+                    : vdc.expiration_days < 14
                     ? 'warning'
                     : 'primary'
                 "
@@ -62,7 +62,7 @@
           <tr>
             <td>VDC expiration date</td>
             <td class="ml-2">
-              {{ new Date(vdc.expirationdate * 1000).toLocaleString("en-GB") }}
+              {{ new Date(vdc.expiration_date * 1000).toLocaleString("en-GB") }}
             </td>
           </tr>
           <tr>
@@ -91,8 +91,11 @@
     </v-simple-table>
     <v-skeleton-loader
       v-else
-      v-bind="attrs"
-      type="date-picker"
+      color="grey darken-2"
+      class="pa-4 mb-6"
+      :boilerplate="true"
+      :elevation="2"
+      type="table-row-divider@6, article"
     ></v-skeleton-loader>
   </div>
 </template>
@@ -107,15 +110,12 @@ module.exports = {
     return {
       showSecret: false,
       qrcode: "",
-      attrs: {
-        class: "mb-6",
-        boilerplate: true,
-        elevation: 2,
-      },
+      qrcodeLoading: false,
     };
   },
   methods: {
     getQRCode() {
+      this.qrcodeLoading = true;
       this.$api.wallets
         .walletQRCodeImage(this.vdc.wallet.address, this.vdc.price, 3)
         .then((result) => {
@@ -126,10 +126,9 @@ module.exports = {
         });
     },
   },
-  mounted() {
-    if (this.vdc.wallet) {
+  updated() {
+    if (this.vdc.wallet && !this.qrcode && !this.qrcodeLoading)
       this.getQRCode();
-    }
   },
 };
 </script>
