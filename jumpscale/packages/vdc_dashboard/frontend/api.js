@@ -70,6 +70,13 @@ const apiClient = {
     },
     getVdcInfo: () => {
       return axios({
+        url: `${baseURL}/threebot_capacity`,
+        headers: { 'Content-Type': 'application/json' },
+        method: "get"
+      })
+    },
+    getVdcFullInfo: () => {
+      return axios({
         url: `${baseURL}/threebot_vdc`,
         headers: { 'Content-Type': 'application/json' },
         method: "get"

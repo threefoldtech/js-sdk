@@ -234,6 +234,16 @@ def remove_admin() -> str:
     threebot.packages.save()
 
 
+@app.route("/api/threebot_capacity", method="GET")
+@package_authorized("vdc_dashboard")
+def threebot_vdc():
+    vdc = get_vdc()
+    vdc_dict = vdc.to_dict()
+    return HTTPResponse(
+        j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
+    )
+
+
 @app.route("/api/threebot_vdc", method="GET")
 @package_authorized("vdc_dashboard")
 def threebot_vdc():
