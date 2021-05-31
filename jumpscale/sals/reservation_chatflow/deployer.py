@@ -128,7 +128,7 @@ class NetworkView:
                         self.used_ips.append(conn.ipaddress)
 
     def add_node(self, node, pool_id, subnet=""):
-        if subnet is None:
+        if not subnet:
             used_ip_ranges = set()
             for workload in self.network_workloads:
                 if workload.info.node_id == node.node_id:
