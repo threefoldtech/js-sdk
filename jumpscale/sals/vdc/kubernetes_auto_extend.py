@@ -190,7 +190,8 @@ class KubernetesMonitor:
         deployer.extend_k8s_workloads(duration, *wids)
         return wids
 
-    def fetch_resource_reservations(self):
+    def fetch_resource_reservations(self, exclude_nodes=None):
+        exclude_nodes = exclude_nodes or []
         out = self.manager.execute_native_cmd("kubectl get pod -A -o json")
         result = j.data.serializers.json.loads(out)
         node_reservations = defaultdict(lambda: {"cpu": 0.0, "memory": 0.0, "total_cpu": 0.0, "total_memory": 0.0})
@@ -216,7 +217,7 @@ class KubernetesMonitor:
 
         result = []
         for node_name, resv in node_reservations.items():
-            if node_name not in self.node_stats:
+            if node_name not in self.node_stats or node_name in exclude_nodes:
                 continue
             node_reservations[node_name]["total_cpu"] = self.node_stats[node_name]["cpu"]["total"]
             node_reservations[node_name]["total_memory"] = self.node_stats[node_name]["memory"]["total"]

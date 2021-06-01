@@ -1,12 +1,26 @@
 import os
+from uuid import uuid4
 
 from bottle import HTTPResponse, abort, redirect, request
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import authenticated, get_user_info, login_required, package_authorized
-from jumpscale.packages.vdc_dashboard.bottle.models import UserEntry
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts, get_vdc, threebot_vdc_helper
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_all_deployments, get_deployments
+
+from jumpscale.packages.auth.bottle.auth import (
+    authenticated,
+    get_user_info,
+    login_required,
+    package_authorized,
+)
+from jumpscale.packages.vdc_dashboard.bottle.models import APIKeyFactory, UserEntry
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import (
+    _list_alerts,
+    get_vdc,
+    threebot_vdc_helper,
+)
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
+    get_all_deployments,
+    get_deployments,
+)
 
 from .root import app
 
@@ -71,6 +85,34 @@ def get_kubeconfig() -> str:
 def delete_node():
     data = j.data.serializers.json.loads(request.body.read())
     wid = data.get("wid")
+    pods_to_delete = data.get("pods_to_delete")
+    if not wid:
+        abort(400, "Error: Not all required params was passed.")
+    vdc = get_vdc()
+    if not vdc:
+        return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
+    deployer = vdc.get_deployer()
+
+    # Delete pods that can't be redeployed on other nodes due to resources limitations
+    for pod_ns in pods_to_delete:
+        deployer.vdc_k8s_manager.execute_native_cmd(f"kubectl delete ns {pod_ns}")
+        j.logger.info(f"{pod_ns} deleted")
+
+    # Delete the node
+    try:
+        j.logger.info(f"Deleting node with wid: {wid}")
+        deployer.delete_k8s_node(wid, True)
+    except Exception as e:
+        j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
+        abort(500, "Error: Failed to delete workload")
+    return j.data.serializers.json.dumps({"result": True})
+
+
+@app.route("/api/kube/nodes/check_before_delete", method="POST")
+@package_authorized("vdc_dashboard")
+def check_before_delete_node():
+    data = j.data.serializers.json.loads(request.body.read())
+    wid = data.get("wid")
     if not wid:
         abort(400, "Error: Not all required params was passed.")
     vdc = get_vdc()
@@ -78,12 +120,11 @@ def delete_node():
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     deployer = vdc.get_deployer()
     try:
-        j.logger.info(f"Deleting node with wid: {wid}")
-        deployer.delete_k8s_node(wid)
+        is_ready, pods_to_delete = deployer.kubernetes.check_drain_availability(wid)
     except Exception as e:
-        j.logger.error(f"Error: Failed to delete workload due to the following {str(e)}")
-        abort(500, "Error: Failed to delete workload")
-    return j.data.serializers.json.dumps({"result": True})
+        j.logger.error(f"Error: Failed to check before delete workload due to the following {str(e)}")
+        abort(500, "Error: Failed to check before delete workload")
+    return j.data.serializers.json.dumps({"is_ready": is_ready, "pods_to_delete": pods_to_delete})
 
 
 @app.route("/api/s3/zdbs/delete", method="POST")
@@ -452,3 +493,89 @@ def get_sdk_version():
     return HTTPResponse(
         j.data.serializers.json.dumps({"data": data}), status=200, headers={"Content-Type": "application/json"}
     )
+
+
+@app.route("/api/api_keys", method="GET")
+@login_required
+def get_api_keys():
+    api_keys = []
+    for name in APIKeyFactory.list_all():
+        api_key = APIKeyFactory.find(name)
+        api_key = api_key.to_dict()
+        api_key.pop("key")
+        api_keys.append(api_key)
+    return j.data.serializers.json.dumps({"data": api_keys})
+
+
+@app.route("/api/api_keys", method="POST")
+@login_required
+def generate_api_keys():
+    data = j.data.serializers.json.loads(request.body.read())
+    name = data.get("name")
+    role = data.get("role")
+    if not name:
+        return HTTPResponse(f"Please specify a name", status=500, headers={"Content-Type": "application/json"})
+    if not role:
+        return HTTPResponse(f"Please specify a role", status=500, headers={"Content-Type": "application/json"})
+
+    if APIKeyFactory.find(name):
+        return HTTPResponse(
+            f"API key with name '{name}' is already exist", status=500, headers={"Content-Type": "application/json"}
+        )
+    api_key = APIKeyFactory.new(name.lower(), role=role)
+    api_key.save()
+    return j.data.serializers.json.dumps({"data": api_key.to_dict()})
+
+
+@app.route("/api/api_keys", method="PUT")
+@login_required
+def edit_api_keys():
+    data = j.data.serializers.json.loads(request.body.read())
+    name = data.get("name")
+    role = data.get("role")
+    regenerate = data.get("regenerate")
+    if not name:
+        return HTTPResponse(f"Please specify a name", status=500, headers={"Content-Type": "application/json"})
+
+    if not any([role, regenerate]) or all([role, regenerate]):
+        return HTTPResponse(
+            f"Please specify a role or set 'regenerate' to true to regenerate the key",
+            status=500,
+            headers={"Content-Type": "application/json"},
+        )
+
+    api_key = APIKeyFactory.find(name.lower())
+    if not api_key:
+        return HTTPResponse(
+            f"API key with name '{name}' does not exist", status=500, headers={"Content-Type": "application/json"}
+        )
+    if role:
+        api_key.role = role
+        api_key.save()
+    if regenerate:
+        api_key.key = uuid4().hex
+        api_key.save()
+        return j.data.serializers.json.dumps({"data": api_key.to_dict()})
+
+
+@app.route("/api/api_keys", method="DELETE")
+@login_required
+def delete_api_keys():
+    data = j.data.serializers.json.loads(request.body.read())
+    name = data.get("name")
+    delete_all = data.get("all")
+    if not any([name, delete_all]):
+        return HTTPResponse(
+            f"Please specify a name or set 'all' to true to delete all keys",
+            status=500,
+            headers={"Content-Type": "application/json"},
+        )
+    if name:
+        if not APIKeyFactory.find(name):
+            return HTTPResponse(
+                f"API key with name '{name}' does not exist", status=500, headers={"Content-Type": "application/json"}
+            )
+        APIKeyFactory.delete(name)
+    else:
+        for api_key in APIKeyFactory.list_all():
+            APIKeyFactory.delete(api_key)

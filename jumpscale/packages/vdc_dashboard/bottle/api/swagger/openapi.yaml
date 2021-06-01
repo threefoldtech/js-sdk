@@ -13,6 +13,10 @@ components:
     basicAuth:
       type: http
       scheme: basic
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
 
   schemas:
     Error:
@@ -788,6 +792,7 @@ components:
 
 security:
   - basicAuth: []
+  - ApiKeyAuth: []
 
 paths:
   /vdc:

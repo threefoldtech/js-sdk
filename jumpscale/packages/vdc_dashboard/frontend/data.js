@@ -228,7 +228,7 @@ const BC_SOLUTIONS = {
             name: "Dash",
             type: "dash",
             image: "./assets/dash.png",
-            disable: true,
+            disable: false,
             helpLink: `${DOCS_BASE_URL}/dash`,
             description: "Open source peer-to-peer cryptocurrency with a strong focus on the payments industry."
         },
@@ -375,4 +375,9 @@ const TYPES = [
     'event_system',
     'event_monitor',
     'event_operator',
+]
+
+const USER_ROLES = [
+    "ADMIN",
+    "USER",
 ]
