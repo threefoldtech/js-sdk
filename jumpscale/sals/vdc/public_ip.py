@@ -61,19 +61,3 @@ class VDCPublicIP(VDCBaseComponent):
             return wid
         except DeploymentFailed as e:
             self.vdc_deployer.error(f"Failed to reserve public ip {address} on node {node_id} due to error {str(e)}")
-
-    def _atomic_transfer_public_ip(self, wid, node_id, solution_uuid=None):
-        w = self.vdc_deployer.zos.workloads.get(wid)
-        workloads = self.vdc_deployer.zos.workloads.list_workloads(self.vdc_instance.identity_tid)
-        for workload in workloads:
-            if (
-                workload.info.workload_type == WorkloadType.Public_IP
-                and workload.ipaddress == w.ipaddress
-                and workload.info.next_action == NextAction.DEPLOY
-            ):
-                self.vdc_deployer.zos.workloads.decomission(workload.id)
-                live_workload = workload
-                deployer.wait_workload_deletion(workload.id)
-                break
-
-        return self.vdc_deployer.public_ip.get_specific_public_ip(w.info.pool_id, node_id, w.ipaddress, solution_uuid)

@@ -159,7 +159,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         datastore_endpoint="",
         network_subnet="",
         private_ip_address="",
-        public_ip_wid=None,
+        public_ip_address=None,
     ):
         master_ip = None
         # deploy_master
@@ -203,9 +203,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 raise j.exceptions.Runtime("All attempts to deploy kubernetes master node have failed")
 
             # reserve public_ip
-            if public_ip_wid:
-                public_ip_wid = self.vdc_deployer.public_ip._atomic_transfer_public_ip(
-                    public_ip_wid, master_node.node_id, solution_uuid=solution_uuid
+            if public_ip_address:
+                public_ip_wid = self.vdc_deployer.public_ip.get_specific_public_ip(
+                    pool_id, master_node.node_id, public_ip_address, solution_uuid=solution_uuid
                 )
             else:
                 public_ip_wid = self.vdc_deployer.public_ip.get_public_ip(
@@ -656,7 +656,9 @@ ports:
 
         # delete old master in case of next action is deploy
         if old_master_workload.info.next_action == NextAction.DEPLOY:
+            self.vdc_deployer.info(f"Deleting old master workload {old_master_workload.id}")
             self.zos.workloads.decomission(old_master_workload.id)
+            deployer.wait_workload_deletion(old_master_workload.id)
 
         # deleting network old network
         old_network_workload = None
@@ -666,27 +668,28 @@ ports:
                 old_master_workload.ipaddress, workload.iprange
             ):
                 old_network_workload = workload
+                self.vdc_deployer.info(f"Deleting old network workload {old_network_workload.id}")
                 self.zos.workloads.decomission(workload.id)
                 deployer.wait_workload_deletion(workload.id)
                 break
         master_size = VDC_SIZE.VDC_FLAVORS[self.vdc_deployer.flavor]["k8s"]["controller_size"]
         pub_keys = [self.vdc_deployer.ssh_key.public_key.strip()]
         gs = GlobalScheduler()  # need to used nodes
-        nv = deployer.get_network_view(
-            self.vdc_instance.vdc_name, identity_name=self.vdc_deployer.identity.instance_name
-        )
+        nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         self.vdc_instance.load_info()
         endpoints = ",".join([f"http://{etcd.ip_address}:2379" for etcd in self.vdc_instance.etcd])
+        self.vdc_deployer.info("Deploying new master")
+        public_ip_workload = self.zos.workloads.get(old_master_workload.public_ip)
         self.deploy_master(
             old_master_workload.info.pool_id,
             gs,
             master_size,
             self.vdc_instance.get_password(),
             pub_keys,
-            self.vdc_instance.solution_uuid,
+            self.vdc_uuid,
             nv,
             endpoints,
             old_network_workload.iprange,
             old_master_workload.ipaddress,
-            old_master_workload.public_ip,
+            public_ip_workload.ipaddress,
         )
