@@ -19,6 +19,7 @@ from jumpscale.clients.explorer.models import (
 from jumpscale.sals.chatflows.chatflows import GedisChatBot
 from jumpscale.sals.kubernetes import Manager
 from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.sals.zos import get as get_zos
 from jumpscale.sals.zos.billing import InsufficientFunds
 
@@ -27,7 +28,12 @@ from .monitoring import VDCMonitoring
 from .proxy import VDCProxy, VDC_PARENT_DOMAIN
 from .public_ip import VDCPublicIP
 from .s3 import VDCS3Deployer
-from .scheduler import GlobalCapacityChecker, GlobalScheduler, Scheduler, CapacityChecker
+from .scheduler import (
+    CapacityChecker,
+    GlobalCapacityChecker,
+    GlobalScheduler,
+    Scheduler,
+)
 from .size import *
 from .threebot import VDCThreebotDeployer
 
@@ -461,7 +467,7 @@ class VDCDeployer:
         self.vdc_instance.load_info()
         wids = self.kubernetes.extend_cluster(
             compute_farm,
-            master_ip,
+            self.vdc_instance.kubernetes[0].public_ip,
             VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"],
             self.password_hash,
             [self.ssh_key.public_key.strip()],
@@ -734,7 +740,7 @@ class VDCDeployer:
         self.vdc_instance.load_info()
         cluster_secret = self.vdc_instance.get_password()
         self.info(f"Extending kubernetes cluster on farm: {farm_name}, public_ip: {public_ip}, no_nodes: {no_nodes}")
-        master_ip = self.vdc_instance.kubernetes[0].ip_address
+        master_ip = [n for n in self.vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
         public_key = None
         try:
             public_key = self.ssh_key.public_key.strip()
