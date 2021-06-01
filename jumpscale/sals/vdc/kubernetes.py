@@ -82,8 +82,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             wid (int): workload id for the kubernetes node
 
         Returns:
-            bool: Check if drain is available without deleting any pods or not
-            list: List of the pods that will be affected (deleted) if drain is not available
+            bool: Check if drain is available without deleting any release or not
+            list: List of the releases that will be affected (deleted) if drain is not available
         """
         kube_manager = Manager()
         kube_monitor = KubernetesMonitor(self.vdc_instance)
@@ -99,7 +99,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         all_pods_to_redeploy = j.data.serializers.json.loads(out)
         releases_to_delete = []
         previous_release = ""
-        temp_nodes_reservations = remaining_nodes_reservations
+        temp_nodes_reservations = kube_monitor.fetch_resource_reservations(exclude_nodes=node_name_to_delete)
         # Check if every pod can be deployed again in another node
         for pod in all_pods_to_redeploy["items"]:
             # Exclude system pods and pods related to deleted releases, as it is not needed
@@ -113,7 +113,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 else:
                     # Reset temp_nodes_reservations with the accurate remaining resources in the nodes
                     temp_nodes_reservations = remaining_nodes_reservations
-            previous_release = pod["metadata"]["namespace"]
+
             # Get pod resources
             cpu = memory = 0
             can_deploy = False
@@ -140,6 +140,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             if not can_deploy:
                 releases_to_delete.append(pod["metadata"]["namespace"])
                 j.logger.warning(f"Pod: {pod['metadata']['name']} can't be redeployed on any other node")
+
+            previous_release = pod["metadata"]["namespace"]
 
         # Return bool for check, and pods that can not redeployed again
         return len(releases_to_delete) == 0, releases_to_delete
