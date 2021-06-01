@@ -668,14 +668,14 @@ ports:
                 old_master_workload.ipaddress, workload.iprange
             ):
                 old_network_workload = workload
-                self.vdc_deployer.info(f"Deleting old network workload {old_network_workload.id}")
-                self.zos.workloads.decomission(workload.id)
-                deployer.wait_workload_deletion(workload.id)
                 break
+        nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
+        self.vdc_deployer.info(f"Deleting old network on node {old_network_workload.info.node_id}")
+        nv.delete_node(old_network_workload.info.node_id)
+        deployer.delete_access(self.vdc_name, old_network_workload.iprange, nv)
         master_size = VDC_SIZE.VDC_FLAVORS[self.vdc_deployer.flavor]["k8s"]["controller_size"]
         pub_keys = [self.vdc_deployer.ssh_key.public_key.strip()]
         gs = GlobalScheduler()  # need to used nodes
-        nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         self.vdc_instance.load_info()
         endpoints = ",".join([f"http://{etcd.ip_address}:2379" for etcd in self.vdc_instance.etcd])
         self.vdc_deployer.info("Deploying new master")
