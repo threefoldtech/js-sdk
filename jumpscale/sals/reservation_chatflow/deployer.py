@@ -221,15 +221,18 @@ class NetworkView:
     def delete_node(self, node_id):
         zos = j.sals.zos.get(self.identity_name)
         to_delete_wids = []
+        network = zos.network.create(self.iprange, self.name)
         for workload in self.network_workloads:
             if workload.info.node_id == node_id:
                 to_delete_wids.append(workload.id)
-                network = zos.network.create(self.iprange, self.name)
                 to_delete_wids.extend(zos.network.delete_node(network, node_id))
         for wid in to_delete_wids:
             zos.workloads.decomission(wid)
         for wid in to_delete_wids:
             ChatflowDeployer().wait_workload_deletion(wid)
+        for w in network.network_resources:
+            wid = zos.workloads.deploy(w)
+            j.logger.info(f"deploying workload {wid}")
 
     def delete_access(self, ip_range, node_id=None):
         node_id = node_id or self.network_workloads[0].info.node_id

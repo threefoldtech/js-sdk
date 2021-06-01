@@ -662,17 +662,17 @@ ports:
 
         # deleting network old network
         old_network_workload = None
-        workloads = self.zos.workloads.list_workloads(self.vdc_instance.identity_tid, NextAction.DEPLOY)
+        workloads = self.zos.workloads.list_workloads(self.vdc_instance.identity_tid)
         for workload in workloads:
             if workload.info.workload_type == WorkloadType.Network_resource and self._ip_in_network(
                 old_master_workload.ipaddress, workload.iprange
             ):
                 old_network_workload = workload
                 break
+
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         self.vdc_deployer.info(f"Deleting old network on node {old_network_workload.info.node_id}")
         nv.delete_node(old_network_workload.info.node_id)
-        deployer.delete_access(self.vdc_name, old_network_workload.iprange, nv)
         master_size = VDC_SIZE.VDC_FLAVORS[self.vdc_deployer.flavor]["k8s"]["controller_size"]
         pub_keys = [self.vdc_deployer.ssh_key.public_key.strip()]
         gs = GlobalScheduler()  # need to used nodes
