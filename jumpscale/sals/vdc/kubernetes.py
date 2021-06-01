@@ -2,6 +2,7 @@ import math
 import uuid
 import re
 from jumpscale.loader import j
+from jumpscale.sals import reservation_chatflow
 from jumpscale.sals.reservation_chatflow import deployer
 from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 
@@ -96,12 +97,23 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             f"kubectl get pods -A -o json --sort-by='.metadata.namespace' --field-selector spec.nodeName={node_name_to_delete[0]}"
         )
         all_pods_to_redeploy = j.data.serializers.json.loads(out)
-        pods_to_delete = []
+        releases_to_delete = []
+        previous_release = ""
+        temp_nodes_reservations = remaining_nodes_reservations
         # Check if every pod can be deployed again in another node
         for pod in all_pods_to_redeploy["items"]:
-            # Exclude system pods, as it is not needed
-            if pod["metadata"]["namespace"] in system_namespaces:
+            # Exclude system pods and pods related to deleted releases, as it is not needed
+            if pod["metadata"]["namespace"] in system_namespaces or pod["metadata"]["namespace"] in releases_to_delete:
                 continue
+            # Check if it is new namespace, so we can calculate the remaining resources more accurate
+            if pod["metadata"]["namespace"] != previous_release:
+                if previous_release not in releases_to_delete:
+                    # Update nodes resources with all need resources from the previous release
+                    remaining_nodes_reservations = temp_nodes_reservations
+                else:
+                    # Reset temp_nodes_reservations with the accurate remaining resources in the nodes
+                    temp_nodes_reservations = remaining_nodes_reservations
+            previous_release = pod["metadata"]["namespace"]
             # Get pod resources
             cpu = memory = 0
             can_deploy = False
@@ -119,20 +131,18 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     memory *= 1024
 
             # Check if it can be deployed in another node
-            for node in remaining_nodes_reservations:
+            for node in temp_nodes_reservations:
                 if node.has_enough_resources(cpu=cpu, memory=memory):
                     can_deploy = True
                     node.update(cpu=cpu, memory=memory)
                     break
 
             if not can_deploy:
-                if not pod["metadata"]["namespace"] in pods_to_delete:
-                    pods_to_delete.append(pod["metadata"]["namespace"])
-
+                releases_to_delete.append(pod["metadata"]["namespace"])
                 j.logger.warning(f"Pod: {pod['metadata']['name']} can't be redeployed on any other node")
 
         # Return bool for check, and pods that can not redeployed again
-        return len(pods_to_delete) == 0, pods_to_delete
+        return len(releases_to_delete) == 0, releases_to_delete
 
     def extend_cluster(
         self,
@@ -428,7 +438,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     if not success:
                         raise DeploymentFailed()
                     wids.append(wid)
-                    self.vdc_deployer.info(f"Kubernetes worker deployed sucessfully wid: {wid}")
+                    self.vdc_deployer.info(f"Kubernetes worker deployed successfully wid: {wid}")
                 except DeploymentFailed:
                     if public_wids[idx]:
                         self.zos.workloads.decomission(public_wids[idx])
