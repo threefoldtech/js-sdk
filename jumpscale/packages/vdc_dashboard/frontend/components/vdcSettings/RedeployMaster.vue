@@ -5,9 +5,7 @@
     :error="error"
     :loading="loading"
   >
-    <template #default>
-      Are you sure you want to redeploy master?
-    </template>
+    <template #default> Are you sure you want to redeploy master node? </template>
     <template #actions>
       <v-btn text @click="close">Close</v-btn>
       <v-btn text @click="submit">Confirm</v-btn>
@@ -18,7 +16,7 @@
 <script>
 module.exports = {
   mixins: [dialog],
-  props: ["wid"],
+  props: { wid: { type: String, default: "" } },
   methods: {
     submit() {
       this.loading = true;

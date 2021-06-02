@@ -563,8 +563,12 @@ def redeploy_master():
     data = j.data.serializers.json.loads(request.body.read())
     wid = data.get("wid")
     vdc = get_vdc()
-    zos = j.sals.zos.get()
-    w = zos.workloads.get(wid)
+    if not wid:
+        deployer = vdc.get_deployer()
+        w = deployer.kubernetes._get_latest_master_workload()
+    else:
+        zos = j.sals.zos.get()
+        w = zos.workloads.get(wid)
     network_farm = j.sals.marketplace.deployer.get_pool_farm_name(w.info.pool_id)
     deployer = vdc.get_deployer(network_farm=network_farm)
     try:
