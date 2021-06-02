@@ -211,7 +211,7 @@ module.exports = {
   },
   mounted() {
     this.$api.vdc.checkVdcPlanAutoscalable().then((response) => {
-      this.isVDCAutoscalable = response.data;
+      this.isVDCAutoscalable = response.data.autoscalable;
     }).catch((err)=>{
       this.alert(err.message, "error")
     });
