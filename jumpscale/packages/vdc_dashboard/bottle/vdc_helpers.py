@@ -12,7 +12,7 @@ def require_vdc_info(fun):
         global CURRENTVDC
         if not CURRENTVDC:
             CURRENTVDC = get_vdc()
-            fun(*args, **kwargs)
+        return fun(*args, **kwargs)
 
     return inner
 
