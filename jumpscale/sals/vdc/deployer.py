@@ -602,31 +602,23 @@ class VDCDeployer:
         with new_vdc_context(self):
             # deploy zdbs for s3
             self.bot_show_update("Deploying ZDBs")
-            deployment_threads = self.deploy_vdc_zdb(gs, zdb_farms)
+            zdb_threads = self.deploy_vdc_zdb(gs, zdb_farms)
             # public_keys to deploy vdc with
             pub_keys = [self.ssh_key.public_key.strip()]
             # deploy k8s cluster
             self.bot_show_update("Deploying kubernetes cluster")
-            greenlet = gevent.spawn(
+            k8s_greenlet = gevent.spawn(
                 self.deploy_vdc_kubernetes, self.compute_farm, self.network_farm, gs, pub_keys=pub_keys
             )
-            greenlet.deployer = self
-            greenlet.link_exception(on_exception)
-            deployment_threads.append(greenlet)
-            gevent.joinall(deployment_threads)
+            k8s_greenlet.deployer = self
+            k8s_greenlet.link_exception(on_exception)
+            k8s_greenlet.join()
 
-            if not deployment_threads[-1].value:
+            if not k8s_greenlet.value:
                 self.error("Failed to deploy VDC. cancelling workloads")
                 self.rollback_vdc_deployment()
                 raise j.exceptions.Runtime("Failed to deploy VDC. failed to deploy kubernetes cluster")
-
-            for thread in deployment_threads[:-1]:
-                if thread.value:
-                    continue
-                self.error("Failed to deploy VDC. cancelling workloads")
-                self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime("Failed to deploy VDC. failed to deploy zdb")
-
+            # To be moved last
             # zdb_wids = deployment_threads[0].value + deployment_threads[1].value
             # scheduler = Scheduler(farm_name)
             pool_id, _ = self.get_pool_id_and_reservation_id(self.compute_farm)
@@ -671,10 +663,27 @@ class VDCDeployer:
 
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
-            threebot_wid = self.threebot.deploy_threebot(
-                minio_wid, pool_id, kube_config=kube_config, backup_config=s3_backup_config, zdb_farms=zdb_farms,
+            threebot_greenlet = gevent.spawn(
+                self.threebot.deploy_threebot,
+                minio_wid,
+                pool_id,
+                kube_config=kube_config,
+                backup_config=s3_backup_config,
+                zdb_farms=zdb_farms,
             )
+            trafeik_greenlet = gevent.spawn(self.kubernetes.upgrade_traefik)
+            threebot_greenlet.link_exception(on_exception)
+            trafeik_greenlet.link_exception(on_exception)
+            gevent.joinall([threebot_greenlet, *zdb_threads])
+            threebot_wid = threebot_greenlet.value
             self.info(f"threebot_wid: {threebot_wid}")
+            for thread in zdb_threads[:-1]:
+                if thread.value:
+                    continue
+                self.error("Failed to deploy VDC. cancelling workloads")
+                self.rollback_vdc_deployment()
+                raise j.exceptions.Runtime("Failed to deploy VDC. failed to deploy zdb")
+
             if not threebot_wid:
                 self.error("Failed to deploy VDC. cancelling workloads")
                 self.rollback_vdc_deployment()
@@ -689,8 +698,7 @@ class VDCDeployer:
                     # TODO: rollback
                     self.error(f"Failed to deploy monitoring stack on VDC cluster due to error {str(e)}")
 
-            self.bot_show_update("Updating Traefik")
-            self.kubernetes.upgrade_traefik()
+            # self.bot_show_update("Updating Traefik")
             self.vdc_instance.load_info()
             j.clients.sshkey.delete(f"{self.vdc_name}_threebot")
             return kube_config
