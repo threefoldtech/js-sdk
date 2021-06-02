@@ -8,8 +8,8 @@ from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
 from jumpscale.packages.vdc_dashboard.bottle.api.backup import _list as list_backups
 from jumpscale.packages.vdc_dashboard.bottle.api.exceptions import *
-from jumpscale.packages.vdc_dashboard.bottle.api.helpers import get_full_vdc_info, vdc_route
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts
+from jumpscale.packages.vdc_dashboard.bottle.api.helpers import vdc_route
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts, get_wallet_info
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_kubeconfig_file, get_zstor_config_file
 from jumpscale.sals.vdc.size import VDC_SIZE, ZDB_STARTING_SIZE
 
@@ -23,7 +23,7 @@ def threebot_vdc(vdc):
     Returns:
         dict: full vfc info
     """
-    return get_full_vdc_info(vdc)
+    return vdc.to_dict()
 
 
 @app.route("/api/controller/node", method="GET")
@@ -33,7 +33,7 @@ def list_nodes(vdc):
     Returns:
         dict: kubernates info
     """
-    return get_full_vdc_info(vdc)["kubernetes"]
+    return vdc.to_dict()["kubernetes"]
 
 
 @app.route("/api/controller/node", method="POST")
@@ -135,7 +135,7 @@ def list_zdbs(vdc):
     Returns:
         zdbs: string
     """
-    vdc_dict = get_full_vdc_info(vdc)
+    vdc_dict = vdc.to_dict()
     zdb_monitor = vdc.get_zdb_monitor()
     zdbs_usage = zdb_monitor.get_zdbs_usage()
     zdbs_info = vdc_dict["s3"]["zdbs"]
@@ -242,7 +242,7 @@ def get_wallet_info(vdc):
         dict: wallet (prepaid)
     """
     # Get prepaid wallet info
-    return get_full_vdc_info(vdc)["wallet"]
+    return get_wallet_info()
 
 
 @app.route("/api/controller/pools", method="GET")

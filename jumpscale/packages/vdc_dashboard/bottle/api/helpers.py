@@ -7,7 +7,7 @@ from bottle import parse_auth, request, response
 from jumpscale.loader import j
 
 from ..models import APIKeyFactory
-from ..vdc_helpers import threebot_vdc_helper
+from ..vdc_helpers import threebot_vdc_helper, get_vdc
 from .exceptions import (
     BaseError,
     InvalidCredentials,
@@ -75,17 +75,6 @@ def format_error(error):
     return j.data.serializers.json.dumps(data)
 
 
-def get_vdc(load_info=True):
-    vdcs = j.sals.vdc.list_all()
-    if vdcs:
-        vdc_full_name = list(vdcs)[0]
-        return j.sals.vdc.find(vdc_full_name, load_info=load_info)
-
-
-def get_full_vdc_info(vdc):
-    return threebot_vdc_helper(vdc=vdc)
-
-
 def _is_authorized(vdc):
     """Check if the user is authorized through BasicAuth or API Keys.
     """
@@ -110,7 +99,7 @@ def vdc_route(serialize=True):
                 function_name = function.__name__
 
                 # Get vdc instance and password
-                vdc = get_vdc()
+                vdc = get_vdc(True)
                 if not vdc:
                     raise VDCNotFound(
                         500, "No VDCs where found, Please make sure to have it configured properly",

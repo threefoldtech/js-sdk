@@ -45,6 +45,43 @@ const apiClient = {
       })
     }
   },
+  vdc: {
+    getVdcInfo: () => {
+      return axios({
+        url: `${baseURL}/vdc/info`,
+        headers: { 'Content-Type': 'application/json' },
+        method: "get"
+      })
+    },
+    getVdcExpiration: () => {
+      return axios({
+        url: `${baseURL}/vdc/expiration`,
+        headers: { 'Content-Type': 'application/json' },
+        method: "get"
+      })
+    },
+    getVdcPlanPrice: () => {
+      return axios({
+        url: `${baseURL}/vdc/plan/price`,
+        headers: { 'Content-Type': 'application/json' },
+        method: "get"
+      })
+    },
+    checkVdcPlanAutoscalable: () => {
+      return axios({
+        url: `${baseURL}/vdc/plan/autoscalable`,
+        headers: { 'Content-Type': 'application/json' },
+        method: "get"
+      })
+    },
+    getVdcWalletInfo: () => {
+      return axios({
+        url: `${baseURL}/vdc/wallet`,
+        headers: { 'Content-Type': 'application/json' },
+        method: "get"
+      })
+    },
+  },
   solutions: {
     getSolutions: (solutionType) => {
       return axios({
@@ -66,20 +103,6 @@ const apiClient = {
         method: "post",
         data: { release: releaseName, solution_id: solutionId, vdc_name: vdcName, namespace: namespace },
         headers: { 'Content-Type': 'application/json' }
-      })
-    },
-    getVdcInfo: () => {
-      return axios({
-        url: `${baseURL}/vdc/capacity`,
-        headers: { 'Content-Type': 'application/json' },
-        method: "get"
-      })
-    },
-    getVdcFullInfo: () => {
-      return axios({
-        url: `${baseURL}/vdc/plan`,
-        headers: { 'Content-Type': 'application/json' },
-        method: "get"
       })
     },
     exposeS3: () => {
