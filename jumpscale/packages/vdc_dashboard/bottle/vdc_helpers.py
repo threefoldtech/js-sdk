@@ -95,7 +95,7 @@ def get_wallet_info():
 
 @require_vdc_info
 def check_plan_autoscalable():
-    return CURRENTVDC.kubernetes.length < _total_capacity(CURRENTVDC)
+    return len(CURRENTVDC.kubernetes) < _total_capacity(CURRENTVDC)
 
 
 def _list_alerts(app_name: str = ""):
