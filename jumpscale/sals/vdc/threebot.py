@@ -21,6 +21,7 @@ import random
 
 THREEBOT_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
 THREEBOT_TRC_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
+THREEBOT_VDC_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_vdc.flist"
 
 # etcd backup config can be set using
 """JS-NG> j.core.config.set("VDC_S3_CONFIG", s3_config)
@@ -55,7 +56,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
     ):
         backup_config = backup_config or {}
         etcd_backup_config = j.core.config.get("VDC_S3_CONFIG", {})
-        flist = THREEBOT_TRC_FLIST if embed_trc else THREEBOT_FLIST
+        flist = THREEBOT_VDC_FLIST if embed_trc else THREEBOT_FLIST
         # workload = self.zos.workloads.get(minio_wid)
         # if workload.info.workload_type != WorkloadType.Container:
         #     raise j.exceptions.Validation(f"workload {minio_wid} is not container workload")

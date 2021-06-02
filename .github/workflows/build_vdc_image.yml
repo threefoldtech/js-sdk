@@ -1,0 +1,23 @@
+name: js-sdk with trc and vdc dependencies
+
+on:
+  push:
+    branches: [ development ]
+jobs:
+    build-docker:
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v2
+        - uses: docker/build-push-action@v1
+          with:
+            path: jumpscale/install
+            repository: ${{ secrets.DOCKERHUB_USERNAME }}/js-sdk
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_PASSWORD }}
+            dockerfile: jumpscale/install/Dockerfile.vdc
+            tags: latest_vdc
+            build_args: BRANCH=development,TRC=true
+        - name: Convert Docker image to flist
+          run: |
+            TOKEN=$(curl -f -H "Authorization: bearer ${{secrets.ZEROHUB_TOKEN}}" https://itsyou.online/v1/oauth/jwt/refresh)
+            curl -f -X POST  -H "Authorization: bearer $TOKEN" ${{ secrets.ZEROHUB_URL }}/api/flist/me/docker -F 'image=${{ secrets.DOCKERHUB_USERNAME }}/js-sdk:latest_trc'
