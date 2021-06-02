@@ -196,12 +196,6 @@ j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{vdc.owner_tname}/{vdc.vdc_
 j.sals.fs.mkdirs("/root/.kube")
 j.sals.fs.write_file("/root/.kube/config", KUBE_CONFIG)
 
-# backup config and restore
-# install velero
-# try:
-# except Exception as e:
-#     j.logger.error(f"backup config failed due to error {str(e)}")
-
 # Register provisioning and prepaid wallets
 
 wallet = j.clients.stellar.get(

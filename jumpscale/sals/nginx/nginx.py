@@ -296,11 +296,9 @@ class Website(Base):
         return render_config_template("website", base_dir=j.core.dirs.BASEDIR, website=self)
 
     def generate_certificates(self, retries=6):
-        j.logger.debug(f"the domain when trying to generate certs {self.domain}")
         if self.domain:
             for _ in range(retries):
                 rc, out, err = j.sals.process.execute(self.certbot.run_cmd)
-                j.logger.debug(f"finished one try, rc: {rc}")
                 if rc > 0:
                     j.logger.error(f"Generating certificate failed {out}\n{err}")
                 else:
@@ -334,7 +332,6 @@ class Website(Base):
             location.configure()
 
         j.sals.fs.write_file(self.cfg_file, self.get_config())
-        j.logger.debug(f"generating certificates {generate_certificates} {self.ssl}")
         if self.ssl:
             self.generate_self_signed_certificates()
         if generate_certificates and self.ssl:
