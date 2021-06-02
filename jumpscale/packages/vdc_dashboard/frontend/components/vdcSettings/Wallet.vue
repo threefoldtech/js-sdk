@@ -62,7 +62,11 @@
           <tr>
             <td>VDC expiration date</td>
             <td class="ml-2">
-              {{ new Date(expirationdata.expiration_date * 1000).toLocaleString("en-GB") }}
+              {{
+                new Date(expirationdata.expiration_date * 1000).toLocaleString(
+                  "en-GB"
+                )
+              }}
             </td>
           </tr>
           <tr>
@@ -103,7 +107,7 @@
 <script>
 module.exports = {
   props: {
-    wallet: Object,
+    wallet: { type: Object, default: null },
     expirationdata: Object,
     price: { type: Number, default: 100 },
   },
@@ -129,8 +133,7 @@ module.exports = {
     },
   },
   updated() {
-    if (this.wallet && !this.qrcode && !this.qrcodeLoading)
-      this.getQRCode();
+    if (this.wallet && !this.qrcode && !this.qrcodeLoading) this.getQRCode();
   },
 };
 </script>
