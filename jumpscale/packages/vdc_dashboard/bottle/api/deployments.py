@@ -212,6 +212,9 @@ def remove_admin() -> str:
 def threebot_vdc():
     vdc = get_vdc()
     vdc_dict = threebot_vdc_helper(vdc=vdc)
+    for node in vdc_dict["kubernetes"]:
+        if node["role"] == "master":
+            node["status"] = j.sals.nettools.tcp_connection_test(node["public_ip"], 6443, 10)
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
     )
@@ -552,3 +555,20 @@ def delete_api_keys():
     else:
         for api_key in APIKeyFactory.list_all():
             APIKeyFactory.delete(api_key)
+
+
+@app.route("/api/redeploy_master", method="POST")
+@package_authorized("vdc_dashboard")
+def redeploy_master():
+    data = j.data.serializers.json.loads(request.body.read())
+    wid = data.get("wid")
+    vdc = get_vdc()
+    zos = j.sals.zos.get()
+    w = zos.workloads.get(wid)
+    network_farm = j.sals.marketplace.deployer.get_pool_farm_name(w.info.pool_id)
+    deployer = vdc.get_deployer(network_farm=network_farm)
+    try:
+        deployer.kubernetes.redeploy_master(w)
+    except Exception as e:
+        j.logger.exception("Failed to redeploy master", exception=e)
+        return HTTPResponse(f"Failed to redeploy master", status=500, headers={"Content-Type": "application/json"})

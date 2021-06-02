@@ -648,12 +648,13 @@ ports:
         net = ipaddress.ip_network(network)
         return ip_addr in net
 
-    def redeploy_master(self):
+    def redeploy_master(self, old_master_workload=None):
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-        old_master_workload = self._get_latest_master_workload()
         if not old_master_workload:
-            self.vdc_deployer.error("Couldn't find old master workload")
-            return
+            old_master_workload = self._get_latest_master_workload()
+            if not old_master_workload:
+                self.vdc_deployer.error("Couldn't find old master workload")
+                return
 
         # delete old master in case of next action is deploy
         if old_master_workload.info.next_action == NextAction.DEPLOY:
@@ -673,6 +674,7 @@ ports:
 
         # self.vdc_deployer.info(f"Deleting old network on node {old_network_workload.info.node_id}")
         # nv.delete_node(old_network_workload.info.node_id)
+
         master_size = VDC_SIZE.VDC_FLAVORS[self.vdc_deployer.flavor]["k8s"]["controller_size"]
         pub_keys = [self.vdc_deployer.ssh_key.public_key.strip()]
         gs = GlobalScheduler()  # need to used nodes
@@ -691,3 +693,4 @@ ports:
             endpoints,
             public_ip_address=public_ip_workload.ipaddress,
         )
+        return True

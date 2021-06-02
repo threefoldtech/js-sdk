@@ -73,6 +73,15 @@
           </template>
           <span>Delete</span>
         </v-tooltip>
+        <v-tooltip top v-if="item.role === 'master' && item.status===false">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon @click.stop="redeployMaster(item.wid)">
+                  <v-icon v-bind="attrs" v-on="on" color="#1b4f72"
+                    >mdi-reload</v-icon
+                  >
+              </template>
+              <span>There's an error reaching your master node, Please press if you want to redeploy the master</span>
+            </v-tooltip>
       </template>
     </v-data-table>
 
@@ -96,6 +105,12 @@
       :wid="selectedworker"
       @reload-vdcinfo="reloadVdcInfo"
     ></cancel-workload>
+    <redeploy-master
+      v-if="selectedworker"
+      v-model="dialogs.redeployMaster"
+      :wid="selectedworker"
+      @reload-vdcinfo="reloadVdcInfo"
+    ></redeploy-master>
     <download-kubeconfig v-model="dialogs.downloadKube"></download-kubeconfig>
   </div>
 </template>
@@ -106,6 +121,7 @@ module.exports = {
     "solution-info": httpVueLoader("../base/Info.vue"),
     "cancel-workload": httpVueLoader("./DeleteConfirmation.vue"),
     "download-kubeconfig": httpVueLoader("./DownloadKubeconfig.vue"),
+    "redeploy-master": httpVueLoader("./RedeployMaster.vue")
   },
   props: ["vdc", "loading"],
 
@@ -117,6 +133,7 @@ module.exports = {
         info: false,
         cancelWorkload: false,
         downloadKube: false,
+        redeployMaster: false,
       },
       headers: [
         { text: "WID", value: "wid" },
@@ -175,6 +192,10 @@ module.exports = {
         .catch((err) => {
           console.log("Failed to download threebot state due to " + err);
         });
+    },
+    redeployMaster(wid) {
+      this.selectedworker = wid;
+      this.dialogs.redeployMaster = true;
     },
   },
   computed: {
