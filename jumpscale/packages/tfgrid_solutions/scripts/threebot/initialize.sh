@@ -1,7 +1,8 @@
 echo "[*] Starting threebot in background ..."
 
 if [ $MINIMAL == "true" ]; then
-
+  [ -f /usr/local/bin/helm ] && chmod u+x /usr/local/bin/helm
+  [ -f /sbin/velero ] && chmod u+x /sbin/velero
   python3 jumpscale/packages/tfgrid_solutions/scripts/threebot/minimal_entrypoint.py
 else
   echo "INSTANCE_NAME=${INSTANCE_NAME}" >> ~/.bashrc
