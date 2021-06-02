@@ -1,6 +1,7 @@
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.loader import j
+from jumpscale.sals.vdc.models import KubernetesRole
 
 
 class VDCDomainsValidation(BackgroundService):
@@ -36,7 +37,7 @@ class VDCDomainsValidation(BackgroundService):
     def validate_solution_domains(self, vdc, domains):
         # get all deployed domains
         # make sure they point to ip_address otherwise decomission it
-        public_ip = vdc.kubernetes[0].public_ip
+        public_ip = [n for n in vdc.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
         deployed_domains = set()
         zos = j.sals.zos.get()
         # get the deployed domains that exist in the solution domains

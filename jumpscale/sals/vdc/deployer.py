@@ -465,9 +465,10 @@ class VDCDeployer:
             return [master_ip]
         self.bot_show_update("Deploying Kubernetes Workers...")
         self.vdc_instance.load_info()
+        public_ip = [n for n in self.vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
         wids = self.kubernetes.extend_cluster(
             compute_farm,
-            self.vdc_instance.kubernetes[0].public_ip,
+            public_ip,
             VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"],
             self.password_hash,
             [self.ssh_key.public_key.strip()],
@@ -713,7 +714,7 @@ class VDCDeployer:
                 self.zos.workloads.decomission(self.vdc_instance.s3.domain_wid)
                 deployer.wait_workload_deletion(self.vdc_instance.s3.domain_wid)
 
-        master_ip = self.vdc_instance.kubernetes[0].public_ip
+        master_ip = [n for n in self.vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
         self.info(f"Exposing s3 over public ip: {master_ip}")
         solution_uuid = uuid.uuid4().hex
         domain_name = self.proxy.ingress_proxy_over_managed_domain(

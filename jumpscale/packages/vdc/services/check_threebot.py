@@ -1,8 +1,10 @@
-from jumpscale.loader import j
 import gevent
+from jumpscale.loader import j
+
+from jumpscale.clients.explorer.models import WorkloadType
+from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.sals.zos import get as get_zos
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
-from jumpscale.clients.explorer.models import WorkloadType
 
 
 class CheckThreebot(BackgroundService):
@@ -32,7 +34,7 @@ class CheckThreebot(BackgroundService):
                 gevent.sleep(0.1)
                 continue
 
-            master_ip = vdc_instance.kubernetes[0].public_ip
+            master_ip = [n for n in vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
             # Check if vdc master is not reachable
             if not j.sals.nettools.tcp_connection_test(master_ip, 6443, 10):
                 j.logger.warning(
