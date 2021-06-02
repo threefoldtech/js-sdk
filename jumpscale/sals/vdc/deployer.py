@@ -487,7 +487,7 @@ class VDCDeployer:
         self._wallet = None
         return old_wallet_name
 
-    def check_capacity(self, farm_name, network_farm, zdb_farms=None):
+    def check_capacity(self, compute_farm, network_farm, zdb_farms=None):
         # make sure there are available public ips
         farm = self.explorer.farms.get(farm_name=network_farm)
         available_ips = False
@@ -522,7 +522,7 @@ class VDCDeployer:
         if not gcc.add_query(**master_query):
             return False
 
-        worker_query = {"farm_name": farm_name, "no_nodes": 1}
+        worker_query = {"farm_name": compute_farm, "no_nodes": 1}
         worker_query.update(VDC_SIZE.K8S_SIZES[plan["k8s"]["size"]])
         if not gcc.add_query(**worker_query):
             return False
@@ -540,7 +540,7 @@ class VDCDeployer:
 
         # check threebot container capacity
         threebot_query = {
-            "farm_name": farm_name,
+            "farm_name": compute_farm,
             "cru": THREEBOT_CPU,
             "mru": THREEBOT_MEMORY / 1024,
             "sru": THREEBOT_DISK / 1024,
