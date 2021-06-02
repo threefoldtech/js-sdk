@@ -9,7 +9,7 @@ from jumpscale.loader import j
 from jumpscale.packages.vdc_dashboard.bottle.api.backup import _list as list_backups
 from jumpscale.packages.vdc_dashboard.bottle.api.exceptions import *
 from jumpscale.packages.vdc_dashboard.bottle.api.helpers import vdc_route
-from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts, get_wallet_info
+from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts, get_wallet_info as get_wallet
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_kubeconfig_file, get_zstor_config_file
 from jumpscale.sals.vdc.size import VDC_SIZE, ZDB_STARTING_SIZE
 
@@ -242,7 +242,7 @@ def get_wallet_info(vdc):
         dict: wallet (prepaid)
     """
     # Get prepaid wallet info
-    return get_wallet_info()
+    return get_wallet()
 
 
 @app.route("/api/controller/pools", method="GET")
