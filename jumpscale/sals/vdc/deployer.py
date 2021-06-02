@@ -19,6 +19,7 @@ from jumpscale.clients.explorer.models import (
 from jumpscale.sals.chatflows.chatflows import GedisChatBot
 from jumpscale.sals.kubernetes import Manager
 from jumpscale.sals.reservation_chatflow import deployer, solutions
+from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.sals.zos import get as get_zos
 from jumpscale.sals.zos.billing import InsufficientFunds
 
@@ -27,7 +28,12 @@ from .monitoring import VDCMonitoring
 from .proxy import VDCProxy, VDC_PARENT_DOMAIN
 from .public_ip import VDCPublicIP
 from .s3 import VDCS3Deployer
-from .scheduler import GlobalCapacityChecker, GlobalScheduler, Scheduler, CapacityChecker
+from .scheduler import (
+    CapacityChecker,
+    GlobalCapacityChecker,
+    GlobalScheduler,
+    Scheduler,
+)
 from .size import *
 from .threebot import VDCThreebotDeployer
 
@@ -328,14 +334,14 @@ class VDCDeployer:
         cus += n_cus
         sus += n_sus
 
-        # etcd_cont = Container()
-        # etcd_cont.capacity.cpu = ETCD_CPU
-        # etcd_cont.capacity.memory = ETCD_MEMORY
-        # etcd_cont.capacity.disk_size = ETCD_DISK
-        # etcd_cont.capacity.disk_type = DiskType.SSD
-        # n_cus, n_sus = get_cloud_units(etcd_cont)
-        # cus += n_cus * ETCD_CLUSTER_SIZE
-        # sus += n_sus * ETCD_CLUSTER_SIZE
+        etcd_cont = Container()
+        etcd_cont.capacity.cpu = ETCD_CPU
+        etcd_cont.capacity.memory = ETCD_MEMORY
+        etcd_cont.capacity.disk_size = ETCD_DISK
+        etcd_cont.capacity.disk_type = DiskType.SSD
+        n_cus, n_sus = get_cloud_units(etcd_cont)
+        cus += n_cus * ETCD_CLUSTER_SIZE
+        sus += n_sus * ETCD_CLUSTER_SIZE
 
         farm_resources[compute_farm]["cus"] += cus
         farm_resources[compute_farm]["sus"] += sus
@@ -435,13 +441,13 @@ class VDCDeployer:
         1- deploy master
         2- extend cluster with the flavor no_nodes
         """
-        # self.bot_show_update("Deploying External ETCD Cluster...")
-        # etcd_ips = self.kubernetes.deploy_external_etcd(farm_name=compute_farm, solution_uuid=self.vdc_uuid)
-        # if not etcd_ips:
-        #     self.error("failed to deploy etcd cluster")
-        #     return
-        # endpoint = ",".join([f"http://{ip_address}:2379" for ip_address in etcd_ips])
-        endpoint = ""
+        self.bot_show_update("Deploying External ETCD Cluster...")
+        etcd_ips = self.kubernetes.deploy_external_etcd(farm_name=compute_farm, solution_uuid=self.vdc_uuid)
+        if not etcd_ips:
+            self.error("failed to deploy etcd cluster")
+            return
+        endpoint = ",".join([f"http://{ip_address}:2379" for ip_address in etcd_ips])
+        # endpoint = ""
         self.bot_show_update("Deploying Kubernetes Controller...")
         gs = scheduler or GlobalScheduler()
         master_pool_id, _ = self.get_pool_id_and_reservation_id(network_farm)
@@ -459,9 +465,10 @@ class VDCDeployer:
             return [master_ip]
         self.bot_show_update("Deploying Kubernetes Workers...")
         self.vdc_instance.load_info()
+        public_ip = [n for n in self.vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
         wids = self.kubernetes.extend_cluster(
             compute_farm,
-            master_ip,
+            public_ip,
             VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"],
             self.password_hash,
             [self.ssh_key.public_key.strip()],
@@ -707,7 +714,7 @@ class VDCDeployer:
                 self.zos.workloads.decomission(self.vdc_instance.s3.domain_wid)
                 deployer.wait_workload_deletion(self.vdc_instance.s3.domain_wid)
 
-        master_ip = self.vdc_instance.kubernetes[0].public_ip
+        master_ip = [n for n in self.vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
         self.info(f"Exposing s3 over public ip: {master_ip}")
         solution_uuid = uuid.uuid4().hex
         domain_name = self.proxy.ingress_proxy_over_managed_domain(
@@ -734,7 +741,7 @@ class VDCDeployer:
         self.vdc_instance.load_info()
         cluster_secret = self.vdc_instance.get_password()
         self.info(f"Extending kubernetes cluster on farm: {farm_name}, public_ip: {public_ip}, no_nodes: {no_nodes}")
-        master_ip = self.vdc_instance.kubernetes[0].ip_address
+        master_ip = [n for n in self.vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
         public_key = None
         try:
             public_key = self.ssh_key.public_key.strip()

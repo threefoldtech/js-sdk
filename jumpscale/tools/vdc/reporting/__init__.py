@@ -9,6 +9,7 @@ from jumpscale.loader import j
 from jumpscale.sals.zos import get as get_zos
 from jumpscale.sals.vdc.vdc import VDC_WORKLOAD_TYPES
 from textwrap import wrap
+from jumpscale.sals.vdc.models import KubernetesRole
 
 
 def _filter_vdc_workloads(vdc):
@@ -59,10 +60,11 @@ def report_vdc_status(vdc_name: str):
     threebot_domain = ""
     master_ip_state = "Down"
     threebot_domain_state = "Down"
+
     if vdc.has_minimal_components():
-        master_ip = vdc.kubernetes[0].public_ip
+        master_ip = [n for n in vdc.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
         threebot_ip = vdc.threebot.ip_address
-        master_ip_state = "Up" if j.sals.nettools.tcp_connection_test(vdc.kubernetes[0].public_ip, 6443, 10) else "Down"
+        master_ip_state = "Up" if j.sals.nettools.tcp_connection_test(master_ip, 6443, 10) else "Down"
         threebot_domain = f"https://{vdc.threebot.domain}"
         threebot_domain_state = "Up" if j.sals.nettools.wait_http_test(threebot_domain, timeout=10) else "Down"
 

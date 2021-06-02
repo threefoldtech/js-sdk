@@ -127,28 +127,29 @@ class NetworkView:
                     if conn.network_id == self.name:
                         self.used_ips.append(conn.ipaddress)
 
-    def add_node(self, node, pool_id):
-        used_ip_ranges = set()
-        for workload in self.network_workloads:
-            if workload.info.node_id == node.node_id:
-                return
-            used_ip_ranges.add(workload.iprange)
-            for peer in workload.peers:
-                used_ip_ranges.add(peer.iprange)
-        else:
-            network_range = netaddr.IPNetwork(self.iprange)
-            for idx, subnet in enumerate(network_range.subnet(24)):
-                if str(subnet) not in used_ip_ranges:
-                    break
+    def add_node(self, node, pool_id, subnet=""):
+        if not subnet:
+            used_ip_ranges = set()
+            for workload in self.network_workloads:
+                if workload.info.node_id == node.node_id:
+                    return
+                used_ip_ranges.add(workload.iprange)
+                for peer in workload.peers:
+                    used_ip_ranges.add(peer.iprange)
             else:
-                raise StopChatFlow("Failed to find free network")
-            network = j.sals.zos.get(self.identity_name).network.create(self.iprange, self.name)
-            node_workloads = {}
-            for net_workload in self.network_workloads:
-                node_workloads[net_workload.info.node_id] = net_workload
-            network.network_resources = list(node_workloads.values())  # add only latest network resource for each node
-            j.sals.zos.get(self.identity_name).network.add_node(network, node.node_id, str(subnet), pool_id)
-            return network
+                network_range = netaddr.IPNetwork(self.iprange)
+                for idx, subnet in enumerate(network_range.subnet(24)):
+                    if str(subnet) not in used_ip_ranges:
+                        break
+                else:
+                    raise StopChatFlow("Failed to find free network")
+        network = j.sals.zos.get(self.identity_name).network.create(self.iprange, self.name)
+        node_workloads = {}
+        for net_workload in self.network_workloads:
+            node_workloads[net_workload.info.node_id] = net_workload
+        network.network_resources = list(node_workloads.values())  # add only latest network resource for each node
+        j.sals.zos.get(self.identity_name).network.add_node(network, node.node_id, str(subnet), pool_id)
+        return network
 
     def add_multiple_nodes(self, node_ids, pool_ids):
         used_ip_ranges = set()
@@ -216,6 +217,22 @@ class NetworkView:
             j.sals.zos.get(self.identity_name).network.add_node(network, node_id, str(subnet), pool_id=pool_id)
         wg_quick = j.sals.zos.get(self.identity_name).network.add_access(network, node_id, str(subnet), ipv4=use_ipv4)
         return network, wg_quick
+
+    def delete_node(self, node_id):
+        zos = j.sals.zos.get(self.identity_name)
+        to_delete_wids = []
+        network = zos.network.create(self.iprange, self.name)
+        for workload in self.network_workloads:
+            if workload.info.node_id == node_id:
+                to_delete_wids.append(workload.id)
+                to_delete_wids.extend(zos.network.delete_node(network, node_id))
+        for wid in to_delete_wids:
+            zos.workloads.decomission(wid)
+        for wid in to_delete_wids:
+            ChatflowDeployer().wait_workload_deletion(wid)
+        for w in network.network_resources:
+            wid = zos.workloads.deploy(w)
+            j.logger.info(f"deploying workload {wid}")
 
     def delete_access(self, ip_range, node_id=None):
         node_id = node_id or self.network_workloads[0].info.node_id
@@ -942,12 +959,21 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             gevent.sleep(1)
 
     def add_network_node(
-        self, name, node, pool_id, network_view=None, bot=None, identity_name=None, description="", **metadata
+        self,
+        name,
+        node,
+        pool_id,
+        network_view=None,
+        bot=None,
+        identity_name=None,
+        description="",
+        subnet="",
+        **metadata,
     ):
         identity_name = identity_name or j.core.identity.me.instance_name
         if not network_view:
             network_view = NetworkView(name, identity_name=identity_name)
-        network = network_view.add_node(node, pool_id)
+        network = network_view.add_node(node, pool_id, subnet)
         if not network:
             return
         parent_id = network_view.network_workloads[-1].id

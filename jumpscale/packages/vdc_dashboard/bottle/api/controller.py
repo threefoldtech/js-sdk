@@ -1,16 +1,24 @@
 # controller API
 # need to have a separate app because it shouldn't be authenticated using "auth" package
-import random
 from math import ceil
+import random
 
 from bottle import Bottle, HTTPResponse, request
-from jumpscale.clients.explorer.models import DiskType
 from jumpscale.loader import j
+
+from jumpscale.clients.explorer.models import DiskType
 from jumpscale.packages.vdc_dashboard.bottle.api.backup import _list as list_backups
 from jumpscale.packages.vdc_dashboard.bottle.api.exceptions import *
-from jumpscale.packages.vdc_dashboard.bottle.api.helpers import get_full_vdc_info, vdc_route
+from jumpscale.packages.vdc_dashboard.bottle.api.helpers import (
+    get_full_vdc_info,
+    vdc_route,
+)
 from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import _list_alerts
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_kubeconfig_file, get_zstor_config_file
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
+    get_kubeconfig_file,
+    get_zstor_config_file,
+)
+from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.sals.vdc.size import VDC_SIZE, ZDB_STARTING_SIZE
 
 app = Bottle()
@@ -116,7 +124,7 @@ def delete_node(vdc):
         raise MissingArgument(400, "Not all required params were passed.")
 
     deployer = vdc.get_deployer()
-    if vdc.kubernetes[0].wid == wid:
+    if [n for n in vdc.kubernetes if n.role == KubernetesRole.MASTER][-1].wid == wid:
         raise CannotDeleteMasterNode(400, "Can not delete master node")
 
     try:
