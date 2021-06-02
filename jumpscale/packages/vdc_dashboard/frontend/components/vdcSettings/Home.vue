@@ -156,27 +156,46 @@ module.exports = {
   methods: {
     vdcInfo() {
       this.tableloading = true;
-      this.$api.solutions
+      this.$api.vdc
         .getVdcInfo()
         .then((response) => {
           this.vdc = response.data;
           this.name = this.vdc.vdc_name;
-          this.$api.solutions.getVdcFullInfo().then((response) => {
-            this.vdc = response.data;
-            this.wallet = this.vdc.wallet;
-            this.flavor = this.vdc.flavor;
-            this.price = this.vdc.price;
-            this.expirationTime =
-              this.vdc.expiration_days > 1
-                ? `${this.vdc.expiration_days.toFixed(0)} days and ${(
-                    (this.vdc.expiration_days % 1) *
-                    24
-                  ).toFixed(0)} hours,`
-                : `${(this.vdc.expiration_days * 24).toFixed(0)} hours,`;
-          });
+          this.flavor = this.vdc.flavor;
         })
         .finally(() => {
           this.tableloading = false;
+        });
+      this.$api.vdc
+        .getVdcWalletInfo()
+        .then((response) => {
+          this.price = response.data;
+        })
+        .catch((err) => {
+          this.alert(err.message, "error");
+        });
+      this.$api.vdc
+        .getVdcExpiration()
+        .then((response) => {
+          let expiratioData = response.data;
+          this.expirationTime =
+            expiratioData.expiration_days > 1
+              ? `${expiratioData.expiration_days.toFixed(0)} days and ${(
+                  (expiratioData.expiration_days % 1) *
+                  24
+                ).toFixed(0)} hours,`
+              : `${(expiratioData.expiration_days * 24).toFixed(0)} hours,`;
+        })
+        .catch((err) => {
+          this.alert(err.message, "error");
+        });
+      this.$api.vdc
+        .getVdcWalletInfo()
+        .then((response) => {
+          this.wallet = response.data;
+        })
+        .catch((err) => {
+          this.alert(err.message, "error");
         });
     },
 
