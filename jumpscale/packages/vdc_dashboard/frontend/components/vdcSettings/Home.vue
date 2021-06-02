@@ -31,7 +31,12 @@
       </v-tab-item>
       <v-tab-item class="ml-2">
         <v-card flat>
-          <wallet v-if="vdc" :vdc="vdc"></wallet>
+          <wallet
+            v-if="wallet"
+            :wallet="wallet"
+            :price="price"
+            :expirationdata="expirationData"
+          ></wallet>
         </v-card>
       </v-tab-item>
       <v-tab-item class="ml-2">
@@ -131,6 +136,7 @@ module.exports = {
       name: null,
       wallet: null,
       price: null,
+      expirationData: null,
       flavor: null,
       expirationTime: null,
       raiseExpirationAlert: true,
@@ -177,14 +183,16 @@ module.exports = {
       this.$api.vdc
         .getVdcExpiration()
         .then((response) => {
-          let expiratioData = response.data;
+          this.expirationData = response.data;
           this.expirationTime =
-            expiratioData.expiration_days > 1
-              ? `${expiratioData.expiration_days.toFixed(0)} days and ${(
-                  (expiratioData.expiration_days % 1) *
+            this.expirationData.expiration_days > 1
+              ? `${this.expirationData.expiration_days.toFixed(0)} days and ${(
+                  (this.expirationData.expiration_days % 1) *
                   24
                 ).toFixed(0)} hours,`
-              : `${(expiratioData.expiration_days * 24).toFixed(0)} hours,`;
+              : `${(this.expirationData.expiration_days * 24).toFixed(
+                  0
+                )} hours,`;
         })
         .catch((err) => {
           this.alert(err.message, "error");

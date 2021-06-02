@@ -3,33 +3,33 @@
     <div class="actions mb-3">
       <h1 class="d-inline" color="primary" text>Wallet Information</h1>
       <v-btn
-        v-if="vdc.wallet"
+        v-if="wallet"
         class="float-right p-4"
         color="primary"
         text
         target="_blank"
-        :href="`https://stellar.expert/explorer/public/account/${vdc.wallet.address}`"
+        :href="`https://stellar.expert/explorer/public/account/${wallet.address}`"
       >
         <v-icon left>mdi-bank</v-icon>List transactions
       </v-btn>
     </div>
-    <v-simple-table v-if="vdc.wallet">
+    <v-simple-table v-if="wallet">
       <template v-slot:default>
         <tbody>
           <tr>
             <td>Network</td>
-            <td>{{ vdc.wallet.network }}</td>
+            <td>{{ wallet.network }}</td>
           </tr>
           <tr>
             <td>Address</td>
-            <td>{{ vdc.wallet.address }}</td>
+            <td>{{ wallet.address }}</td>
           </tr>
           <tr>
             <td>Secret</td>
             <td>
               <v-text-field
                 hide-details
-                :value="vdc.wallet.secret"
+                :value="wallet.secret"
                 readonly
                 solo
                 flat
@@ -46,13 +46,13 @@
                 outlined
                 class="ma-2"
                 :color="
-                  vdc.expiration_days < 2
+                  expirationdata.expiration_days < 2
                     ? 'error'
-                    : vdc.expiration_days < 14
+                    : expirationdata.expiration_days < 14
                     ? 'warning'
                     : 'primary'
                 "
-                v-for="(balance, i) in vdc.wallet.balances"
+                v-for="(balance, i) in wallet.balances"
                 :key="i"
               >
                 {{ balance.balance }} {{ balance.asset_code }}
@@ -62,7 +62,7 @@
           <tr>
             <td>VDC expiration date</td>
             <td class="ml-2">
-              {{ new Date(vdc.expiration_date * 1000).toLocaleString("en-GB") }}
+              {{ new Date(expirationdata.expiration_date * 1000).toLocaleString("en-GB") }}
             </td>
           </tr>
           <tr>
@@ -103,7 +103,9 @@
 <script>
 module.exports = {
   props: {
-    vdc: Object,
+    wallet: Object,
+    expirationdata: Object,
+    price: { type: Number, default: 100 },
   },
   mixins: [dialog],
   data() {
@@ -117,7 +119,7 @@ module.exports = {
     getQRCode() {
       this.qrcodeLoading = true;
       this.$api.wallets
-        .walletQRCodeImage(this.vdc.wallet.address, this.vdc.price, 3)
+        .walletQRCodeImage(this.wallet.address, this.price, 3)
         .then((result) => {
           this.qrcode = result.data.data;
         })
@@ -127,7 +129,7 @@ module.exports = {
     },
   },
   updated() {
-    if (this.vdc.wallet && !this.qrcode && !this.qrcodeLoading)
+    if (this.wallet && !this.qrcode && !this.qrcodeLoading)
       this.getQRCode();
   },
 };
