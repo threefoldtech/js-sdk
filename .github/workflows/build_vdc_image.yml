@@ -20,4 +20,4 @@ jobs:
         - name: Convert Docker image to flist
           run: |
             TOKEN=$(curl -f -H "Authorization: bearer ${{secrets.ZEROHUB_TOKEN}}" https://itsyou.online/v1/oauth/jwt/refresh)
-            curl -f -X POST  -H "Authorization: bearer $TOKEN" ${{ secrets.ZEROHUB_URL }}/api/flist/me/docker -F 'image=${{ secrets.DOCKERHUB_USERNAME }}/js-sdk:latest_trc'
+            curl -f -X POST  -H "Authorization: bearer $TOKEN" ${{ secrets.ZEROHUB_URL }}/api/flist/me/docker -F 'image=${{ secrets.DOCKERHUB_USERNAME }}/js-sdk:latest_vdc'
