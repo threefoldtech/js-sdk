@@ -73,8 +73,8 @@ validators = {
         }
     },
     secret_ask: {
-        isAlphanumeric:(field) =>{
-            if(!field.val.match(/[A-Z]/i)){
+        isAlphanumeric: (field) => {
+            if (!field.val.match(/[A-Z]/i)) {
                 return 'Value must be alphanumeric, including at least one character'
             }
 
@@ -147,13 +147,6 @@ validators = {
         allowed_types: (field, types) => {
             if (field.file && types) {
                 return types.includes(field.file.type) ? true : `Invalid file type, allowed types ${types.join(',')}`
-            }
-        }
-    },
-    captcha_ask: {
-        is_valid: (field) => {
-            if (field.val !== undefined) {
-                return field.val === field.payload.value ? true : `Invalid captcha, please try again`
             }
         }
     },

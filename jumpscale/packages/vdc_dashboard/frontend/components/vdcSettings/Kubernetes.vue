@@ -32,7 +32,7 @@
     <v-data-table
       :headers="headers"
       :items="kubernetesData"
-      :loading="loading"
+      :loading="loading || tableLoading"
       class="elevation-1"
     >
       <template slot="no-data">No VDC instances available</template>
@@ -112,6 +112,8 @@
       title="Delete Worker"
       :messages="deletionMessages"
       :wid="selectedworker"
+      :isnodereadytodelete="isNodeReadyToDelete"
+      :podstodelete="podsToDelete"
       @reload-vdcinfo="reloadVdcInfo"
     ></cancel-workload>
     <redeploy-master
@@ -137,6 +139,7 @@ module.exports = {
     return {
       selected: null,
       selectedworker: null,
+      tableLoading: false,
       dialogs: {
         info: false,
         cancelWorkload: false,
@@ -155,8 +158,11 @@ module.exports = {
       kubernetesSizeMap: KUBERNETES_VM_SIZE_MAP,
       deletionMessages: {
         confirmationMsg: "Are you sure you want to delete this worker?",
+        warningMsg: "",
         successMsg: "Worker deleted successfully",
       },
+      isNodeReadyToDelete: false,
+      podsToDelete: null
     };
   },
   methods: {
@@ -172,7 +178,25 @@ module.exports = {
     },
     deleteNode(wid) {
       this.selectedworker = wid;
-      this.dialogs.cancelWorkload = true;
+      this.tableLoading = true;
+      this.$api.solutions.checkBeforeDeleteWorkerWorkload(wid)
+        .then((response) => {
+          console.log("Check Before Delete Node Response:" , response.data);
+          this.isNodeReadyToDelete = response.data.is_ready;
+          this.podsToDelete = response.data.pods_to_delete;
+          podsString = "<br>"
+          timeWarning = "<br> This operation may take time, to safely delete your worker"
+          for (pod in this.podsToDelete){
+            podsString += "- " + this.podsToDelete[pod] + "<br>"
+          }
+          if (!this.isNodeReadyToDelete) {
+            this.deletionMessages.warningMsg = "The following release/s will be deleted: " + podsString + timeWarning;
+          }
+          console.log("Deletion msg:" ,this.deletionMessages);
+        }).finally(() => {
+          this.tableLoading = false;
+          this.dialogs.cancelWorkload = true;
+        });
     },
 
     downloadKubeConfigFile() {
