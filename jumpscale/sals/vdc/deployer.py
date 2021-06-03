@@ -326,6 +326,12 @@ class VDCDeployer:
         farm_resources[network_farm]["sus"] += sus
         farm_resources[network_farm]["ipv4us"] += ipv4us
 
+        worker_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"]
+        k8s.size = worker_size.value
+        worker_cus, worker_sus = get_cloud_units(k8s)
+        farm_resources[compute_farm]["cus"] += worker_cus
+        farm_resources[compute_farm]["sus"] += worker_sus
+
         cont2 = Container()
         cont2.capacity.cpu = THREEBOT_CPU
         cont2.capacity.memory = THREEBOT_MEMORY
@@ -503,6 +509,7 @@ class VDCDeployer:
             duration=INITIAL_RESERVATION_DURATION / 24,
             solution_uuid=self.vdc_uuid,
             external=False,
+            no_extend_pool=True,
         )
         open("/tmp/times", "a").write(f"TIMESTAMP: end_workers {datetime.datetime.now()}\n")
         if not wids:

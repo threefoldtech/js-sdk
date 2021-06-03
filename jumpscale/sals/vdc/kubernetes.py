@@ -25,7 +25,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
     def __init__(self, *args, **kwrags) -> None:
         super().__init__(*args, **kwrags)
 
-    def _preprare_extension_pool(self, farm_name, k8s_flavor, no_nodes, duration, public_ip=False):
+    def _preprare_extension_pool(self, farm_name, k8s_flavor, no_nodes, duration, public_ip=False, no_extend=False):
         """
         returns pool id after extension with enough cloud units
         duration in seconds
@@ -59,6 +59,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             pool_id = pool_info.reservation_id
             self.vdc_deployer.info(f"Kubernetes cluster extension: creating a new pool {pool_id}")
             self.vdc_deployer.info(f"New pool {pool_info.reservation_id} for kubernetes cluster extension.")
+        elif no_extend:
+            return pool_id
         else:
             self.vdc_deployer.info(f"Kubernetes cluster extension: found pool {pool_id}")
             node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm_name=farm_name)]
@@ -150,6 +152,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         solution_uuid=None,
         external=True,
         nodes_ids=None,
+        no_extend_pool=False,
     ):
         """
         search for a pool in the same farm and extend it or create a new one with the required capacity
@@ -185,7 +188,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     f"Some nodes: {unavailable_nodes_ids} are not in farm: {farm_name} or don't have capacity"
                 )
             nodes_generator = [node for node in nodes_generator if node.node_id in nodes_ids]
-        pool_id = self._preprare_extension_pool(farm_name, k8s_flavor, no_nodes, duration, public_ip)
+        pool_id = self._preprare_extension_pool(
+            farm_name, k8s_flavor, no_nodes, duration, public_ip, no_extend=no_extend_pool
+        )
         network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         solution_uuid = solution_uuid or uuid.uuid4().hex
         wids = self._add_workers(
