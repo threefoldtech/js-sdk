@@ -18,6 +18,7 @@ from .proxy import VDC_PARENT_DOMAIN
 from .namemanager import NameManager
 import uuid
 import random
+import datetime
 
 THREEBOT_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
 THREEBOT_TRC_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
@@ -54,6 +55,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
     def deploy_threebot(
         self, minio_wid, pool_id, kube_config, embed_trc=True, backup_config=None, zdb_farms=None,
     ):
+        j.logger.debug(f"TIMESTAMP: start_threebot {datetime.datetime.now()}")
         backup_config = backup_config or {}
         etcd_backup_config = j.core.config.get("VDC_S3_CONFIG", {})
         flist = THREEBOT_VDC_FLIST if embed_trc else THREEBOT_FLIST
@@ -95,7 +97,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "NETWORK_FARMS": ",".join(NETWORK_FARMS.get()),
             "COMPUTE_FARMS": ",".join(COMPUTE_FARMS.get()),
             # "VDC_MINIO_ADDRESS": minio_ip_address,
-            "SDK_VERSION": self.branch,
+            "SDK_VERSION": "development",
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),
             "MINIMAL": "true",
             "TEST_CERT": "true" if j.core.config.get("TEST_CERT") else "false",
@@ -180,6 +182,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                     wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False
                 )
                 if success:
+                    j.logger.debug(f"TIMESTAMP: end_threebot {datetime.datetime.now()}")
                     return wid
                 raise DeploymentFailed()
             except DeploymentFailed:

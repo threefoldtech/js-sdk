@@ -4,7 +4,7 @@ from textwrap import dedent
 from urllib.parse import urlparse
 
 from jumpscale.loader import j
-
+import datetime
 from jumpscale.sals.vdc import VDC_INSTANCE_NAME_FORMAT
 from jumpscale.sals.vdc.vdc import VDCSTATE
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
@@ -251,6 +251,7 @@ class VDCDeploy(GedisChatBot):
         self._init()
         self._vdc_form()
         self._validate_vdc_password()
+        j.logger.debug(f"TIMESTAMP: start_deployment {datetime.datetime.now()}")
         self.get_backup_config()
         # self._backup_form()
         # self._k3s_and_minio_form() # TODO: Restore later
@@ -420,6 +421,7 @@ class VDCDeploy(GedisChatBot):
             self.stop(f"{str(err)}. VDC uuid: {self.vdc.solution_uuid}")
         self.md_show_update("Adding funds to provisioning wallet...")
         initial_transaction_hashes = self.deployer.transaction_hashes
+        j.logger.debug(f"TIMESTAMP: start_provision_transfer {datetime.datetime.now()}")
         try:
             self.vdc.transfer_to_provisioning_wallet(amount / 2)
         except Exception as e:
@@ -429,6 +431,7 @@ class VDCDeploy(GedisChatBot):
             raise StopChatFlow(
                 f"failed to fund provisioning wallet due to error {str(e)}. VDC uuid: {self.vdc.solution_uuid}"
             )
+        j.logger.debug(f"TIMESTAMP: end_provision_transfer {datetime.datetime.now()}")
 
         if self.VDC_INIT_WALLET_NAME:
             try:
@@ -437,9 +440,13 @@ class VDCDeploy(GedisChatBot):
                 j.logger.critical(f"failed to pay initialization fee for vdc: {self.vdc.solution_uuid}")
         self.deployer._set_wallet(old_wallet)
         self.md_show_update("Funding difference...")
+        j.logger.debug(f"TIMESTAMP: start_funding_diff {datetime.datetime.now()}")
         self.vdc.fund_difference(self.VDC_INIT_WALLET_NAME)
+        j.logger.debug(f"TIMESTAMP: end_funding_diff {datetime.datetime.now()}")
         self.md_show_update("Updating expiration...")
+        j.logger.debug(f"TIMESTAMP: start_renew_plan {datetime.datetime.now()}")
         self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
+        j.logger.debug(f"TIMESTAMP: end_renew_plan {datetime.datetime.now()}")
         self.vdc.state = VDCSTATE.DEPLOYED
         self.vdc.save()
         j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
@@ -456,6 +463,7 @@ class VDCDeploy(GedisChatBot):
 
     @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
+        j.logger.debug(f"TIMESTAMP: end_deployment {datetime.datetime.now()}")
         solution = self.kwargs.get("sol")
         msg = dedent(
             f"""\

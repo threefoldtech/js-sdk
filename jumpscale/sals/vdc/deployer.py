@@ -22,6 +22,7 @@ from jumpscale.sals.reservation_chatflow import deployer, solutions
 from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.sals.zos import get as get_zos
 from jumpscale.sals.zos.billing import InsufficientFunds
+import datetime
 
 from .kubernetes import VDCKubernetesDeployer
 from .monitoring import VDCMonitoring
@@ -454,9 +455,11 @@ class VDCDeployer:
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         pub_keys = pub_keys or []
+        j.logger.debug(f"TIMESTAMP: start_master {datetime.datetime.now()}")
         master_ip = self.kubernetes.deploy_master(
             master_pool_id, gs, master_size, self.password_hash, pub_keys, self.vdc_uuid, nv, endpoint
         )
+        j.logger.debug(f"TIMESTAMP: end_master {datetime.datetime.now()}")
         if not master_ip:
             self.error(f"failed to deploy kubernetes master")
             return
@@ -466,6 +469,7 @@ class VDCDeployer:
         self.bot_show_update("Deploying Kubernetes Workers...")
         self.vdc_instance.load_info()
         public_ip = [n for n in self.vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
+        j.logger.debug(f"TIMESTAMP: start_workers {datetime.datetime.now()}")
         wids = self.kubernetes.extend_cluster(
             compute_farm,
             public_ip,
@@ -477,6 +481,7 @@ class VDCDeployer:
             solution_uuid=self.vdc_uuid,
             external=False,
         )
+        j.logger.debug(f"TIMESTAMP: end_workers {datetime.datetime.now()}")
         if not wids:
             self.error(f"failed to deploy kubernetes workers")
         return wids
@@ -594,9 +599,11 @@ class VDCDeployer:
         self.bot_show_update("Creating VDC Pools")
         self.init_vdc(self.compute_farm, self.network_farm, zdb_farms=zdb_farms)
         self.bot_show_update("Deploying network")
+        j.logger.debug(f"TIMESTAMP: start_vdc_network {datetime.datetime.now()}")
         if not self.deploy_vdc_network():
             self.error("Failed to deploy network")
             raise j.exceptions.Runtime("Failed to deploy network")
+        j.logger.debug(f"TIMESTAMP: end_vdc_network {datetime.datetime.now()}")
         gs = GlobalScheduler()
 
         with new_vdc_context(self):
