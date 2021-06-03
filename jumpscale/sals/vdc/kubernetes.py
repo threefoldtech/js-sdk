@@ -517,7 +517,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         """
         Upgrades traefik chart installed on k3s to v2.3.3 to support different CAs
         """
-        j.logger.debug(f"TIMESTAMP: start_traefik_upgrade {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_traefik_upgrade {datetime.datetime.now()}")
 
         def is_traefik_installed(manager, namespace="kube-system"):
             releases = manager.list_deployed_releases(namespace)
@@ -578,7 +578,7 @@ ports:
     tls:
       enabled: true')""",
         )
-        j.logger.debug(f"TIMESTAMP: end_traefik_upgrade {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_traefik_upgrade {datetime.datetime.now()}")
 
     def add_traefik_entrypoint(self, entrypoint_name, port, expose=True, protocol="TCP"):
         """
