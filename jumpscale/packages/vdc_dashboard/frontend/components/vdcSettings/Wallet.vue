@@ -13,7 +13,7 @@
         <v-icon left>mdi-bank</v-icon>List transactions
       </v-btn>
     </div>
-    <v-simple-table v-if="wallet">
+    <v-simple-table v-if="wallet && expirationdata">
       <template v-slot:default>
         <tbody>
           <tr>
@@ -42,38 +42,27 @@
           <tr>
             <td>Balance</td>
             <td class="pt-1">
-              <div v-if="expirationdata">
-                <v-chip
-                  outlined
-                  class="ma-2"
-                  :color="
-                    expirationdata.expiration_days < 2
-                      ? 'error'
-                      : expirationdata.expiration_days < 14
-                      ? 'warning'
-                      : 'primary'
-                  "
-                  v-for="(balance, i) in wallet.balances"
-                  :key="i"
-                >
-                  {{ balance.balance }} {{ balance.asset_code }}
-                </v-chip>
-              </div>
-              <v-skeleton-loader
-                v-else
-                color="grey darken-2"
-                class="pa-4 mb-6"
-                :boilerplate="true"
-                max-width="250"
-                :elevation="2"
-                type="text"
-              ></v-skeleton-loader>
+              <v-chip
+                outlined
+                class="ma-2"
+                :color="
+                  expirationdata.expiration_days < 2
+                    ? 'error'
+                    : expirationdata.expiration_days < 14
+                    ? 'warning'
+                    : 'primary'
+                "
+                v-for="(balance, i) in wallet.balances"
+                :key="i"
+              >
+                {{ balance.balance }} {{ balance.asset_code }}
+              </v-chip>
             </td>
           </tr>
           <tr>
             <td>VDC expiration date</td>
             <td class="ml-2">
-              <p v-if="expirationdata">
+              <p v-if="expirationdata.expiration_date">
                 {{
                   new Date(
                     expirationdata.expiration_date * 1000
@@ -84,7 +73,6 @@
                 v-else
                 color="grey darken-2"
                 class="pa-4 mb-6"
-                max-width="250"
                 :boilerplate="true"
                 :elevation="2"
                 type="text"
