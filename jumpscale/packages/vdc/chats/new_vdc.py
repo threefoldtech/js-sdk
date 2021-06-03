@@ -251,13 +251,14 @@ class VDCDeploy(GedisChatBot):
         self._init()
         self._vdc_form()
         self._validate_vdc_password()
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_deployment {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_deployment {datetime.datetime.now()}\n")
         self.get_backup_config()
         # self._backup_form()
         # self._k3s_and_minio_form() # TODO: Restore later
 
     @chatflow_step(title="Storage Farms")
     def storage_farms_selection(self):
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_farms_selection {datetime.datetime.now()}\n")
         self.zdb_farms = None
         available_farms = []
         if self.farm_selection.value == "Manually Select Farms":
@@ -329,6 +330,7 @@ class VDCDeploy(GedisChatBot):
             )
         else:
             self.compute_farm = random.choice(filtered_compute_farms)
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_farms_selection {datetime.datetime.now()}\n")
 
     @chatflow_step(title="VDC Deployment")
     def deploy(self):
@@ -369,6 +371,7 @@ class VDCDeploy(GedisChatBot):
                 "please use the refresh button on the upper right corner."
             )
 
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_wallet_init {datetime.datetime.now()}\n")
         try:
             self.vdc.prepaid_wallet
             self.vdc.provision_wallet
@@ -376,7 +379,9 @@ class VDCDeploy(GedisChatBot):
             self._rollback()
             j.logger.error(f"failed to initialize wallets for VDC {self.vdc_name.value} due to error {str(e)}")
             self.stop(f"failed to initialize VDC wallets. please try again later")
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_wallet_init {datetime.datetime.now()}\n")
 
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_domain_check {datetime.datetime.now()}\n")
         prefix = self.deployer.get_prefix()
         subdomain = f"{prefix}.{VDC_PARENT_DOMAIN}"
         j.logger.info(f"checking the availability of subdomain {subdomain}")
@@ -395,19 +400,24 @@ class VDCDeploy(GedisChatBot):
                     j.logger.warning(
                         f"Subdomain {subdomain} is not reserved on the explorer. continuing with the deployment."
                     )
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_domain_check {datetime.datetime.now()}\n")
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_payment {datetime.datetime.now()}\n")
 
         success, amount, payment_id = self.vdc.show_vdc_payment(self, expiry=10)
         if not success:
             self._rollback()  # delete it?
             self.stop(f"payment timedout (in case you already paid, please contact support)")
         self.md_show_update("Payment successful")
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_payment {datetime.datetime.now()}\n")
 
         self.md_show_update("Deploying your VDC...")
         old_wallet = self.deployer._set_wallet(self.VDC_INIT_WALLET_NAME)
         try:
+            open("/tmp/times", "a").write(f"TIMESTAMP: start_vdc {datetime.datetime.now()}\n")
             self.config = self.deployer.deploy_vdc(
                 minio_ak=None, minio_sk=None, s3_backup_config=self.backup_config, zdb_farms=self.zdb_farms,
             )
+            open("/tmp/times", "a").write(f"TIMESTAMP: end_vdc {datetime.datetime.now()}\n")
             if not self.config:
                 raise StopChatFlow(
                     f"Failed to deploy VDC with uuid: {self.vdc.solution_uuid} due to invalid kube config. please try again later"
@@ -421,7 +431,7 @@ class VDCDeploy(GedisChatBot):
             self.stop(f"{str(err)}. VDC uuid: {self.vdc.solution_uuid}")
         self.md_show_update("Adding funds to provisioning wallet...")
         initial_transaction_hashes = self.deployer.transaction_hashes
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_provision_transfer {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_provision_transfer {datetime.datetime.now()}\n")
         try:
             self.vdc.transfer_to_provisioning_wallet(amount / 2)
         except Exception as e:
@@ -431,22 +441,24 @@ class VDCDeploy(GedisChatBot):
             raise StopChatFlow(
                 f"failed to fund provisioning wallet due to error {str(e)}. VDC uuid: {self.vdc.solution_uuid}"
             )
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_provision_transfer {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_provision_transfer {datetime.datetime.now()}\n")
 
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_pay_init_fees {datetime.datetime.now()}\n")
         if self.VDC_INIT_WALLET_NAME:
             try:
                 self.vdc.pay_initialization_fee(initial_transaction_hashes, self.VDC_INIT_WALLET_NAME)
             except Exception as e:
                 j.logger.critical(f"failed to pay initialization fee for vdc: {self.vdc.solution_uuid}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_pay_init_fees {datetime.datetime.now()}\n")
         self.deployer._set_wallet(old_wallet)
         self.md_show_update("Funding difference...")
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_funding_diff {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_funding_diff {datetime.datetime.now()}\n")
         self.vdc.fund_difference(self.VDC_INIT_WALLET_NAME)
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_funding_diff {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_funding_diff {datetime.datetime.now()}\n")
         self.md_show_update("Updating expiration...")
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_renew_plan {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_renew_plan {datetime.datetime.now()}\n")
         self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_renew_plan {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_renew_plan {datetime.datetime.now()}\n")
         self.vdc.state = VDCSTATE.DEPLOYED
         self.vdc.save()
         j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
@@ -463,7 +475,7 @@ class VDCDeploy(GedisChatBot):
 
     @chatflow_step(title="VDC Deployment Success", final_step=True)
     def success(self):
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_deployment {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_deployment {datetime.datetime.now()}\n")
         solution = self.kwargs.get("sol")
         msg = dedent(
             f"""\

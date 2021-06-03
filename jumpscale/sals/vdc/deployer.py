@@ -89,6 +89,7 @@ class VDCDeployer:
         network_farm=None,
         compute_farm=None,
     ):
+        self.greenlets = []
         self.restore = restore
         self.vdc_instance = vdc_instance
         self.vdc_name = self.vdc_instance.vdc_name
@@ -437,39 +438,19 @@ class VDCDeployer:
             zdb_threads.append(greenlet)
         return zdb_threads
 
-    def deploy_vdc_kubernetes(self, compute_farm, network_farm, scheduler, pub_keys=None):
+    def deploy_vdc_kubernetes(self, compute_farm, network_farm, scheduler, endpoint, pub_keys=None):
         """
         1- deploy master
         2- extend cluster with the flavor no_nodes
         """
-        self.bot_show_update("Deploying External ETCD Cluster...")
-        etcd_ips = self.kubernetes.deploy_external_etcd(farm_name=compute_farm, solution_uuid=self.vdc_uuid)
-        if not etcd_ips:
-            self.error("failed to deploy etcd cluster")
-            return
-        endpoint = ",".join([f"http://{ip_address}:2379" for ip_address in etcd_ips])
-        # endpoint = ""
-        self.bot_show_update("Deploying Kubernetes Controller...")
-        gs = scheduler or GlobalScheduler()
-        master_pool_id, _ = self.get_pool_id_and_reservation_id(network_farm)
-        nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
-        master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
-        pub_keys = pub_keys or []
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_master {datetime.datetime.now()}")
-        master_ip = self.kubernetes.deploy_master(
-            master_pool_id, gs, master_size, self.password_hash, pub_keys, self.vdc_uuid, nv, endpoint
-        )
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_master {datetime.datetime.now()}")
-        if not master_ip:
-            self.error(f"failed to deploy kubernetes master")
-            return
+
         no_nodes = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["no_nodes"]
         if no_nodes < 1:
             return [master_ip]
         self.bot_show_update("Deploying Kubernetes Workers...")
         self.vdc_instance.load_info()
         public_ip = [n for n in self.vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_workers {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_workers {datetime.datetime.now()}\n")
         wids = self.kubernetes.extend_cluster(
             compute_farm,
             public_ip,
@@ -481,10 +462,64 @@ class VDCDeployer:
             solution_uuid=self.vdc_uuid,
             external=False,
         )
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_workers {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_workers {datetime.datetime.now()}\n")
         if not wids:
             self.error(f"failed to deploy kubernetes workers")
         return wids
+
+    def deploy_master(self, network_farm, scheduler, endpoint, pub_keys=None):
+        self.bot_show_update("Deploying Kubernetes Controller...")
+        gs = scheduler or GlobalScheduler()
+        master_pool_id, _ = self.get_pool_id_and_reservation_id(network_farm)
+        nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
+        master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
+        pub_keys = pub_keys or []
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_master {datetime.datetime.now()}\n")
+        master_ip = self.kubernetes.deploy_master(
+            master_pool_id, gs, master_size, self.password_hash, pub_keys, self.vdc_uuid, nv, endpoint
+        )
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_master {datetime.datetime.now()}\n")
+        if not master_ip:
+            self.error(f"failed to deploy kubernetes master")
+            return
+        return master_ip
+
+    def deploy_workers(self, compute_farm, master_ip):
+
+        no_nodes = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["no_nodes"]
+        if no_nodes < 1:
+            return [master_ip]
+        self.bot_show_update("Deploying Kubernetes Workers...")
+        self.vdc_instance.load_info()
+        public_ip = [n for n in self.vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_workers {datetime.datetime.now()}\n")
+        wids = self.kubernetes.extend_cluster(
+            compute_farm,
+            public_ip,
+            VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["size"],
+            self.password_hash,
+            [self.ssh_key.public_key.strip()],
+            1,
+            duration=INITIAL_RESERVATION_DURATION / 24,
+            solution_uuid=self.vdc_uuid,
+            external=False,
+        )
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_workers {datetime.datetime.now()}\n")
+        if not wids:
+            self.error(f"failed to deploy kubernetes workers")
+            return None
+        return wids
+
+    def deploy_external_etcd(self, compute_farm):
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_etcd {datetime.datetime.now()}\n")
+        self.bot_show_update("Deploying External ETCD Cluster...")
+        etcd_ips = self.kubernetes.deploy_external_etcd(farm_name=compute_farm, solution_uuid=self.vdc_uuid)
+        if not etcd_ips:
+            self.error("failed to deploy etcd cluster")
+            return
+        endpoint = ",".join([f"http://{ip_address}:2379" for ip_address in etcd_ips])
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_etcd {datetime.datetime.now()}\n")
+        return endpoint
 
     def _set_wallet(self, alternate_wallet_name=None):
         """
@@ -577,6 +612,14 @@ class VDCDeployer:
 
         return gcc.result
 
+    def wait_cluster_ready(self, timeout=60):
+        kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.tname}/{self.vdc_name}.yaml"
+        k8s_client = j.sals.kubernetes.Manager(config_path=kubeconfig_path)
+        start_time = datetime.datetime.now()
+        while not k8s_client.is_cluster_ready() and (datetime.datetime.now() - start_time).seconds <= timeout:
+            gevent.sleep(2)
+        return k8s_client.is_cluster_ready()
+
     def deploy_vdc(
         self, minio_ak, minio_sk, install_monitoring_stack=False, s3_backup_config=None, zdb_farms=None,
     ):
@@ -597,34 +640,42 @@ class VDCDeployer:
 
         # initialize VDC pools
         self.bot_show_update("Creating VDC Pools")
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_vdc_pools {datetime.datetime.now()}\n")
         self.init_vdc(self.compute_farm, self.network_farm, zdb_farms=zdb_farms)
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_vdc_pools {datetime.datetime.now()}\n")
         self.bot_show_update("Deploying network")
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_vdc_network {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_vdc_network {datetime.datetime.now()}\n")
         if not self.deploy_vdc_network():
             self.error("Failed to deploy network")
             raise j.exceptions.Runtime("Failed to deploy network")
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_vdc_network {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_vdc_network {datetime.datetime.now()}\n")
         gs = GlobalScheduler()
 
         with new_vdc_context(self):
             # deploy zdbs for s3
             self.bot_show_update("Deploying ZDBs")
             zdb_threads = self.deploy_vdc_zdb(gs, zdb_farms)
+            self.greenlets += zdb_threads
             # public_keys to deploy vdc with
             pub_keys = [self.ssh_key.public_key.strip()]
             # deploy k8s cluster
             self.bot_show_update("Deploying kubernetes cluster")
-            k8s_greenlet = gevent.spawn(
-                self.deploy_vdc_kubernetes, self.compute_farm, self.network_farm, gs, pub_keys=pub_keys
-            )
-            k8s_greenlet.deployer = self
-            k8s_greenlet.link_exception(on_exception)
-            k8s_greenlet.join()
-
-            if not k8s_greenlet.value:
-                self.error("Failed to deploy VDC. cancelling workloads")
+            endpoint = self.deploy_external_etcd(self.compute_farm)
+            if endpoint is None:
+                self.error("Failed to deploy external etcd cluster. cancelling workloads")
                 self.rollback_vdc_deployment()
-                raise j.exceptions.Runtime("Failed to deploy VDC. failed to deploy kubernetes cluster")
+                raise j.exceptions.Runtime(
+                    "Failed to deploy external etcd cluster. failed to deploy kubernetes cluster"
+                )
+
+            master_ip = self.deploy_master(self.network_farm, gs, endpoint, pub_keys=pub_keys)
+            if master_ip is None:
+                self.error("Failed to deploy master. cancelling workloads")
+                self.rollback_vdc_deployment()
+                raise j.exceptions.Runtime("Failed to deploy master. failed to deploy kubernetes cluster")
+
+            workers_greenlet = gevent.spawn(self.deploy_workers, self.compute_farm, master_ip)
+            self.greenlets.append(workers_greenlet)
             # To be moved last
             # zdb_wids = deployment_threads[0].value + deployment_threads[1].value
             # scheduler = Scheduler(farm_name)
@@ -678,12 +729,24 @@ class VDCDeployer:
                 backup_config=s3_backup_config,
                 zdb_farms=zdb_farms,
             )
+            if not self.wait_cluster_ready():
+                self.error(f"master not ready after 60 seconds {self.vdc_instance}")
+                self.rollback_vdc_deployment()
+                raise j.exceptions.Runtime(f"master not ready after 60 seconds {self.vdc_instance}")
+
             trafeik_greenlet = gevent.spawn(self.kubernetes.upgrade_traefik)
             threebot_greenlet.link_exception(on_exception)
+            self.greenlets.append(threebot_greenlet)
+            self.greenlets.append(trafeik_greenlet)
             trafeik_greenlet.link_exception(on_exception)
-            gevent.joinall([threebot_greenlet, *zdb_threads])
+            gevent.joinall([threebot_greenlet, *zdb_threads, workers_greenlet])
             threebot_wid = threebot_greenlet.value
             self.info(f"threebot_wid: {threebot_wid}")
+            if not workers_greenlet.value:
+                self.error("Failed to deploy workders. cancelling workloads")
+                self.rollback_vdc_deployment()
+                raise j.exceptions.Runtime("Failed to deploy workers. failed to deploy kubernetes cluster")
+
             for thread in zdb_threads[:-1]:
                 if thread.value:
                     continue
@@ -792,6 +855,7 @@ class VDCDeployer:
         return self.s3.delete_zdb(wid)
 
     def rollback_vdc_deployment(self):
+        gevent.joinall(self.greenlets)
         self.vdc_instance.load_info()
         message = f"Deleting all workloads for vdc: {self.vdc_instance}"
         j.tools.alerthandler.alert_raise(app_name="vdc", message=message, alert_type="exception")

@@ -464,10 +464,20 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         Args:
             master ip: public ip address of kubernetes master
         """
-        j.sals.nettools.wait_connection_test(master_ip, 22)
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_master_ssh {datetime.datetime.now()}\n")
+        open("/tmp/times", "a").write(f"ip: {master_ip}\n")
+        if not j.sals.nettools.wait_connection_test(master_ip, 6443, timeout=120):
+            raise j.exceptions.Runtime(
+                f"Couldn't download kube config for vdc: failed to wait for cluster init {self.vdc_name}."
+            )
         client_name = self.vdc_deployer.ssh_key.instance_name
         ssh_client = j.clients.sshclient.get(client_name, user="rancher", host=master_ip, sshkey=client_name)
-        rc, out, err = ssh_client.sshclient.run("cat /etc/rancher/k3s/k3s.yaml", warn=True)
+        rc, out, err = 1, "init", "init"
+        retries = 12
+        while rc and retries > 0:
+            rc, out, err = ssh_client.sshclient.run("cat /etc/rancher/k3s/k3s.yaml", warn=True)
+            retries -= 1
+            gevent.sleep(2)
         if rc:
             j.logger.error(f"Couldn't read k3s config for VDC {self.vdc_name}")
             j.tools.alerthandler.alert_raise(
@@ -481,6 +491,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         out = j.data.serializers.yaml.dumps(config_dict)
         j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}")
         j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml", out)
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_master_ssh {datetime.datetime.now()}\n")
         return out
 
     def delete_worker(self, wid, is_ready=False):
@@ -517,7 +528,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         """
         Upgrades traefik chart installed on k3s to v2.3.3 to support different CAs
         """
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_traefik_upgrade {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_traefik_upgrade {datetime.datetime.now()}\n")
 
         def is_traefik_installed(manager, namespace="kube-system"):
             releases = manager.list_deployed_releases(namespace)
@@ -578,7 +589,7 @@ ports:
     tls:
       enabled: true')""",
         )
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_traefik_upgrade {datetime.datetime.now()}")
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_traefik_upgrade {datetime.datetime.now()}\n")
 
     def add_traefik_entrypoint(self, entrypoint_name, port, expose=True, protocol="TCP"):
         """
