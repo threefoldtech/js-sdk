@@ -166,6 +166,14 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
+    redeployMaster: (wid) => {
+      return axios({
+        url: `${baseURL}/redeploy_master`,
+        method: "post",
+        data: { wid: wid },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
   },
   license: {
     accept: () => {

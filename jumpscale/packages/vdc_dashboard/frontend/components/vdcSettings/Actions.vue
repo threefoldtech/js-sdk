@@ -10,7 +10,9 @@
       <template #default v-else-if="title == 'Create'">
         Please enter backup name to confirm.
         <v-text-field v-model="confirmName" dense></v-text-field>
-        <p v-if="disableSubmit" style="color:red">{{errorMsg}}</p>
+        <v-alert dense outlined type="error" v-if="disableSubmit && errorMsg">
+          {{errorMsg}}
+        </v-alert>
       </template>
       <template #actions>
         <v-btn text @click="close">Cancel</v-btn>
@@ -99,8 +101,8 @@ module.exports = {
       }else if (currentBackupsName.includes(backupName)){
         this.errorMsg = "Can't use the same name twice, Please use another name"
         return false
-      }else if (backupName.indexOf(' ') > 0) {
-        this.errorMsg = "Space is not allowed"
+      }else if (backupName.match('^[a-z0-9]*$') == null) {
+        this.errorMsg = "Numbers and small letters only allowed"
         return false
       }else{
         return true

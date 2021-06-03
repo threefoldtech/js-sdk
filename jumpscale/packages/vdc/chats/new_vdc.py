@@ -349,14 +349,6 @@ class VDCDeploy(GedisChatBot):
             vdc_name=self.vdc_name.value, owner_tname=self.username, flavor=VDC_SIZE.VDCFlavor[self.vdc_flavor],
         )
         try:
-            self.vdc.prepaid_wallet
-            self.vdc.provision_wallet
-        except Exception as e:
-            self._rollback()
-            j.logger.error(f"failed to initialize wallets for VDC {self.vdc_name.value} due to error {str(e)}")
-            self.stop(f"failed to initialize VDC wallets. please try again later")
-
-        try:
             self.deployer = self.vdc.get_deployer(
                 password=self.vdc_secret,
                 bot=self,
@@ -368,6 +360,21 @@ class VDCDeploy(GedisChatBot):
             j.logger.error(f"failed to initialize VDC deployer due to error {str(e)}")
             self._rollback()
             self.stop("failed to initialize VDC deployer. please contact support")
+
+        if not self.deployer.check_capacity(self.compute_farm, self.network_farm, self.zdb_farms):
+            self.stop(
+                "There are not enough resources available "
+                f"to deploy your VDC of flavor `{self.vdc_flavor}`. To restart VDC creation,"
+                "please use the refresh button on the upper right corner."
+            )
+
+        try:
+            self.vdc.prepaid_wallet
+            self.vdc.provision_wallet
+        except Exception as e:
+            self._rollback()
+            j.logger.error(f"failed to initialize wallets for VDC {self.vdc_name.value} due to error {str(e)}")
+            self.stop(f"failed to initialize VDC wallets. please try again later")
 
         prefix = self.deployer.get_prefix()
         subdomain = f"{prefix}.{VDC_PARENT_DOMAIN}"
