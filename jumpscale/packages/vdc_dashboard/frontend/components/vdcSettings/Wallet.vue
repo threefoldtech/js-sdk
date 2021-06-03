@@ -62,11 +62,21 @@
           <tr>
             <td>VDC expiration date</td>
             <td class="ml-2">
-              {{
-                new Date(expirationdata.expiration_date * 1000).toLocaleString(
-                  "en-GB"
-                )
-              }}
+              <p v-if="expirationdata.expiration_date">
+                {{
+                  new Date(
+                    expirationdata.expiration_date * 1000
+                  ).toLocaleString("en-GB")
+                }}
+              </p>
+              <v-skeleton-loader
+                v-else
+                color="grey darken-2"
+                class="pa-4 mb-6"
+                :boilerplate="true"
+                :elevation="2"
+                type="text"
+              ></v-skeleton-loader>
             </td>
           </tr>
           <tr>
@@ -107,8 +117,8 @@
 <script>
 module.exports = {
   props: {
-    wallet: { type: Object, default: null },
-    expirationdata: Object,
+    wallet: { type: Object, default: {} },
+    expirationdata: { type: Object, default: {} },
     price: { type: Number, default: 100 },
   },
   mixins: [dialog],

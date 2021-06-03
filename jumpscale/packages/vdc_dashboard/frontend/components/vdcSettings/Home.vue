@@ -32,7 +32,6 @@
       <v-tab-item class="ml-2">
         <v-card flat>
           <wallet
-            v-if="wallet"
             :wallet="wallet"
             :price="price"
             :expirationdata="expirationData"
