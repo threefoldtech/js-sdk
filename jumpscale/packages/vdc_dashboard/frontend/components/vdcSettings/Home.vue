@@ -172,9 +172,9 @@ module.exports = {
           this.tableloading = false;
         });
       this.$api.vdc
-        .getVdcWalletInfo()
+        .getVdcPlanPrice()
         .then((response) => {
-          this.price = response.data;
+          this.price = response.data.price;
         })
         .catch((err) => {
           this.alert(err.message, "error");
