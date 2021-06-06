@@ -1226,7 +1226,7 @@ class ReservationChatflow:
 
         return network_config
 
-    def get_ip_range(self, bot):
+    def get_ip_range(self, bot=None):
         """prompt user to select iprange
 
         Args:
@@ -1235,14 +1235,16 @@ class ReservationChatflow:
         Returns:
             [IPRange]: ip selected by user
         """
-        ip_range_choose = ["Configure IP range myself", "Choose IP range for me"]
-        iprange_user_choice = bot.single_choice(
-            "How would you like to configure the network IP range",
-            ip_range_choose,
-            required=True,
-            default=ip_range_choose[1],
-        )
-        if iprange_user_choice == "Configure IP range myself":
+        iprange_choice = "Choose IP range for me"
+        if bot:
+            ip_range_choose = ["Configure IP range myself", "Choose IP range for me"]
+            iprange_choice = bot.single_choice(
+                "How would you like to configure the network IP range",
+                ip_range_choose,
+                required=True,
+                default=ip_range_choose[1],
+            )
+        if iprange_choice == "Configure IP range myself":
             ip_range = bot.string_ask("Please add private IP Range of the network")
         else:
             first_digit = random.choice([172, 10])

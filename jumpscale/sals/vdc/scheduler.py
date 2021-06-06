@@ -107,8 +107,13 @@ class Scheduler:
                 continue
 
             # Exclude accessnodes
-            if not accessnodes and self.check_accessnode(node):
-                continue
+            # if accessnodes=True,the node needs to be an access node. If accessnode=False, the access nodes need to be excluded
+            if accessnodes:
+                if not self.check_accessnode(node):
+                    continue
+            else:
+                if self.check_accessnode(node):
+                    continue
 
             self._update_node(node, cru, mru, sru, hru)
             yield node
@@ -235,10 +240,19 @@ class CapacityChecker:
         self.scheduler.exclude_nodes(*node_ids)
 
     def add_query(
-        self, cru=None, mru=None, hru=None, sru=None, ip_version=None, public_ip=None, no_nodes=1, backup_no=0
+        self,
+        cru=None,
+        mru=None,
+        hru=None,
+        sru=None,
+        ip_version=None,
+        public_ip=None,
+        no_nodes=1,
+        backup_no=0,
+        accessnodes=False,
     ):
         nodes = []
-        for node in self.scheduler.nodes_by_capacity(cru, sru, mru, hru, ip_version, public_ip):
+        for node in self.scheduler.nodes_by_capacity(cru, sru, mru, hru, ip_version, public_ip, accessnodes):
             nodes.append(node)
             if len(nodes) == no_nodes + backup_no:
                 return self.result
@@ -285,9 +299,10 @@ class GlobalCapacityChecker:
         public_ip=None,
         no_nodes=1,
         backup_no=0,
+        accessnodes=False,
     ):
         cc = self.get_checker(farm_name)
-        result = cc.add_query(cru, mru, hru, sru, ip_version, public_ip, no_nodes, backup_no)
+        result = cc.add_query(cru, mru, hru, sru, ip_version, public_ip, no_nodes, backup_no, accessnodes)
         self._result = self._result and result
         return self._result
 
@@ -297,12 +312,21 @@ class GlobalCapacityChecker:
             cc.refresh(clear_excluded)
 
     def get_available_farms(
-        self, cru=None, mru=None, hru=None, sru=None, ip_version=None, public_ip=None, no_nodes=1, backup_no=0
+        self,
+        cru=None,
+        mru=None,
+        hru=None,
+        sru=None,
+        ip_version=None,
+        public_ip=None,
+        no_nodes=1,
+        backup_no=0,
+        accessnodes=False,
     ):
         explorer = j.core.identity.me.explorer
         all_farms = explorer.farms.list()
         for farm in all_farms:
             cc = self.get_checker(farm.name)
-            result = cc.add_query(cru, mru, hru, sru, ip_version, public_ip, no_nodes, backup_no)
+            result = cc.add_query(cru, mru, hru, sru, ip_version, public_ip, no_nodes, backup_no, accessnodes)
             if result:
                 yield farm.name
