@@ -3,6 +3,7 @@
     <div class="actions mb-3">
       <h1 class="d-inline" color="primary" text>Wallet Information</h1>
       <v-btn
+        v-if="wallet"
         class="float-right p-4"
         color="primary"
         text
@@ -12,7 +13,7 @@
         <v-icon left>mdi-bank</v-icon>List transactions
       </v-btn>
     </div>
-    <v-simple-table v-if="wallet">
+    <v-simple-table v-if="wallet && expirationdata">
       <template v-slot:default>
         <tbody>
           <tr>
@@ -45,9 +46,9 @@
                 outlined
                 class="ma-2"
                 :color="
-                  expirationdays < 2
+                  expirationdata.expiration_days < 2
                     ? 'error'
-                    : expirationdays < 14
+                    : expirationdata.expiration_days < 14
                     ? 'warning'
                     : 'primary'
                 "
@@ -61,7 +62,21 @@
           <tr>
             <td>VDC expiration date</td>
             <td class="ml-2">
-              {{ new Date(expirationdate * 1000).toLocaleString("en-GB") }}
+              <p v-if="expirationdata.expiration_date">
+                {{
+                  new Date(
+                    expirationdata.expiration_date * 1000
+                  ).toLocaleString("en-GB")
+                }}
+              </p>
+              <v-skeleton-loader
+                v-else
+                color="grey darken-2"
+                class="pa-4 mb-6"
+                :boilerplate="true"
+                :elevation="2"
+                type="text"
+              ></v-skeleton-loader>
             </td>
           </tr>
           <tr>
@@ -88,26 +103,35 @@
         </tbody>
       </template>
     </v-simple-table>
+    <v-skeleton-loader
+      v-else
+      color="grey darken-2"
+      class="pa-4 mb-6"
+      :boilerplate="true"
+      :elevation="2"
+      type="table-row-divider@6, article"
+    ></v-skeleton-loader>
   </div>
 </template>
 
 <script>
 module.exports = {
   props: {
-    wallet: Object,
-    expirationdays: Number,
-    expirationdate: Number,
-    price: Number,
+    wallet: { type: Object, default: {} },
+    expirationdata: { type: Object, default: {} },
+    price: { type: Number, default: 100 },
   },
   mixins: [dialog],
   data() {
     return {
       showSecret: false,
       qrcode: "",
+      qrcodeLoading: false,
     };
   },
   methods: {
     getQRCode() {
+      this.qrcodeLoading = true;
       this.$api.wallets
         .walletQRCodeImage(this.wallet.address, this.price, 3)
         .then((result) => {
@@ -118,10 +142,8 @@ module.exports = {
         });
     },
   },
-  mounted() {
-    if (this.wallet) {
-      this.getQRCode();
-    }
+  updated() {
+    if (this.wallet && !this.qrcode && !this.qrcodeLoading) this.getQRCode();
   },
 };
 </script>

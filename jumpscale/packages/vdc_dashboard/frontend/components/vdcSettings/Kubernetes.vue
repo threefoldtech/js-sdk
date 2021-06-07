@@ -95,7 +95,7 @@
     </v-data-table>
 
     <template
-      v-if="this.vdc && this.vdc.kubernetes.length < this.vdc.total_capacity"
+      v-if="isVDCAutoscalable"
     >
       <p>The VDC will autoscale to the plan limit.</p>
     </template>
@@ -162,7 +162,8 @@ module.exports = {
         successMsg: "Worker deleted successfully",
       },
       isNodeReadyToDelete: false,
-      podsToDelete: null
+      podsToDelete: null,
+      isVDCAutoscalable: false,
     };
   },
   methods: {
@@ -252,6 +253,13 @@ module.exports = {
       }
     },
   },
+  mounted() {
+    this.$api.vdc.checkVdcPlanAutoscalable().then((response) => {
+      this.isVDCAutoscalable = response.data.autoscalable;
+    }).catch((err)=>{
+      this.alert(err.message, "error")
+    });
+  }
 };
 </script>
 

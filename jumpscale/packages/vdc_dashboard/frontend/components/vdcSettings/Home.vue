@@ -32,11 +32,9 @@
       <v-tab-item class="ml-2">
         <v-card flat>
           <wallet
-            v-if="vdc"
             :wallet="wallet"
-            :expirationdays="vdc.expiration_days"
-            :expirationdate="vdc.expiration_date"
-            :price="vdc.price"
+            :price="price"
+            :expirationdata="expirationData"
           ></wallet>
         </v-card>
       </v-tab-item>
@@ -137,6 +135,7 @@ module.exports = {
       name: null,
       wallet: null,
       price: null,
+      expirationData: null,
       flavor: null,
       expirationTime: null,
       raiseExpirationAlert: true,
@@ -162,24 +161,48 @@ module.exports = {
   methods: {
     vdcInfo() {
       this.tableloading = true;
-      this.$api.solutions
+      this.$api.vdc
         .getVdcInfo()
         .then((response) => {
           this.vdc = response.data;
           this.name = this.vdc.vdc_name;
-          this.wallet = this.vdc.wallet;
           this.flavor = this.vdc.flavor;
-          this.price = this.vdc.price;
-          this.expirationTime =
-            this.vdc.expiration_days > 1
-              ? `${this.vdc.expiration_days.toFixed(0)} days and ${(
-                  (this.vdc.expiration_days % 1) *
-                  24
-                ).toFixed(0)} hours,`
-              : `${(this.vdc.expiration_days * 24).toFixed(0)} hours,`;
         })
         .finally(() => {
           this.tableloading = false;
+        });
+      this.$api.vdc
+        .getVdcPlanPrice()
+        .then((response) => {
+          this.price = response.data.price;
+        })
+        .catch((err) => {
+          this.alert(err.message, "error");
+        });
+      this.$api.vdc
+        .getVdcExpiration()
+        .then((response) => {
+          this.expirationData = response.data;
+          this.expirationTime =
+            this.expirationData.expiration_days > 1
+              ? `${this.expirationData.expiration_days.toFixed(0)} days and ${(
+                  (this.expirationData.expiration_days % 1) *
+                  24
+                ).toFixed(0)} hours,`
+              : `${(this.expirationData.expiration_days * 24).toFixed(
+                  0
+                )} hours,`;
+        })
+        .catch((err) => {
+          this.alert(err.message, "error");
+        });
+      this.$api.vdc
+        .getVdcWalletInfo()
+        .then((response) => {
+          this.wallet = response.data;
+        })
+        .catch((err) => {
+          this.alert(err.message, "error");
         });
     },
 
