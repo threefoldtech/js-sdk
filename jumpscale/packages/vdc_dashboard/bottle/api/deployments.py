@@ -250,7 +250,6 @@ def vdc_capacity():
 @app.route("/api/vdc/expiration", method="GET")
 @package_authorized("vdc_dashboard")
 def vdc_expiration():
-    vdc = get_vdc()
     data = get_expiration_data()
     return HTTPResponse(j.data.serializers.json.dumps(data), status=200, headers={"Content-Type": "application/json"})
 
@@ -266,7 +265,6 @@ def vdc_expiration():
 @app.route("/api/vdc/plan/autoscalable", method="GET")
 @package_authorized("vdc_dashboard")
 def vdc_plan():
-    vdc = get_vdc()
     data = {"autoscalable": check_plan_autoscalable()}
     return HTTPResponse(j.data.serializers.json.dumps(data), status=200, headers={"Content-Type": "application/json"})
 
@@ -274,7 +272,6 @@ def vdc_plan():
 @app.route("/api/vdc/wallet", method="GET")
 @package_authorized("vdc_dashboard")
 def vdc_wallet_info():
-    vdc = get_vdc()
     data = get_wallet_info()
     return HTTPResponse(j.data.serializers.json.dumps(data), status=200, headers={"Content-Type": "application/json"})
 
