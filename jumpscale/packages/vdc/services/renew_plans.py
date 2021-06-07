@@ -24,6 +24,7 @@ class RenewPlans(BackgroundService):
                 vdc_name = j.core.db.rpop(RENEW_PLANS_QUEUE)
 
             if vdc_name:
+                vdc_name = vdc_name.decode("utf-8")
                 j.logger.info(f"renewing plan for {vdc_name}")
                 try:
                     j.core.db.lpush(UNHANDLED_RENEWS, vdc_name)
