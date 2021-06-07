@@ -429,36 +429,37 @@ class VDCDeploy(GedisChatBot):
             j.sals.billing.issue_refund(payment_id)
             self._rollback()
             self.stop(f"{str(err)}. VDC uuid: {self.vdc.solution_uuid}")
-        self.md_show_update("Adding funds to provisioning wallet...")
-        initial_transaction_hashes = self.deployer.transaction_hashes
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_provision_transfer {datetime.datetime.now()}\n")
-        try:
-            self.vdc.transfer_to_provisioning_wallet(amount / 2)
-        except Exception as e:
-            j.sals.billing.issue_refund(payment_id)
-            self._rollback()
-            j.logger.error(f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}.")
-            raise StopChatFlow(
-                f"failed to fund provisioning wallet due to error {str(e)}. VDC uuid: {self.vdc.solution_uuid}"
-            )
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_provision_transfer {datetime.datetime.now()}\n")
 
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_pay_init_fees {datetime.datetime.now()}\n")
-        if self.VDC_INIT_WALLET_NAME:
-            try:
-                self.vdc.pay_initialization_fee(initial_transaction_hashes, self.VDC_INIT_WALLET_NAME)
-            except Exception as e:
-                j.logger.critical(f"failed to pay initialization fee for vdc: {self.vdc.solution_uuid}")
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_pay_init_fees {datetime.datetime.now()}\n")
-        self.deployer._set_wallet(old_wallet)
-        self.md_show_update("Funding difference...")
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_funding_diff {datetime.datetime.now()}\n")
-        self.vdc.fund_difference(self.VDC_INIT_WALLET_NAME)
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_funding_diff {datetime.datetime.now()}\n")
-        self.md_show_update("Updating expiration...")
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_renew_plan {datetime.datetime.now()}\n")
+        # self.md_show_update("Adding funds to provisioning wallet...")
+        # initial_transaction_hashes = self.deployer.transaction_hashes
+        # open("/tmp/times", "a").write(f"TIMESTAMP: start_provision_transfer {datetime.datetime.now()}\n")
+        # try:
+        #     self.vdc.transfer_to_provisioning_wallet(amount / 2)
+        # except Exception as e:
+        #     j.sals.billing.issue_refund(payment_id)
+        #     self._rollback()
+        #     j.logger.error(f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}.")
+        #     raise StopChatFlow(
+        #         f"failed to fund provisioning wallet due to error {str(e)}. VDC uuid: {self.vdc.solution_uuid}"
+        #     )
+        # open("/tmp/times", "a").write(f"TIMESTAMP: end_provision_transfer {datetime.datetime.now()}\n")
+
+        # open("/tmp/times", "a").write(f"TIMESTAMP: start_pay_init_fees {datetime.datetime.now()}\n")
+        # if self.VDC_INIT_WALLET_NAME:
+        #     try:
+        #         self.vdc.pay_initialization_fee(initial_transaction_hashes, self.VDC_INIT_WALLET_NAME)
+        #     except Exception as e:
+        #         j.logger.critical(f"failed to pay initialization fee for vdc: {self.vdc.solution_uuid}")
+        # open("/tmp/times", "a").write(f"TIMESTAMP: end_pay_init_fees {datetime.datetime.now()}\n")
+        # self.deployer._set_wallet(old_wallet)
+        # self.md_show_update("Funding difference...")
+        # open("/tmp/times", "a").write(f"TIMESTAMP: start_funding_diff {datetime.datetime.now()}\n")
+        # self.vdc.fund_difference(self.VDC_INIT_WALLET_NAME)
+        # open("/tmp/times", "a").write(f"TIMESTAMP: end_funding_diff {datetime.datetime.now()}\n")
+        # self.md_show_update("Updating expiration...")
+        # open("/tmp/times", "a").write(f"TIMESTAMP: start_renew_plan {datetime.datetime.now()}\n")
         j.core.db.lpush("vdc:plan_renewals", self.vdc.vdc_name)
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_renew_plan {datetime.datetime.now()}\n")
+        # open("/tmp/times", "a").write(f"TIMESTAMP: end_renew_plan {datetime.datetime.now()}\n")
         self.vdc.state = VDCSTATE.DEPLOYED
         self.vdc.save()
         j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
