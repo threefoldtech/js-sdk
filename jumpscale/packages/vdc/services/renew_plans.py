@@ -15,6 +15,7 @@ class RenewPlans(BackgroundService):
         super().__init__(interval, *args, **kwargs)
 
     def job(self):
+        j.logger.info(" ############## Starting Renew Plans Service ############## ")
         while True:
             vdc_name = None
             if j.core.db.llen(UNHANDLED_RENEWS) > 0:
@@ -32,12 +33,13 @@ class RenewPlans(BackgroundService):
                     raise e
             else:
                 j.logger.info("Empty Renew plan queue")
+                j.logger.info(" ############## End Renew Plans Service ############## ")
                 break
 
             gevent.sleep(1)
 
-    def init_payment(vdc_name):
-        j.logger.info(f"############################ START INIT_PAYMENT {vdc_name} ############################")
+    def init_payment(self, vdc_name):
+        j.logger.info(f"############################ START INIT_PAYMENT for {vdc_name} ############################")
         vdc = j.sals.vdc.find(vdc_name, load_info=True)
         deployer = vdc.get_deployer()
         amount = vdc.prepaid_wallet.get_balance_by_asset(asset="TFT")
@@ -66,7 +68,7 @@ class RenewPlans(BackgroundService):
 
         j.logger.debug("Updating expiration...")
         deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
-        j.logger.info(f"############################ END INIT_PAYMENT {vdc_name} ############################")
+        j.logger.info(f"############################ END INIT_PAYMENT for {vdc_name} ############################")
 
 
 service = RenewPlans()

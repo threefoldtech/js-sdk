@@ -458,7 +458,7 @@ class VDCDeploy(GedisChatBot):
         # open("/tmp/times", "a").write(f"TIMESTAMP: end_funding_diff {datetime.datetime.now()}\n")
         # self.md_show_update("Updating expiration...")
         # open("/tmp/times", "a").write(f"TIMESTAMP: start_renew_plan {datetime.datetime.now()}\n")
-        j.core.db.lpush("vdc:plan_renewals", self.vdc.vdc_name)
+        j.core.db.lpush("vdc:plan_renewals", self.vdc.instance_name)
         # open("/tmp/times", "a").write(f"TIMESTAMP: end_renew_plan {datetime.datetime.now()}\n")
         self.vdc.state = VDCSTATE.DEPLOYED
         self.vdc.save()
