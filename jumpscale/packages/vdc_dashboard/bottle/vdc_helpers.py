@@ -9,10 +9,12 @@ CURRENTVDC = None
 
 def require_vdc_info(fun):
     def inner(*args, **kwargs):
-        global CURRENTVDC
-        if not CURRENTVDC:
-            CURRENTVDC = get_vdc()
-        return fun(*args, **kwargs)
+        try:
+            function_name = fun.__name__
+            vdc = get_vdc()
+            return fun(vdc, *args, **kwargs)
+        except Exception as error:
+            j.logger.exception(f"Unhandled exception when calling {function_name}: {error}", exception=error)
 
     return inner
 
@@ -52,31 +54,31 @@ def _get_addons(flavor, kubernetes_addons):
 
 
 @require_vdc_info
-def _total_capacity():
-    addons = _get_addons(CURRENTVDC.flavor, CURRENTVDC.kubernetes)
-    plan = VDC_SIZE.VDC_FLAVORS.get(CURRENTVDC.flavor)
+def _total_capacity(vdc):
+    addons = _get_addons(vdc.flavor, vdc.kubernetes)
+    plan = VDC_SIZE.VDC_FLAVORS.get(vdc.flavor)
     plan_nodes_count = plan.get("k8s").get("no_nodes")
     return plan_nodes_count + len(addons) + 1
 
 
 @require_vdc_info
-def threebot_vdc_helper():
-    vdc_dict = CURRENTVDC.to_dict()
+def threebot_vdc_helper(vdc):
+    vdc_dict = vdc.to_dict()
     return vdc_dict
 
 
 @require_vdc_info
-def get_expiration_data():
+def get_expiration_data(vdc):
     return_data = {}
-    return_data["expiration_days"] = (CURRENTVDC.expiration_date - j.data.time.now()).days
-    return_data["expiration_date"] = CURRENTVDC.calculate_expiration_value(False)
+    return_data["expiration_days"] = (vdc.expiration_date - j.data.time.now()).days
+    return_data["expiration_date"] = vdc.calculate_expiration_value(False)
     return return_data
 
 
 @require_vdc_info
-def get_wallet_info():
+def get_wallet_info(vdc):
     # Add wallet address
-    wallet = CURRENTVDC.prepaid_wallet
+    wallet = vdc.prepaid_wallet
     balances = wallet.get_balance()
     balances_data = []
     for item in balances.balances:
@@ -94,8 +96,8 @@ def get_wallet_info():
 
 
 @require_vdc_info
-def check_plan_autoscalable():
-    return len(CURRENTVDC.kubernetes) < _total_capacity()
+def check_plan_autoscalable(vdc):
+    return len(vdc.kubernetes) < _total_capacity()
 
 
 def _list_alerts(app_name: str = ""):
