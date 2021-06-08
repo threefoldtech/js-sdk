@@ -44,6 +44,7 @@ class VDCSTATE(Enum):
     DEPLOYED = "DEPLOYED"
     ERROR = "ERROR"
     EMPTY = "EMPTY"
+    VERIFIED = "VERIFIED"
 
 
 class UserVDC(Base):

@@ -41,7 +41,6 @@ class RenewPlans(BackgroundService):
             if payment_data:
                 self.payment_info = j.data.serializers.json.loads(payment_data)
                 vdc_name = self.payment_info.get("vdc_instance_name")
-                payment_id = self.payment_info.get("payment_id")
                 vdc_created_at = self.payment_info.get("created_at")
 
                 if j.data.time.now().timestamp - vdc_created_at > ONE_HOUR:
@@ -60,7 +59,7 @@ class RenewPlans(BackgroundService):
                     j.core.db.lrem(UNHANDLED_RENEWS, 0, payment_data)
                 except Exception as e:
                     j.logger.error(
-                        f"Failed to complete payment, last successful step: {self.payment_info.get('payment_phase')}"
+                        f"Failed to complete payment for {vdc_name}, last successful step: {self.payment_info.get('payment_phase')}"
                     )
                     raise e
 
@@ -104,6 +103,8 @@ class RenewPlans(BackgroundService):
             j.logger.debug("Updating expiration...")
             deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
             self._change_payment_phase(PAYMENTSTATE.PAID.value)
+            vdc.state = VDCSTATE.VERIFIED
+            vdc.save()
             j.logger.info(f"END INIT_PAYMENT for {vdc_name}")
 
     def refund_rollback(self):

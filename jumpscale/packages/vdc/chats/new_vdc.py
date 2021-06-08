@@ -466,6 +466,8 @@ class VDCDeploy(GedisChatBot):
         You can download the kubeconfig file from the dashboard to ~/.kube/config to start using your cluster with kubectl
 
         Kubernetes controller public IP: {self.public_ip}
+
+        > We are verifying your VDC, We will refund you incase any problem happens within the next hour.
         """
         )
         if solution is not None:
