@@ -436,10 +436,11 @@ class VDCDeploy(GedisChatBot):
                 "vdc_instance_name": self.vdc.instance_name,
                 "created_at": j.data.time.now().timestamp,
                 "payment_id": payment_id,
-                "payment_phase": PAYMENTSTATE.NEW,
+                "payment_phase": PAYMENTSTATE.NEW.value,
             }
         )
         j.core.db.lpush("vdc:plan_renewals", payment_data)
+        j.logger.debug(f"########### PAYMENT_DATA to be used in renew service:: {payment_data}")
         self.vdc.state = VDCSTATE.DEPLOYED
         self.vdc.save()
         j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)

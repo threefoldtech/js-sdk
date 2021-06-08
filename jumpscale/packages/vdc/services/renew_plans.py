@@ -76,33 +76,33 @@ class RenewPlans(BackgroundService):
         initial_transaction_hashes = vdc.transaction_hashes
         j.logger.debug(f"Transaction hashes:: {initial_transaction_hashes}")
 
-        if payment_phase == PAYMENTSTATE.NEW:
+        if payment_phase == PAYMENTSTATE.NEW.value:
             j.logger.debug("Adding funds to provisioning wallet...")
             try:
                 vdc.transfer_to_provisioning_wallet(amount / 2)
-                self._change_payment_phase(self.payment_info, PAYMENTSTATE.FUND_PROVISION)
+                self._change_payment_phase(self.payment_info, PAYMENTSTATE.FUND_PROVISION.value)
             except Exception as e:
                 j.logger.error(f"Failed to fund provisioning wallet due to error {str(e)} for vdc: {vdc_name}.")
 
-        if payment_phase == PAYMENTSTATE.FUND_PROVISION:
+        if payment_phase == PAYMENTSTATE.FUND_PROVISION.value:
             j.logger.debug("Paying initialization fee from provisioning wallet")
             try:
                 vdc.pay_initialization_fee(initial_transaction_hashes, VDC_INIT_WALLET_NAME)
-                self._change_payment_phase(self.payment_info, PAYMENTSTATE.INIT_FEE)
+                self._change_payment_phase(self.payment_info, PAYMENTSTATE.INIT_FEE.value)
             except Exception as e:
                 j.logger.critical(f"Failed to pay initialization fee due to error {str(e)} for vdc: {vdc_name} ")
 
         deployer._set_wallet(vdc.provision_wallet.instance_name)
 
         j.logger.debug("Funding difference from init wallet...")
-        if payment_phase == PAYMENTSTATE.INIT_FEE:
+        if payment_phase == PAYMENTSTATE.INIT_FEE.value:
             vdc.fund_difference(VDC_INIT_WALLET_NAME)
-            self._change_payment_phase(self.payment_info, PAYMENTSTATE.FUND_DIFF)
+            self._change_payment_phase(self.payment_info, PAYMENTSTATE.FUND_DIFF.value)
 
-        if payment_phase == PAYMENTSTATE.FUND_DIFF:
+        if payment_phase == PAYMENTSTATE.FUND_DIFF.value:
             j.logger.debug("Updating expiration...")
             deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
-            self._change_payment_phase(self.payment_info, PAYMENTSTATE.PAID)
+            self._change_payment_phase(self.payment_info, PAYMENTSTATE.PAID.value)
             j.logger.info(f"END INIT_PAYMENT for {vdc_name}")
 
     def refund_rollback(self):
@@ -116,28 +116,34 @@ class RenewPlans(BackgroundService):
         asset = vdc.prepaid_wallet._get_asset(code="TFT")
         vdc_init_wallet = j.clients.stellar.get(VDC_INIT_WALLET_NAME)
 
-        if payment_phase == PAYMENTSTATE.FUND_DIFF:
+        if payment_phase == PAYMENTSTATE.FUND_DIFF.value:
             diff = provisioning_wallet_amount - prepaid_wallet_amount
             if diff > 0:
                 vdc.provisioning_wallet.transfer(vdc_init_wallet.address, diff, asset=f"{asset.code}:{asset.issuer}")
                 provisioning_wallet_amount = (
                     vdc.provisioning_wallet.get_balance_by_asset(asset="TFT") - TRANSACTION_FEES
                 )
-                self._change_payment_phase(self.payment_info, PAYMENTSTATE.FUND_PROVISION)  # Update to required state
+                self._change_payment_phase(
+                    self.payment_info, PAYMENTSTATE.FUND_PROVISION.value
+                )  # Update to required state
 
-        if payment_phase == PAYMENTSTATE.INIT_FEE:
+        if payment_phase == PAYMENTSTATE.INIT_FEE.value:
             init_fee_amount = vdc._calculate_initialization_fee(vdc.transaction_hashes, vdc_init_wallet)
             vdc_init_wallet.transfer(vdc.prepaid_wallet.address, init_fee_amount, asset=f"{asset.code}:{asset.issuer}")
-            self._change_payment_phase(self.payment_info, PAYMENTSTATE.FUND_PROVISION)  # Update to required state
+            self._change_payment_phase(self.payment_info, PAYMENTSTATE.FUND_PROVISION.value)  # Update to required state
 
-        if payment_phase in [PAYMENTSTATE.FUND_PROVISION, PAYMENTSTATE.INIT_FEE, PAYMENTSTATE.FUND_DIFF]:
+        if payment_phase in [
+            PAYMENTSTATE.FUND_PROVISION.value,
+            PAYMENTSTATE.INIT_FEE.value,
+            PAYMENTSTATE.FUND_DIFF.value,
+        ]:
             vdc.provisioning_wallet.transfer(
                 vdc.prepaid_wallet.address, provisioning_wallet_amount, asset=f"{asset.code}:{asset.issuer}"
             )
             vdc_init_wallet.transfer(
                 vdc.prepaid_wallet.address, 2 * TRANSACTION_FEES, asset=f"{asset.code}:{asset.issuer}"
             )
-            self._change_payment_phase(self.payment_info, PAYMENTSTATE.NEW)  # Update to required state
+            self._change_payment_phase(self.payment_info, PAYMENTSTATE.NEW.value)  # Update to required state
 
         j.sals.billing.issue_refund(payment_id)
         j.sals.vdc.cleanup_vdc(vdc)
