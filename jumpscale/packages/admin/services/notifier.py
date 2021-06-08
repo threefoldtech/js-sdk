@@ -33,7 +33,7 @@ class Notifier(BackgroundService):
                 message = mail_info["message"]
                 sender = mail_info["sender"]
                 subject = mail_info["subject"]
-                self.send_mail(recipients_emails, subject, message, sender)
+                self.send_mail(recipients_emails=recipients_emails, subject=subject, message=message, sender=sender)
             except Exception as e:
                 j.logger.exception(f"Failed to send mail: {mail_info_json}", exception=e)
 
