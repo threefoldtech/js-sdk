@@ -56,7 +56,10 @@ class RenewPlans(BackgroundService):
                     self.init_payment()
                     j.core.db.lrem(UNHANDLED_RENEWS, 0, payment_data)
                 except Exception as e:
-                    raise e
+                    j.logger.error(
+                        f"Failed to complete payment, last successful step: {self.payment_info.get('payment_phase')}\nFor details: {str(e)}"
+                    )
+
             else:
                 j.logger.info("Empty Renew plan queue")
                 j.logger.info("End Renew Plans Service")
@@ -78,19 +81,13 @@ class RenewPlans(BackgroundService):
 
         if payment_phase == PAYMENTSTATE.NEW.value:
             j.logger.debug("Adding funds to provisioning wallet...")
-            try:
-                vdc.transfer_to_provisioning_wallet(amount / 2)
-                self._change_payment_phase(PAYMENTSTATE.FUND_PROVISION.value)
-            except Exception as e:
-                j.logger.error(f"Failed to fund provisioning wallet due to error {str(e)} for vdc: {vdc_name}.")
+            vdc.transfer_to_provisioning_wallet(amount / 2)
+            self._change_payment_phase(PAYMENTSTATE.FUND_PROVISION.value)
 
         if payment_phase == PAYMENTSTATE.FUND_PROVISION.value:
             j.logger.debug("Paying initialization fee from provisioning wallet")
-            try:
-                vdc.pay_initialization_fee(initial_transaction_hashes, VDC_INIT_WALLET_NAME)
-                self._change_payment_phase(PAYMENTSTATE.INIT_FEE.value)
-            except Exception as e:
-                j.logger.critical(f"Failed to pay initialization fee due to error {str(e)} for vdc: {vdc_name} ")
+            vdc.pay_initialization_fee(initial_transaction_hashes, VDC_INIT_WALLET_NAME)
+            self._change_payment_phase(PAYMENTSTATE.INIT_FEE.value)
 
         deployer._set_wallet(vdc.provision_wallet.instance_name)
 
