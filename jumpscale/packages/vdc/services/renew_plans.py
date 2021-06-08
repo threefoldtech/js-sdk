@@ -48,6 +48,7 @@ class RenewPlans(BackgroundService):
                     j.logger.debug(f"Refund VDC {vdc_name}")
                     j.core.db.lpush(UNHANDLED_RENEWS, payment_data)
                     self.refund_rollback()
+                    payment_data = j.data.serializers.json.dumps(self.payment_info)
                     j.core.db.lrem(UNHANDLED_RENEWS, 0, payment_data)
                     continue
 
@@ -55,6 +56,7 @@ class RenewPlans(BackgroundService):
                 try:
                     j.core.db.lpush(UNHANDLED_RENEWS, payment_data)
                     self.init_payment()
+                    payment_data = j.data.serializers.json.dumps(self.payment_info)
                     j.core.db.lrem(UNHANDLED_RENEWS, 0, payment_data)
                 except Exception as e:
                     j.logger.error(
