@@ -143,8 +143,8 @@ class RenewPlans(BackgroundService):
         j.sals.billing.issue_refund(payment_id)
         j.sals.vdc.cleanup_vdc(vdc)
         j.core.db.hdel(VCD_DEPLOYING_INSTANCES, vdc_name)
-        self.vdc.state = VDCSTATE.EMPTY
-        self.vdc.save()
+        vdc.state = VDCSTATE.EMPTY
+        vdc.save()
 
     def _change_payment_phase(self, phase):
         self.payment_info["payment_phase"] = phase
