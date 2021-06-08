@@ -63,6 +63,7 @@ class UserVDC(Base):
     _flavor = fields.String()
     state = fields.Enum(VDCSTATE)
     __lock = BoundedSemaphore(1)
+    transaction_hashes = []
 
     @property
     def flavor(self):
@@ -578,6 +579,12 @@ class UserVDC(Base):
         else:
             wallet = self.provision_wallet
         # get total amount
+        amount = self._calculate_initialization_fee(transaction_hashes, initial_wallet)
+        if not amount:
+            return True
+        return self.pay_amount(initial_wallet.address, amount, wallet)
+
+    def _calculate_initialization_fee(self, transaction_hashes, initial_wallet):
         amount = 0
         for t_hash in transaction_hashes:
             effects = initial_wallet.get_transaction_effects(t_hash)
@@ -586,9 +593,7 @@ class UserVDC(Base):
                     abs(float(effect.amount)) + TRANSACTION_FEES
                 )  # transaction fees to not drain the initialization wallet
         amount = round(amount, 6)
-        if not amount:
-            return True
-        return self.pay_amount(initial_wallet.address, amount, wallet)
+        return amount
 
     def _get_wallet_balance(self, wallet):
         balances = wallet.get_balance().balances

@@ -19,7 +19,7 @@ from jumpscale.sals.vdc.size import (
     VDC_SIZE,
     ZDB_STARTING_SIZE,
 )
-
+from jumpscale.packages.vdc.services.renew_plans import PAYMENTSTATE
 
 MINIMUM_ACTIVATION_XLMS = 0
 VCD_DEPLOYING_INSTANCES = "VCD_DEPLOYING_INSTANCES"
@@ -430,7 +430,16 @@ class VDCDeploy(GedisChatBot):
             self._rollback()
             self.stop(f"{str(err)}. VDC uuid: {self.vdc.solution_uuid}")
 
-        j.core.db.lpush("vdc:plan_renewals", self.vdc.instance_name)
+        self.vdc.transaction_hashes = self.deployer.transaction_hashes
+        payment_data = j.data.serializers.json.dumps(
+            {
+                "vdc_instance_name": self.vdc.instance_name,
+                "created_at": j.data.time.now().timestamp,
+                "payment_id": payment_id,
+                "payment_phase": PAYMENTSTATE.NEW,
+            }
+        )
+        j.core.db.lpush("vdc:plan_renewals", payment_data)
         self.vdc.state = VDCSTATE.DEPLOYED
         self.vdc.save()
         j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
