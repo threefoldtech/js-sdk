@@ -46,6 +46,7 @@ class RenewPlans(BackgroundService):
 
                 if j.data.time.now().timestamp - vdc_created_at > ONE_HOUR:
                     j.logger.debug(f"Refund VDC {vdc_name}")
+                    j.core.db.lpush(UNHANDLED_RENEWS, payment_data)
                     self.refund_rollback()
                     j.core.db.lrem(UNHANDLED_RENEWS, 0, payment_data)
                     continue
@@ -57,8 +58,9 @@ class RenewPlans(BackgroundService):
                     j.core.db.lrem(UNHANDLED_RENEWS, 0, payment_data)
                 except Exception as e:
                     j.logger.error(
-                        f"Failed to complete payment, last successful step: {self.payment_info.get('payment_phase')}\nFor details: {str(e)}"
+                        f"Failed to complete payment, last successful step: {self.payment_info.get('payment_phase')}"
                     )
+                    raise e
 
             else:
                 j.logger.info("Empty Renew plan queue")
