@@ -46,7 +46,7 @@ class RenewPlans(BackgroundService):
 
                 if j.data.time.now().timestamp - vdc_created_at > ONE_HOUR:
                     j.logger.debug(f"Refund VDC {vdc_name}")
-                    self.refund_rollback(vdc_name, payment_id)
+                    self.refund_rollback()
                     j.core.db.lrem(UNHANDLED_RENEWS, 0, payment_data)
                     continue
 
@@ -108,18 +108,16 @@ class RenewPlans(BackgroundService):
         payment_phase = self.payment_info.get("payment_phase")
 
         vdc = j.sals.vdc.get(vdc_name)
-        provisioning_wallet_amount = vdc.provisioning_wallet.get_balance_by_asset(asset="TFT") - TRANSACTION_FEES
+        provision_wallet_amount = vdc.provision_wallet.get_balance_by_asset(asset="TFT") - TRANSACTION_FEES
         prepaid_wallet_amount = vdc.prepaid_wallet.get_balance_by_asset(asset="TFT")
         asset = vdc.prepaid_wallet._get_asset(code="TFT")
         vdc_init_wallet = j.clients.stellar.get(VDC_INIT_WALLET_NAME)
 
         if payment_phase == PAYMENTSTATE.FUND_DIFF.value:
-            diff = provisioning_wallet_amount - prepaid_wallet_amount
+            diff = provision_wallet_amount - prepaid_wallet_amount
             if diff > 0:
-                vdc.provisioning_wallet.transfer(vdc_init_wallet.address, diff, asset=f"{asset.code}:{asset.issuer}")
-                provisioning_wallet_amount = (
-                    vdc.provisioning_wallet.get_balance_by_asset(asset="TFT") - TRANSACTION_FEES
-                )
+                vdc.provision_wallet.transfer(vdc_init_wallet.address, diff, asset=f"{asset.code}:{asset.issuer}")
+                provision_wallet_amount = vdc.provision_wallet.get_balance_by_asset(asset="TFT") - TRANSACTION_FEES
                 self._change_payment_phase(PAYMENTSTATE.FUND_PROVISION.value)  # Update to required state
 
         if payment_phase == PAYMENTSTATE.INIT_FEE.value:
@@ -132,8 +130,8 @@ class RenewPlans(BackgroundService):
             PAYMENTSTATE.INIT_FEE.value,
             PAYMENTSTATE.FUND_DIFF.value,
         ]:
-            vdc.provisioning_wallet.transfer(
-                vdc.prepaid_wallet.address, provisioning_wallet_amount, asset=f"{asset.code}:{asset.issuer}"
+            vdc.provision_wallet.transfer(
+                vdc.prepaid_wallet.address, provision_wallet_amount, asset=f"{asset.code}:{asset.issuer}"
             )
             vdc_init_wallet.transfer(
                 vdc.prepaid_wallet.address, 2 * TRANSACTION_FEES, asset=f"{asset.code}:{asset.issuer}"
