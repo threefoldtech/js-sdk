@@ -29,14 +29,15 @@ class RenewPlans(BackgroundService):
         self.payment_info = None
         super().__init__(interval, *args, **kwargs)
 
+    @property
+    def payment_phase(self):
+        return self.payment_info.get("payment_phase")
+
     def job(self):
         j.logger.info("Starting Renew Plans Service")
-        while True:
-            payment_data = None
-            if j.core.db.llen(UNHANDLED_RENEWS) > 0:
-                payment_data = j.core.db.rpop(UNHANDLED_RENEWS)
-            else:
-                payment_data = j.core.db.rpop(RENEW_PLANS_QUEUE)
+        queues_length = j.core.db.llen(RENEW_PLANS_QUEUE) + j.core.db.llen(UNHANDLED_RENEWS)
+        for _ in range(queues_length):
+            payment_data = j.core.db.rpop(RENEW_PLANS_QUEUE) or j.core.db.rpop(UNHANDLED_RENEWS)
 
             if payment_data:
                 self.payment_info = j.data.serializers.json.loads(payment_data)
@@ -45,34 +46,29 @@ class RenewPlans(BackgroundService):
 
                 if j.data.time.now().timestamp - vdc_created_at > ONE_HOUR:
                     j.logger.debug(f"Refund VDC {vdc_name}")
-                    j.core.db.lpush(UNHANDLED_RENEWS, payment_data)
-                    self.refund_rollback()
-                    payment_data = j.data.serializers.json.dumps(self.payment_info)
-                    j.core.db.lrem(UNHANDLED_RENEWS, 0, payment_data)
-                    continue
-
-                j.logger.info(f"renewing plan for {vdc_name}")
-                try:
-                    j.core.db.lpush(UNHANDLED_RENEWS, payment_data)
-                    self.init_payment()
-                    payment_data = j.data.serializers.json.dumps(self.payment_info)
-                    j.core.db.lrem(UNHANDLED_RENEWS, 0, payment_data)
-                except Exception as e:
-                    j.logger.error(
-                        f"Failed to complete payment for {vdc_name}, last successful step: {self.payment_info.get('payment_phase')}"
-                    )
-                    raise e
-
-            else:
-                j.logger.info("Empty Renew plan queue")
-                j.logger.info("End Renew Plans Service")
-                break
+                    try:
+                        self.refund_rollback()
+                    except Exception as e:  # Push back element in case the refund fail
+                        payment_data = j.data.serializers.json.dumps(self.payment_info)  # To get latest payment info
+                        j.core.db.lpush(UNHANDLED_RENEWS, payment_data)
+                        j.logger.error(f"Failed to refund {vdc_name}, will try again.\nFor details:{str(e)}")
+                else:
+                    j.logger.info(f"renewing plan for {vdc_name}")
+                    try:
+                        self.init_payment()
+                    except Exception as e:  # Push back element in case the refund fail
+                        payment_data = j.data.serializers.json.dumps(self.payment_info)  # To get latest payment info
+                        j.core.db.lpush(UNHANDLED_RENEWS, payment_data)
+                        j.logger.error(
+                            f"Failed to complete payment for {vdc_name}, last successful step: {self.payment_info.get('payment_phase')}\nFor details:{str(e)}"
+                        )
 
             gevent.sleep(1)
 
+        j.logger.info("End Renew Plans Service")
+
     def init_payment(self):
         vdc_name = self.payment_info.get("vdc_instance_name")
-        payment_phase = self.payment_info.get("payment_phase")
 
         j.logger.info(f"START INIT_PAYMENT for {vdc_name}")
         vdc = j.sals.vdc.find(vdc_name, load_info=True)
@@ -82,12 +78,12 @@ class RenewPlans(BackgroundService):
         initial_transaction_hashes = vdc.transaction_hashes
         j.logger.debug(f"Transaction hashes:: {initial_transaction_hashes}")
 
-        if payment_phase == PAYMENTSTATE.NEW.value:
+        if self.payment_phase == PAYMENTSTATE.NEW.value:
             j.logger.debug("Adding funds to provisioning wallet...")
             vdc.transfer_to_provisioning_wallet(amount / 2)
             self._change_payment_phase(PAYMENTSTATE.FUND_PROVISION.value)
 
-        if payment_phase == PAYMENTSTATE.FUND_PROVISION.value:
+        if self.payment_phase == PAYMENTSTATE.FUND_PROVISION.value:
             j.logger.debug("Paying initialization fee from provisioning wallet")
             vdc.pay_initialization_fee(initial_transaction_hashes, VDC_INIT_WALLET_NAME)
             self._change_payment_phase(PAYMENTSTATE.INIT_FEE.value)
@@ -95,11 +91,11 @@ class RenewPlans(BackgroundService):
         deployer._set_wallet(vdc.provision_wallet.instance_name)
 
         j.logger.debug("Funding difference from init wallet...")
-        if payment_phase == PAYMENTSTATE.INIT_FEE.value:
+        if self.payment_phase == PAYMENTSTATE.INIT_FEE.value:
             vdc.fund_difference(VDC_INIT_WALLET_NAME)
             self._change_payment_phase(PAYMENTSTATE.FUND_DIFF.value)
 
-        if payment_phase == PAYMENTSTATE.FUND_DIFF.value:
+        if self.payment_phase == PAYMENTSTATE.FUND_DIFF.value:
             j.logger.debug("Updating expiration...")
             deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
             self._change_payment_phase(PAYMENTSTATE.PAID.value)
@@ -110,7 +106,6 @@ class RenewPlans(BackgroundService):
     def refund_rollback(self):
         vdc_name = self.payment_info.get("vdc_instance_name")
         payment_id = self.payment_info.get("payment_id")
-        payment_phase = self.payment_info.get("payment_phase")
 
         vdc = j.sals.vdc.get(vdc_name)
         provision_wallet_amount = vdc.provision_wallet.get_balance_by_asset(asset="TFT") - TRANSACTION_FEES
@@ -118,19 +113,19 @@ class RenewPlans(BackgroundService):
         asset = vdc.prepaid_wallet._get_asset(code="TFT")
         vdc_init_wallet = j.clients.stellar.get(VDC_INIT_WALLET_NAME)
 
-        if payment_phase == PAYMENTSTATE.FUND_DIFF.value:
+        if self.payment_phase == PAYMENTSTATE.FUND_DIFF.value:
             diff = provision_wallet_amount - prepaid_wallet_amount
             if diff > 0:
                 vdc.provision_wallet.transfer(vdc_init_wallet.address, diff, asset=f"{asset.code}:{asset.issuer}")
                 provision_wallet_amount = vdc.provision_wallet.get_balance_by_asset(asset="TFT") - TRANSACTION_FEES
                 self._change_payment_phase(PAYMENTSTATE.FUND_PROVISION.value)  # Update to required state
 
-        if payment_phase == PAYMENTSTATE.INIT_FEE.value:
+        if self.payment_phase == PAYMENTSTATE.INIT_FEE.value:
             init_fee_amount = vdc._calculate_initialization_fee(vdc.transaction_hashes, vdc_init_wallet)
             vdc_init_wallet.transfer(vdc.prepaid_wallet.address, init_fee_amount, asset=f"{asset.code}:{asset.issuer}")
             self._change_payment_phase(PAYMENTSTATE.FUND_PROVISION.value)  # Update to required state
 
-        if payment_phase in [
+        if self.payment_phase in [
             PAYMENTSTATE.FUND_PROVISION.value,
             PAYMENTSTATE.INIT_FEE.value,
             PAYMENTSTATE.FUND_DIFF.value,
@@ -151,7 +146,6 @@ class RenewPlans(BackgroundService):
 
     def _change_payment_phase(self, phase):
         self.payment_info["payment_phase"] = phase
-        j.core.db.lset(UNHANDLED_RENEWS, 0, j.data.serializers.json.dumps(self.payment_info))
 
 
 service = RenewPlans()
