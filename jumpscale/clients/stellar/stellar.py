@@ -440,6 +440,7 @@ class Stellar(Client):
         sequence_number: int = None,
         sign: bool = True,
         retries: int = 5,
+        funding_wallet_address: str = None
     ):
         """Transfer assets to another address
 
@@ -483,6 +484,7 @@ class Stellar(Client):
                     timeout=timeout,
                     sequence_number=sequence_number,
                     sign=sign,
+                    funding_wallet_address=funding_wallet_address,
                 )
             except Exception as e:
                 nretries += 1
@@ -503,6 +505,7 @@ class Stellar(Client):
         timeout=30,
         sequence_number: int = None,
         sign: bool = True,
+        funding_wallet_address: str = None
     ):
         issuer = None
         j.logger.info(f"Sending {amount} {asset} to {destination_address}")
@@ -535,12 +538,15 @@ class Stellar(Client):
             source_account = horizon_server.load_account(from_address)
         else:
             source_account = self.load_account()
-
+        if funding_wallet_address is not None:
+            funding_wallet = horizon_server.load_account(funding_wallet_address)
+        else:
+            funding_wallet = source_account
         if sequence_number:
             source_account.sequence = sequence_number
 
         transaction_builder = stellar_sdk.TransactionBuilder(
-            source_account=source_account,
+            source_account=funding_wallet,
             network_passphrase=_NETWORK_PASSPHRASES[self.network.value],
             base_fee=base_fee,
         )
@@ -572,6 +578,9 @@ class Stellar(Client):
 
         my_keypair = stellar_sdk.Keypair.from_secret(self.secret)
         transaction.sign(my_keypair)
+        if funding_wallet_address:
+            funding_keypair = stellar_sdk.Keypair.from_secret(j.clients.stellar.activation_wallet.secret)
+            transaction.sign(funding_keypair)
 
         response = horizon_server.submit_transaction(transaction)
         tx_hash = response["hash"]
@@ -634,6 +643,7 @@ class Stellar(Client):
         address = address or self.address
         tx_endpoint = self._get_horizon_server().transactions()
         tx_endpoint.for_account(address)
+        tx_endpoint.limit(7)
         tx_endpoint.include_failed(True)
         transactions = []
         old_cursor = "old"
@@ -645,6 +655,7 @@ class Stellar(Client):
             tx_endpoint.cursor(new_cursor)
             response = tx_endpoint.call()
             next_link = response["_links"]["next"]["href"]
+            print(next_link)
             next_link_query = parse.urlsplit(next_link).query
             new_cursor = parse.parse_qs(next_link_query)["cursor"][0]
             response_transactions = response["_embedded"]["records"]

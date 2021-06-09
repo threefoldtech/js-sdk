@@ -55,7 +55,7 @@ class Billing:
 
         transaction_hashes = []
         try:
-            txhash = wallet.transfer(escrow_address, total_amount, asset=asset, memo_text=f"p-{reservation_id}")
+            txhash = wallet.transfer(escrow_address, total_amount, asset=asset, memo_text=f"p-{reservation_id}", funding_wallet_address=j.clients.stellar.activation_wallet.address, fund_transaction=False)
             transaction_hashes.append(txhash)
         except BadRequestError as e:
             raise e
