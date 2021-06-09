@@ -278,7 +278,7 @@ class TFGridSolutionChatflowsSadPath(ChatflowsBase):
         res, out, err = j.sals.process.execute(f"ping -c 1 {endpoint}")
         self.assertFalse(res)
 
-    def test07_generic_flist_with_nonexist_flist(self):
+    def test07_generic_flist_with_non_exist_flist(self):
         """Test case for deploying a container with a generic flist.
 
         **Test Scenario**
@@ -298,6 +298,34 @@ class TFGridSolutionChatflowsSadPath(ChatflowsBase):
             )
             self.solution_uuid = generic_flist.solution_id
 
+        self.info("Check that generic flist deploying has been failed")
+        error_message = "Something wrong happened"
+        self.assertIn(error_message, str(exp.value))
+
+    def test08_deploy_container_with_0_pool_units(self):
+        """Test case for deploying a container with 0 pool units.
+
+        **Test Scenario**
+
+        - Deploy a pool with 0 unit.
+        - Deploy a container with 0 unit pool.
+        - Check that container deploying has been failed.
+        """
+        self.info("Deploy a pool with 0 unit")
+        name = self.random_name()
+        cu, su = 0, 0
+        farm = self.get_farm_name().capitalize()
+        pool = deployer.create_pool(solution_name=name, farm=farm, cu=cu, su=su, wallet_name="demos_wallet",)
+
+        self.info("Deploy a container with 0 unit pool")
+        with pytest.raises(j.core.exceptions.exceptions.Runtime) as exp:
+            generic_flist = deployer.deploy_generic_flist(
+                solution_name=name,
+                flist="https://hub.grid.tf/ayoubm.3bot/dmahmouali-mattermost-latest.flist",
+                pool=pool.pool_data.reservation_id,
+                network=self.network_name,
+            )
+            self.solution_uuid = generic_flist.solution_id
         self.info("Check that generic flist deploying has been failed")
         error_message = "Something wrong happened"
         self.assertIn(error_message, str(exp.value))
