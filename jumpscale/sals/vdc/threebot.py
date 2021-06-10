@@ -136,7 +136,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "NETWORK_FARMS": ",".join(NETWORK_FARMS.get()),
             "COMPUTE_FARMS": ",".join(COMPUTE_FARMS.get()),
             # "VDC_MINIO_ADDRESS": minio_ip_address,
-            "SDK_VERSION": "development",
+            "SDK_VERSION": self.branch,
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),
             "MINIMAL": "true",
             "TEST_CERT": "true" if j.core.config.get("TEST_CERT") else "false",
