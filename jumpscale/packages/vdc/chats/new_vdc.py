@@ -382,8 +382,7 @@ class VDCDeploy(GedisChatBot):
         open("/tmp/times", "a").write(f"TIMESTAMP: end_wallet_init {datetime.datetime.now()}\n")
 
         open("/tmp/times", "a").write(f"TIMESTAMP: start_domain_check {datetime.datetime.now()}\n")
-        prefix = self.deployer.get_prefix()
-        subdomain = f"{prefix}.{VDC_PARENT_DOMAIN}"
+        subdomain = self.deployer.threebot.get_subdomain()
         j.logger.info(f"checking the availability of subdomain {subdomain}")
         if self.deployer.proxy.check_domain_availability(subdomain):
             j.logger.info(f"subdomain {subdomain} is resolvable. checking owner info")

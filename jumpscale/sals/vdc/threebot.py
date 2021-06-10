@@ -66,16 +66,21 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 self._branch = "development"
         return self._branch
 
-    def prefetch_cert(self):
-        # FIXME: why it should have a .vdc in the first place?
-        # FIXME: just using .devnet for now for testing
-        #        need to know how we can the correct domain from start
-        prefix = j.data.text.removesuffix(self.vdc_deployer.get_prefix(), ".vdc")
-        parent_domain = VDC_PARENT_DOMAIN
-        subdomain = f"{prefix}.vdcdev.{parent_domain}"
+    def get_subdomain(self):
+        # TODO: parent domain should be always the same
+        prefix = self.vdc_deployer.get_prefix()
+        if "test" in j.core.identity.me.explorer_url:
+            prefix += "test"
+        elif "dev" in j.core.identity.me.explorer_url:
+            prefix += "dev"
+        else:
+            prefix += "main"
 
+        return f"{prefix}.{VDC_PARENT_DOMAIN}"
+
+    def prefetch_cert(self):
         url = f"{self.acme_server_url}/api/prefetch"
-        domains = [subdomain]
+        domains = [self.get_subdomain()]
         resp = requests.post(url, json={"domains": domains}, headers={"X-API-KEY": self.acme_server_api_key})
         resp.raise_for_status()
         return ThreebotCertificate.from_dict(resp.json())
