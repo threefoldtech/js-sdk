@@ -88,8 +88,6 @@ class RenewPlans(BackgroundService):
             vdc.pay_initialization_fee(initial_transaction_hashes, VDC_INIT_WALLET_NAME)
             self._change_payment_phase(PAYMENTSTATE.INIT_FEE.value)
 
-        deployer._set_wallet(vdc.provision_wallet.instance_name)
-
         j.logger.debug("Funding difference from init wallet...")
         if self.payment_phase == PAYMENTSTATE.INIT_FEE.value:
             vdc.fund_difference(VDC_INIT_WALLET_NAME)
@@ -97,6 +95,7 @@ class RenewPlans(BackgroundService):
 
         if self.payment_phase == PAYMENTSTATE.FUND_DIFF.value:
             j.logger.debug("Updating expiration...")
+            deployer._set_wallet(vdc.provision_wallet.instance_name)
             deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
             self._change_payment_phase(PAYMENTSTATE.PAID.value)
             vdc.state = VDCSTATE.VERIFIED
