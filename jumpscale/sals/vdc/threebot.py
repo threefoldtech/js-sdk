@@ -68,9 +68,11 @@ class VDCThreebotDeployer(VDCBaseComponent):
 
     def prefetch_cert(self):
         # FIXME: why it should have a .vdc in the first place?
+        # FIXME: just using .devnet for now for testing
+        #        need to know how we can the correct domain from start
         prefix = j.data.text.removesuffix(self.vdc_deployer.get_prefix(), ".vdc")
         parent_domain = VDC_PARENT_DOMAIN
-        subdomain = f"{prefix}.{parent_domain}"
+        subdomain = f"{prefix}.devnet.{parent_domain}"
 
         url = f"{self.acme_server_url}/api/prefetch"
         domains = [subdomain]

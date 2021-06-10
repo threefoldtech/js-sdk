@@ -677,9 +677,12 @@ class VDCDeployer:
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
             gevent.joinall([cert_greenlet])
-            cert = None
             if cert_greenlet.value:
                 cert = cert_greenlet.value
+                j.logger.info("certificate was prefetched successfully")
+            else:
+                cert = None
+                j.logger.warning("couldn't prefetch certificate")
 
             threebot_wid = self.threebot.deploy_threebot(
                 minio_wid,
