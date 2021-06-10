@@ -477,6 +477,10 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             raise j.exceptions.Runtime(
                 f"Couldn't download kube config for vdc: failed to wait for cluster init {self.vdc_name}."
             )
+        if not j.sals.nettools.wait_connection_test(master_ip, 22, timeout=120):
+            raise j.exceptions.Runtime(
+                f"Couldn't download kube config for vdc: failed to wait for cluster ssh {self.vdc_name}."
+            )
         client_name = self.vdc_deployer.ssh_key.instance_name
         ssh_client = j.clients.sshclient.get(client_name, user="rancher", host=master_ip, sshkey=client_name)
         rc, out, err = 1, "init", "init"
