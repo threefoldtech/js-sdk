@@ -649,17 +649,22 @@ class PackageManager(Base):
         if package.services_dir:
             for service in package.services:
                 self.threebot.services.add_service(service["name"], service["path"])
-
+        
+        j.logger.info(f"starting rack")
         # start servers
         self.threebot.rack.start()
 
+        j.logger.info(f"applying nginx config")
         # apply nginx configuration
         package.nginx_config.apply()
 
+        j.logger.info(f"starting package")
         # execute package start method
         package.start()
 
+        j.logger.info(f"reloading gedis")
         self.threebot.gedis_http.client.reload()
+        j.logger.info(f"reloading nginx")
         self.threebot.nginx.reload()
 
     def reload(self, package_name):
@@ -875,8 +880,12 @@ class ThreebotServer(Base):
                 ) from e
 
         # install all package
+        
+        j.logger.info("Adding packages")
         self.packages._install_all()
+        j.logger.info("jsappserver")
         self.jsappserver = WSGIServer(("localhost", 31000), apply_main_middlewares(self.mainapp))
+        j.logger.info("rack add")
         self.rack.add(f"appserver", self.jsappserver)
 
         j.logger.info("Reloading nginx")
