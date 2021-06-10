@@ -177,7 +177,7 @@ class Certbot(Base):
     def install_cmd(self):
         # replace "certbot" with "certbot install"
         cmd = self.run_cmd
-        cmd[0] = f"{DEFAULT_NAME} install"
+        cmd[0] += " install"
         return cmd
 
 
