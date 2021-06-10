@@ -67,7 +67,8 @@ class VDCThreebotDeployer(VDCBaseComponent):
         return self._branch
 
     def prefetch_cert(self):
-        prefix = self.vdc_deployer.get_prefix()
+        # FIXME: why it should have a .vdc in the first place?
+        prefix = j.data.text.removesuffix(self.vdc_deployer.get_prefix(), ".vdc")
         parent_domain = VDC_PARENT_DOMAIN
         subdomain = f"{prefix}.{parent_domain}"
 
