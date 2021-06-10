@@ -72,7 +72,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
         #        need to know how we can the correct domain from start
         prefix = j.data.text.removesuffix(self.vdc_deployer.get_prefix(), ".vdc")
         parent_domain = VDC_PARENT_DOMAIN
-        subdomain = f"{prefix}.devnet.{parent_domain}"
+        subdomain = f"{prefix}.vdcdev.{parent_domain}"
 
         url = f"{self.acme_server_url}/api/prefetch"
         domains = [subdomain]
