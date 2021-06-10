@@ -663,6 +663,12 @@ class VDCDeployer:
             self.bot_show_update("Deploying ZDBs")
             zdb_threads = self.deploy_vdc_zdb(gs, zdb_farms)
             self.greenlets += zdb_threads
+
+            # pre-fetch the certificate
+            cert_greenlet = gevent.spawn(self.threebot.prefetch_cert)
+            cert_greenlet.deployer = self
+            cert_greenlet.link_exception(on_exception)
+
             # public_keys to deploy vdc with
             pub_keys = [self.ssh_key.public_key.strip()]
             # deploy k8s cluster
@@ -728,6 +734,11 @@ class VDCDeployer:
 
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
+            if cert_greenlet.value:
+                cert = cert_greenlet.value
+            else:
+                cert = None
+
             threebot_greenlet = gevent.spawn(
                 self.threebot.deploy_threebot,
                 minio_wid,
@@ -735,7 +746,9 @@ class VDCDeployer:
                 kube_config=kube_config,
                 backup_config=s3_backup_config,
                 zdb_farms=zdb_farms,
+                cert=cert,
             )
+
             if not self.wait_cluster_ready():
                 self.error(f"master not ready after 60 seconds {self.vdc_instance}")
                 self.rollback_vdc_deployment()
