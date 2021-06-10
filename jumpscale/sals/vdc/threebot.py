@@ -3,7 +3,7 @@ import uuid
 
 import requests
 
-from jumpscale.core.base import Base
+from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 from jumpscale.sals.reservation_chatflow import deployer
 from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
