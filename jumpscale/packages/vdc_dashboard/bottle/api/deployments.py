@@ -1,4 +1,5 @@
 import os
+import math
 from uuid import uuid4
 
 from bottle import HTTPResponse, abort, redirect, request
@@ -15,7 +16,9 @@ from jumpscale.packages.vdc_dashboard.bottle.models import APIKeyFactory, UserEn
 from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import (
     _list_alerts,
     get_vdc,
-    threebot_vdc_helper,
+    get_expiration_data,
+    check_plan_autoscalable,
+    get_wallet_info,
 )
 from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
     get_all_deployments,
@@ -26,10 +29,7 @@ from .root import app
 
 
 def _get_zstor_config(ip_version=6):
-    if not j.sals.vdc.list_all():
-        abort(500, "Couldn't find any vdcs on this machine, Please make sure to have it configured properly")
-    vdc_full_name = list(j.sals.vdc.list_all())[0]
-    vdc = j.sals.vdc.find(vdc_full_name, load_info=True)
+    vdc = get_vdc(True)
     vdc_zdb_monitor = vdc.get_zdb_monitor()
     password = vdc_zdb_monitor.get_password()
     encryption_key = password[:32].encode().zfill(32).hex()
@@ -234,17 +234,46 @@ def remove_admin() -> str:
     threebot.packages.save()
 
 
-@app.route("/api/threebot_vdc", method="GET")
+@app.route("/api/vdc/info", method="GET")
 @package_authorized("vdc_dashboard")
-def threebot_vdc():
+def vdc_capacity():
     vdc = get_vdc()
-    vdc_dict = threebot_vdc_helper(vdc=vdc)
+    vdc_dict = vdc.to_dict()
     for node in vdc_dict["kubernetes"]:
         if node["role"] == "master":
             node["status"] = j.sals.nettools.tcp_connection_test(node["public_ip"], 6443, 10)
     return HTTPResponse(
         j.data.serializers.json.dumps(vdc_dict), status=200, headers={"Content-Type": "application/json"}
     )
+
+
+@app.route("/api/vdc/expiration", method="GET")
+@package_authorized("vdc_dashboard")
+def vdc_expiration():
+    data = get_expiration_data()
+    return HTTPResponse(j.data.serializers.json.dumps(data), status=200, headers={"Content-Type": "application/json"})
+
+
+@app.route("/api/vdc/plan/price", method="GET")
+@package_authorized("vdc_dashboard")
+def vdc_expiration():
+    vdc = get_vdc()
+    data = {"price": math.ceil(vdc.calculate_spec_price())}
+    return HTTPResponse(j.data.serializers.json.dumps(data), status=200, headers={"Content-Type": "application/json"})
+
+
+@app.route("/api/vdc/plan/autoscalable", method="GET")
+@package_authorized("vdc_dashboard")
+def vdc_plan():
+    data = {"autoscalable": check_plan_autoscalable()}
+    return HTTPResponse(j.data.serializers.json.dumps(data), status=200, headers={"Content-Type": "application/json"})
+
+
+@app.route("/api/vdc/wallet", method="GET")
+@package_authorized("vdc_dashboard")
+def vdc_wallet_info():
+    data = get_wallet_info()
+    return HTTPResponse(j.data.serializers.json.dumps(data), status=200, headers={"Content-Type": "application/json"})
 
 
 @app.route("/api/deployments/install", method="POST")

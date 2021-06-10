@@ -227,8 +227,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         network_view,
         datastore_endpoint="",
         network_subnet="",
-        private_ip_address="",
-        public_ip_address=None,
+        private_ip="",
+        public_ip=None,
     ):
         master_ip = None
         # deploy_master
@@ -272,9 +272,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 raise j.exceptions.Runtime("All attempts to deploy kubernetes master node have failed")
 
             # reserve public_ip
-            if public_ip_address:
+            if public_ip:
                 public_ip_wid = self.vdc_deployer.public_ip.get_specific_public_ip(
-                    pool_id, master_node.node_id, public_ip_address, solution_uuid=solution_uuid
+                    pool_id, master_node.node_id, public_ip, solution_uuid=solution_uuid
                 )
             else:
                 public_ip_wid = self.vdc_deployer.public_ip.get_public_ip(
@@ -286,7 +286,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                 continue
 
             # deploy master
-            if not private_ip_address:
+            if private_ip:
+                private_ip_address = private_ip
+            else:
                 network_view = network_view.copy()
                 private_ip_address = network_view.get_free_ip(master_node)
             self.vdc_deployer.info(f"Kubernetes master ip: {private_ip_address}")
@@ -787,6 +789,6 @@ ports:
             self.vdc_uuid,
             nv,
             endpoints,
-            public_ip_address=public_ip_workload.ipaddress,
+            public_ip=public_ip_workload.ipaddress,
         )
         return True
