@@ -164,6 +164,12 @@ class NginxPackageConfig:
                     "acme_server_type", self.default_config[0].get("acme_server_type")
                 )
                 website.acme_server_url = server.get("acme_server_url", self.default_config[0].get("acme_server_url"))
+                if server.get("key_path"):
+                    website.key_path = server["key_path"]
+                if server.get("cert_path"):
+                    website.cert_path = server["cert_path"]
+                if server.get("fullchain_path"):
+                    website.fullchain_path = server["fullchain_path"]
 
                 for location in server.get("locations", []):
                     loc = None

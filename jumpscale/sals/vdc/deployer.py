@@ -607,11 +607,16 @@ class VDCDeployer:
             pub_keys = [self.ssh_key.public_key.strip()]
             # deploy k8s cluster
             self.bot_show_update("Deploying kubernetes cluster")
+            # TODO: a helper function to spawn greenlet, set deployer and link exceptions to on_exception
             greenlet = gevent.spawn(
                 self.deploy_vdc_kubernetes, self.compute_farm, self.network_farm, gs, pub_keys=pub_keys
             )
             greenlet.deployer = self
             greenlet.link_exception(on_exception)
+
+            cert_greenlet = gevent.spawn(self.threebot.prefetch_cert)
+            cert_greenlet.deployer = self
+            cert_greenlet.link_exception(on_exception)
             deployment_threads.append(greenlet)
             gevent.joinall(deployment_threads)
 
@@ -671,8 +676,18 @@ class VDCDeployer:
 
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
+            gevent.joinall([cert_greenlet])
+            cert = None
+            if cert_greenlet.value:
+                cert = cert_greenlet.value
+
             threebot_wid = self.threebot.deploy_threebot(
-                minio_wid, pool_id, kube_config=kube_config, backup_config=s3_backup_config, zdb_farms=zdb_farms,
+                minio_wid,
+                pool_id,
+                kube_config=kube_config,
+                backup_config=s3_backup_config,
+                zdb_farms=zdb_farms,
+                cert=cert,
             )
             self.info(f"threebot_wid: {threebot_wid}")
             if not threebot_wid:

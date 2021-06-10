@@ -148,6 +148,11 @@ class Certbot(Base):
     eab_kid = fields.String()
     eab_hmac_key = fields.String()
 
+    # for existing certificates
+    key_path = fields.String()
+    cert_path = fields.String()
+    fullchain_path = fields.String()
+
     @property
     def run_cmd(self):
         args = [self.DEFAULT_NAME]
@@ -167,6 +172,12 @@ class Certbot(Base):
                     args.append(value)
 
         return args
+
+    @property
+    def install_cmd(self):
+        # replace "certbot" with "certbot install"
+        name = self.DEFAULT_NAME
+        return f"{name} install" + super().run_cmd[len(name) :]
 
 
 class NginxCertbot(Certbot):
@@ -233,6 +244,10 @@ class Website(Base):
     letsencryptemail = fields.String()
     acme_server_type = fields.Enum(AcmeServer)
     acme_server_url = fields.URL()
+    # in case of using existing key/certificate
+    key_path = fields.String()
+    cert_path = fields.String()
+    fullchain_path = fields.String()
 
     @property
     def certbot(self):
@@ -241,6 +256,9 @@ class Website(Base):
             email=self.letsencryptemail,
             server=self.acme_server_url,
             nginx_server_root=self.parent.cfg_dir,
+            key_path=self.key_path,
+            cert_path=self.cert_path,
+            fullchain_path=self.fullchain_path,
         )
 
         if self.acme_server_type == AcmeServer.LETSENCRYPT:
@@ -297,8 +315,14 @@ class Website(Base):
 
     def generate_certificates(self, retries=6):
         if self.domain:
+            if self.key_path and self.cert_path and self.fullchain_path:
+                # only use install command if an existing key and certificate were set
+                cmd = self.certbot.install_cmd
+            else:
+                cmd = self.certbot.run_cmd
+
             for _ in range(retries):
-                rc, out, err = j.sals.process.execute(self.certbot.run_cmd)
+                rc, out, err = j.sals.process.execute(cmd)
                 if rc > 0:
                     j.logger.error(f"Generating certificate failed {out}\n{err}")
                 else:
