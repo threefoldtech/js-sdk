@@ -176,8 +176,9 @@ class Certbot(Base):
     @property
     def install_cmd(self):
         # replace "certbot" with "certbot install"
-        name = self.DEFAULT_NAME
-        return f"{name} install" + self.run_cmd[len(name) :]
+        cmd = self.run_cmd
+        cmd[0] = f"{DEFAULT_NAME} install"
+        return cmd
 
 
 class NginxCertbot(Certbot):
