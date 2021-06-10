@@ -8,14 +8,7 @@ import gevent
 from jumpscale.core.exceptions import exceptions
 from jumpscale.loader import j
 
-from jumpscale.clients.explorer.models import (
-    Container,
-    DiskType,
-    K8s,
-    Volume,
-    WorkloadType,
-    ZdbNamespace,
-)
+from jumpscale.clients.explorer.models import Container, DiskType, K8s, Volume, WorkloadType, ZdbNamespace
 from jumpscale.sals.chatflows.chatflows import GedisChatBot
 from jumpscale.sals.kubernetes import Manager
 from jumpscale.sals.reservation_chatflow import deployer, solutions
@@ -29,12 +22,7 @@ from .monitoring import VDCMonitoring
 from .proxy import VDCProxy, VDC_PARENT_DOMAIN
 from .public_ip import VDCPublicIP
 from .s3 import VDCS3Deployer
-from .scheduler import (
-    CapacityChecker,
-    GlobalCapacityChecker,
-    GlobalScheduler,
-    Scheduler,
-)
+from .scheduler import CapacityChecker, GlobalCapacityChecker, GlobalScheduler, Scheduler
 from .size import *
 from .threebot import VDCThreebotDeployer
 
@@ -627,9 +615,7 @@ class VDCDeployer:
             gevent.sleep(2)
         return k8s_client.is_cluster_ready()
 
-    def deploy_vdc(
-        self, minio_ak, minio_sk, install_monitoring_stack=False, s3_backup_config=None, zdb_farms=None,
-    ):
+    def deploy_vdc(self, minio_ak, minio_sk, install_monitoring_stack=False, s3_backup_config=None, zdb_farms=None):
         """deploys a new vdc
         Args:
             minio_ak: access key for minio
@@ -734,6 +720,7 @@ class VDCDeployer:
 
             # deploy threebot container
             self.bot_show_update("Deploying 3Bot container")
+            gevent.joinall([cert_greenlet])
             if cert_greenlet.value:
                 cert = cert_greenlet.value
             else:
