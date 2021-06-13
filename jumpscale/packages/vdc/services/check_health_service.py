@@ -3,6 +3,7 @@ from jumpscale.loader import j
 
 from jumpscale.packages.admin.services.notifier import TELEGRAM_QUEUE
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
+from jumpscale.sals.vdc.models import KubernetesRole
 
 
 class HealthCheckService(BackgroundService):
@@ -17,7 +18,7 @@ class HealthCheckService(BackgroundService):
             vdc_instance = j.sals.vdc.find(vdc_name, load_info=True)
             if vdc_instance.has_minimal_components():
                 # check ip units to be enough for a week
-                pool_id = vdc_instance.kubernetes[0].pool_id
+                pool_id = [n for n in vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].pool_id
 
                 ipv4us = self.zos.pools.get(pool_id).ipv4us
                 if ipv4us < 604800:  # enough for a week
@@ -30,7 +31,7 @@ class HealthCheckService(BackgroundService):
                     continue
 
                 # check vdc kubernetes master public ip is reachable
-                public_ip = vdc_instance.kubernetes[0].public_ip
+                public_ip = [n for n in vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
                 if not j.sals.nettools.tcp_connection_test(public_ip, 6443, 10):
                     err_msg = (
                         f"Health check service: vdc: {vdc_name} master node is not reachable on public ip: {public_ip}"

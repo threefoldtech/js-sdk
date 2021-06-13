@@ -67,7 +67,7 @@
       <router-view></router-view>
       <popup></popup>
     </v-main>
-    <v-footer inset absolute class="transparent-body">
+    <v-footer inset>
       <v-col class="text-left" cols="6">
         &copy; {{ new Date().getFullYear() }} JS-SDK
       </v-col>
@@ -113,8 +113,3 @@ module.exports = {
   },
 };
 </script>
-<style scoped>
-.transparent-body {
-  background: transparent;
-}
-</style>

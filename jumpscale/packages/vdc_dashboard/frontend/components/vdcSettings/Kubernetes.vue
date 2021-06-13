@@ -18,6 +18,15 @@
       >
         <v-icon left>mdi-plus</v-icon>Add node
       </v-btn>
+      <v-btn
+        v-if="!(loading || checkMasterExistence)"
+        class="float-right p-4"
+        color="primary"
+        text
+        @click.stop="redeployMaster(null)"
+      >
+        <v-icon left>mdi-reload</v-icon>Redeploy Master
+      </v-btn>
     </div>
 
     <v-data-table
@@ -73,11 +82,20 @@
           </template>
           <span>Delete</span>
         </v-tooltip>
+        <v-tooltip top v-if="item.role === 'master' && item.status === false">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon @click.stop="redeployMaster(item.wid)">
+                  <v-icon v-bind="attrs" v-on="on" color="#1b4f72"
+                    >mdi-reload</v-icon
+                  >
+              </template>
+              <span>There's an error reaching your master node, Please press if you want to redeploy the master</span>
+            </v-tooltip>
       </template>
     </v-data-table>
 
     <template
-      v-if="this.vdc && this.vdc.kubernetes.length < this.vdc.total_capacity"
+      v-if="isVDCAutoscalable"
     >
       <p>The VDC will autoscale to the plan limit.</p>
     </template>
@@ -98,6 +116,11 @@
       :podstodelete="podsToDelete"
       @reload-vdcinfo="reloadVdcInfo"
     ></cancel-workload>
+    <redeploy-master
+      v-model="dialogs.redeployMaster"
+      :wid="selectedworker"
+      @done="reloadVdcInfo"
+    ></redeploy-master>
     <download-kubeconfig v-model="dialogs.downloadKube"></download-kubeconfig>
   </div>
 </template>
@@ -108,6 +131,7 @@ module.exports = {
     "solution-info": httpVueLoader("../base/Info.vue"),
     "cancel-workload": httpVueLoader("./DeleteConfirmation.vue"),
     "download-kubeconfig": httpVueLoader("./DownloadKubeconfig.vue"),
+    "redeploy-master": httpVueLoader("./RedeployMaster.vue"),
   },
   props: ["vdc", "loading"],
 
@@ -120,6 +144,7 @@ module.exports = {
         info: false,
         cancelWorkload: false,
         downloadKube: false,
+        redeployMaster: false,
       },
       headers: [
         { text: "WID", value: "wid" },
@@ -137,7 +162,8 @@ module.exports = {
         successMsg: "Worker deleted successfully",
       },
       isNodeReadyToDelete: false,
-      podsToDelete: null
+      podsToDelete: null,
+      isVDCAutoscalable: false,
     };
   },
   methods: {
@@ -187,9 +213,13 @@ module.exports = {
       this.$api.solutions
         .getThreebotState()
         .then((response) => {
-          const blob = new Blob([response.data], {type: response.headers["content-type"]});
+          const blob = new Blob([response.data], {
+            type: response.headers["content-type"],
+          });
           const url = URL.createObjectURL(blob);
-          let filename = response.headers['content-disposition'].split('filename="')[1].slice(0, -1)
+          let filename = response.headers["content-disposition"]
+            .split('filename="')[1]
+            .slice(0, -1);
           const link = document.createElement("a");
           link.href = url;
           link.setAttribute("download", filename);
@@ -200,14 +230,36 @@ module.exports = {
           console.log("Failed to download threebot state due to " + err);
         });
     },
+    redeployMaster(wid) {
+      this.selectedworker = wid;
+      this.dialogs.redeployMaster = true;
+    },
   },
   computed: {
+    checkMasterExistence() {
+      let result = false;
+      if (this.vdc) {
+        this.vdc.kubernetes.forEach((node) => {
+          if (node.role === "master") {
+            result = true;
+          }
+        });
+      }
+      return result;
+    },
     kubernetesData() {
       if (this.vdc) {
         return this.vdc.kubernetes;
       }
     },
   },
+  mounted() {
+    this.$api.vdc.checkVdcPlanAutoscalable().then((response) => {
+      this.isVDCAutoscalable = response.data.autoscalable;
+    }).catch((err)=>{
+      this.alert(err.message, "error")
+    });
+  }
 };
 </script>
 

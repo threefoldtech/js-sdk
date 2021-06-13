@@ -332,7 +332,6 @@ class Website(Base):
             location.configure()
 
         j.sals.fs.write_file(self.cfg_file, self.get_config())
-
         if self.ssl:
             self.generate_self_signed_certificates()
         if generate_certificates and self.ssl:

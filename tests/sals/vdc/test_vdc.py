@@ -4,6 +4,7 @@ from jumpscale.loader import j
 from jumpscale.sals.vdc.size import VDC_SIZE
 from parameterized import parameterized_class
 from jumpscale.clients.stellar import TRANSACTION_FEES
+from jumpscale.sals.vdc.models import KubernetesRole
 
 from .vdc_base import VDCBase
 
@@ -164,7 +165,7 @@ class TestVDC(VDCBase):
 
         self.info("Check that k8s hasn't been reachable")
         self.vdc.load_info()
-        ip_address = self.vdc.kubernetes[0].public_ip
+        ip_address = [n for n in self.vdc.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
         res = j.sals.nettools.tcp_connection_test(ip_address, port=6443, timeout=20)
         self.assertFalse(res)
 

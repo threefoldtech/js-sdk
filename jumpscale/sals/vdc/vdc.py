@@ -769,7 +769,8 @@ class UserVDC(Base):
                 return farm, True
         else:
             self.load_info()
-            farm_name = j.sals.marketplace.deployer.get_pool_farm_name(self.kubernetes[0].pool_id)
+            pool_id = [n for n in self.kubernetes if n.role == KubernetesRole.MASTER][-1].pool_id
+            farm_name = j.sals.marketplace.deployer.get_pool_farm_name(pool_id)
             return farm_name, self._check_added_worker_capacity(flavor, farm_name, public_ip)
 
     def _check_added_worker_capacity(self, flavor, farm_name, public_ip=False):
