@@ -1,6 +1,7 @@
 import math
 import uuid
 import re
+import copy
 from jumpscale.loader import j
 from jumpscale.sals import reservation_chatflow
 from jumpscale.sals.reservation_chatflow import deployer
@@ -109,10 +110,10 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             if pod["metadata"]["namespace"] != previous_release:
                 if previous_release not in releases_to_delete:
                     # Update nodes resources with all need resources from the previous release
-                    remaining_nodes_reservations = temp_nodes_reservations
+                    remaining_nodes_reservations = copy.deepcopy(temp_nodes_reservations)
                 else:
                     # Reset temp_nodes_reservations with the accurate remaining resources in the nodes
-                    temp_nodes_reservations = remaining_nodes_reservations
+                    temp_nodes_reservations = copy.deepcopy(remaining_nodes_reservations)
 
             # Get pod resources
             cpu = memory = 0
