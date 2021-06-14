@@ -59,7 +59,7 @@ class CheckThreebot(BackgroundService):
                 # Decomission All the workloads related to threebot
                 for workload in workloads:
                     if workload.info.workload_type == WorkloadType.Container:
-                        zdb_farms = workload.environment["S3_AUTO_TOPUP_FARMS"]
+                        zdb_farms = workload.environment.get("S3_AUTO_TOPUP_FARMS")
 
                     zos.workloads.decomission(workload.id)
                     # Check if workload decomission failed
