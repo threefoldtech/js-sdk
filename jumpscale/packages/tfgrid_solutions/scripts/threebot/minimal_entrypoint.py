@@ -101,6 +101,9 @@ VDC_VARS = {
     "S3_AK": S3_AK,
     "S3_SK": S3_SK,
     "S3_BUCKET": S3_BUCKET,
+    "CERT": os.environ.get("CERT", ""),
+    "CERT_PRIVATE_KEY": os.environ.get("CERT_PRIVATE_KEY", ""),
+    "CERT_FULLCHAIN": os.environ.get("CERT_FULLCHAIN", ""),
 }
 
 
@@ -174,6 +177,21 @@ if TEST_CERT != "true":
         "/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard/package.toml"
     )
     package_config["servers"][0]["domain"] = vdc.threebot.domain
+
+    if VDC_VARS.get("CERT"):
+        certs_path = j.sals.fs.join_paths(j.core.dirs.CFGDIR, "certs")
+        cert_path = j.sals.fs.join_paths(certs_path, "cert.pem")
+        key_path = j.sals.fs.join_paths(certs_path, "key.pem")
+        fullchain_path = j.sals.fs.join_paths(certs_path, "fullchain.pem")
+
+        j.sals.fs.makedirs(certs_path)
+        j.sals.fs.write_file(cert_path, VDC_VARS["CERT"])
+        j.sals.fs.write_file(key_path, VDC_VARS["CERT_PRIVATE_KEY"])
+        j.sals.fs.write_file(fullchain_path, VDC_VARS["CERT_FULLCHAIN"])
+
+        package_config["servers"][0]["cert_path"] = cert_path
+        package_config["servers"][0]["key_path"] = key_path
+        package_config["servers"][0]["fullchain_path"] = fullchain_path
     with open("/sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/vdc_dashboard/package.toml", "w") as f:
         toml.dump(package_config, f)
     if ACME_SERVER_URL:

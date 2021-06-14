@@ -45,6 +45,13 @@ class Manager:
         j.logger.debug(f"kubernetes manager: {cmd}")
         return j.sals.process.execute(cmd)
 
+    def is_cluster_ready(self):
+        try:
+            self.list_deployed_releases()
+            return True
+        except Exception as e:
+            return False
+
     @helm_required
     def update_repos(self):
         """Update helm repos

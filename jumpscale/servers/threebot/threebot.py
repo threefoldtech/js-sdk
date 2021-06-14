@@ -164,6 +164,12 @@ class NginxPackageConfig:
                     "acme_server_type", self.default_config[0].get("acme_server_type")
                 )
                 website.acme_server_url = server.get("acme_server_url", self.default_config[0].get("acme_server_url"))
+                if server.get("key_path"):
+                    website.key_path = server["key_path"]
+                if server.get("cert_path"):
+                    website.cert_path = server["cert_path"]
+                if server.get("fullchain_path"):
+                    website.fullchain_path = server["fullchain_path"]
 
                 for location in server.get("locations", []):
                     loc = None
@@ -643,17 +649,22 @@ class PackageManager(Base):
         if package.services_dir:
             for service in package.services:
                 self.threebot.services.add_service(service["name"], service["path"])
-
+        
+        j.logger.info(f"starting rack")
         # start servers
         self.threebot.rack.start()
 
+        j.logger.info(f"applying nginx config")
         # apply nginx configuration
         package.nginx_config.apply()
 
+        j.logger.info(f"starting package")
         # execute package start method
         package.start()
 
+        j.logger.info(f"reloading gedis")
         self.threebot.gedis_http.client.reload()
+        j.logger.info(f"reloading nginx")
         self.threebot.nginx.reload()
 
     def reload(self, package_name):
@@ -869,8 +880,12 @@ class ThreebotServer(Base):
                 ) from e
 
         # install all package
+        
+        j.logger.info("Adding packages")
         self.packages._install_all()
+        j.logger.info("jsappserver")
         self.jsappserver = WSGIServer(("localhost", 31000), apply_main_middlewares(self.mainapp))
+        j.logger.info("rack add")
         self.rack.add(f"appserver", self.jsappserver)
 
         j.logger.info("Reloading nginx")
