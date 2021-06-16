@@ -71,29 +71,16 @@ class KubernetesMonitor:
 
     def update_stats(self):
         self.vdc_instance.load_info()
-        out = self.manager.execute_native_cmd("kubectl top nodes  --no-headers=true")
-        for line in out.splitlines():
-            splits = line.split()
-            if len(splits) != 5:
-                continue
-            node_name = splits[0]
-            try:
-                cpu_mill = float(splits[1][:-1])
-                cpu_percentage = float(splits[2][:-1]) / 100
-                memory_usage = float(splits[3][:-2])
-                memory_percentage = float(splits[4][:-1]) / 100
-            except Exception as e:
-                j.logger.warning(
-                    f"k8s monitor: failed to get node: {node_name} usage due to error: {e}, vdc uuid: {self.vdc_instance.solution_uuid}"
-                )
-                cpu_mill = cpu_percentage = memory_usage = memory_percentage = 0
+        nodes_capacity = self.get_nodes_capacity().sort(key=lambda x: x["node_name"])
+        nodes_allocated = self.get_allocated_requests_resources().sort(key=lambda x: x["node_name"])
 
-            cpu_percentage = cpu_percentage or 1 / 100
-            memory_percentage = memory_percentage or 1 / 100
-            self._node_stats[node_name] = {
-                "cpu": {"used": cpu_mill, "total": cpu_mill / cpu_percentage},
-                "memory": {"used": memory_usage, "total": memory_usage / memory_percentage},
+        assert len(nodes_capacity) == len(nodes_allocated)  # To avoid code execution in case of race condition
+        for i in range(len(nodes_capacity)):
+            self._node_stats[nodes_capacity[i]["node_name"]] = {
+                "cpu": {"total": nodes_capacity[i]["cpu"], "used": nodes_allocated[i]["cpu"]},
+                "memory": {"total": nodes_capacity[i]["memory"], "used": nodes_allocated[i]["memory"]},
             }
+
         out = self.manager.execute_native_cmd("kubectl get nodes -o wide -o json")
         result_dict = j.data.serializers.json.loads(out)
         ip_to_wid = {node.ip_address: node.wid for node in self.nodes}
