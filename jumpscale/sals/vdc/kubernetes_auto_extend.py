@@ -56,6 +56,12 @@ class KubernetesMonitor:
         self.manager = Manager()
         self._node_stats = {}
         self.stats_history = StatsHistory(self.vdc_instance, burst_size)
+        self._memory_unit_to_Mi = {
+            "Ki": lambda x: x / 1024,
+            "Mi": lambda x: x,
+            "Gi": lambda x: x * 1024,
+            "Ti": lambda x: x * 1024 * 1024,
+        }
 
     @property
     def nodes(self):
@@ -71,8 +77,8 @@ class KubernetesMonitor:
 
     def update_stats(self):
         self.vdc_instance.load_info()
-        nodes_capacity = self.get_nodes_capacity().sort(key=lambda x: x["node_name"])
-        nodes_allocated = self.get_allocated_requests_resources().sort(key=lambda x: x["node_name"])
+        nodes_capacity = sorted(self.get_nodes_capacity(), key=lambda x: x["node_name"])
+        nodes_allocated = sorted(self.get_allocated_requests_resources(), key=lambda x: x["node_name"])
 
         assert len(nodes_capacity) == len(nodes_allocated)  # To avoid code execution in case of race condition
         for i in range(len(nodes_capacity)):
@@ -104,12 +110,13 @@ class KubernetesMonitor:
         nodes_capacity = []
         for node in result_dict["items"]:
             capacity = {}
-            capacity["node_name"] = ["metadata"]["name"]
+            capacity["node_name"] = node["metadata"]["name"]
             # int(re.compile("(\d+)").match('12//').group(1))
             cpu_str = node["status"]["capacity"]["cpu"]  # core
             capacity["cpu"] = int(cpu_str) * 1000  # mcore
-            mem_str = node["status"]["capacity"]["memory"]  # in Ki (# make sure kuberenets always return mem in Ki)
-            capacity["memory"] = int(re.compile("(\d+)").match(mem_str).group(1)) / 1024  # in Mi
+            capacity["memory"] = self._parse_memory_in_Mi(
+                node["status"]["capacity"]["memory"]
+            )  # in Ki (# make sure kuberenets always return mem in Ki)
             nodes_capacity.append(capacity)
         return nodes_capacity
 
@@ -126,8 +133,14 @@ class KubernetesMonitor:
             allocated_requests = {}
             allocated_requests["node_name"] = re.search(r"Name:\s*([^\n\r]*)", node_info).group(1)
             allocated_resources = re.search(r"(?<=Allocated resources:)[\s\S]*(?=Event)", node_info).group()
-            allocated_requests["cpu"] = int(re.search(r"cpu\s*([^\n\r]\d*)", allocated_resources).group(1))
-            allocated_requests["memory"] = int(re.search(r"memory\s*([^\n\r]\d*)", allocated_resources).group(1))
+            cpu_str = re.search(r"cpu\s*([^\n\r]\S*)", allocated_resources).group(1)
+            if not cpu_str.endswith("m"):
+                cpu = int(cpu_str) * 1000
+            else:
+                cpu = int(cpu_str.rstrip("m"))
+            allocated_requests["cpu"] = cpu
+            memory_str = re.search(r"memory\s*([^\n\r]\S*)", allocated_resources).group(1)
+            allocated_requests["memory"] = self._parse_memory_in_Mi(memory_str)
             nodes_allocated_requests.append(allocated_requests)
         return nodes_allocated_requests
 
@@ -277,3 +290,7 @@ class KubernetesMonitor:
             if not query_result:
                 return False
         return True
+
+    def _parse_memory_in_Mi(self, memory):
+        mem_value, mem_unit = int(memory[:-2]), memory[-2:]
+        return self._memory_unit_to_Mi[mem_unit](mem_value)
