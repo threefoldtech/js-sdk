@@ -105,6 +105,26 @@ class KubernetesMonitor:
         j.logger.info(f"Kubernetes stats: {self.node_stats}")
         self.stats_history.update(self._node_stats)
 
+    def get_nodes_capacity(self):
+        """Return the capacity of nodes (CPU and Memory) 
+
+        Returns:
+            list: of dictionaries, each with keys: node_name, cpu, memory
+        """
+        out = self.manager.execute_native_cmd("kubectl get nodes -o json")
+        result_dict = j.data.serializers.json.loads(out)
+        nodes_capacity = []
+        for node in result_dict["items"]:
+            capacity = {}
+            capacity["node_name"] = ["metadata"]["name"]
+            # int(re.compile("(\d+)").match('12//').group(1))
+            cpu_str = node["status"]["capacity"]["cpu"]  # core
+            capacity["cpu"] = int(cpu_str) * 1000  # mcore
+            mem_str = node["status"]["capacity"]["memory"]  # in Ki (# make sure kuberenets always return mem in Ki)
+            capacity["memory"] = int(re.compile("(\d+)").match(mem_str).group(1)) / 1024  # in Mi
+            nodes_capacity.append(capacity)
+        return nodes_capacity
+
     def is_extend_triggered(self, cpu_threshold=0.7, memory_threshold=0.7):
         if self._is_usage_triggered(cpu_threshold, memory_threshold):
             return True
