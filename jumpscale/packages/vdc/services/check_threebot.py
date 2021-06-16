@@ -29,12 +29,18 @@ class CheckThreebot(BackgroundService):
             vdc_instance.load_info()
 
             # Check if vdc has not minmal Components
-            if not vdc_instance.has_minimal_components():
+            if not vdc_instance.kubernetes and vdc_instance.expiration > j.data.time.now().timestamp:
                 j.logger.warning(f"Check VDC threebot service: {vdc_name} is expired or not found")
                 gevent.sleep(0.1)
                 continue
 
-            master_ip = [n for n in vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
+            master_node = [n for n in vdc_instance.kubernetes if n.role == KubernetesRole.MASTER]
+            if not master_node:
+                j.logger.warning(f"Check VDC threebot service: {vdc_name} master not deployed")
+                gevent.sleep(0.1)
+                continue
+
+            master_ip = master_node[-1].public_ip
             # Check if vdc master is not reachable
             if not j.sals.nettools.tcp_connection_test(master_ip, 6443, 10):
                 j.logger.warning(
@@ -56,10 +62,19 @@ class CheckThreebot(BackgroundService):
                     if workload.info.workload_type in threebot_workload_types
                 ]
                 decomission_status = True
+                pool_id = 0
                 # Decomission All the workloads related to threebot
                 for workload in workloads:
-                    if workload.info.workload_type == WorkloadType.Container:
+                    # Check that container is threebot not any other thing
+                    if (
+                        workload.info.workload_type == WorkloadType.Container
+                        and "SDK_VERSION" in workload.environment.keys()
+                    ):
                         zdb_farms = workload.environment.get("S3_AUTO_TOPUP_FARMS")
+                        pool_id = workload.info.pool_id
+                    else:
+                        gevent.sleep(0.1)
+                        continue
 
                     zos.workloads.decomission(workload.id)
                     # Check if workload decomission failed
@@ -73,16 +88,26 @@ class CheckThreebot(BackgroundService):
                 if decomission_status:
                     # Deploy a new threebot container
                     deployer = vdc_instance.get_deployer()
-                    kubeconfig = deployer.kubernetes.download_kube_config(master_ip)
-                    pool_id = vdc_instance.threebot.pool_id
+
+                    try:
+                        kubeconfig = deployer.kubernetes.download_kube_config(master_ip)
+                    except Exception as e:
+                        j.logger.error(
+                            f"Check VDC threebot service: Failed to download kubeconfig for vdc {vdc_name} with error {e}"
+                        )
+                        gevent.sleep(0.1)
+                        continue
+
                     minio_wid = 0
-                    threebot_wid = deployer.threebot.deploy_threebot(
-                        minio_wid, pool_id, kubeconfig, zdb_farms=zdb_farms
-                    )
-                    if not threebot_wid:
-                        j.logger.error(f"Check VDC threebot service: Can't deploy threebot for {vdc_name} ")
-                    else:
+                    try:
+                        threebot_wid = deployer.threebot.deploy_threebot(
+                            minio_wid, pool_id, kubeconfig, zdb_farms=zdb_farms
+                        )
                         j.logger.info(f"Check VDC threebot service: {vdc_name} threebot new wid: {threebot_wid}")
+                    except Exception as e:
+                        j.logger.error(
+                            f"Check VDC threebot service: Can't deploy threebot for {vdc_name} with error{e}"
+                        )
             else:
                 j.logger.info(f"Check VDC threebot service: {vdc_name} threebot is UP")
 
