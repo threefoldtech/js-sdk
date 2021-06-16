@@ -3,6 +3,7 @@ from jumpscale.loader import j
 from jumpscale.sals.kubernetes.manager import Manager
 from .size import INITIAL_RESERVATION_DURATION, VDC_SIZE
 import re
+import os
 
 
 class StatsHistory:
@@ -106,7 +107,7 @@ class KubernetesMonitor:
         self.stats_history.update(self._node_stats)
 
     def get_nodes_capacity(self):
-        """Return the capacity of nodes (CPU and Memory) 
+        """Return the capacity of nodes (CPU and Memory)
 
         Returns:
             list: of dictionaries, each with keys: node_name, cpu, memory
@@ -124,6 +125,24 @@ class KubernetesMonitor:
             capacity["memory"] = int(re.compile("(\d+)").match(mem_str).group(1)) / 1024  # in Mi
             nodes_capacity.append(capacity)
         return nodes_capacity
+
+    def get_allocated_requests_resources(self):
+        """Return the allocated requests of nodes (CPU and Memory)
+
+        Returns:
+            list: of dictionaries, each with keys: node_name, cpu, memory
+        """
+        out = self.manager.execute_native_cmd("kubectl describe nodes")
+        nodes_list = out.split(os.linesep * 2)
+        nodes_allocated_requests = []
+        for node_info in nodes_list:
+            allocated_requests = {}
+            allocated_requests["node_name"] = re.match(r"Name:\s*([^\n\r]*)", node_info).group(1)
+            allocated_resources = re.search(r"(?<=Allocated resources:)[\s\S]*(?=Event)", node_info).group()
+            allocated_requests["cpu"] = int(re.match(r"cpu\s*([^\n\r]\d*)", allocated_resources).group(1))
+            allocated_requests["memory"] = int(re.match(r"memory\s*([^\n\r]\d*)", allocated_resources).group(1))
+            nodes_allocated_requests.append(allocated_requests)
+        return nodes_allocated_requests
 
     def is_extend_triggered(self, cpu_threshold=0.7, memory_threshold=0.7):
         if self._is_usage_triggered(cpu_threshold, memory_threshold):
