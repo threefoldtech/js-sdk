@@ -124,10 +124,10 @@ class KubernetesMonitor:
         nodes_allocated_requests = []
         for node_info in nodes_list:
             allocated_requests = {}
-            allocated_requests["node_name"] = re.match(r"Name:\s*([^\n\r]*)", node_info).group(1)
+            allocated_requests["node_name"] = re.search(r"Name:\s*([^\n\r]*)", node_info).group(1)
             allocated_resources = re.search(r"(?<=Allocated resources:)[\s\S]*(?=Event)", node_info).group()
-            allocated_requests["cpu"] = int(re.match(r"cpu\s*([^\n\r]\d*)", allocated_resources).group(1))
-            allocated_requests["memory"] = int(re.match(r"memory\s*([^\n\r]\d*)", allocated_resources).group(1))
+            allocated_requests["cpu"] = int(re.search(r"cpu\s*([^\n\r]\d*)", allocated_resources).group(1))
+            allocated_requests["memory"] = int(re.search(r"memory\s*([^\n\r]\d*)", allocated_resources).group(1))
             nodes_allocated_requests.append(allocated_requests)
         return nodes_allocated_requests
 
