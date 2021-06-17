@@ -19,7 +19,7 @@ class UpgradeTraefik(BackgroundService):
 
         if current_ver != upgrade_to_ver:
             j.logger.info(f"Upgrade Traefik Service:: Updating traefik from {current_ver} to {upgrade_to_ver}")
-            vdc_instance = j.sals.vdc.find(j.sals.vdc.list_all()[0], load_info=True)
+            vdc_instance = j.sals.vdc.find(list(j.sals.vdc.list_all())[0], load_info=True)
             vdc_instance.get_deployer().kubernetes.upgrade_traefik(version=upgrade_to_ver)
         else:
             j.logger.info(f"Upgrade Traefik Service:: Traefik using latest version {current_ver}")
@@ -27,10 +27,14 @@ class UpgradeTraefik(BackgroundService):
     def get_traefik_version(self):
         current_ver = j.core.db.get("traefik:version:current")
         if not current_ver:
-            out = j.sals.kubernetes.Manager().get_helm_chart_user_values("traefik", "kube-system")
-            result = j.data.serializers.json.loads(out)
-            current_ver = result["image"]["tag"]
-            j.core.db.set("traefik:version:current", current_ver)
+            _, out, _ = j.sals.kubernetes.Manager()._excute("helm list -A -o json")
+            results = j.data.serializers.json.loads(out)
+            for release in results:
+                if release["name"] == "traefik":
+                    current_ver = release["app_version"]
+                    j.core.db.set("traefik:version:current", current_ver)
+                else:
+                    continue
         else:
             current_ver = current_ver.decode("utf-8")
 
