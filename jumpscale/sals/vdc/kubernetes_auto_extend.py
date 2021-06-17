@@ -231,42 +231,18 @@ class KubernetesMonitor:
 
     def fetch_resource_reservations(self, exclude_nodes=None):
         exclude_nodes = exclude_nodes or []
-        out = self.manager.execute_native_cmd("kubectl get pod -A -o json")
-        result = j.data.serializers.json.loads(out)
-        node_reservations = defaultdict(lambda: {"cpu": 0.0, "memory": 0.0, "total_cpu": 0.0, "total_memory": 0.0})
-        for pod in result["items"]:
-            cpu = memory = 0
-            if not "nodeName" in pod["spec"]:
-                continue
-            node = pod["spec"]["nodeName"]
-            for cont in pod["spec"]["containers"]:
-                cont_requests = cont["resources"].get("requests", {})
-                cpu_str = cont_requests.get("cpu", "0m")
-                if not cpu_str.endswith("m"):
-                    cpu += float(cpu_str) * 1000
-                else:
-                    cpu += float(cpu_str.split("m")[0])
-                p = re.search(r"^([0-9]*)(.*)$", cont_requests.get("memory", "0Gi"))
-                memory = float(p.group(1))
-                memory_unit = p.group(2)
-                if memory_unit == "Gi":
-                    memory *= 1024
-            node_reservations[node]["cpu"] += cpu
-            node_reservations[node]["memory"] += memory
-
         result = []
-        for node_name, resv in node_reservations.items():
-            if node_name not in self.node_stats or node_name in exclude_nodes:
+        self.update_stats()
+        for node_name, node_dict in self.node_stats.items():
+            if node_name in exclude_nodes:
                 continue
-            node_reservations[node_name]["total_cpu"] = self.node_stats[node_name]["cpu"]["total"]
-            node_reservations[node_name]["total_memory"] = self.node_stats[node_name]["memory"]["total"]
             result.append(
                 NodeReservation(
                     name=node_name,
-                    reserved_cpu=resv["cpu"],
-                    reserved_memory=resv["memory"],
-                    total_cpu=resv["total_cpu"],
-                    total_memory=resv["total_memory"],
+                    reserved_cpu=node_dict["cpu"]["used"],
+                    reserved_memory=node_dict["memory"]["used"],
+                    total_cpu=node_dict["cpu"]["total"],
+                    total_memory=node_dict["memory"]["total"],
                 )
             )
         return result
