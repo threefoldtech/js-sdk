@@ -537,9 +537,10 @@ class VDCKubernetesDeployer(VDCBaseComponent):
     # TODO: better implementatiom
     def upgrade_traefik(self, version="2.4.8"):
         """
-        Upgrades traefik chart installed on k3s to v2.4.8 to support different CAs
+        Args:
+            version: traefik helm version default: "2.4.8"
+        Upgrades traefik chart installed on k3s to support different CAs
         """
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_traefik_upgrade {datetime.datetime.now()}\n")
 
         def is_traefik_installed(manager, namespace="kube-system"):
             releases = manager.list_deployed_releases(namespace)
@@ -569,7 +570,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             threads.append(gevent.spawn(clean_traefik, k8s_client, ns))
         gevent.joinall(threads)
 
-        # install traefik v2.4.8 chart
+        # install traefik chart
         # TODO: better code for the values
         k8s_client.install_chart(
             "traefik",
@@ -600,7 +601,6 @@ ports:
     tls:
       enabled: true')""",
         )
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_traefik_upgrade {datetime.datetime.now()}\n")
 
     def add_traefik_entrypoint(self, entrypoint_name, port, expose=True, protocol="TCP"):
         """
