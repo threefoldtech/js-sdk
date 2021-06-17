@@ -4,6 +4,7 @@ from jumpscale.loader import j
 from jumpscale.clients.explorer.models import WorkloadType
 from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.sals.zos import get as get_zos
+from jumpscale.tools.vdc.reporting import _filter_vdc_workloads
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 
@@ -58,7 +59,7 @@ class CheckThreebot(BackgroundService):
                 # List All workloads related to threebot
                 workloads = [
                     workload
-                    for workload in zos.workloads.list_workloads(vdc_instance.identity_tid)
+                    for workload in _filter_vdc_workloads(vdc_instance)
                     if workload.info.workload_type in threebot_workload_types
                 ]
                 decomission_status = True
@@ -66,15 +67,13 @@ class CheckThreebot(BackgroundService):
                 # Decomission All the workloads related to threebot
                 for workload in workloads:
                     # Check that container is threebot not any other thing
-                    if (
-                        workload.info.workload_type == WorkloadType.Container
-                        and "SDK_VERSION" in workload.environment.keys()
-                    ):
-                        zdb_farms = workload.environment.get("S3_AUTO_TOPUP_FARMS")
-                        pool_id = workload.info.pool_id
-                    else:
-                        gevent.sleep(0.1)
-                        continue
+                    if workload.info.workload_type == WorkloadType.Container:
+                        if "SDK_VERSION" in workload.environment.keys():
+                            zdb_farms = workload.environment.get("S3_AUTO_TOPUP_FARMS")
+                            pool_id = workload.info.pool_id
+                        else:
+                            gevent.sleep(0.1)
+                            continue
 
                     zos.workloads.decomission(workload.id)
                     # Check if workload decomission failed
