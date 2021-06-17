@@ -14,6 +14,7 @@ class UpgradeTraefik(BackgroundService):
         upgrade_to_ver = j.core.db.get("traefik:version:latest")
         if not upgrade_to_ver:
             upgrade_to_ver = "2.4.8"
+            j.core.db.set("traefik:version:latest", upgrade_to_ver)
         else:
             upgrade_to_ver = upgrade_to_ver.decode("utf-8")
 
