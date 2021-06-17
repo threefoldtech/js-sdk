@@ -535,7 +535,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         return workloads_to_delete
 
     # TODO: better implementatiom
-    def upgrade_traefik(self):
+    def upgrade_traefik(self, version="2.4.8"):
         """
         Upgrades traefik chart installed on k3s to v2.4.8 to support different CAs
         """
@@ -569,14 +569,14 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             threads.append(gevent.spawn(clean_traefik, k8s_client, ns))
         gevent.joinall(threads)
 
-        # install traefik v2.3.3 chart
+        # install traefik v2.4.8 chart
         # TODO: better code for the values
         k8s_client.install_chart(
             "traefik",
             "traefik/traefik",
             "kube-system",
-            chart_values_file="""<(echo -e 'image:
-  tag: "2.4.8"
+            chart_values_file=f"""<(echo -e 'image:
+  tag: {version}
 additionalArguments:
   - "--certificatesresolvers.default.acme.tlschallenge"
   - "--certificatesresolvers.default.acme.email=dsafsdajfksdhfkjadsfoo@you.com"
