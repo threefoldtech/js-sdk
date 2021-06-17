@@ -1,4 +1,3 @@
-import gevent
 from jumpscale.loader import j
 
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
@@ -36,3 +35,6 @@ class UpgradeTraefik(BackgroundService):
             current_ver = current_ver.decode("utf-8")
 
         return current_ver
+
+
+service = UpgradeTraefik()
