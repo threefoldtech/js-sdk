@@ -17,6 +17,8 @@ import gevent
 import ipaddress
 from .scheduler import GlobalScheduler
 
+import random
+import datetime
 
 ETCD_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-etcd-latest.flist"
 
@@ -25,7 +27,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
     def __init__(self, *args, **kwrags) -> None:
         super().__init__(*args, **kwrags)
 
-    def _preprare_extension_pool(self, farm_name, k8s_flavor, no_nodes, duration, public_ip=False):
+    def _preprare_extension_pool(self, farm_name, k8s_flavor, no_nodes, duration, public_ip=False, no_extend=False):
         """
         returns pool id after extension with enough cloud units
         duration in seconds
@@ -59,6 +61,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             pool_id = pool_info.reservation_id
             self.vdc_deployer.info(f"Kubernetes cluster extension: creating a new pool {pool_id}")
             self.vdc_deployer.info(f"New pool {pool_info.reservation_id} for kubernetes cluster extension.")
+        elif no_extend:
+            return pool_id
         else:
             self.vdc_deployer.info(f"Kubernetes cluster extension: found pool {pool_id}")
             node_ids = [node.node_id for node in self.zos.nodes_finder.nodes_search(farm_name=farm_name)]
@@ -161,6 +165,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         solution_uuid=None,
         external=True,
         nodes_ids=None,
+        no_extend_pool=False,
     ):
         """
         search for a pool in the same farm and extend it or create a new one with the required capacity
@@ -196,7 +201,9 @@ class VDCKubernetesDeployer(VDCBaseComponent):
                     f"Some nodes: {unavailable_nodes_ids} are not in farm: {farm_name} or don't have capacity"
                 )
             nodes_generator = [node for node in nodes_generator if node.node_id in nodes_ids]
-        pool_id = self._preprare_extension_pool(farm_name, k8s_flavor, no_nodes, duration, public_ip)
+        pool_id = self._preprare_extension_pool(
+            farm_name, k8s_flavor, no_nodes, duration, public_ip, no_extend=no_extend_pool
+        )
         network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         solution_uuid = solution_uuid or uuid.uuid4().hex
         wids = self._add_workers(
@@ -477,10 +484,24 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         Args:
             master ip: public ip address of kubernetes master
         """
-        j.sals.nettools.wait_connection_test(master_ip, 22)
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_master_ssh {datetime.datetime.now()}\n")
+        open("/tmp/times", "a").write(f"ip: {master_ip}\n")
+        if not j.sals.nettools.wait_connection_test(master_ip, 6443, timeout=120):
+            raise j.exceptions.Runtime(
+                f"Couldn't download kube config for vdc: failed to wait for cluster init {self.vdc_name}."
+            )
+        if not j.sals.nettools.wait_connection_test(master_ip, 22, timeout=120):
+            raise j.exceptions.Runtime(
+                f"Couldn't download kube config for vdc: failed to wait for cluster ssh {self.vdc_name}."
+            )
         client_name = self.vdc_deployer.ssh_key.instance_name
         ssh_client = j.clients.sshclient.get(client_name, user="rancher", host=master_ip, sshkey=client_name)
-        rc, out, err = ssh_client.sshclient.run("cat /etc/rancher/k3s/k3s.yaml", warn=True)
+        rc, out, err = 1, "init", "init"
+        retries = 12
+        while rc and retries > 0:
+            rc, out, err = ssh_client.sshclient.run("cat /etc/rancher/k3s/k3s.yaml", warn=True)
+            retries -= 1
+            gevent.sleep(2)
         if rc:
             j.logger.error(f"Couldn't read k3s config for VDC {self.vdc_name}")
             j.tools.alerthandler.alert_raise(
@@ -494,6 +515,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         out = j.data.serializers.yaml.dumps(config_dict)
         j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}")
         j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml", out)
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_master_ssh {datetime.datetime.now()}\n")
         return out
 
     def delete_worker(self, wid, is_ready=False):
@@ -526,9 +548,11 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         return workloads_to_delete
 
     # TODO: better implementatiom
-    def upgrade_traefik(self):
+    def upgrade_traefik(self, version="2.4.8"):
         """
-        Upgrades traefik chart installed on k3s to v2.3.3 to support different CAs
+        Args:
+            version: traefik helm version default: "2.4.8"
+        Upgrades traefik chart installed on k3s to support different CAs
         """
 
         def is_traefik_installed(manager, namespace="kube-system"):
@@ -559,14 +583,14 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             threads.append(gevent.spawn(clean_traefik, k8s_client, ns))
         gevent.joinall(threads)
 
-        # install traefik v2.3.3 chart
+        # install traefik chart
         # TODO: better code for the values
         k8s_client.install_chart(
             "traefik",
             "traefik/traefik",
             "kube-system",
-            chart_values_file="""<(echo -e 'image:
-  tag: "2.4.8"
+            chart_values_file=f"""<(echo -e 'image:
+  tag: {version}
 additionalArguments:
   - "--certificatesresolvers.default.acme.tlschallenge"
   - "--certificatesresolvers.default.acme.email=dsafsdajfksdhfkjadsfoo@you.com"

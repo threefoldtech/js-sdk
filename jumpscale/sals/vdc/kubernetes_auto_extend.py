@@ -3,6 +3,7 @@ from jumpscale.loader import j
 from jumpscale.sals.kubernetes.manager import Manager
 from .size import INITIAL_RESERVATION_DURATION, VDC_SIZE
 import re
+import os
 
 
 class StatsHistory:
@@ -55,6 +56,12 @@ class KubernetesMonitor:
         self.manager = Manager()
         self._node_stats = {}
         self.stats_history = StatsHistory(self.vdc_instance, burst_size)
+        self._memory_unit_to_Mi = {
+            "Ki": lambda x: x / 1024,
+            "Mi": lambda x: x,
+            "Gi": lambda x: x * 1024,
+            "Ti": lambda x: x * 1024 * 1024,
+        }
 
     @property
     def nodes(self):
@@ -70,29 +77,16 @@ class KubernetesMonitor:
 
     def update_stats(self):
         self.vdc_instance.load_info()
-        out = self.manager.execute_native_cmd("kubectl top nodes  --no-headers=true")
-        for line in out.splitlines():
-            splits = line.split()
-            if len(splits) != 5:
-                continue
-            node_name = splits[0]
-            try:
-                cpu_mill = float(splits[1][:-1])
-                cpu_percentage = float(splits[2][:-1]) / 100
-                memory_usage = float(splits[3][:-2])
-                memory_percentage = float(splits[4][:-1]) / 100
-            except Exception as e:
-                j.logger.warning(
-                    f"k8s monitor: failed to get node: {node_name} usage due to error: {e}, vdc uuid: {self.vdc_instance.solution_uuid}"
-                )
-                cpu_mill = cpu_percentage = memory_usage = memory_percentage = 0
+        nodes_capacity = sorted(self.get_nodes_capacity(), key=lambda x: x["node_name"])
+        nodes_allocated = sorted(self.get_allocated_requests_resources(), key=lambda x: x["node_name"])
 
-            cpu_percentage = cpu_percentage or 1 / 100
-            memory_percentage = memory_percentage or 1 / 100
-            self._node_stats[node_name] = {
-                "cpu": {"used": cpu_mill, "total": cpu_mill / cpu_percentage},
-                "memory": {"used": memory_usage, "total": memory_usage / memory_percentage},
+        assert len(nodes_capacity) == len(nodes_allocated)  # To avoid code execution in case of race condition
+        for i in range(len(nodes_capacity)):
+            self._node_stats[nodes_capacity[i]["node_name"]] = {
+                "cpu": {"total": nodes_capacity[i]["cpu"], "used": nodes_allocated[i]["cpu"]},
+                "memory": {"total": nodes_capacity[i]["memory"], "used": nodes_allocated[i]["memory"]},
             }
+
         out = self.manager.execute_native_cmd("kubectl get nodes -o wide -o json")
         result_dict = j.data.serializers.json.loads(out)
         ip_to_wid = {node.ip_address: node.wid for node in self.nodes}
@@ -104,6 +98,51 @@ class KubernetesMonitor:
             self._node_stats[node_name]["wid"] = ip_to_wid.get(node_ip)
         j.logger.info(f"Kubernetes stats: {self.node_stats}")
         self.stats_history.update(self._node_stats)
+
+    def get_nodes_capacity(self):
+        """Return the capacity of nodes (CPU and Memory)
+
+        Returns:
+            list: of dictionaries, each with keys: node_name, cpu, memory
+        """
+        out = self.manager.execute_native_cmd("kubectl get nodes -o json")
+        result_dict = j.data.serializers.json.loads(out)
+        nodes_capacity = []
+        for node in result_dict["items"]:
+            capacity = {}
+            capacity["node_name"] = node["metadata"]["name"]
+            # int(re.compile("(\d+)").match('12//').group(1))
+            cpu_str = node["status"]["capacity"]["cpu"]  # core
+            capacity["cpu"] = int(cpu_str) * 1000  # mcore
+            capacity["memory"] = self._parse_memory_in_Mi(
+                node["status"]["capacity"]["memory"]
+            )  # in Ki (# make sure kuberenets always return mem in Ki)
+            nodes_capacity.append(capacity)
+        return nodes_capacity
+
+    def get_allocated_requests_resources(self):
+        """Return the allocated requests of nodes (CPU and Memory)
+
+        Returns:
+            list: of dictionaries, each with keys: node_name, cpu, memory
+        """
+        out = self.manager.execute_native_cmd("kubectl describe nodes")
+        nodes_list = out.split(os.linesep * 2)
+        nodes_allocated_requests = []
+        for node_info in nodes_list:
+            allocated_requests = {}
+            allocated_requests["node_name"] = re.search(r"Name:\s*([^\n\r]*)", node_info).group(1)
+            allocated_resources = re.search(r"(?<=Allocated resources:)[\s\S]*(?=Event)", node_info).group()
+            cpu_str = re.search(r"cpu\s*([^\n\r]\S*)", allocated_resources).group(1)
+            if not cpu_str.endswith("m"):
+                cpu = int(cpu_str) * 1000
+            else:
+                cpu = int(cpu_str.rstrip("m"))
+            allocated_requests["cpu"] = cpu
+            memory_str = re.search(r"memory\s*([^\n\r]\S*)", allocated_resources).group(1)
+            allocated_requests["memory"] = self._parse_memory_in_Mi(memory_str)
+            nodes_allocated_requests.append(allocated_requests)
+        return nodes_allocated_requests
 
     def is_extend_triggered(self, cpu_threshold=0.7, memory_threshold=0.7):
         if self._is_usage_triggered(cpu_threshold, memory_threshold):
@@ -192,42 +231,18 @@ class KubernetesMonitor:
 
     def fetch_resource_reservations(self, exclude_nodes=None):
         exclude_nodes = exclude_nodes or []
-        out = self.manager.execute_native_cmd("kubectl get pod -A -o json")
-        result = j.data.serializers.json.loads(out)
-        node_reservations = defaultdict(lambda: {"cpu": 0.0, "memory": 0.0, "total_cpu": 0.0, "total_memory": 0.0})
-        for pod in result["items"]:
-            cpu = memory = 0
-            if not "nodeName" in pod["spec"]:
-                continue
-            node = pod["spec"]["nodeName"]
-            for cont in pod["spec"]["containers"]:
-                cont_requests = cont["resources"].get("requests", {})
-                cpu_str = cont_requests.get("cpu", "0m")
-                if not cpu_str.endswith("m"):
-                    cpu += float(cpu_str) * 1000
-                else:
-                    cpu += float(cpu_str.split("m")[0])
-                p = re.search(r"^([0-9]*)(.*)$", cont_requests.get("memory", "0Gi"))
-                memory = float(p.group(1))
-                memory_unit = p.group(2)
-                if memory_unit == "Gi":
-                    memory *= 1024
-            node_reservations[node]["cpu"] += cpu
-            node_reservations[node]["memory"] += memory
-
         result = []
-        for node_name, resv in node_reservations.items():
-            if node_name not in self.node_stats or node_name in exclude_nodes:
+        self.update_stats()
+        for node_name, node_dict in self.node_stats.items():
+            if node_name in exclude_nodes:
                 continue
-            node_reservations[node_name]["total_cpu"] = self.node_stats[node_name]["cpu"]["total"]
-            node_reservations[node_name]["total_memory"] = self.node_stats[node_name]["memory"]["total"]
             result.append(
                 NodeReservation(
                     name=node_name,
-                    reserved_cpu=resv["cpu"],
-                    reserved_memory=resv["memory"],
-                    total_cpu=resv["total_cpu"],
-                    total_memory=resv["total_memory"],
+                    reserved_cpu=node_dict["cpu"]["used"],
+                    reserved_memory=node_dict["memory"]["used"],
+                    total_cpu=node_dict["cpu"]["total"],
+                    total_memory=node_dict["memory"]["total"],
                 )
             )
         return result
@@ -251,3 +266,7 @@ class KubernetesMonitor:
             if not query_result:
                 return False
         return True
+
+    def _parse_memory_in_Mi(self, memory):
+        mem_value, mem_unit = int(memory[:-2]), memory[-2:]
+        return self._memory_unit_to_Mi[mem_unit](mem_value)

@@ -1,23 +1,29 @@
+import datetime
+import random
+import uuid
+
+import requests
+
+from jumpscale.core.base import Base, fields
+from jumpscale.loader import j
+from jumpscale.sals.reservation_chatflow import deployer
 from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
+
 from .base_component import VDCBaseComponent
+from .namemanager import NameManager
+from .proxy import VDC_PARENT_DOMAIN
+from .scheduler import Scheduler
 from .size import (
-    THREEBOT_CPU,
-    THREEBOT_MEMORY,
-    THREEBOT_DISK,
-    VDC_SIZE,
+    COMPUTE_FARMS,
+    NETWORK_FARMS,
     S3_AUTO_TOPUP_FARMS,
     S3_NO_DATA_NODES,
     S3_NO_PARITY_NODES,
-    NETWORK_FARMS,
-    COMPUTE_FARMS,
+    THREEBOT_CPU,
+    THREEBOT_DISK,
+    THREEBOT_MEMORY,
+    VDC_SIZE,
 )
-from jumpscale.loader import j
-from .scheduler import Scheduler
-from jumpscale.sals.reservation_chatflow import deployer
-from .proxy import VDC_PARENT_DOMAIN
-from .namemanager import NameManager
-import uuid
-import random
 
 THREEBOT_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
 THREEBOT_TRC_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
@@ -29,10 +35,19 @@ JS-NG> s3_config = {"S3_URL": "https://s3.grid.tf", "S3_BUCKET": "vdc-devnet", "
 JS-NG> """
 
 
+class ThreebotCertificate(Base):
+    private_key = fields.String()
+    cert = fields.String()
+    fullchain = fields.String()
+    csr = fields.String()
+
+
 class VDCThreebotDeployer(VDCBaseComponent):
     def __init__(self, *args, **kwargs):
         self._branch = None
         super().__init__(*args, **kwargs)
+        self.acme_server_url = j.core.config.get("VDC_ACME_SERVER_URL", "https://ca1.grid.tf")
+        self.acme_server_api_key = j.core.config.get("VDC_ACME_SERVER_API_KEY", "")
 
     @property
     def branch(self):
@@ -51,9 +66,29 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 self._branch = "development"
         return self._branch
 
+    def get_subdomain(self):
+        # TODO: parent domain should be always the same
+        prefix = self.vdc_deployer.get_prefix()
+        if "test" in j.core.identity.me.explorer_url:
+            prefix += "test"
+        elif "dev" in j.core.identity.me.explorer_url:
+            prefix += "dev"
+        else:
+            prefix += "main"
+
+        return f"{prefix}.{VDC_PARENT_DOMAIN}"
+
+    def prefetch_cert(self):
+        url = f"{self.acme_server_url}/api/prefetch"
+        domains = [self.get_subdomain()]
+        resp = requests.post(url, json={"domains": domains}, headers={"X-API-KEY": self.acme_server_api_key})
+        resp.raise_for_status()
+        return ThreebotCertificate.from_dict(resp.json())
+
     def deploy_threebot(
-        self, minio_wid, pool_id, kube_config, embed_trc=True, backup_config=None, zdb_farms=None,
+        self, minio_wid, pool_id, kube_config, embed_trc=True, backup_config=None, zdb_farms=None, cert=None
     ):
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_threebot {datetime.datetime.now()}\n")
         backup_config = backup_config or {}
         etcd_backup_config = j.core.config.get("VDC_S3_CONFIG", {})
         flist = THREEBOT_VDC_FLIST if embed_trc else THREEBOT_FLIST
@@ -80,6 +115,12 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "S3_AK": etcd_backup_config.get("S3_AK", ""),
             "S3_SK": etcd_backup_config.get("S3_SK", ""),
         }
+
+        if cert:
+            secret_env["CERT"] = cert.cert
+            secret_env["CERT_PRIVATE_KEY"] = cert.private_key
+            secret_env["CERT_FULLCHAIN"] = cert.fullchain
+
         env = {
             "VDC_NAME": self.vdc_name,
             "MONITORING_SERVER_URL": j.config.get("MONITORING_SERVER_URL", ""),
@@ -99,7 +140,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),
             "MINIMAL": "true",
             "TEST_CERT": "true" if j.core.config.get("TEST_CERT") else "false",
-            "ACME_SERVER_URL": j.core.config.get("VDC_ACME_SERVER_URL", "https://ca1.grid.tf"),
+            "ACME_SERVER_URL": self.acme_server_url,
         }
         if embed_trc:
             _, secret, remote = self._prepare_proxy()
@@ -180,6 +221,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
                     wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False
                 )
                 if success:
+                    open("/tmp/times", "a").write(f"TIMESTAMP: end_threebot {datetime.datetime.now()}\n")
                     return wid
                 raise DeploymentFailed()
             except DeploymentFailed:

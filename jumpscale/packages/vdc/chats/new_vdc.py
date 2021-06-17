@@ -4,7 +4,7 @@ from textwrap import dedent
 from urllib.parse import urlparse
 
 from jumpscale.loader import j
-
+import datetime
 from jumpscale.sals.vdc import VDC_INSTANCE_NAME_FORMAT
 from jumpscale.sals.vdc.vdc import VDCSTATE
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, StopChatFlow, chatflow_step
@@ -19,7 +19,7 @@ from jumpscale.sals.vdc.size import (
     VDC_SIZE,
     ZDB_STARTING_SIZE,
 )
-
+from jumpscale.packages.vdc.services.renew_plans import PAYMENTSTATE
 
 MINIMUM_ACTIVATION_XLMS = 0
 VCD_DEPLOYING_INSTANCES = "VCD_DEPLOYING_INSTANCES"
@@ -375,9 +375,7 @@ class VDCDeploy(GedisChatBot):
             self._rollback()
             j.logger.error(f"failed to initialize wallets for VDC {self.vdc_name.value} due to error {str(e)}")
             self.stop(f"failed to initialize VDC wallets. please try again later")
-
-        prefix = self.deployer.get_prefix()
-        subdomain = f"{prefix}.{VDC_PARENT_DOMAIN}"
+        subdomain = self.deployer.threebot.get_subdomain()
         j.logger.info(f"checking the availability of subdomain {subdomain}")
         if self.deployer.proxy.check_domain_availability(subdomain):
             j.logger.info(f"subdomain {subdomain} is resolvable. checking owner info")
@@ -418,28 +416,18 @@ class VDCDeploy(GedisChatBot):
             j.sals.billing.issue_refund(payment_id)
             self._rollback()
             self.stop(f"{str(err)}. VDC uuid: {self.vdc.solution_uuid}")
-        self.md_show_update("Adding funds to provisioning wallet...")
-        initial_transaction_hashes = self.deployer.transaction_hashes
-        try:
-            self.vdc.transfer_to_provisioning_wallet(amount / 2)
-        except Exception as e:
-            j.sals.billing.issue_refund(payment_id)
-            self._rollback()
-            j.logger.error(f"failed to fund provisioning wallet due to error {str(e)} for vdc: {self.vdc.vdc_name}.")
-            raise StopChatFlow(
-                f"failed to fund provisioning wallet due to error {str(e)}. VDC uuid: {self.vdc.solution_uuid}"
-            )
 
-        if self.VDC_INIT_WALLET_NAME:
-            try:
-                self.vdc.pay_initialization_fee(initial_transaction_hashes, self.VDC_INIT_WALLET_NAME)
-            except Exception as e:
-                j.logger.critical(f"failed to pay initialization fee for vdc: {self.vdc.solution_uuid}")
-        self.deployer._set_wallet(old_wallet)
-        self.md_show_update("Funding difference...")
-        self.vdc.fund_difference(self.VDC_INIT_WALLET_NAME)
-        self.md_show_update("Updating expiration...")
-        self.deployer.renew_plan(14 - INITIAL_RESERVATION_DURATION / 24)
+        self.vdc.transaction_hashes = self.deployer.transaction_hashes
+        payment_data = j.data.serializers.json.dumps(
+            {
+                "vdc_instance_name": self.vdc.instance_name,
+                "created_at": j.data.time.now().timestamp,
+                "payment_id": payment_id,
+                "payment_phase": PAYMENTSTATE.NEW.value,
+            }
+        )
+        j.core.db.lpush("vdc:plan_renewals", payment_data)
+        j.logger.debug(f"########### PAYMENT_DATA to be used in renew service:: {payment_data}")
         self.vdc.state = VDCSTATE.DEPLOYED
         self.vdc.save()
         j.core.db.hdel(VCD_DEPLOYING_INSTANCES, self.vdc_instance_name)
@@ -464,6 +452,8 @@ class VDCDeploy(GedisChatBot):
         You can download the kubeconfig file from the dashboard to ~/.kube/config to start using your cluster with kubectl
 
         Kubernetes controller public IP: {self.public_ip}
+
+        > We are verifying your VDC, We will refund you incase any problem happens within the next hour.
         """
         )
         if solution is not None:
