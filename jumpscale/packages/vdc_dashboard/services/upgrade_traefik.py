@@ -27,7 +27,7 @@ class UpgradeTraefik(BackgroundService):
     def get_traefik_version(self):
         current_ver = j.core.db.get("traefik:version:current")
         if not current_ver:
-            _, out, _ = j.sals.kubernetes.Manager()._excute("helm list -A -o json")
+            _, out, _ = j.sals.kubernetes.Manager()._execute("helm list -A -o json")
             results = j.data.serializers.json.loads(out)
             for release in results:
                 if release["name"] == "traefik":
