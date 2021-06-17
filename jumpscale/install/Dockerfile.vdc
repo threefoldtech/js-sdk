@@ -29,7 +29,7 @@ RUN if [ "$TRC" = "true" ] ; then wget https://github.com/threefoldtech/tcproute
     && chmod +x /sbin/trc ; fi
 
 COPY rootfs /
-COPY vdc-services/velero.yaml /etc/zinit/
+COPY vdc-services/ /etc/zinit/
 
 RUN if [ "$TRC" = "false" ] ; then rm /etc/zinit/trc.yaml ; fi
 

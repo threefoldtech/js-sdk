@@ -1,0 +1,5 @@
+exec: python3 /sandbox/code/github/threefoldtech/js-sdk/jumpscale/packages/tfgrid_solutions/scripts/threebot/upgrade_traefik.py
+log: stdout
+oneshot: true
+after:
+  - init
