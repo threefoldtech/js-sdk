@@ -537,7 +537,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
     # TODO: better implementatiom
     def upgrade_traefik(self):
         """
-        Upgrades traefik chart installed on k3s to v2.3.3 to support different CAs
+        Upgrades traefik chart installed on k3s to v2.4.8 to support different CAs
         """
         open("/tmp/times", "a").write(f"TIMESTAMP: start_traefik_upgrade {datetime.datetime.now()}\n")
 
