@@ -115,7 +115,9 @@ class RenewPlans(BackgroundService):
         if self.payment_phase == PAYMENTSTATE.FUND_DIFF.value:
             diff = provision_wallet_amount - prepaid_wallet_amount
             if diff > 0:
-                vdc.provision_wallet.transfer(vdc_init_wallet.address, diff, asset=f"{asset.code}:{asset.issuer}")
+                vdc.provision_wallet.transfer(
+                    vdc_init_wallet.address, round(diff, 6), asset=f"{asset.code}:{asset.issuer}"
+                )
                 provision_wallet_amount = vdc.provision_wallet.get_balance_by_asset(asset="TFT") - TRANSACTION_FEES
                 self._change_payment_phase(PAYMENTSTATE.FUND_PROVISION.value)  # Update to required state
 
@@ -130,7 +132,7 @@ class RenewPlans(BackgroundService):
             PAYMENTSTATE.FUND_DIFF.value,
         ]:
             vdc.provision_wallet.transfer(
-                vdc.prepaid_wallet.address, provision_wallet_amount, asset=f"{asset.code}:{asset.issuer}"
+                vdc.prepaid_wallet.address, round(provision_wallet_amount, 6), asset=f"{asset.code}:{asset.issuer}"
             )
             vdc_init_wallet.transfer(
                 vdc.prepaid_wallet.address, 2 * TRANSACTION_FEES, asset=f"{asset.code}:{asset.issuer}"
