@@ -125,6 +125,7 @@ class ServiceManager(Base):
         """
         message = f"Service {greenlet.service.name} raised an exception: {greenlet.exception}"
         j.tools.alerthandler.alert_raise(app_name="servicemanager", message=message, alert_type="exception")
+        j.logger.exception(message)
 
     def __callback(self, greenlet):
         """Callback runs after greenlet finishes execution
