@@ -268,5 +268,7 @@ class KubernetesMonitor:
         return True
 
     def _parse_memory_in_Mi(self, memory):
+        if memory == '0':  # For handling very rare cases
+            return 0
         mem_value, mem_unit = int(memory[:-2]), memory[-2:]
         return self._memory_unit_to_Mi[mem_unit](mem_value)
