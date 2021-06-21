@@ -20,8 +20,7 @@ if all([ak, sk, url, region]):
     aws_secret_access_key={sk}
     """,
     )
-    mon = vdc.get_zdb_monitor()
-    password = mon.get_password()
+    password = vdc.get_password()
     password_hash = hashlib.md5(password.encode()).hexdigest()
     j.sals.process.execute(
         f"/sbin/velero install --provider aws --use-restic --plugins magedmotawea/velero-plugin-for-aws-amd64:main --bucket {bucket} --secret-file /root/credentials --backup-location-config region={region},s3ForcePathStyle=true,s3Url={url},encryptionSecret={password_hash} --prefix {vdc.owner_tname}/{vdc.vdc_name}",
