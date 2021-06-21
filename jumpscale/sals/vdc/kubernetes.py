@@ -3,7 +3,6 @@ import uuid
 import re
 import copy
 from jumpscale.loader import j
-from jumpscale.sals import reservation_chatflow
 from jumpscale.sals.reservation_chatflow import deployer
 from jumpscale.sals.reservation_chatflow.deployer import DeploymentFailed
 
@@ -21,6 +20,7 @@ import random
 import datetime
 
 ETCD_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-etcd-latest.flist"
+VDC_SYSTEM_NAMESPACES = ["k3os-system", "kube-public", "kube-system", "velero"]
 
 
 class VDCKubernetesDeployer(VDCBaseComponent):
@@ -81,8 +81,40 @@ class VDCKubernetesDeployer(VDCBaseComponent):
 
         return pool_id
 
-    def check_drain_availability(self, wid):
-        """Check for availability of using drain on a kubernetes node
+    def list_node_releases(self, wid, exclude_namespaces: list = None, exclude_system_namespaces=True):
+        """List all releases on/partially on kubernetes node using wid of the node
+
+        Args:
+            wid (int): Kubernetes node workload id
+            exclude_namespaces (list, optional): list of namespaces to exclude. Defaults to None.
+            exclude_system_namespaces (bool, optional): Whether to exclude system namespaces or Not. Defaults to True.
+
+        Returns:
+            list[str]: list of releases names
+        """
+        namespaces_to_exclude = []
+        if exclude_namespaces:
+            namespaces_to_exclude.extend(exclude_namespaces)
+        if exclude_system_namespaces:
+            namespaces_to_exclude.extend(VDC_SYSTEM_NAMESPACES)
+
+        kube_manager = Manager()
+        node_name = self.get_node_name(wid)
+        out = kube_manager.execute_native_cmd(
+            f"kubectl get pods -A -o json --sort-by='.metadata.namespace' --field-selector spec.nodeName={node_name}"
+        )
+        all_pods = j.data.serializers.json.loads(out)["items"]
+        releases = set()
+        for pod in all_pods:
+            # Exclude system pods and pods related to deleted releases, as it is not needed
+            if pod["metadata"]["namespace"] in exclude_namespaces:
+                continue
+            releases.add(pod["metadata"]["namespace"])
+        return list(releases)
+
+    # TODO: to be used and modified when we implement our cloud volumes
+    def check_solutions_rescheduled_availability(self, wid):
+        """Check for availability of rescheduling solutions deployed on one kubernetes node to another node
 
         Args:
             wid (int): workload id for the kubernetes node
@@ -93,10 +125,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         """
         kube_manager = Manager()
         kube_monitor = KubernetesMonitor(self.vdc_instance)
-        all_node_stats = kube_monitor.node_stats
-        node_name_to_delete = [node for node in all_node_stats.keys() if all_node_stats[node]["wid"] == wid]
+        node_name_to_delete = [self.get_node_name(wid)]
         remaining_nodes_reservations = kube_monitor.fetch_resource_reservations(exclude_nodes=node_name_to_delete)
-        system_namespaces = ["k3os-system", "kube-public", "kube-system", "velero"]
 
         # Get pods on the node we want to delete
         out = kube_manager.execute_native_cmd(
@@ -109,7 +139,10 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         # Check if every pod can be deployed again in another node
         for pod in all_pods_to_redeploy["items"]:
             # Exclude system pods and pods related to deleted releases, as it is not needed
-            if pod["metadata"]["namespace"] in system_namespaces or pod["metadata"]["namespace"] in releases_to_delete:
+            if (
+                pod["metadata"]["namespace"] in VDC_SYSTEM_NAMESPACES
+                or pod["metadata"]["namespace"] in releases_to_delete
+            ):
                 continue
             # Check if it is new namespace, so we can calculate the remaining resources more accurate
             if pod["metadata"]["namespace"] != previous_release:
@@ -518,13 +551,16 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         open("/tmp/times", "a").write(f"TIMESTAMP: end_master_ssh {datetime.datetime.now()}\n")
         return out
 
+    def get_node_name(self, wid):
+        kube_monitor = KubernetesMonitor(self.vdc_instance)
+        all_node_stats = kube_monitor.node_stats
+        return [node for node in all_node_stats.keys() if all_node_stats[node]["wid"] == wid][0]
+
     def delete_worker(self, wid, is_ready=False):
         kube_manager = Manager()
-        kube_monitor = KubernetesMonitor(self.vdc_instance)
         workloads_to_delete = []
         workload = self.zos.workloads.get(wid)
-        all_node_stats = kube_monitor.node_stats
-        node_name = [node for node in all_node_stats.keys() if all_node_stats[node]["wid"] == wid][0]
+        node_name = self.get_node_name(wid)
 
         if not workload.master_ips:
             raise j.exceptions.Input("Can't delete controller node")
