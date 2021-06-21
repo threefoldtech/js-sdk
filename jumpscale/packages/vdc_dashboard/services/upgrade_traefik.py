@@ -13,7 +13,7 @@ class UpgradeTraefik(BackgroundService):
         current_ver = self.get_traefik_version()
         if current_ver != UPGRADE_TO_VER:
             j.logger.info(f"Upgrade Traefik Service:: Updating traefik from {current_ver} to {UPGRADE_TO_VER}")
-            vdc_instance = j.sals.vdc.find(list(j.sals.vdc.list_all())[0], load_info=True)
+            vdc_instance = j.sals.vdc.find(list(j.sals.vdc.list_all())[0])
             vdc_instance.get_deployer().kubernetes.upgrade_traefik(version=UPGRADE_TO_VER)
         else:
             j.logger.info(f"Upgrade Traefik Service:: Traefik using latest version {current_ver}")
