@@ -7,10 +7,10 @@ from .entity import Entity
 
 
 class Client(Base):
-    def reset_interface(self):
+    def reset_interface(self, value=None):
         self._interface = None
 
-    def reset_keypair(self):
+    def reset_keypair(self, value=None):
         self._keypair = None
 
     url = fields.URL(required=True, allow_empty=False, on_update=reset_interface)
