@@ -10,7 +10,7 @@ RUN mkdir -p /sandbox/code/github/threefoldtech
 
 RUN git clone https://github.com/threefoldtech/js-sdk.git /sandbox/code/github/threefoldtech/js-sdk -b $BRANCH
 WORKDIR /sandbox/code/github/threefoldtech/js-sdk
-RUN poetry config virtualenvs.create false &&  poetry install
+RUN poetry config virtualenvs.create false &&  poetry install --no-dev
 RUN poetry shell
 RUN /etc/init.d/redis-server start
 RUN python3 jumpscale/install/codeserver_install.py
