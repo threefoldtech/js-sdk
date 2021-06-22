@@ -94,7 +94,8 @@ def delete_node():
     deployer = vdc.get_deployer()
 
     # Delete all releases which have pods on this node
-    deployer.vdc_k8s_manager.delete_namespaces(releases_to_delete)
+    if releases_to_delete:
+        deployer.vdc_k8s_manager.delete_namespaces(releases_to_delete)
 
     # Delete the node
     try:
