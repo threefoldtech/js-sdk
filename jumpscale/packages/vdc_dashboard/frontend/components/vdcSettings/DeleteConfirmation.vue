@@ -9,7 +9,7 @@
   >
     <template #default>
       {{ messages.confirmationMsg }}
-      <v-alert v-if="message.warningMsg" border="top" colored-border type="warning" elevation="2">
+      <v-alert v-if="messages.warningMsg" border="top" colored-border type="warning" elevation="2">
         <span v-html="messages.warningMsg"></span>
       </v-alert>
     </template>
