@@ -162,7 +162,7 @@ class Manager:
         ssh_client = j.clients.sshclient.get(instance, user=user, host=host, sshkey=instance)
         return ssh_client
 
-    def delete_namespaces(self, namespaces: list[str]):
+    def delete_namespaces(self, namespaces: list):
         """ Delete list of namespaces
 
         Args:

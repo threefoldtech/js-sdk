@@ -107,7 +107,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         releases = set()
         for pod in all_pods:
             # Exclude system pods and pods related to deleted releases, as it is not needed
-            if pod["metadata"]["namespace"] in exclude_namespaces:
+            if pod["metadata"]["namespace"] in namespaces_to_exclude:
                 continue
             releases.add(pod["metadata"]["namespace"])
         return list(releases)
