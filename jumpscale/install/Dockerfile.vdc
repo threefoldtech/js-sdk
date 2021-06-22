@@ -13,7 +13,6 @@ WORKDIR /sandbox/code/github/threefoldtech/js-sdk
 RUN poetry config virtualenvs.create false &&  poetry install --no-dev
 RUN poetry shell
 RUN /etc/init.d/redis-server start
-RUN python3 jumpscale/install/codeserver_install.py
 
 RUN wget https://github.com/threefoldtech/zinit/releases/download/v0.1/zinit -O /sbin/zinit \
     && chmod +x /sbin/zinit
@@ -29,7 +28,7 @@ RUN if [ "$TRC" = "true" ] ; then wget https://github.com/threefoldtech/tcproute
     && chmod +x /sbin/trc ; fi
 
 COPY rootfs /
-COPY vdc-services/velero.yaml /etc/zinit/
+COPY vdc-services /etc/zinit/
 
 RUN if [ "$TRC" = "false" ] ; then rm /etc/zinit/trc.yaml ; fi
 
