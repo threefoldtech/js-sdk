@@ -272,6 +272,12 @@ class Workloads:
             List[ Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, PublicIP, ] ]: List of user's workloads
         """
         workloads = []
+
+        def filter_next_action(reservation):
+            if next_action is None:
+                return True
+            return reservation.info.next_action.name == next_action
+
         url = self._base_url
         if page:
             query = _build_query(customer_tid=customer_tid, next_action=next_action)
@@ -289,5 +295,4 @@ class Workloads:
                 thread = gevent.spawn(get_page_workloads, p)
                 threads.append(thread)
             gevent.joinall(threads)
-
-        return workloads
+        return list(filter(filter_next_action, workloads))
