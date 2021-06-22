@@ -117,7 +117,7 @@ def get_deployments(solution_type: str = None, username: str = None) -> list:
     return all_deployments
 
 
-def get_all_vdc_deployments(vdc_name):
+def get_all_vdc_deployments(vdc_name, solution_types=None):
     all_deployments = []
     config_path = j.sals.fs.expanduser("~/.kube/config")
     k8s_client = j.sals.kubernetes.Manager(config_path=config_path)
@@ -136,6 +136,8 @@ def get_all_vdc_deployments(vdc_name):
 
         namespace = deployment_info["metadata"].get("namespace", "default")
         solution_type = deployment_info["metadata"]["labels"]["app.kubernetes.io/name"]
+        if solution_types and solution_type not in solution_types:
+            continue
         deployment_info = _filter_data(deployment_info)
         release_name = deployment_info["Release"]
         helm_chart_supplied_values = "{}"

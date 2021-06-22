@@ -57,6 +57,7 @@ class BackgroundService(ABC):
             interval (int | CronTab object | str): scheduled job is executed every interval in seconds / CronTab object / CronTab-formatted string
         """
         self.interval = interval
+        self.schedule_on_start = False
 
     @abstractmethod
     def job(self):
@@ -125,6 +126,7 @@ class ServiceManager(Base):
         """
         message = f"Service {greenlet.service.name} raised an exception: {greenlet.exception}"
         j.tools.alerthandler.alert_raise(app_name="servicemanager", message=message, alert_type="exception")
+        j.logger.exception(f"Service {greenlet.service.name} raised an exception", exception=greenlet.exception)
 
     def __callback(self, greenlet):
         """Callback runs after greenlet finishes execution
@@ -182,7 +184,7 @@ class ServiceManager(Base):
             j.logger.debug(f"Service {service.name} is already running. Reloading...")
             self.stop_service(service.name)
 
-        next_start = ceil(self.seconds_to_next_interval(service.interval))
+        next_start = 0 if service.schedule_on_start else ceil(self.seconds_to_next_interval(service.interval))
         self._scheduled[service.name] = gevent.spawn_later(next_start, self._schedule_service, service=service)
         self.services[service.name] = service
         j.logger.debug(f"Service {service.name} is added.")

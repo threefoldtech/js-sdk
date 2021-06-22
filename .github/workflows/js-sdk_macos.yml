@@ -1,0 +1,48 @@
+# This workflow will install Python dependencies, run tests and lint with multiple versions of Python on macos Catalina
+
+name: js-sdk_macos
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      # max-parallel: 9
+      matrix:
+        os: [macos-10.15]
+        python-version: [3.6, 3.7, 3.8, 3.9]
+        experimental: [true]
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Gathering deps
+        run: |
+          brew update
+          brew install redis || brew upgrade redis
+          brew install tmux || brew upgrade tmux
+          brew install git || brew upgrade git
+          brew install nginx || brew upgrade nginx
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+      - name: Install
+        run: |
+          poetry config virtualenvs.in-project true
+          poetry install --extras "pytest selenium"
+      - name: Run tests
+        env:
+          TNAME: ${{ secrets.TNAME }}
+          EMAIL: ${{ secrets.EMAIL }}
+          WORDS: ${{ secrets.WORDS }}
+          FAKE_EMAIL: ${{ secrets.FAKE_EMAIL }}
+          FAKE_GITHUB_TOKEN: ${{ secrets.FAKE_GITHUB_TOKEN }}
+        run: |
+          POETRY=$(which poetry)
+          sudo --preserve-env=TNAME --preserve-env=EMAIL --preserve-env=WORDS --preserve-env=FAKE_EMAIL --preserve-env=FAKE_GITHUB_TOKEN \
+          $POETRY run pytest tests -sv -m "unittests"
