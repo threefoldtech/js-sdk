@@ -178,6 +178,7 @@ module.exports = {
     deleteNode(wid) {
       this.selectedworker = wid;
       this.tableLoading = true;
+      this.deletionMessages.warningMsg = "";
       this.$api.solutions.checkBeforeDeleteWorkerWorkload(wid)
         .then((response) => {
           this.releasesToDelete = response.data.releases_to_delete;
