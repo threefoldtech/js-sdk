@@ -539,7 +539,7 @@ class Stellar(Client):
             )
 
         horizon_server = self._get_horizon_server()
-        if fund_transaction and asset_code == "TFT":
+        if fund_transaction:
             base_fee = 0
         else:
             base_fee = horizon_server.fetch_base_fee()
