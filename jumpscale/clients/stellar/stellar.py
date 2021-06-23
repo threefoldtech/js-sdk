@@ -121,7 +121,7 @@ class Stellar(Client):
         for condition in conditions:
             if condition["asset"] == asset:
                 return condition
-        raise j.exceptions.Timeout(f"Conditions not found for asset: {asset}")
+        raise j.exceptions.NotFound(f"Conditions not found for asset: {asset}")
 
     def _create_unlockhash_transaction(self, unlock_hash, transaction_xdr):
         data = {"unlockhash": unlock_hash, "transaction_xdr": transaction_xdr}
@@ -564,14 +564,16 @@ class Stellar(Client):
             asset_issuer=issuer,
             source=source_account.account_id,
         )
-        if fund_transaction and asset_code == "TFT":
+        fund_operation_data = {}
+        if fund_transaction:
             fund_operation_data = self._get_fund_transaction_conditions(asset)
-            transaction_builder.append_payment_op(
-                destination=fund_operation_data["fee_account_id"],
-                amount=fund_operation_data["fee_fixed"],
-                asset_code=asset_code,
-                asset_issuer=issuer,
-            )
+            if asset == fund_operation_data.get("asset"):
+                transaction_builder.append_payment_op(
+                    destination=fund_operation_data["fee_account_id"],
+                    amount=fund_operation_data["fee_fixed"],
+                    asset_code=asset_code,
+                    asset_issuer=issuer,
+                )
 
         transaction_builder.set_timeout(timeout)
         if memo_text is not None:
@@ -591,10 +593,12 @@ class Stellar(Client):
         transaction.sign(my_keypair)
 
         tx_hash = ""
-        if asset_code in _NETWORK_KNOWN_TRUSTS[self.network.value]:
-            if fund_transaction and asset_code == "TFT":
+        if fund_transaction:
+            if asset == fund_operation_data.get("asset"):
                 transaction = self._fund_transaction(transaction=transaction.to_xdr())
                 tx_hash = transaction["transactionhash"]
+            else:
+                raise j.exceptions.NotFound(f"Conditions not found for asset: {asset}")
         else:
             response = horizon_server.submit_transaction(transaction)
             tx_hash = response["hash"]
