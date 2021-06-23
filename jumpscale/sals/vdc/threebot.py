@@ -25,9 +25,9 @@ from .size import (
     VDC_SIZE,
 )
 
-THREEBOT_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest.flist"
+THREEBOT_FLIST = "https://hub.grid.tf/samehabouelsaad.3bot/threefolddev-test-vdc-no-dev-deb-threebot.flist"
 THREEBOT_TRC_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
-THREEBOT_VDC_FLIST = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_vdc.flist"
+THREEBOT_VDC_FLIST = "https://hub.grid.tf/samehabouelsaad.3bot/threefolddev-test-vdc-no-dev-deb-latest.flist"
 
 # etcd backup config can be set using
 """JS-NG> j.core.config.set("VDC_S3_CONFIG", s3_config)
