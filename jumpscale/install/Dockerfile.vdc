@@ -30,6 +30,7 @@ RUN if [ "$TRC" = "true" ] ; then wget https://github.com/threefoldtech/tcproute
 
 COPY rootfs /
 COPY vdc-services/velero.yaml /etc/zinit/
+COPY certbot/certbot /etc/cron.d
 
 RUN if [ "$TRC" = "false" ] ; then rm /etc/zinit/trc.yaml ; fi
 
