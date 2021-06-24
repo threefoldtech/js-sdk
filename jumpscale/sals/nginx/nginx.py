@@ -318,16 +318,31 @@ class Website(Base):
         if self.domain:
             if self.key_path and self.cert_path and self.fullchain_path:
                 # only use install command if an existing key and certificate were set
-                cmd = self.certbot.install_cmd
+                self.install_certifcate(retries=retries)
             else:
-                cmd = self.certbot.run_cmd
+                self.obtain_and_install_certifcate(retries=retries)
 
-            for _ in range(retries):
-                rc, out, err = j.sals.process.execute(cmd)
-                if rc > 0:
-                    j.logger.error(f"Generating certificate failed {out}\n{err}")
-                else:
-                    break
+    def install_certifcate(self, retries=6):
+        cmd = self.certbot.install_cmd
+        for _ in range(retries):
+            rc, out, err = j.sals.process.execute(cmd)
+            if rc > 0:
+                j.logger.error(f"Generating certificate failed {out}\n{err}")
+            else:
+                break
+
+    def obtain_and_install_certifcate(self, retries=6):
+        # To make sure that the old info clear
+        self.certbot.key_path = ""
+        self.certbot.cert_path = ""
+        self.certbot.fullchain_path = ""
+        cmd = self.certbot.run_cmd
+        for _ in range(retries):
+            rc, out, err = j.sals.process.execute(cmd)
+            if rc > 0:
+                j.logger.error(f"Generating certificate failed {out}\n{err}")
+            else:
+                break
 
     def generate_self_signed_certificates(self):
         keypempath = f"{self.parent.cfg_dir}/key.pem"
