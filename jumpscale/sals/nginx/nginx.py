@@ -323,7 +323,14 @@ class Website(Base):
                 self.obtain_and_install_certifcate(retries=retries)
 
     def install_certifcate(self, retries=6):
+        """Construct and Execute install certificate command
+        Alternative to certbot install
+
+        Args:
+            retries (int, optional): Number of retries Certbot will try to install the certificate if failed. Defaults to 6.
+        """
         cmd = self.certbot.install_cmd
+        j.logger.debug(f"Execute: {' '.join(cmd)}")
         for _ in range(retries):
             rc, out, err = j.sals.process.execute(cmd)
             if rc > 0:
@@ -332,11 +339,18 @@ class Website(Base):
                 break
 
     def obtain_and_install_certifcate(self, retries=6):
+        """Construct and Execute run certificate command,This will issue a new certificate managed by Certbot
+        Alternative to certbot run
+
+        Args:
+            retries (int, optional): Number of retries Certbot will try to install the certificate if failed. Defaults to 6.
+        """
         # To make sure that the old info clear
         self.certbot.key_path = ""
         self.certbot.cert_path = ""
         self.certbot.fullchain_path = ""
         cmd = self.certbot.run_cmd
+        j.logger.debug(f"Execute: {' '.join(cmd)}")
         for _ in range(retries):
             rc, out, err = j.sals.process.execute(cmd)
             if rc > 0:

@@ -2,6 +2,14 @@ from jumpscale.loader import j
 
 
 def renew_cmd(certbot):
+    """Constract certbot renew command
+
+    Args:
+        certbot (Certbot): certbot object that contains website configurations
+
+    Returns:
+        list: Constructed command in list form
+    """
     args = [certbot.DEFAULT_NAME]
     args.append("renew")
 
@@ -23,6 +31,14 @@ def renew_cmd(certbot):
 
 
 def check_managed_certificate(certbot):
+    """Check if the certificate managed by certbot or not
+
+    Args:
+        certbot (Certbot): certbot object that contains website configurations
+
+    Returns:
+        bool: True if managed by certbot, False otherwise
+    """
     cmd = certbot.run_cmd
     cmd.insert(1, "certificates")
 
@@ -67,6 +83,6 @@ j.logger.info(f"{' '.join(renew_command)}")
 rc, out, err = j.sals.process.execute(renew_command)
 
 if rc > 0:
-    j.logger.error(f"Check certificate failed {out}\n{err}")
+    j.logger.error(f"Renew certificates failed {out}\n{err}")
 else:
     j.logger.info(f"Certificates Renewed\n{out}")
