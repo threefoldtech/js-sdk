@@ -180,6 +180,14 @@ class Certbot(Base):
         cmd.insert(1, "install")
         return cmd
 
+    @property
+    def renew_cmd(self):
+        # replace "certbot" with "certbot install"
+        renew_certbot = Certbot(work_dir=self.work_dir, config_dir=self.config_dir, logs_dir=self.logs_dir, domain="")
+        cmd = renew_certbot.run_cmd
+        cmd.insert(1, "renew")
+        return cmd
+
 
 class NginxCertbot(Certbot):
     nginx_server_root = fields.String(required=True)

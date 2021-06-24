@@ -1,35 +1,6 @@
 from jumpscale.loader import j
 
 
-def renew_cmd(certbot):
-    """Constract certbot renew command
-
-    Args:
-        certbot (Certbot): certbot object that contains website configurations
-
-    Returns:
-        list: Constructed command in list form
-    """
-    args = [certbot.DEFAULT_NAME]
-    args.append("renew")
-
-    for name, value in certbot.to_dict().items():
-        if name.endswith("_") or name not in ["work_dir", "config_dir", "logs_dir"]:
-            continue
-
-        if value:
-            # append only if the field has a value
-            name = name.replace("_", "-")
-            args.append(f"--{name}")
-
-            # append the value itself only if it's a boolean value
-            # boolean options are set by adding name only
-            if not isinstance(value, bool):
-                args.append(value)
-
-    return args
-
-
 def check_managed_certificate(certbot):
     """Check if the certificate managed by certbot or not
 
@@ -60,7 +31,6 @@ threebot_server = j.servers.threebot.get("default")
 renew_command = []
 for p in threebot_server.packages.list_all():
     package = threebot_server.packages.get(p)
-    current_nginx_cert = package.nginx_config.nginx.cert  # To revert it again
     package.nginx_config.nginx.cert = False  # To disable generate a certificate
     package.nginx_config.apply()
     j.logger.debug(f"Check Package:{p}")
@@ -71,7 +41,7 @@ for p in threebot_server.packages.list_all():
             if check_managed_certificate(certbot):
                 # Certificate managed by certbot, Execute renew after check all certificates
                 if not renew_command:  # We need to run it one time to get renew command
-                    renew_command = renew_cmd(certbot)
+                    renew_command = certbot.renew_cmd
                 continue
             else:
                 # Certifcate not managed by certbot, Run certbot to get a new one
