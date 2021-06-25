@@ -1,6 +1,5 @@
 from os import POSIX_FADV_NOREUSE
 from jumpscale.loader import j
-from jumpscale.sals.backupjob import backupjob
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 import gevent
 
@@ -37,9 +36,12 @@ class BackupService(BackgroundService):
         else:
             restic_client = j.tools.restic.get("systembackupclient")
             # get backup jobs from backup sal
-            backup_jobs = backupjob.backup_factory.list_all()
+            backup_jobs = j.sals.backupjob.list_all()
             # excute every backup job
 
             for job_name in backup_jobs:
-                job = backupjob.backup_factory.get(job_name)
+                job = j.sals.backupjob.get(job_name)
                 _ = gevent.spawn(_excute, job, restic_client)
+
+
+service = BackupService()
