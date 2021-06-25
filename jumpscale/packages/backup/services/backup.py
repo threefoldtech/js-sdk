@@ -5,7 +5,7 @@ import gevent
 
 
 class BackupService(BackgroundService):
-    def __init__(self, interval: int = 30, *args, **kwargs):
+    def __init__(self, interval: int = 60 * 60, *args, **kwargs):
         super().__init__(interval, *args, **kwargs)
 
     def job(self):
