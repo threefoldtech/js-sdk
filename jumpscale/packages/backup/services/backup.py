@@ -9,9 +9,9 @@ class BackupService(BackgroundService):
         super().__init__(interval, *args, **kwargs)
 
     def job(self):
-        def _excute(job, restic_client):
+        def _execute(job, restic_client):
             try:
-                job.excute(restic_client)
+                job.execute(restic_client)
             except Exception as e:
                 j.logger.exception(f"backup_service: {job.instance_name} job failed", exception=e)
                 j.tools.alerthandler.alert_raise(
@@ -41,7 +41,7 @@ class BackupService(BackgroundService):
 
             for job_name in backup_jobs:
                 job = j.sals.backupjob.get(job_name)
-                _ = gevent.spawn(_excute, job, restic_client)
+                _ = gevent.spawn(_execute, job, restic_client)
 
 
 service = BackupService()

@@ -9,7 +9,7 @@ class BackupJob(Base):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def excute(self, client):
+    def execute(self, client):
         for path in self.paths:
             exp_path = fs.expanduser(path)
             client.backup(exp_path, tags=[self.instance_name])
