@@ -20,14 +20,14 @@ class AlertsNotifier(BackgroundService):
         ip_address = ip_info[-1] if len(ip_info) else ""
         escalation_emails = j.core.config.get("ESCALATION_EMAILS", [])
 
-        mail_info = {
-            "recipients_emails": escalation_emails,
-            "sender": "monitor@threefold.com",
-            "subject": f"ALerts report from {host_name}:{ip_address}",
-            "message": f"""Last hour, {host_name}:{ip_address} raised {len(alerts)} alerts\nPlease check https://{ip_address}/admin \n{time_now.format('YYYY-MM-DD HH:mm:ss ZZ')}\n""",
-        }
-
-        j.core.db.rpush("MAIL_QUEUE", j.data.serializers.json.dumps(mail_info))
+        if escalation_emails and alerts:
+            mail_info = {
+                "recipients_emails": escalation_emails,
+                "sender": "monitor@threefold.com",
+                "subject": f"ALerts report from {host_name}:{ip_address}",
+                "message": f"""Last hour, {host_name}:{ip_address} raised {len(alerts)} alerts\nPlease check https://{ip_address}/admin \n{time_now.format('YYYY-MM-DD HH:mm:ss ZZ')}\n""",
+            }
+            j.core.db.rpush("MAIL_QUEUE", j.data.serializers.json.dumps(mail_info))
 
 
 service = AlertsNotifier()
