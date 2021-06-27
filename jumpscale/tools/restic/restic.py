@@ -211,16 +211,24 @@ class ResticRepo(Base):
         proc = self._run_cmd(cmd)
         return json.loads(proc.stdout)
 
-    def forget(self, keep_last=10, prune=True):
+    def forget(self, keep_last=10, prune=True, snapshots=[], tags=[]):
         """Deletes data in the repo
 
         Args:
             keep_last (str, optional): How many items to keep. Defaults to 10.
             prune (bool, optional): Whether to prune the data or not. Defaults to True.
+            snapshots (list, optional): list of specifics snapshot ids to forget. Defaults to [].
+            tags (list, optional): only the snapshots which have specified tags are considered. Defaults to [].
         """
-        cmd = ["restic", "forget", "--keep-last", str(keep_last)]
+        cmd = ["restic", "forget"]
+        for tag in tags:
+            cmd.extend(["--tag", tag])
+        if keep_last:
+            cmd.extend(["--keep-last", str(keep_last)])
         if prune:
             cmd.append("--prune")
+        if snapshots:
+            cmd.extend([" ".join(snapshots)])
         self._run_cmd(cmd)
 
     def _get_script_path(self, path):
