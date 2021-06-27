@@ -103,3 +103,13 @@ class BackupJob(Base):
             else:
                 raise j.exceptions.Value(f"No previous snapshots found for this backup job: {self.instance_name}.")
         return client.restore(target_path, snapshot_id=snapshot_id)
+
+    def clean_snapshots(self, client, keep_last=0, prune=True):
+        if not keep_last:
+            client.forget(keep_last=1, tags=[self.instance_name], prune=prune)
+            last_snapshot = client.list_snapshots(tags=[self.instance_name], last=True)
+            if last_snapshot:
+                assert len(last_snapshot) == 1
+                snapshot_id = last_snapshot[0]["id"]
+            return client.forget(keep_last=0, tags=[self.instance_name], prune=prune, snapshots=[snapshot_id])
+        return client.forget(keep_last=keep_last, tags=[self.instance_name], prune=prune)
