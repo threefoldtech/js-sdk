@@ -24,7 +24,7 @@ import gevent
 class BackupService(BackgroundService):
     SYSTEM_BACKUP_CLIENT_NAME = "systembackupclient"
 
-    def __init__(self, interval: int = 60 * 60, *args, **kwargs):
+    def __init__(self, interval: int = 60, *args, **kwargs):
         super().__init__(interval, *args, **kwargs)
 
     def job(self):
@@ -51,7 +51,7 @@ class BackupService(BackgroundService):
                 j.logger.info(f"backup_service: {job.instance_name} job successfully executed")
 
         # check if there isn't a configured systembackupclient instance of restic
-        if SYSTEM_BACKUP_CLIENT_NAME not in j.tools.restic.list_all():
+        if self.SYSTEM_BACKUP_CLIENT_NAME not in j.tools.restic.list_all():
             j.logger.warning(
                 "backup_service: couldn't get instance of restic with name 'systembackupclient'!\nno backup jobs will executed."
             )
@@ -61,7 +61,7 @@ class BackupService(BackgroundService):
                 message=f"backup_service: couldn't get instance of restic with name 'systembackupclient'!\nno backup jobs will executed.",
             )
         else:
-            restic_client = j.tools.restic.get(SYSTEM_BACKUP_CLIENT_NAME)
+            restic_client = j.tools.restic.get(self.SYSTEM_BACKUP_CLIENT_NAME)
             # get all backup job names from the backupjob sal
             backup_jobs = j.sals.backupjob.list_all()
 
