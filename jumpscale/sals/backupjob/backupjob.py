@@ -61,18 +61,45 @@ class admin:
         if BACKUPJOB_NAME not in j.sals.backupjob.list_all():
             j.logger.warning(f"package {__name__} was installed before but its backup job doesn't exist anymore!")
 """
+from jumpscale.loader import j
 from jumpscale.core.base import Base, fields
 from jumpscale.sals import fs
-from jumpscale.data import time
+
+
+def _path_validator(path):
+    import os
+
+    if not fs.is_absolute(os.path.expanduser(path)):
+        raise j.core.base.fields.ValidationError(f"The path {path} should be absolute path or begin with a tilde")
 
 
 class BackupJob(Base):
-    paths = fields.List(fields.String())
+    paths = fields.List(fields.String(validators=[_path_validator]))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def execute(self, client):
-        for path in self.paths:
-            exp_path = fs.expanduser(path)
-            client.backup(exp_path, tags=[self.instance_name])
+        exp_path = " ".join([fs.expanduser(path) for path in self.paths])
+        client.backup(exp_path, tags=[self.instance_name])
+
+    def list_snapshots(self, client, last=False, path=None):
+        return client.list_snapshots(tags=[self.instance_name], last=last, path=path)
+
+    def restore(self, client, target_path="/", snapshot_id=None):
+        # check the snapshot id
+        if snapshot_id:
+            snapshots = self.list_snapshots(client)
+            snapshots_ids = [snapshot["id"] for snapshot in snapshots]
+            if snapshot_id not in snapshots_ids:
+                raise j.exceptions.Value(
+                    f"This snapshotid {snapshot_id:.8} is not found for this backup job {self.instance_name}."
+                )
+        else:
+            last_snapshot = client.list_snapshots(tags=[self.instance_name], last=True)
+            if last_snapshot:
+                assert len(last_snapshot) == 1
+                snapshot_id = last_snapshot[0]["id"]
+            else:
+                raise j.exceptions.Value(f"No previous snapshots found for this backup job: {self.instance_name}.")
+        return client.restore(target_path, snapshot_id=snapshot_id)
