@@ -8,6 +8,7 @@ UPGRADE_TO_VER = "2.4.8"
 class UpgradeTraefik(BackgroundService):
     def __init__(self, interval=5 * 60, *args, **kwargs):
         super().__init__(interval, *args, **kwargs)
+        self.schedule_on_start = True
 
     def job(self):
         current_ver = self.get_traefik_version()
