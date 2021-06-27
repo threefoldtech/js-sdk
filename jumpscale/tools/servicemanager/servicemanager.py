@@ -40,7 +40,7 @@ class TestService(BackgroundService):
             Test service that runs every 1 minute
         '''
         super().__init__(interval, *args, **kwargs)
-        self.schedule_on_start = True # immediate schedule the service (optional step and the line can be removed, default=False)
+        self.schedule_on_start = True # immediately schedule the service (optional step and the line can be removed, default=False)
 
     def job(self):
         print("[Test Service] Done")
