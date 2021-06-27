@@ -143,7 +143,7 @@ class NginxPackageConfig:
 
         return [default_server]
 
-    def apply(self):
+    def apply(self, write_config=True):
         default_ports = [PORTS.HTTP, PORTS.HTTPS]
         servers = self.default_config + self.package.config.get("servers", [])
         for server in servers:
@@ -219,8 +219,8 @@ class NginxPackageConfig:
                         loc.is_admin = location.get("is_admin", False)
                         loc.is_package_authorized = location.get("is_package_authorized", False)
                         loc.package_name = self.package.name
-
-                website.configure(generate_certificates=self.nginx.cert)
+                if write_config:
+                    website.configure(generate_certificates=self.nginx.cert)
 
 
 class Package:
@@ -649,7 +649,7 @@ class PackageManager(Base):
         if package.services_dir:
             for service in package.services:
                 self.threebot.services.add_service(service["name"], service["path"])
-        
+
         j.logger.info(f"starting rack")
         # start servers
         self.threebot.rack.start()
@@ -880,7 +880,7 @@ class ThreebotServer(Base):
                 ) from e
 
         # install all package
-        
+
         j.logger.info("Adding packages")
         self.packages._install_all()
         j.logger.info("jsappserver")
