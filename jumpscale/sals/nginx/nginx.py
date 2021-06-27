@@ -326,7 +326,7 @@ class Website(Base):
         if self.domain:
             if self.key_path and self.cert_path and self.fullchain_path:
                 # only use install command if an existing key and certificate were set
-                self.install_certifcate(retries=retries)
+                self.install_certifcate()
             else:
                 self.obtain_and_install_certifcate(retries=retries)
 
