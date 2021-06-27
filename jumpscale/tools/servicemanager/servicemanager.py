@@ -6,7 +6,7 @@ Each service defines an interval to define the period of the service and defines
 Any service should:
 - Inherit from `BackgroundService` class defined here: `from jumpscale.tools.servicemanager.servicemanager import BackgroundService`
 - Define an interval in the constructor
-- Implement the abtsract `job` method of the `BackgroundService` base class.
+- Implement the abstract `job` method of the `BackgroundService` base class.
 
 ### How it schedules services
 
@@ -16,6 +16,18 @@ After the greenlet finishes execution the callback is fired which schedules the 
 
 To add a service to the service manager you should call the `add_service` method which takes the package name and package path as parameters.
 It loads the file in this path as a module and gets the service object defined in the service.py file.
+
+### Immediate schedule service
+
+The services first start will be after the requested interval.
+If you need to make the service first interval immediately on server start, It can be added in your service by adding
+
+```python3
+self.schedule_on_start = True
+```
+
+in your service init after calling super() init.
+
 
 ### Example service
 
@@ -28,6 +40,7 @@ class TestService(BackgroundService):
             Test service that runs every 1 minute
         '''
         super().__init__(interval, *args, **kwargs)
+        self.schedule_on_start = True # immediate schedule the service (optional step and the line can be removed, default=False)
 
     def job(self):
         print("[Test Service] Done")
