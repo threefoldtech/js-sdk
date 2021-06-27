@@ -22,7 +22,7 @@ RUN if [ "$TRC" = "true" ] ; then wget https://github.com/threefoldtech/tcproute
     && chmod +x /sbin/trc ; fi
 
 COPY rootfs /
-COPY certbot/certbot /etc/cron.d
+COPY certbot/cronjob /etc/cron.d/certbot
 
 RUN if [ "$TRC" = "false" ] ; then rm /etc/zinit/trc.yaml ; fi
 

@@ -330,21 +330,18 @@ class Website(Base):
             else:
                 self.obtain_and_install_certifcate(retries=retries)
 
-    def install_certifcate(self, retries=6):
+    def install_certifcate(self):
         """Construct and Execute install certificate command
         Alternative to certbot install
 
-        Args:
-            retries (int, optional): Number of retries Certbot will try to install the certificate if failed. Defaults to 6.
         """
         cmd = self.certbot.install_cmd
         j.logger.debug(f"Execute: {' '.join(cmd)}")
-        for _ in range(retries):
-            rc, out, err = j.sals.process.execute(cmd)
-            if rc > 0:
-                j.logger.error(f"Generating certificate failed {out}\n{err}")
-            else:
-                break
+        rc, out, err = j.sals.process.execute(cmd)
+        if rc > 0:
+            j.logger.error(f"Installing certificate failed {out}\n{err}")
+        else:
+            j.logger.info(f"Certificate installed successfully {out}")
 
     def obtain_and_install_certifcate(self, retries=6):
         """Construct and Execute run certificate command,This will issue a new certificate managed by Certbot
@@ -353,10 +350,6 @@ class Website(Base):
         Args:
             retries (int, optional): Number of retries Certbot will try to install the certificate if failed. Defaults to 6.
         """
-        # To make sure that the old info clear
-        self.certbot.key_path = ""
-        self.certbot.cert_path = ""
-        self.certbot.fullchain_path = ""
         cmd = self.certbot.run_cmd
         j.logger.debug(f"Execute: {' '.join(cmd)}")
         for _ in range(retries):
@@ -364,6 +357,7 @@ class Website(Base):
             if rc > 0:
                 j.logger.error(f"Generating certificate failed {out}\n{err}")
             else:
+                j.logger.error(f"Certificate Generated successfully {out}")
                 break
 
     def generate_self_signed_certificates(self):
