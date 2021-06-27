@@ -17,7 +17,7 @@ After the greenlet finishes execution the callback is fired which schedules the 
 To add a service to the service manager you should call the `add_service` method which takes the package name and package path as parameters.
 It loads the file in this path as a module and gets the service object defined in the service.py file.
 
-### Immediate schedule service
+### Immediately schedule service
 
 The services first start will be after the requested interval.
 If you need to make the service first interval immediately on server start, It can be added in your service by adding
