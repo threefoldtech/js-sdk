@@ -1,5 +1,6 @@
 import binascii
 from typing import List, Union
+from enum import Enum
 
 import base58
 import netaddr
@@ -40,6 +41,7 @@ class ContainerGenerator:
         secret_env: dict = {},
         public_ipv6: bool = False,
         storage_url: str = "zdb://hub.grid.tf:9900",
+        disk_type: Enum = DiskType.SSD,
     ) -> Container:
         """Create a container workload object
 
@@ -83,7 +85,7 @@ class ContainerGenerator:
         cont.capacity.cpu = cpu
         cont.capacity.memory = memory
         cont.capacity.disk_size = disk_size
-        cont.capacity.disk_type = DiskType.SSD
+        cont.capacity.disk_type = disk_type
 
         return cont
 
