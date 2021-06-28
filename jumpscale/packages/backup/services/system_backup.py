@@ -28,7 +28,7 @@ class SystemBackupService(BackgroundService):
     BACKUP_JOP_PATHS = ["~/.config/jumpscale/", "~/sandbox/cfg/"]
     PATHS_TO_EXCLUDE = ["~/.config/jumpscale/logs/*"]
 
-    def __init__(self, interval: 60 * 60, *args, **kwargs):
+    def __init__(self, interval=60 * 60, *args, **kwargs):
         super().__init__(interval, *args, **kwargs)
 
     @classmethod
@@ -53,4 +53,4 @@ class SystemBackupService(BackgroundService):
         j.logger.info(f"system_backup_service: {self.BACKUP_JOP_NAME} job successfully executed.")
 
 
-service = SystemBackupService
+service = SystemBackupService()
