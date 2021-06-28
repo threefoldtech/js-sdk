@@ -646,9 +646,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         available_pools=None,
         workload_name=None,
     ):
-        if j.config.get("OVER_PROVISIONING"):
-            cru = 0
-            mru = 0
         available_pools = available_pools or self.list_pools(cu, su, ipv4u)
         if not available_pools:
             raise StopChatFlow("no available pools with enough capacity for your workload")
@@ -1187,8 +1184,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         logs_config["channel_name"] = channel_name.value
         return logs_config
 
-    def schedule_container(self, pool_id, cru=None, sru=None, mru=None, hru=None, ip_version=None):
-        query = {"cru": cru, "sru": sru, "mru": mru, "hru": hru, "ip_version": ip_version}
+    def schedule_container(self, pool_id, cru=None, sru=None, mru=None, hru=None, ip_version=None, ipv4u=None):
+        query = {"cru": cru, "sru": sru, "mru": mru, "hru": hru, "ip_version": ip_version, "ipv4u": ipv4u}
         return j.sals.reservation_chatflow.reservation_chatflow.get_nodes(1, pool_ids=[pool_id], **query)[0]
 
     def ask_container_placement(
