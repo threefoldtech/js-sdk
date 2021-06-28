@@ -196,9 +196,7 @@ class BackupJob(Base):
         if not keep_last:
             # will forgot all snapshots for this BackupJob on the ResticRepo with a given name.
             client.forget(keep_last=1, tags=[self.instance_name], prune=prune)
-            last_snapshot = client.list_snapshots(tags=[self.instance_name], last=True)
-            if last_snapshot:
-                assert len(last_snapshot) == 1
-                snapshot_id = last_snapshot[0]["id"]
-            return client.forget(keep_last=0, tags=[self.instance_name], prune=prune, snapshots=[snapshot_id])
+            last_snapshots = client.list_snapshots(tags=[self.instance_name], last=True)
+            last_snapshots_ids = [snapshot["id"] for snapshot in last_snapshots]
+            return client.forget(keep_last=0, tags=[self.instance_name], prune=prune, snapshots=last_snapshots_ids)
         client.forget(keep_last=keep_last, tags=[self.instance_name], prune=prune)
