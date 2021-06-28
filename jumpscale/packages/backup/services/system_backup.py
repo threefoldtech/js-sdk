@@ -46,7 +46,7 @@ class SystemBackupService(BackgroundService):
             )
             SystemBackupService._create_system_backup_job()
             j.logger.info(
-                f"system_backup_service: {self.BACKUP_JOP_NAME} job successfully created\npaths included: {self.BACKUP_JOP_PATHS}\n paths excluded {self.PATHS_TO_EXCLUDE}."
+                f"system_backup_service: {self.BACKUP_JOP_NAME} job successfully created\npaths included: {self.BACKUP_JOP_PATHS}\npaths excluded: {self.PATHS_TO_EXCLUDE}."
             )
         backupjob = j.sals.backupjob.get(self.BACKUP_JOP_NAME)
         backupjob.execute()
