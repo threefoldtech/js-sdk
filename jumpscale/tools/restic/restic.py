@@ -151,12 +151,13 @@ class ResticRepo(Base):
         if proc.returncode > 0:
             self._run_cmd(["restic", "init"])
 
-    def backup(self, path, tags=None):
+    def backup(self, path, tags=None, exclude=None):
         """Backup a path to the repo
 
         Args:
             path (str or list of str): local path/s to backup
             tags (list): list of tags to set to the backup
+            exclude (str): This instructs restic to exclude files matching a given pattern
         """
         if not path:
             raise ValueError("Please specify path/s to backup")
@@ -166,6 +167,8 @@ class ResticRepo(Base):
         cmd = ["restic", "backup", path]
         for tag in tags:
             cmd.extend(["--tag", tag])
+        if exclude:
+            cmd.extend([f'--exclude="{exclude}"'])
         self._run_cmd(cmd)
 
     def restore(self, target_path, snapshot_id=None, latest=True, path=None, host=None):
