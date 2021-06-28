@@ -93,6 +93,7 @@ def _client_validator(restic_client_name):
 
 class BackupJob(Base):
     paths = fields.List(fields.String(validators=[_path_validator]))
+    paths_to_exclude = fields.List(fields.String(validators=[_path_validator]))
     clients = fields.List(fields.String(validators=[_client_validator]))
 
     def __init__(self, *args, **kwargs):
@@ -123,7 +124,7 @@ class BackupJob(Base):
         paths = [fs.expanduser(path) for path in self.paths]
         for restic_client_name in self.clients:
             client = self._get_client(restic_client_name)
-            client.backup(paths, tags=[self.instance_name])
+            client.backup(paths, tags=[self.instance_name], exclude=self.paths_to_exclude)
 
     def list_all_snapshots(self, last=False):
         """Returns a dictionary of restic snapshots lists that are related to to this BackupJob instance,
