@@ -34,8 +34,12 @@ class SystemBackupService(BackgroundService):
     @classmethod
     def _create_system_backup_job(cls):
         backupjob = j.sals.backupjob.new(
-            BACKUP_JOP_NAME, clients=RESTIC_CLIENT_NAMES, paths=BACKUP_JOP_PATHS, paths_to_exclude=PATHS_TO_EXCLUDE
+            cls.BACKUP_JOP_NAME,
+            clients=cls.RESTIC_CLIENT_NAMES,
+            paths=cls.BACKUP_JOP_PATHS,
+            paths_to_exclude=cls.PATHS_TO_EXCLUDE,
         )
+        backupjob.save()
 
     def job(self):
         """Background backup job to be scheduled.

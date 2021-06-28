@@ -161,14 +161,17 @@ class ResticRepo(Base):
         """
         if not path:
             raise ValueError("Please specify path/s to backup")
-        if isinstance(path, list):
-            path = " ".join(path)
+        cmd = ["restic", "backup"]
         tags = tags or []
-        cmd = ["restic", "backup", path]
         for tag in tags:
             cmd.extend(["--tag", tag])
         if exclude:
-            cmd.extend([f'--exclude="{exclude}"'])
+            for pattern in exclude:
+                cmd.extend([f'--exclude="{pattern}"'])
+        if isinstance(path, list):
+            cmd.extend(path)
+        else:
+            cmd.extend([path])
         self._run_cmd(cmd)
 
     def restore(self, target_path, snapshot_id=None, latest=True, path=None, host=None, tags=None):

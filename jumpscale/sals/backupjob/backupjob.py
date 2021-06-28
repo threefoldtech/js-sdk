@@ -121,17 +121,19 @@ class BackupJob(Base):
         All snapshots created with a Backupjob will be tagged with the BackupJob instance name for easy referencing, manageing, cleaning and restoring.
         """
         # TODO: excute the backup for every client in diffret thread.
-        paths = [fs.expanduser(path) for path in self.paths]
+        paths = [fs.os.path.expanduser(path) for path in self.paths]
+        paths_to_exclude = [fs.os.path.expanduser(path) for path in self.paths_to_exclude]
         for restic_client_name in self.clients:
             client = self._get_client(restic_client_name)
-            client.backup(paths, tags=[self.instance_name], exclude=self.paths_to_exclude)
+            client.backup(paths, tags=[self.instance_name], exclude=paths_to_exclude)
 
-    def list_all_snapshots(self, last=False):
+    def list_all_snapshots(self, last=False, path=None):
         """Returns a dictionary of restic snapshots lists that are related to to this BackupJob instance,
         where the keys are the ResticRepo instance name.
 
         Args:
             last (bool, optional): If True will get last snapshot only while respecting the other filters. Defaults to False.
+            path (str, optional): Path to filter on. Defaults to None.
 
         Returns:
             Dict of lists: a dictionary of restic snapshots lists
@@ -139,7 +141,7 @@ class BackupJob(Base):
         snapshots = {}
         for restic_client_name in self.clients:
             client = self._get_client(restic_client_name)
-            snapshots[restic_client_name] = client.list_snapshots(tags=[self.instance_name], last=last, path=path)
+            snapshots[restic_client_name] = client.list_snapshots(tags=[self.instance_name], last=last, path=path) or []
         return snapshots
 
     def list_snapshots(self, restic_client_name, last=False, path=None):
@@ -160,13 +162,13 @@ class BackupJob(Base):
         client = self._get_client(restic_client_name)
         return client.list_snapshots(tags=[self.instance_name], last=last, path=path)
 
-    def restore(self, restic_client_name, target_path="/", snapshot_id=None):
+    def restore(self, restic_client_name, snapshot_id=None, target_path="/"):
         """Restore a specifc or latest snapshot for this BackupJob from a ResticRepo with a given instance name.
 
         Args:
             restic_client_name (str): Restic instance name.
             target_path (str, optional): path to restore to. Defaults to "/".
-            snapshot_id ([type], optional):  id of the snapshot.
+            snapshot_id (str, optional):  id or short_id of the snapshot.
                 if not specified will use tha latest snapshot taken for this BackupJob instead. Defaults to None.
 
         Raises:
@@ -175,9 +177,11 @@ class BackupJob(Base):
         """
         client = self._get_client(restic_client_name)
         if snapshot_id:
+            if len(snapshot_id) < 8:
+                raise j.exceptions.Value(f"The length of snapshot id ({snapshot_id}) should be at least 8 characters.")
             snapshots = self.list_snapshots(restic_client_name)
-            snapshots_ids = [snapshot["id"] for snapshot in snapshots]
-            if snapshot_id not in snapshots_ids:
+            snapshots_ids = [snapshot["id"] for snapshot in snapshots if snapshot["id"].startswith(snapshot_id)]
+            if not snapshots_ids:
                 raise j.exceptions.Value(
                     f"This snapshot id {snapshot_id:.8} is not found for this backup job {self.instance_name}."
                 )
