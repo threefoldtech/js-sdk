@@ -53,4 +53,4 @@ class SystemBackupService(BackgroundService):
         j.logger.info(f"system_backup_service: {self.BACKUP_JOP_NAME} job successfully executed.")
 
 
-service = SystemBackupService()
+service = SystemBackupService
