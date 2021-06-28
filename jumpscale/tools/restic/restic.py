@@ -171,7 +171,7 @@ class ResticRepo(Base):
             cmd.extend([f'--exclude="{exclude}"'])
         self._run_cmd(cmd)
 
-    def restore(self, target_path, snapshot_id=None, latest=True, path=None, host=None):
+    def restore(self, target_path, snapshot_id=None, latest=True, path=None, host=None, tags=None):
         """restores a snapshot
 
         Args:
@@ -191,6 +191,9 @@ class ResticRepo(Base):
                 args.extend(["--path", path])
             if host:
                 args.extend(["--host", host])
+            if tags:
+                for tag in tags:
+                    cmd.extend(["--tag", tag])
             self._run_cmd(cmd + args)
         else:
             raise ValueError("Please specify either `snapshot_id` or `latest` flag")
