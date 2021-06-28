@@ -155,9 +155,13 @@ class ResticRepo(Base):
         """Backup a path to the repo
 
         Args:
-            path (str): local path to backup
+            path (str or list of str): local path/s to backup
             tags (list): list of tags to set to the backup
         """
+        if not path:
+            raise ValueError("Please specify path/s to backup")
+        if isinstance(path, list):
+            path = " ".join(path)
         tags = tags or []
         cmd = ["restic", "backup", path]
         for tag in tags:
