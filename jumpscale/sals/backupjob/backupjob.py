@@ -140,8 +140,8 @@ class BackupJob(Base):
         """
         snapshots = {}
         for restic_client_name in self.clients:
-            client = self._get_client(restic_client_name)
-            snapshots[restic_client_name] = client.list_snapshots(tags=[self.instance_name], last=last, path=path) or []
+            # client = self._get_client(restic_client_name)
+            snapshots[restic_client_name] = self.list_snapshots(restic_client_name, last=last, path=path)
         return snapshots
 
     def list_snapshots(self, restic_client_name, last=False, path=None):
@@ -160,7 +160,7 @@ class BackupJob(Base):
                 'id': 'e3d5d9dd2e252d0cf55ff66aabe839af312c4fdc6119e08a72984086664ef3b0', 'short_id': 'e3d5d9dd'}]
         """
         client = self._get_client(restic_client_name)
-        return client.list_snapshots(tags=[self.instance_name], last=last, path=path)
+        return client.list_snapshots(tags=[self.instance_name], last=last, path=path) or []
 
     def restore(self, restic_client_name, snapshot_id=None, target_path="/"):
         """Restore a specifc or latest snapshot for this BackupJob from a ResticRepo with a given instance name.
@@ -200,7 +200,7 @@ class BackupJob(Base):
         if not keep_last:
             # will forgot all snapshots for this BackupJob on the ResticRepo with a given name.
             client.forget(keep_last=1, tags=[self.instance_name], prune=prune)
-            last_snapshots = client.list_snapshots(tags=[self.instance_name], last=True)
+            last_snapshots = self.list_snapshots(restic_client_name, last=True)
             last_snapshots_ids = [snapshot["id"] for snapshot in last_snapshots]
             return client.forget(keep_last=0, tags=[self.instance_name], prune=prune, snapshots=last_snapshots_ids)
         client.forget(keep_last=keep_last, tags=[self.instance_name], prune=prune)
