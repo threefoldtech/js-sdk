@@ -181,14 +181,8 @@ class BackupJob(Base):
                 raise j.exceptions.Value(
                     f"This snapshot id {snapshot_id:.8} is not found for this backup job {self.instance_name}."
                 )
-        else:
-            last_snapshot = self.list_snapshots(restic_client_name, last=True)
-            if last_snapshot:
-                assert len(last_snapshot) == 1
-                snapshot_id = last_snapshot[0]["id"]
-            else:
-                raise j.exceptions.Runtime(f"No previous snapshots found for this backup job: {self.instance_name}.")
-        client.restore(target_path, snapshot_id=snapshot_id)
+
+        client.restore(target_path, snapshot_id=snapshot_id, tags=[self.instance_name])
 
     def clean_snapshots(self, restic_client_name, keep_last=0, prune=True):
         """Deletes the snapshots data if `prune` is True otherwise remove the)reference to the data (snapshots) in a ResticRepo with a given instance name.
