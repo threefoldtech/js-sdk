@@ -1118,6 +1118,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             interactive,
             encrypted_secret_env,
             public_ipv6=public_ipv6,
+            disk_type=disk_type,
         )
         if volumes:
             for mount_point, vol_id in volumes.items():
