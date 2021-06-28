@@ -20,11 +20,13 @@ from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 
 class SystemBackupService(BackgroundService):
-
+    # we will use this  pre defined BackupJop if exists, else we will define it using the info from next section
     BACKUP_JOP_NAME = "systembackupjob"
 
-    # in case the service will create the systemBackupJob
+    # system BackupJob info
+    ## this ResticRepo instance must be preconfigured and exist.
     RESTIC_CLIENT_NAMES = ["systembackupclient"]
+    ## paths to include in the BackupJob
     BACKUP_JOP_PATHS = ["~/.config/jumpscale/", "~/sandbox/cfg/"]
     PATHS_TO_EXCLUDE = ["~/.config/jumpscale/logs/*"]
 

@@ -120,7 +120,7 @@ class BackupJob(Base):
         """Backups the preconfigured paths with the preconfigured restic clients.
         All snapshots created with a Backupjob will be tagged with the BackupJob instance name for easy referencing, manageing, cleaning and restoring.
         """
-        # TODO: excute the backup for every client in diffret thread.
+        # TODO: excute the backup for every client in a different thread.
         paths = [fs.os.path.expanduser(path) for path in self.paths]
         paths_to_exclude = [fs.os.path.expanduser(path) for path in self.paths_to_exclude]
         for restic_client_name in self.clients:
@@ -162,14 +162,16 @@ class BackupJob(Base):
         client = self._get_client(restic_client_name)
         return client.list_snapshots(tags=[self.instance_name], last=last, path=path) or []
 
-    def restore(self, restic_client_name, snapshot_id=None, target_path="/"):
+    def restore(
+        self, restic_client_name, target_path="/", snapshot_id=None,
+    ):
         """Restore a specifc or latest snapshot for this BackupJob from a ResticRepo with a given instance name.
 
         Args:
             restic_client_name (str): Restic instance name.
             target_path (str, optional): path to restore to. Defaults to "/".
             snapshot_id (str, optional):  id or short_id of the snapshot.
-                if not specified will use tha latest snapshot taken for this BackupJob instead. Defaults to None.
+                if not specified will use tha latest snapshot/s taken for this BackupJob instead. Defaults to None.
 
         Raises:
             j.exceptions.Value: if the specified snapshot id is not found for this BackupJob.
@@ -193,13 +195,14 @@ class BackupJob(Base):
 
         Args:
             restic_client_name (str): Restic instance name.
-            keep_last (int, optional): How many snapshots to keep. Defaults to 0.
+            keep_last (int, optional): How many snapshots to keep. Passing 0 will remove all snapshots for this BackupJob instance. Defaults to 0.
             prune (bool, optional):  Whether to delete the data or not. Defaults to True.
         """
         client = self._get_client(restic_client_name)
         if not keep_last:
-            # will forgot all snapshots for this BackupJob on the ResticRepo with a given name.
+            # first forget all snapshots but last as restic will not allow values less than 1.
             client.forget(keep_last=1, tags=[self.instance_name], prune=prune)
+            # then get snapshots ids of last snapshots and forget them
             last_snapshots = self.list_snapshots(restic_client_name, last=True)
             last_snapshots_ids = [snapshot["id"] for snapshot in last_snapshots]
             return client.forget(keep_last=0, tags=[self.instance_name], prune=prune, snapshots=last_snapshots_ids)

@@ -152,12 +152,12 @@ class ResticRepo(Base):
             self._run_cmd(["restic", "init"])
 
     def backup(self, path, tags=None, exclude=None):
-        """Backup a path to the repo
+        """Backup a path to the repo.
 
         Args:
-            path (str or list of str): local path/s to backup
-            tags (list): list of tags to set to the backup
-            exclude (str): This instructs restic to exclude files matching a given pattern
+            path (str or list of str): Local path/s to backup.
+            tags (list): List of tags to set to the backup.
+            exclude (list of str): This instructs restic to exclude files matching a given pattern/s.
         """
         if not path:
             raise ValueError("Please specify path/s to backup")
@@ -175,14 +175,15 @@ class ResticRepo(Base):
         self._run_cmd(cmd)
 
     def restore(self, target_path, snapshot_id=None, latest=True, path=None, host=None, tags=None):
-        """restores a snapshot
+        """Restores a snapshot.
 
         Args:
-            target_path (str): path to restore to
-            snapshot_id (str, optional): id of the snapshot. Defaults to None.
+            target_path (str): a path to restore to
+            snapshot_id (str, optional): Id of the snapshot. Defaults to None.
             latest (bool, optional): if True will use latest snapshot. Defaults to True.
             path (str, optional): Filter on the path when using latest. Defaults to None.
             host (str, optional): Filter on the hostname when using latest. Defaults to None.
+            tags (list, optional): List of tags to filter on.
         """
         cmd = ["restic", "--target", target_path, "restore"]
         if snapshot_id:
@@ -202,12 +203,12 @@ class ResticRepo(Base):
             raise ValueError("Please specify either `snapshot_id` or `latest` flag")
 
     def list_snapshots(self, tags=None, last=False, path=None):
-        """List all snapshots in the repo
+        """List all snapshots in the repo.
 
         Args:
-            tags (list): list of tags to filter on
-            last (bool): if True will get last snapshot only while respecting the other filters
-            path (str): path to filter on
+            tags (list, optional): a list of tags to filter on. Defaults to None.
+            last (bool): If True will get last snapshot only while respecting the other filters. Defaults to False.
+            path (str): a path to filter on. Defaults to None.
 
         Returns
             list : all snapshots as dicts
@@ -225,13 +226,14 @@ class ResticRepo(Base):
         return json.loads(proc.stdout)
 
     def forget(self, keep_last=10, prune=True, snapshots=None, tags=None):
-        """Deletes data in the repo
+        """Remove snapshots and Optionally remove the data that was referenced by those snapshots.
+        During a prune operation, the repository is locked and backups cannot be completed.
 
         Args:
             keep_last (str, optional): How many items to keep. Defaults to 10.
-            prune (bool, optional): Whether to prune the data or not. Defaults to True.
-            snapshots (list, optional): list of specifics snapshot ids to forget. Defaults to None.
-            tags (list, optional): only the snapshots which have specified tags are considered. Defaults to None.
+            prune (bool, optional): Whether to actually remove the data or not. Defaults to True.
+            snapshots (list, optional): a list of specifics snapshot ids to forget. if given, the value of keep_last parm will be ignored. Defaults to None.
+            tags (list, optional): if given, Only the snapshots which have specified tags are considered. Defaults to None.
         """
         cmd = ["restic", "forget"]
         if tags:
@@ -253,11 +255,11 @@ class ResticRepo(Base):
         return proc.stdout.decode()
 
     def auto_backup(self, path, keep_last=20):
-        """Runs a cron job that backups the repo and prunes the last specified backups
+        """Runs a cron job that backups the repo and prunes the last specified backups.
 
         Args:
-            path (str): local path to backup
-            keep_last (int, optional): How many items to keep in every forgot opertaion. Defaults to 20.
+            path (str): Local path to backup.
+            keep_last (int, optional): How many items to keep in every forgot operation. Defaults to 20.
         """
         self._check_install("crontab")
         script_path = self._get_script_path(path)
@@ -277,20 +279,20 @@ class ResticRepo(Base):
         """Checks if auto backup for the specified path is running or not
 
         Args:
-            path (str): local path to backup in the cron job
+            path (str): Local path to backup in the cron job.
 
         Returns:
-            bool: Whether it is running or not
+            bool: Whether it is running or not.
         """
         script_path = self._get_script_path(path)
         cronjobs = self._get_crons_jobs()
         return cronjobs.find(script_path) >= 0
 
     def disable_auto_backup(self, path):
-        """Removes cron jon based on the path being backed
+        """Removes cron jon based on the path being backed.
 
         Args:
-            path (str): local path to backup in the cron job
+            path (str): Local path to backup in the cron job.
         """
         script_path = self._get_script_path(path)
         cronjobs = self._get_crons_jobs()
@@ -305,23 +307,23 @@ class ResticRepo(Base):
             raise Runtime(f"Couldn't remove cron job, failed with {proc_res[1]}")
 
     def backup_watchdog_running(self, script_path) -> bool:
-        """watches a cronjob to watch backups using last snapshot time
+        """Watches a cronjob to watch backups using last snapshot time.
 
         Args:
-            script_path (str): path to the script to run the cronjob
+            script_path (str): a path to the script to run the cronjob.
         Returns:
-            bool: True if the backup watchdog running
+            bool: True if the backup watchdog running otherwise False
         """
         script_path = self._get_script_path(script_path)
         cronjobs = self._get_crons_jobs()
         return cronjobs.find(script_path) >= 0
 
     def start_watch_backup(self, path):
-        """Runs a cron job that backups the repo and prunes the last specified backups
+        """Runs a cron job that backups the repo and prunes the last specified backups.
 
         Args:
-            path (str): local path to backup
-            keep_last (int, optional): How many items to keep in every forgot opertaion. Defaults to 20.
+            path (str): Local path to backup.
+            keep_last (int, optional): How many items to keep in every forgot operation. Defaults to 20.
         """
         self._check_install("crontab")
         script_path = self._get_script_path(path)
