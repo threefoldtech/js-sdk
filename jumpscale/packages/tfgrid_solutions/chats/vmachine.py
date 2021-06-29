@@ -68,7 +68,10 @@ class VMachineDeploy(MarketPlaceAppsChatflow):
     @chatflow_step(title="Select Pools")
     def select_pool(self):
         cloud_units = j.sals.marketplace.deployer.calculate_capacity_units(**self.query)
-        self.pool_id = deployer.select_pool(self, cu=cloud_units.cu, su=cloud_units.su, **self.query)
+        # At least select pools lasts for 15 mins
+        self.pool_id = deployer.select_pool(
+            self, cu=cloud_units.cu * 60 * 15, su=cloud_units.su * 60 * 15, **self.query
+        )
         if not self.pool_id:
             raise DeploymentFailed(
                 f"Failed to find a node with the required resources CRU: {self.query.get('cru')}, MRU: {self.query.get('mru', 0)}, CRU: {self.query.get('cru', 0)}, SRU: {self.query.get('sru', 0)}, IPV4U: {self.query.get('ipv4u', 0)}"
@@ -102,7 +105,7 @@ class VMachineDeploy(MarketPlaceAppsChatflow):
     @deployment_context()
     def reservation(self):
         metadata = {
-            "form_info": {"chatflow": "Virtual Machine", "Solution name": self.solution_name},
+            "form_info": {"chatflow": "vmachine", "name": self.solution_name, "solution_uuid": self.solution_id},
         }
         self.solution_metadata.update(metadata)
         self.reservation, self.public_ip = deployer.deploy_vmachine(
