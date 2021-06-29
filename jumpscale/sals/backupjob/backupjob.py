@@ -93,7 +93,7 @@ def _client_validator(restic_client_name):
 
 class BackupJob(Base):
     paths = fields.List(fields.String(validators=[_path_validator]))
-    paths_to_exclude = fields.List(fields.String(validators=[_path_validator]))
+    paths_to_exclude = fields.List(fields.String())
     clients = fields.List(fields.String(validators=[_client_validator]))
 
     def __init__(self, *args, **kwargs):

@@ -167,7 +167,7 @@ class ResticRepo(Base):
             cmd.extend(["--tag", tag])
         if exclude:
             for pattern in exclude:
-                cmd.extend([f'--exclude="{pattern}"'])
+                cmd.extend([f"--exclude={pattern}"])
         if isinstance(path, list):
             cmd.extend(path)
         else:

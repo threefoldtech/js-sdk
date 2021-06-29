@@ -28,7 +28,8 @@ class SystemBackupService(BackgroundService):
     RESTIC_CLIENT_NAMES = ["systembackupclient"]
     ## paths to include in the BackupJob
     BACKUP_JOP_PATHS = ["~/.config/jumpscale/", "~/sandbox/cfg/"]
-    PATHS_TO_EXCLUDE = ["~/.config/jumpscale/logs/*"]
+    ## paths to exclude. absolute paths will not work as the exclude path should be inside one of the specified backup paths.
+    PATHS_TO_EXCLUDE = [".config/jumpscale/logs"]
 
     def __init__(self, interval=60 * 60, *args, **kwargs):
         super().__init__(interval, *args, **kwargs)
