@@ -117,7 +117,7 @@ class BackupJob(Base):
             return j.tools.restic.get(restic_client_name)
         raise j.expections.Runtime(f"The restic client: {restic_client_name} not found!")
 
-    def execute(self):
+    def execute(self, block=False):
         """Backups the preconfigured paths with the preconfigured restic clients.
         All snapshots created with a Backupjob will be tagged with the BackupJob instance name for easy referencing, manageing, cleaning and restoring.
         """
@@ -137,9 +137,12 @@ class BackupJob(Base):
 
         paths = [fs.os.path.expanduser(path) for path in self.paths]
         paths_to_exclude = [fs.os.path.expanduser(path) for path in self.paths_to_exclude]
+        greenlets = []
         for restic_client_name in self.clients:
             client = self._get_client(restic_client_name)
-            _ = gevent.spawn(_excute, client, paths, tags=[self.instance_name], exclude=paths_to_exclude)
+            greenlets.append(gevent.spawn(_excute, client, paths, tags=[self.instance_name], exclude=paths_to_exclude))
+        if block:
+            gevent.joinall(greenlets)
 
     def list_all_snapshots(self, last=False, path=None):
         """Returns a dictionary of restic snapshots lists that are related to to this BackupJob instance,
