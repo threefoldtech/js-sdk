@@ -244,7 +244,7 @@ class ResticRepo(Base):
         if prune:
             cmd.append("--prune")
         if snapshots:
-            cmd.extend([snapshots])
+            cmd.extend(snapshots)
         self._run_cmd(cmd)
 
     def _get_script_path(self, path):
