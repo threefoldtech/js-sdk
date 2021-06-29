@@ -1272,6 +1272,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         vmachine = j.sals.zos.get(identity_name).vm.create(
             node_id, network_name, name, ip_address, ssh_keys, pool_id, size, public_ip_wid
         )
+        vmachine.info.metadata = self.encrypt_metadata(metadata, identity_name)
         return j.sals.zos.get(identity_name).workloads.deploy(vmachine), public_ip
 
     def deploy_kubernetes_master(
