@@ -139,7 +139,7 @@ class BackupJob(Base):
         paths_to_exclude = [fs.os.path.expanduser(path) for path in self.paths_to_exclude]
         for restic_client_name in self.clients:
             client = self._get_client(restic_client_name)
-            gevent.spawn(_excute(client, paths, tags=[self.instance_name], exclude=paths_to_exclude))
+            _ = gevent.spawn(_excute, client, paths, tags=[self.instance_name], exclude=paths_to_exclude)
 
     def list_all_snapshots(self, last=False, path=None):
         """Returns a dictionary of restic snapshots lists that are related to to this BackupJob instance,
@@ -154,7 +154,6 @@ class BackupJob(Base):
         """
         snapshots = {}
         for restic_client_name in self.clients:
-            # client = self._get_client(restic_client_name)
             snapshots[restic_client_name] = self.list_snapshots(restic_client_name, last=last, path=path)
         return snapshots
 
@@ -176,9 +175,7 @@ class BackupJob(Base):
         client = self._get_client(restic_client_name)
         return client.list_snapshots(tags=[self.instance_name], last=last, path=path) or []
 
-    def restore(
-        self, restic_client_name, target_path="/", snapshot_id=None,
-    ):
+    def restore(self, restic_client_name, target_path="/", snapshot_id=None, host=None):
         """Restore a specifc or latest snapshot for this BackupJob from a ResticRepo with a given instance name.
 
         Args:
@@ -186,6 +183,7 @@ class BackupJob(Base):
             target_path (str, optional): path to restore to. Defaults to "/".
             snapshot_id (str, optional):  id or short_id of the snapshot.
                 if not specified will use tha latest snapshot/s taken for this BackupJob instead. Defaults to None.
+            host (str, optional): Filter on the hostname when using latest. Defaults to None.
 
         Raises:
             j.exceptions.Value: if the specified snapshot id is not found for this BackupJob.
@@ -202,7 +200,7 @@ class BackupJob(Base):
                     f"This snapshot id {snapshot_id:.8} is not found for this backup job {self.instance_name}."
                 )
 
-        client.restore(target_path, snapshot_id=snapshot_id, tags=[self.instance_name])
+        client.restore(target_path, snapshot_id=snapshot_id, tags=[self.instance_name], host=host)
 
     def clean_snapshots(self, restic_client_name, keep_last=0, prune=True):
         """Deletes the snapshots data if `prune` is True otherwise remove the)reference to the data (snapshots) in a ResticRepo with a given instance name.

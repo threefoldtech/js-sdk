@@ -57,7 +57,7 @@ class SystemBackupService(BackgroundService):
             )
         backupjob = j.sals.backupjob.get(self.BACKUP_JOP_NAME)
         backupjob.execute()
-        j.logger.info(f"system_backup_service: {self.BACKUP_JOP_NAME} job successfully executed.")
+        j.logger.info(f"system_backup_service: {self.BACKUP_JOP_NAME} job started.")
 
 
 service = SystemBackupService()
