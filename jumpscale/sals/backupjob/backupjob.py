@@ -120,6 +120,9 @@ class BackupJob(Base):
     def execute(self, block=False):
         """Backups the preconfigured paths with the preconfigured restic clients.
         All snapshots created with a Backupjob will be tagged with the BackupJob instance name for easy referencing, manageing, cleaning and restoring.
+
+        Args:
+            block (bool, optional): Wait for the backup to finish. if False, will start the backup and return immediately. Defaults to False.
         """
 
         def _excute(client, paths, tags, exclude):
@@ -197,6 +200,8 @@ class BackupJob(Base):
             if len(snapshot_id) < 8:
                 raise j.exceptions.Value(f"The length of snapshot id ({snapshot_id}) should be at least 8 characters.")
             snapshots = self.list_snapshots(restic_client_name)
+            if not snapshots:
+                raise j.exceptions.Runtime(f"no previous snapshots found for this backup job {self.instance_name}.")
             snapshots_ids = [snapshot["id"] for snapshot in snapshots if snapshot["id"].startswith(snapshot_id)]
             if not snapshots_ids:
                 raise j.exceptions.Value(
