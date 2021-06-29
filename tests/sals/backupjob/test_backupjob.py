@@ -15,6 +15,12 @@ def _restic_find(restic_client_name, tag, pattern):
     return bool(out)
 
 
+def _restic_clean_repo(restic_client_name):
+    restic = j.tools.restic.get(restic_client_name)
+    restic._run_cmd(["restic", "forget", "--keep-last", "1"])
+    restic._run_cmd(["restic", "forget", "--prune", "latest"])
+
+
 class TestBackupjob(BaseTests):
     @classmethod
     def setUpClass(cls):
@@ -55,9 +61,16 @@ class TestBackupjob(BaseTests):
         self.backupjob = None
 
     def tearDown(self):
+        # Delete test backup job
         if self.backupjob:
             j.sals.backupjob.delete(self.backupjob.instance_name)
+        # delete test backup dir
         self.backup_dir.cleanup()
+        # delete test restore dir
+        self.restore_dir.cleanup()
+        # clean all snapshots in test repo/s
+        for client_name in self.restic_client_names:
+            _restic_clean_repo(client_name)
 
     def _create_dirs_to_backup(self):
         # create some files
