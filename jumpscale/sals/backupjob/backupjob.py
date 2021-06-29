@@ -63,6 +63,7 @@ class admin:
 from jumpscale.loader import j
 from jumpscale.core.base import Base, fields
 from jumpscale.sals import fs
+import gevent
 
 
 def _path_validator(path):
@@ -120,12 +121,25 @@ class BackupJob(Base):
         """Backups the preconfigured paths with the preconfigured restic clients.
         All snapshots created with a Backupjob will be tagged with the BackupJob instance name for easy referencing, manageing, cleaning and restoring.
         """
-        # TODO: excute the backup for every client in a different thread.
+
+        def _excute(client, paths, tags, exclude):
+            try:
+                client.backup(paths, tags=tags, exclude=exclude)
+            except Exception as e:
+                j.logger.exception(
+                    f"BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client.instance_name}`",
+                    exception=e,
+                )
+            else:
+                j.logger.info(
+                    f"BackupJob name: {self.instance_name} - ResticRepo: {client.instance_name} snapshot successfully saved."
+                )
+
         paths = [fs.os.path.expanduser(path) for path in self.paths]
         paths_to_exclude = [fs.os.path.expanduser(path) for path in self.paths_to_exclude]
         for restic_client_name in self.clients:
             client = self._get_client(restic_client_name)
-            client.backup(paths, tags=[self.instance_name], exclude=paths_to_exclude)
+            gevent.spawn(_excute(client, paths, tags=[self.instance_name], exclude=paths_to_exclude))
 
     def list_all_snapshots(self, last=False, path=None):
         """Returns a dictionary of restic snapshots lists that are related to to this BackupJob instance,
