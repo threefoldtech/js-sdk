@@ -32,7 +32,7 @@ class SystemBackupService(BackgroundService):
     ## paths to exclude. absolute paths will not work as the exclude path should be inside one of the specified backup paths.
     PATHS_TO_EXCLUDE = [".config/jumpscale/logs"]
 
-    def __init__(self, interval=120, *args, **kwargs):
+    def __init__(self, interval=60 * 60, *args, **kwargs):
         super().__init__(interval, *args, **kwargs)
 
     @classmethod
@@ -81,11 +81,14 @@ class SystemBackupService(BackgroundService):
             )
 
         backupjob = j.sals.backupjob.get(self.BACKUP_JOP_NAME)
-        backupjob.execute(blokc=True)
-        j.logger.info(f"[Backup Package - System Backup Service] Backup job {self.BACKUP_JOP_NAME} completed.")
-        j.tools.notificationsqueue.push(
-            f"System backup job job completed.", category="SystemBackupService", level=LEVEL.INFO
-        )
+        job_completed = backupjob.execute(block=True)
+        if job_completed:
+            j.logger.info(
+                f"[Backup Package - System Backup Service] Backup job {self.BACKUP_JOP_NAME} completed successfully."
+            )
+            j.tools.notificationsqueue.push(
+                f"the System backup job completed successfully.", category="SystemBackupService", level=LEVEL.INFO
+            )
 
 
 service = SystemBackupService()
