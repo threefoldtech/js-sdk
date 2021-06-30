@@ -17,6 +17,7 @@ JS-NG> service_manager.add_service('system_backup_service', j.sals.fs.expanduser
 
 from jumpscale.loader import j
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
+from jumpscale.tools.notificationsqueue.queue import LEVEL
 
 
 class SystemBackupService(BackgroundService):
@@ -31,33 +32,60 @@ class SystemBackupService(BackgroundService):
     ## paths to exclude. absolute paths will not work as the exclude path should be inside one of the specified backup paths.
     PATHS_TO_EXCLUDE = [".config/jumpscale/logs"]
 
-    def __init__(self, interval=60 * 60, *args, **kwargs):
+    def __init__(self, interval=120, *args, **kwargs):
         super().__init__(interval, *args, **kwargs)
 
     @classmethod
     def _create_system_backup_job(cls):
-        backupjob = j.sals.backupjob.new(
-            cls.BACKUP_JOP_NAME,
-            clients=cls.RESTIC_CLIENT_NAMES,
-            paths=cls.BACKUP_JOP_PATHS,
-            paths_to_exclude=cls.PATHS_TO_EXCLUDE,
-        )
-        backupjob.save()
+        repos_is_ready = all([client in j.tools.restic.list_all() for client in cls.RESTIC_CLIENT_NAMES])
+        if repos_is_ready:
+            backupjob = j.sals.backupjob.new(
+                cls.BACKUP_JOP_NAME,
+                clients=cls.RESTIC_CLIENT_NAMES,
+                paths=cls.BACKUP_JOP_PATHS,
+                paths_to_exclude=cls.PATHS_TO_EXCLUDE,
+            )
+            backupjob.save()
+            return True
+        else:
+            j.logger.error(
+                f"[Backup Package - System Backup Service] There is no preconfigure restic repo/s. Backup job won't executed!"
+            )
+            j.tools.notificationsqueue.push(
+                f"There is no preconfigure restic repo/s. Backup job won't executed!",
+                category="SystemBackupService",
+                level=LEVEL.ERROR,
+            )
+            return False
 
     def job(self):
         """Background backup job to be scheduled.
         """
         if self.BACKUP_JOP_NAME not in j.sals.backupjob.list_all():
             j.logger.warning(
-                f"system_backup_service: couldn't get instance of BackupJob with name {self.BACKUP_JOP_NAME}!"
+                f"[Backup Package - System Backup Service] couldn't get instance of BackupJob with name {self.BACKUP_JOP_NAME}!"
             )
-            SystemBackupService._create_system_backup_job()
+            j.tools.notificationsqueue.push(
+                f"couldn't get instance of BackupJob with name {self.BACKUP_JOP_NAME}!",
+                category="SystemBackupService",
+                level=LEVEL.WARNING,
+            )
+
+            if not SystemBackupService._create_system_backup_job():
+                return
             j.logger.info(
-                f"system_backup_service: {self.BACKUP_JOP_NAME} job successfully created\npaths included: {self.BACKUP_JOP_PATHS}\npaths excluded: {self.PATHS_TO_EXCLUDE}."
+                f"[Backup Package - System Backup Service] {self.BACKUP_JOP_NAME} job successfully created\npaths to backup: {self.BACKUP_JOP_PATHS}\npaths excluded: {self.PATHS_TO_EXCLUDE}."
             )
+            j.tools.notificationsqueue.push(
+                f"System backup job job successfully created!", category="SystemBackupService", level=LEVEL.INFO
+            )
+
         backupjob = j.sals.backupjob.get(self.BACKUP_JOP_NAME)
-        backupjob.execute()
-        j.logger.info(f"system_backup_service: {self.BACKUP_JOP_NAME} job started.")
+        backupjob.execute(blokc=True)
+        j.logger.info(f"[Backup Package - System Backup Service] Backup job {self.BACKUP_JOP_NAME} completed.")
+        j.tools.notificationsqueue.push(
+            f"System backup job job completed.", category="SystemBackupService", level=LEVEL.INFO
+        )
 
 
 service = SystemBackupService()
