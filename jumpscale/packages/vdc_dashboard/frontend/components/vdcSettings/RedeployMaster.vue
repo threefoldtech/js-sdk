@@ -16,7 +16,7 @@
 <script>
 module.exports = {
   mixins: [dialog],
-  props: { wid: { type: String, default: "" } },
+  props: { wid: Number },
   methods: {
     submit() {
       this.loading = true;

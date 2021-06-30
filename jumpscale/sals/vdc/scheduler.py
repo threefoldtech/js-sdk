@@ -322,11 +322,39 @@ class GlobalCapacityChecker:
         no_nodes=1,
         backup_no=0,
         accessnodes=False,
+        no_deployments=1,
     ):
+        """Get farms that have the required resources.
+
+        Args:
+            cru (int, optional):  Defaults to None.
+            mru (int, optional):  Defaults to None.
+            hru (int, optional):  Defaults to None.
+            sru (int, optional):  Defaults to None.
+            ip_version (str, optional):  Defaults to None.
+            public_ip (bool, optional):  Defaults to None.
+            no_nodes (int, optional): used for checking capacity on different nodes with required query Defaults to 1.
+            backup_no (int, optional):  Defaults to 0.
+            accessnodes (bool, optional):  set to True in case of only access nodes are required Defaults to False.
+            no_deployments (int, optional): used for checking capacity either on different nodes or the same node Defaults to 1.
+
+        Raises:
+            j.exceptions.Value: in case of use no_nodes with no_deployments for the same query.
+
+        Yields:
+            str: farm name with available resources.
+        """
+        if no_nodes > 1 and no_deployments > 1:
+            raise j.exceptions.Value("no_nodes and no_deployments can't be greater than 1 together.")
+
         explorer = j.core.identity.me.explorer
         all_farms = explorer.farms.list()
         for farm in all_farms:
+            result = True
             cc = self.get_checker(farm.name)
-            result = cc.add_query(cru, mru, hru, sru, ip_version, public_ip, no_nodes, backup_no, accessnodes)
+            for _ in range(no_deployments):
+                result = result and cc.add_query(
+                    cru, mru, hru, sru, ip_version, public_ip, no_nodes, backup_no, accessnodes
+                )
             if result:
                 yield farm.name
