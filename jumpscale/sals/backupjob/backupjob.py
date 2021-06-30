@@ -132,18 +132,19 @@ class BackupJob(Base):
             if block is False, then it returns False immediately.
         """
 
-        def _excute(client, paths, tags, exclude):
+        def _excute(client_name, paths, tags, exclude):
             try:
+                client = self._get_client(client_name)
                 client.backup(paths, tags=tags, exclude=exclude)
             except Exception as e:
                 j.logger.exception(
-                    f"BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client.instance_name}",
+                    f"BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client_name}",
                     exception=e,
                 )
                 j.tools.alerthandler.alert_raise(
                     app_name="BackupJob",
-                    category="backupjob_failed",
-                    message=f"BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client.instance_name}",
+                    category="exception",
+                    message=f"BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client_name}",
                     alert_type="exception",
                     traceback=e.__traceback__,
                 )
@@ -159,9 +160,8 @@ class BackupJob(Base):
         if not self.clients:
             raise j.exceptions.Runtime("Can't execute backup job no restic instances defined.")
         for restic_client_name in self.clients:
-            client = self._get_client(restic_client_name)
             self._greenlets.append(
-                gevent.spawn(_excute, client, paths, tags=[self.instance_name], exclude=paths_to_exclude)
+                gevent.spawn(_excute, restic_client_name, paths, tags=[self.instance_name], exclude=paths_to_exclude)
             )
         if block:
             gevent.joinall(self._greenlets)
