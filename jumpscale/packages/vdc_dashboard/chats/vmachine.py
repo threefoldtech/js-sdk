@@ -173,7 +173,6 @@ class VMachineDeploy(MarketPlaceAppsChatflow):
         if duration > two_weeks:
             duration = two_weeks
         old_wallet = vdc_deployer._set_wallet(self.vdc.prepaid_wallet.instance_name)
-        wids = []
         try:
             # Deploy VMachine
             self.result = vdc_deployer.deploy_vmachine(
@@ -185,6 +184,7 @@ class VMachineDeploy(MarketPlaceAppsChatflow):
                 enable_public_ip=self.enable_public_ip,
                 solution_uuid=self.solution_uuid,
                 vmachine_type="ubuntu-20.04",
+                duration=duration,
             )
             self.md_show_update("Deployment success...")
         except Exception as e:

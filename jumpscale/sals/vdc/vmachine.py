@@ -95,9 +95,7 @@ class VirtualMachineDeployer(VDCBaseComponent):
             raise j.exceptions.Validation(f"Not enough capacity in farm {farm_name} for deploying vmachine")
 
         duration = (
-            duration * 60 * 60 * 24
-            if duration
-            else self.vdc_instance.expiration_date.timestamp() - j.data.time.utcnow().timestamp
+            duration if duration else self.vdc_instance.expiration_date.timestamp() - j.data.time.utcnow().timestamp
         )
         if duration <= 0:
             raise j.exceptions.Validation(f"invalid duration {duration}")
@@ -174,9 +172,9 @@ class VirtualMachineDeployer(VDCBaseComponent):
                     pool_id, vmachine_node.node_id, solution_uuid=solution_uuid
                 )
 
-            if not public_ip_wid:
-                self.vdc_deployer.error(f"Failed to reserve public ip on node {vmachine_node.node_id}")
-                continue
+                if not public_ip_wid:
+                    self.vdc_deployer.error(f"Failed to reserve public ip on node {vmachine_node.node_id}")
+                    continue
 
             network_view = network_view.copy()
             private_ip_address = network_view.get_free_ip(vmachine_node)
@@ -204,7 +202,8 @@ class VirtualMachineDeployer(VDCBaseComponent):
                     raise DeploymentFailed()
                 return {"public_ip": public_ip, "ip_address": private_ip_address, "vm_wid": wid}
             except DeploymentFailed:
-                self.zos.workloads.decomission(public_ip_wid)
+                if enable_public_ip:
+                    self.zos.workloads.decomission(public_ip_wid)
                 self.vdc_deployer.error(f"Failed to deploy virtual machine wid: {wid}")
                 continue
         self.vdc_deployer.error(f"All attempts to deploy virtual machine have failed")

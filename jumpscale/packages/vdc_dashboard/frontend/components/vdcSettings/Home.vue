@@ -22,6 +22,11 @@
       </v-tab-item>
       <v-tab-item class="ml-2">
         <v-card flat>
+          <virtual-machine :vdc="vdc" :loading="tableloading"></virtual-machine>
+        </v-card>
+      </v-tab-item>
+      <v-tab-item class="ml-2">
+        <v-card flat>
           <s3
             :vdc="vdc"
             :tableloading="tableloading"
@@ -54,12 +59,14 @@
           <admins :vdc="vdc" :loading="tableloading"></admins>
         </v-card>
       </v-tab-item>
+
       <v-tab-item class="ml-2">
         <v-card flat>
           <api-keys></api-keys>
         </v-card>
       </v-tab-item>
     </v-tabs>
+
     <div class="version">JS-NG v{{ NGVersion }}, JS-SDK v{{ SDKVersion }}</div>
 
     <v-dialog v-if="dialog.expiration" v-model="dialog.expiration" width="400">
@@ -146,6 +153,7 @@ module.exports = {
       release: null,
       tabs: [
         { icon: "mdi-memory", title: "Compute Nodes" },
+        { icon: "mdi-view-grid-plus-outline", title: "Virtual Machines" },
         { icon: "mdi-server", title: "Storage Containers" },
         { icon: "mdi-wallet", title: "Wallet Information" },
         { icon: "mdi-backup-restore", title: "Backup & Restore" },

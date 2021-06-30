@@ -565,9 +565,7 @@ class UserVDC(Base):
         else:
             return True, amount, payment_id
 
-    def show_external_vmachine_payment(
-        self, bot, farm_name, size_number, no_nodes=1, expiry=5, wallet_name=None, public_ip=False
-    ):
+    def show_external_vmachine_payment(self, bot, farm_name, size_number, expiry=5, wallet_name=None, public_ip=False):
         discount = FARM_DISCOUNT.get()
         duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
         month = 60 * 60 * 24 * 30
@@ -583,7 +581,6 @@ class UserVDC(Base):
         if public_ip:
             pub_ip = PublicIP()
             amount += j.tools.zos.consumption.cost(pub_ip, duration, farm_id)
-        amount *= no_nodes
 
         prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
         if prepaid_balance >= amount:
@@ -607,7 +604,7 @@ class UserVDC(Base):
             refund_extra=False,
             expiry=expiry,
             description=j.data.serializers.json.dumps(
-                {"type": "VDC_K8S_EXTEND", "owner": self.owner_tname, "solution_uuid": self.solution_uuid}
+                {"type": "VM_CREATION", "owner": self.owner_tname, "solution_uuid": self.solution_uuid}
             ),
         )
         if amount > 0:
