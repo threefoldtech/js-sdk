@@ -62,6 +62,7 @@ class SystemBackupService(BackgroundService):
     def job(self):
         """Background backup job to be scheduled.
         """
+        j.logger.info(f"[Backup Package - System Backup Service] Backup job {self.BACKUP_JOB_NAME} started.")
         if self.BACKUP_JOB_NAME not in j.sals.backupjob.list_all():
             j.logger.warning(
                 f"[Backup Package - System Backup Service] couldn't get instance of BackupJob with name {self.BACKUP_JOB_NAME}!"
@@ -73,6 +74,12 @@ class SystemBackupService(BackgroundService):
             )
 
             if not SystemBackupService._create_system_backup_job():
+                j.tools.alerthandler.alert_raise(
+                    app_name="SystemBackupJob",
+                    category="exception",
+                    message="There is no preconfigure restic repo/s. System Backup job won't executed!",
+                    alert_type="exception",
+                )
                 return
             j.logger.info(
                 f"[Backup Package - System Backup Service] {self.BACKUP_JOB_NAME} job successfully created\npaths to backup: {self.BACKUP_JOP_PATHS}\npaths excluded: {self.PATHS_TO_EXCLUDE}."
