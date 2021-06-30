@@ -123,6 +123,9 @@ class BackupJob(Base):
 
         Args:
             block (bool, optional): Wait for the backup to finish. if False, will start the backup and return immediately. Defaults to False.
+
+        Raises:
+            j.expections.Runtime: If there are no restic instances defined for this backup job.
         """
 
         def _excute(client, paths, tags, exclude):
@@ -141,6 +144,8 @@ class BackupJob(Base):
         paths = [fs.os.path.expanduser(path) for path in self.paths]
         paths_to_exclude = [fs.os.path.expanduser(path) for path in self.paths_to_exclude]
         greenlets = []
+        if not self.clients:
+            raise j.exceptions.Runtime("Can't execute backup job no restic instances defined.")
         for restic_client_name in self.clients:
             client = self._get_client(restic_client_name)
             greenlets.append(gevent.spawn(_excute, client, paths, tags=[self.instance_name], exclude=paths_to_exclude))
