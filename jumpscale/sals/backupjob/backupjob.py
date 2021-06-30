@@ -1,64 +1,34 @@
 """
 ----------------------------------------------------------------------
-THE BACKUPJOB SAL
+# THE BACKUPJOB SAL
 ----------------------------------------------------------------------
 This sal can be used to create and manage multiple backup jobs with multiple and configured paths.
 
 Examples:
-# ---- create new backup job ----
-# ---- every package could create its backup job when installed with one or multiple paths
+1. create new backup job
+    - every package could create its backup job when installed with one or multiple paths
+
+```python
 JS-NG> nginxbackup = j.sals.backupjob.new("nginxbackup", clients = ["restic_client_1", "restic_client_2"], paths=["~/sandbox/cfg/nginx/main/"])
 JS-NG> nginxbackup.save()
+```
 
-# ---- create another backup job ---
+2. create another backup job
 JS-NG> vdcbackup = j.sals.backupjob.new("vdcbackup", clients = ["restic_client_3", "restic_client_4"], paths=["~/.config/jumpscale/secureconfig/jumpscale/sals/vdc/"])
 JS-NG> vdcbackup.save()
 
-# ---- list backup jobs
+3. list backup jobs
+
+```python
 JS-NG> j.sals.backupjob.list_all()
+```
 
-# ---- get and execute a backup job
-JS-NG> nginxbackup_job = j.sals.backupjob.get('nginxbackup')
-# ---- then execute the backup job
-JS-NG> nginxbackup_job.execute()
-
------------------------------------------------------------------------
-# EXAMPLE packages -> <package> -> package.py
-for creating and removing a backup job when a package get installed or uninstalled.
-Note: This will need a background service to excute this backup job automatically every interval of time.
-check the system backup service as an example: jumpscale/packages/backup/services/backup.py
------------------------------------------------------------------------
-from jumpscale.loader import j
-
-# this name will used to tag the backup
-BACKUPJOB_NAME = "example_backup_job"
-BACKUPJOB_PATHS = ["~/example/path/"]  # The path/s should be absolute path/s or begin with a tilde
-RESTIC_CLIENT_NAMES = ["CLIENT1", "CLIENT2"]  # should be preconfigured client/s
-
-class admin:
-    def install(self, **kwargs):
-        # Called when package is added
-        # adding the package backup job if it not exists
-        if BACKUPJOB_NAME not in j.sals.backupjob.list_all():
-            backupjob = j.sals.backupjob.new(
-                BACKUPJOB_NAME, RESTIC_CLIENT_NAMES, BACKUPJOB_PATHS)
-            systembackup.save()
-            j.logger.info(
-                f"{BACKUPJOB_NAME} backup job has been added successfully.")
-        else:
-            j.logger.warning(f"a backup job with name {BACKUPJOB_NAME} already exists!")
-
-    def uninstall(self):
-        # Called when package is deleted
-        # removing the package backup job if it exists
-        if BACKUPJOB_NAME in j.sals.backupjob.list_all():
-            j.sals.backupjob.delete(BACKUPJOB_NAME)
-            j.logger.info(f"{BACKUPJOB_NAME} backup job has been removed successfully.")
-
-    def start(self):
-        # Called when threebot is started
-        if BACKUPJOB_NAME not in j.sals.backupjob.list_all():
-            j.logger.warning(f"package {__name__} was installed before but its backup job doesn't exist anymore!")
+4. get and execute a backup job
+    - get the backup job
+    ```python
+    JS-NG> nginxbackup_job = j.sals.backupjob.get('nginxbackup')
+    JS-NG> nginxbackup_job.execute()
+    ```
 """
 from jumpscale.loader import j
 from jumpscale.core.base import Base, fields
