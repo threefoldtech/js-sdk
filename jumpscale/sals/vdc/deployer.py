@@ -25,6 +25,7 @@ from .s3 import VDCS3Deployer
 from .scheduler import CapacityChecker, GlobalCapacityChecker, GlobalScheduler, Scheduler
 from .size import *
 from .threebot import VDCThreebotDeployer
+from .vmachine import VirtualMachineDeployer
 
 SSH_KEY_PREFIX = "ssh_"
 VDC_IDENTITY_FORMAT = "vdc_{}_{}_{}"  # tname, vdc_name, vdc_uuid
@@ -102,6 +103,7 @@ class VDCDeployer:
         self._zos = None
         self._wallet = None
         self._kubernetes = None
+        self._vmachine = None
         self._s3 = None
         self._proxy = None
         self.ssh_key_path = ssh_key_path
@@ -172,6 +174,12 @@ class VDCDeployer:
         if not self._kubernetes:
             self._kubernetes = VDCKubernetesDeployer(self)
         return self._kubernetes
+
+    @property
+    def vmachine(self):
+        if not self._vmachine:
+            self._vmachine = VirtualMachineDeployer(self)
+        return self._vmachine
 
     @property
     def s3(self):
@@ -504,6 +512,41 @@ class VDCDeployer:
             self.error(f"failed to deploy kubernetes workers")
             return None
         return wids
+
+    def deploy_vmachine(
+        self,
+        farm_name,
+        solution_name,
+        query,
+        vm_size,
+        ssh_keys,
+        enable_public_ip=False,
+        solution_uuid=None,
+        vmachine_type=None,
+        duration=None,
+    ):
+
+        self.bot_show_update(f"Deploying {solution_name} virtual machine...")
+        open("/tmp/times", "a").write(f"TIMESTAMP: start_vmachine {datetime.datetime.now()}\n")
+
+        results = self.vmachine.start_vmachine_deployment(
+            farm_name,
+            solution_name,
+            query,
+            vm_size,
+            ssh_keys,
+            enable_public_ip=enable_public_ip,
+            solution_uuid=solution_uuid,
+            vmachine_type=vmachine_type,
+            duration=duration,
+        )
+
+        open("/tmp/times", "a").write(f"TIMESTAMP: end_vmachine {datetime.datetime.now()}\n")
+
+        if not results:
+            self.error(f"failed to deploy virtual machine")
+            return
+        return results
 
     def deploy_external_etcd(self, compute_farm):
         open("/tmp/times", "a").write(f"TIMESTAMP: start_etcd {datetime.datetime.now()}\n")
