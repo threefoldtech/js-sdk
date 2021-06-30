@@ -126,6 +126,10 @@ class BackupJob(Base):
 
         Raises:
             j.expections.Runtime: If there are no restic instances defined for this backup job.
+
+        Returns:
+            bool: whether the backup created successfully on all the preconfigured repos.
+            if block is False, then it returns False immediately.
         """
 
         def _excute(client, paths, tags, exclude):
@@ -136,6 +140,7 @@ class BackupJob(Base):
                     f"BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client.instance_name}`",
                     exception=e,
                 )
+                raise
             else:
                 j.logger.info(
                     f"BackupJob name: {self.instance_name} - ResticRepo: {client.instance_name} snapshot successfully saved."
@@ -143,14 +148,17 @@ class BackupJob(Base):
 
         paths = [fs.os.path.expanduser(path) for path in self.paths]
         paths_to_exclude = [fs.os.path.expanduser(path) for path in self.paths_to_exclude]
-        greenlets = []
+        self._greenlets = []
         if not self.clients:
             raise j.exceptions.Runtime("Can't execute backup job no restic instances defined.")
         for restic_client_name in self.clients:
             client = self._get_client(restic_client_name)
-            greenlets.append(gevent.spawn(_excute, client, paths, tags=[self.instance_name], exclude=paths_to_exclude))
+            self._greenlets.append(
+                gevent.spawn(_excute, client, paths, tags=[self.instance_name], exclude=paths_to_exclude)
+            )
         if block:
-            gevent.joinall(greenlets)
+            gevent.joinall(self._greenlets)
+        return all([greenlet.successful() for greenlet in self._greenlets])
 
     def list_all_snapshots(self, last=False, path=None):
         """Returns a dictionary of restic snapshots lists that are related to to this BackupJob instance,
