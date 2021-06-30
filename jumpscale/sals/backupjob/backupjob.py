@@ -108,14 +108,14 @@ class BackupJob(Base):
             restic_client_name (str): Restic instance name.
 
         Raises:
-            j.expections.Runtime: If restic instance not found.
+            j.exceptions.Runtime: If restic instance not found.
 
         Returns:
             ResticRepo: jumpscale.tools.restic.restic.ResticRepo instance.
         """
         if restic_client_name in j.tools.restic.list_all():
             return j.tools.restic.get(restic_client_name)
-        raise j.expections.Runtime(f"The restic client: {restic_client_name} not found!")
+        raise j.exceptions.Runtime(f"The restic client: {restic_client_name} not found!")
 
     def execute(self, block=False):
         """Backups the preconfigured paths with the preconfigured restic clients.
@@ -125,7 +125,7 @@ class BackupJob(Base):
             block (bool, optional): Wait for the backup to finish. if False, will start the backup and return immediately. Defaults to False.
 
         Raises:
-            j.expections.Runtime: If there are no restic instances defined for this backup job.
+            j.exceptions.Runtime: If there are no restic instances defined for this backup job.
 
         Returns:
             bool: whether the backup created successfully on all the preconfigured repos.
@@ -137,8 +137,15 @@ class BackupJob(Base):
                 client.backup(paths, tags=tags, exclude=exclude)
             except Exception as e:
                 j.logger.exception(
-                    f"BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client.instance_name}`",
+                    f"BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client.instance_name}",
                     exception=e,
+                )
+                j.tools.alerthandler.alert_raise(
+                    app_name="BackupJob",
+                    category="backupjob_failed",
+                    message=f"BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client.instance_name}",
+                    alert_type="exception",
+                    traceback=e.__traceback__,
                 )
                 raise
             else:

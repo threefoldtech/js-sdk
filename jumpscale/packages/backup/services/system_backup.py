@@ -89,6 +89,11 @@ class SystemBackupService(BackgroundService):
             j.tools.notificationsqueue.push(
                 f"the System backup job completed successfully.", category="SystemBackupService", level=LEVEL.INFO
             )
+        else:
+            j.logger.error(f"[Backup Package - System Backup Service] Backup job {self.BACKUP_JOP_NAME} failed.")
+            j.tools.notificationsqueue.push(
+                f"the System backup job failed.", category="SystemBackupService", level=LEVEL.ERROR
+            )
 
 
 service = SystemBackupService()
