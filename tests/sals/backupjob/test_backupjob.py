@@ -142,7 +142,7 @@ class TestBackupjob(BaseTests):
         clients = self.restic_client_names[:1]
         paths = [self.backup_dir.name]
         backupjob = self._create_backupjob(clients, paths)
-        backupjob.execute(block=True)
+        self.assertTrue(backupjob.execute(block=True))
         self.assertEqual(1, len(backupjob.list_snapshots(clients[0])))
         self.assertTrue(_restic_find(clients[0], backupjob.instance_name, "test*.txt"))
 
@@ -160,7 +160,7 @@ class TestBackupjob(BaseTests):
         clients = self.restic_client_names
         paths = [self.backup_dir.name]
         backupjob = self._create_backupjob(clients, paths)
-        backupjob.execute(block=True)
+        self.assertTrue(backupjob.execute(block=True))
         for client in clients:
             self.assertEqual(1, len(backupjob.list_snapshots(client)))
             self.assertTrue(_restic_find(client, backupjob.instance_name, "test*.txt"))
@@ -180,7 +180,7 @@ class TestBackupjob(BaseTests):
         clients = self.restic_client_names[:1]
         paths = [self.backup_dir.name]
         backupjob = self._create_backupjob(clients, paths, paths_to_exclude=["exclude"])
-        backupjob.execute(block=True)
+        self.assertTrue(backupjob.execute(block=True))
         self.assertEqual(1, len(backupjob.list_snapshots(clients[0])))
         self.assertFalse(_restic_find(clients[0], backupjob.instance_name, "*.exclude"))
 
@@ -200,7 +200,7 @@ class TestBackupjob(BaseTests):
         paths = [self.backup_dir.name]
         backupjob = self._create_backupjob(clients, paths)
         for _ in range(2):
-            backupjob.execute(block=True)
+            self.assertTrue(backupjob.execute(block=True))
         result = backupjob.list_all_snapshots()
         self.assertEqual(2, len(result))
         for client in clients:
@@ -222,9 +222,9 @@ class TestBackupjob(BaseTests):
         clients = self.restic_client_names[:1]
         paths = [self.backup_dir.name]
         backupjob = self._create_backupjob(clients, paths)
-        backupjob.execute(block=True)
+        self.assertTrue(backupjob.execute(block=True))
         fs.touch(fs.join_paths(self.backup_dir.name, "include", "test3.txt"))
-        backupjob.execute(block=True)
+        self.assertTrue(backupjob.execute(block=True))
         backupjob.restore(clients[0], target_path=self.restore_dir.name)
         restored_files = [path for path in fs.pathlib.Path(self.restore_dir.name).rglob("test*.txt")]
         self.assertEqual(3, len(restored_files))
@@ -246,9 +246,9 @@ class TestBackupjob(BaseTests):
         clients = self.restic_client_names[:1]
         paths = [self.backup_dir.name]
         backupjob = self._create_backupjob(clients, paths)
-        backupjob.execute(block=True)
+        self.assertTrue(backupjob.execute(block=True))
         fs.touch(fs.join_paths(self.backup_dir.name, "include", "test3.txt"))
-        backupjob.execute(block=True)
+        self.assertTrue(backupjob.execute(block=True))
         snapshots = backupjob.list_snapshots(clients[0])
         backupjob.restore(clients[0], target_path=self.restore_dir.name, snapshot_id=snapshots[0]["id"])
         restored_files = [path for path in fs.pathlib.Path(self.restore_dir.name).rglob("test*.txt")]
@@ -267,7 +267,7 @@ class TestBackupjob(BaseTests):
         clients = self.restic_client_names[:1]
         paths = [self.backup_dir.name]
         backupjob = self._create_backupjob(clients, paths)
-        backupjob.execute(block=True)
+        self.assertTrue(backupjob.execute(block=True))
         with self.assertRaises(j.exceptions.Value):
             backupjob.restore(clients[0], target_path=self.restore_dir.name, snapshot_id="xxxxxxid")
 
@@ -303,7 +303,7 @@ class TestBackupjob(BaseTests):
         paths = [self.backup_dir.name]
         backupjob = self._create_backupjob(clients, paths)
         for _ in range(4):
-            backupjob.execute(block=True)
+            self.assertTrue(backupjob.execute(block=True))
 
         snapshots = backupjob.list_snapshots(clients[0])
         self.assertEqual(4, len(snapshots))
