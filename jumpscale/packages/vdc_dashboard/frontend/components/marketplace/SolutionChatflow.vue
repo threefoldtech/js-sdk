@@ -31,6 +31,10 @@ module.exports = {
           this.$router.push({
             name: "VDCSettings",
           });
+        } else if (topic === "vmachine") {
+          this.$router.push({
+            name: "VDCSettings",
+          });
         } else {
           this.$router.push({
             name: "Solution",

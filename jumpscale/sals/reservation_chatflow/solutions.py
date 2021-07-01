@@ -1,6 +1,7 @@
 from jumpscale.loader import j
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.clients.explorer.models import K8s
+from jumpscale.clients.explorer.models import VMSIZES
 
 
 class ChatflowSolutions:
@@ -143,11 +144,14 @@ class ChatflowSolutions:
                         wids.append(public_ip_wid.id)
                     else:
                         public_ip = ""
-
+                    query = VMSIZES.get(workload.size)
                     solution_dict.update(
                         {
                             "Name": name,
                             "wids": wids,
+                            "cpu": query["cru"],
+                            "memory": query["mru"],
+                            "disk": query["sru"],
                             "Network": workload.network_id,
                             "IP": workload.ipaddress,
                             "Public IP": public_ip,
