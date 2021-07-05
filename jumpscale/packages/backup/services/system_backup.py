@@ -29,7 +29,7 @@ class SystemBackupService(BackgroundService):
     ## this ResticRepo instance must be preconfigured and exist.
     RESTIC_CLIENT_NAMES = ["systembackupclient"]
     ## paths to include in the BackupJob
-    BACKUP_JOB_PATHS = ["~/.config/jumpscale/", "~/sandbox/cfg/"]
+    BACKUP_JOB_PATHS = ["~/.config/jumpscale/", "~/sandbox/cfg/", "~/.ssh/"]
     ## paths to exclude. absolute paths will not work as the exclude path should be inside one of the specified backup paths.
     PATHS_TO_EXCLUDE = [".config/jumpscale/logs"]
 
