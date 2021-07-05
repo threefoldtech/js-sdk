@@ -28,9 +28,9 @@ FLAVORS = {
 
 class ThreebotDeploy(MarketPlaceAppsChatflow):
     FLIST_URL = defaultdict(
-        lambda: "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
+        lambda: "https://hub.grid.tf/samehabouelsaad.3bot/threefolddev-test-vdc-no-dev-deb-threebot.flist"
     )  # embedded with TRC
-    FLIST_URL["master"] = "https://hub.grid.tf/ahmed_hanafy_1/ahmedhanafy725-js-sdk-latest_trc.flist"
+    FLIST_URL["master"] = "https://hub.grid.tf/samehabouelsaad.3bot/threefolddev-test-vdc-no-dev-deb-threebot.flist"
     # The master flist fails for the gevent host dns resolution issue
 
     SOLUTION_TYPE = "threebot"  # chatflow used to deploy the solution
