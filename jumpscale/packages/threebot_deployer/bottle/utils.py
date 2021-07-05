@@ -126,7 +126,9 @@ def list_threebot_solutions(owner):
             return
 
         domain = f"https://{zos.workloads.get(threebot.subdomain_wid).domain}/admin"
-        reachable = j.sals.reservation_chatflow.wait_http_test(domain, timeout=10, verify=not j.config.get("TEST_CERT"))
+        reachable = j.sals.reservation_chatflow.check_url_reachable(
+            domain, timeout=10, verify=not j.config.get("TEST_CERT")
+        )
         if (
             threebot.state in [ThreebotState.RUNNING, ThreebotState.ERROR, ThreebotState.STOPPED]
             and compute_pool.empty_at == 9223372036854775807
