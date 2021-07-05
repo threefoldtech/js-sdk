@@ -29,7 +29,7 @@ class SystemBackupService(BackgroundService):
     ## this ResticRepo instance must be preconfigured and exist.
     RESTIC_CLIENT_NAMES = ["systembackupclient"]
     ## paths to include in the BackupJob
-    BACKUP_JOP_PATHS = ["~/.config/jumpscale/", "~/sandbox/cfg/"]
+    BACKUP_JOB_PATHS = ["~/.config/jumpscale/", "~/sandbox/cfg/"]
     ## paths to exclude. absolute paths will not work as the exclude path should be inside one of the specified backup paths.
     PATHS_TO_EXCLUDE = [".config/jumpscale/logs"]
 
@@ -43,7 +43,7 @@ class SystemBackupService(BackgroundService):
             backupjob = j.sals.backupjob.new(
                 cls.BACKUP_JOB_NAME,
                 clients=cls.RESTIC_CLIENT_NAMES,
-                paths=cls.BACKUP_JOP_PATHS,
+                paths=cls.BACKUP_JOB_PATHS,
                 paths_to_exclude=cls.PATHS_TO_EXCLUDE,
             )
             backupjob.save()
@@ -82,7 +82,7 @@ class SystemBackupService(BackgroundService):
                 )
                 return
             j.logger.info(
-                f"[Backup Package - System Backup Service] {self.BACKUP_JOB_NAME} job successfully created\npaths to backup: {self.BACKUP_JOP_PATHS}\npaths excluded: {self.PATHS_TO_EXCLUDE}."
+                f"[Backup Package - System Backup Service] {self.BACKUP_JOB_NAME} job successfully created\npaths to backup: {self.BACKUP_JOB_PATHS}\npaths excluded: {self.PATHS_TO_EXCLUDE}."
             )
             j.tools.notificationsqueue.push(
                 f"System backup job job successfully created!", category="SystemBackupService", level=LEVEL.INFO
