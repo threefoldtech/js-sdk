@@ -30,6 +30,7 @@ JS-NG> j.sals.backupjob.list_all()
     JS-NG> nginxbackup_job.execute()
     ```
 """
+from gevent.greenlet import Greenlet
 from jumpscale.loader import j
 from jumpscale.core.base import Base, fields
 from jumpscale.sals import fs
@@ -87,6 +88,24 @@ class BackupJob(Base):
             return j.tools.restic.get(restic_client_name)
         raise j.exceptions.Runtime(f"The restic client: {restic_client_name} not found!")
 
+    def _on_exception(self, g: Greenlet):
+        client_name = self.clients[self._greenlets.index(g)]
+        j.logger.exception(
+            f"BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client_name}",
+            exception=g.exception,
+        )
+        j.tools.alerthandler.alert_raise(
+            app_name="BackupJob",
+            category="exception",
+            message=f"BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client_name}",
+            alert_type="exception",
+            traceback=g.exception.__traceback__,
+        )
+
+    def _on_success(self, g: Greenlet):
+        client_name = self.clients[self._greenlets.index(g)]
+        j.logger.info(f"BackupJob name: {self.instance_name} - ResticRepo: {client_name} snapshot successfully saved.")
+
     def execute(self, block=False):
         """Backups the preconfigured paths with the preconfigured restic clients.
         All snapshots created with a Backupjob will be tagged with the BackupJob instance name for easy referencing, manageing, cleaning and restoring.
@@ -103,26 +122,8 @@ class BackupJob(Base):
         """
 
         def _excute(client_name, paths, tags, exclude):
-            try:
-                client = self._get_client(client_name)
-                client.backup(paths, tags=tags, exclude=exclude)
-            except Exception as e:
-                j.logger.exception(
-                    f"BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client_name}",
-                    exception=e,
-                )
-                j.tools.alerthandler.alert_raise(
-                    app_name="BackupJob",
-                    category="exception",
-                    message=f"BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client_name}",
-                    alert_type="exception",
-                    traceback=e.__traceback__,
-                )
-                raise
-            else:
-                j.logger.info(
-                    f"BackupJob name: {self.instance_name} - ResticRepo: {client.instance_name} snapshot successfully saved."
-                )
+            client = self._get_client(client_name)
+            client.backup(paths, tags=tags, exclude=exclude)
 
         paths = [fs.os.path.expanduser(path) for path in self.paths]
         paths_to_exclude = [fs.os.path.expanduser(path) for path in self.paths_to_exclude]
@@ -133,6 +134,9 @@ class BackupJob(Base):
             self._greenlets.append(
                 gevent.spawn(_excute, restic_client_name, paths, tags=[self.instance_name], exclude=paths_to_exclude)
             )
+            self._greenlets[-1].link_exception(self._on_exception)
+            self._greenlets[-1].link_value(self._on_success)
+
         if block:
             gevent.joinall(self._greenlets)
         return all([greenlet.successful() for greenlet in self._greenlets])

@@ -49,14 +49,6 @@ class SystemBackupService(BackgroundService):
             backupjob.save()
             return True
         else:
-            j.logger.error(
-                f"[Backup Package - System Backup Service] There is no preconfigure restic repo/s. Backup job won't executed!"
-            )
-            j.tools.notificationsqueue.push(
-                f"There is no preconfigure restic repo/s. Backup job won't executed!",
-                category="SystemBackupService",
-                level=LEVEL.ERROR,
-            )
             return False
 
     def job(self):
@@ -74,6 +66,14 @@ class SystemBackupService(BackgroundService):
             )
 
             if not SystemBackupService._create_system_backup_job():
+                j.logger.error(
+                    f"[Backup Package - System Backup Service] There is no preconfigure restic repo/s. Backup job won't executed!"
+                )
+                j.tools.notificationsqueue.push(
+                    f"There is no preconfigure restic repo/s. Backup job won't executed!",
+                    category="SystemBackupService",
+                    level=LEVEL.ERROR,
+                )
                 j.tools.alerthandler.alert_raise(
                     app_name="SystemBackupJob",
                     category="exception",
