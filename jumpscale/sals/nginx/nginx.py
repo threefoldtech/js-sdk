@@ -180,6 +180,14 @@ class Certbot(Base):
         cmd.insert(1, "install")
         return cmd
 
+    @property
+    def renew_cmd(self):
+        # replace "certbot" with "certbot install"
+        renew_certbot = Certbot(work_dir=self.work_dir, config_dir=self.config_dir, logs_dir=self.logs_dir, domain="")
+        cmd = renew_certbot.run_cmd
+        cmd.insert(1, "renew")
+        return cmd
+
 
 class NginxCertbot(Certbot):
     nginx_server_root = fields.String(required=True)
@@ -318,16 +326,39 @@ class Website(Base):
         if self.domain:
             if self.key_path and self.cert_path and self.fullchain_path:
                 # only use install command if an existing key and certificate were set
-                cmd = self.certbot.install_cmd
+                self.install_certifcate()
             else:
-                cmd = self.certbot.run_cmd
+                self.obtain_and_install_certifcate(retries=retries)
 
-            for _ in range(retries):
-                rc, out, err = j.sals.process.execute(cmd)
-                if rc > 0:
-                    j.logger.error(f"Generating certificate failed {out}\n{err}")
-                else:
-                    break
+    def install_certifcate(self):
+        """Construct and Execute install certificate command
+        Alternative to certbot install
+
+        """
+        cmd = self.certbot.install_cmd
+        j.logger.debug(f"Execute: {' '.join(cmd)}")
+        rc, out, err = j.sals.process.execute(cmd)
+        if rc > 0:
+            j.logger.error(f"Installing certificate failed {out}\n{err}")
+        else:
+            j.logger.info(f"Certificate installed successfully {out}")
+
+    def obtain_and_install_certifcate(self, retries=6):
+        """Construct and Execute run certificate command,This will issue a new certificate managed by Certbot
+        Alternative to certbot run
+
+        Args:
+            retries (int, optional): Number of retries Certbot will try to install the certificate if failed. Defaults to 6.
+        """
+        cmd = self.certbot.run_cmd
+        j.logger.debug(f"Execute: {' '.join(cmd)}")
+        for _ in range(retries):
+            rc, out, err = j.sals.process.execute(cmd)
+            if rc > 0:
+                j.logger.error(f"Generating certificate failed {out}\n{err}")
+            else:
+                j.logger.error(f"Certificate Generated successfully {out}")
+                break
 
     def generate_self_signed_certificates(self):
         keypempath = f"{self.parent.cfg_dir}/key.pem"

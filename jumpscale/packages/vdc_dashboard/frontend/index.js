@@ -38,6 +38,7 @@ const wallet = httpVueLoader('./components/vdcSettings/Wallet.vue')
 const alerts = httpVueLoader('./components/vdcSettings/alerts/Alerts.vue')
 const code = httpVueLoader('./components/base/Code.vue')
 const apikeys = httpVueLoader('./components/vdcSettings/api_keys/ApiKeys.vue')
+const virtualmachine = httpVueLoader('./components/vdcSettings/VirtualMachine.vue')
 
 const app = httpVueLoader('./App.vue')
 const marketplaceHome = httpVueLoader('./components/marketplace/Home.vue')
@@ -64,6 +65,7 @@ Vue.component("backups", backups)
 Vue.component("alerts", alerts)
 Vue.component("code-area", code)
 Vue.component("api-keys", apikeys)
+Vue.component("virtual-machine", virtualmachine)
 
 const router = new VueRouter({
     routes: [
@@ -75,7 +77,6 @@ const router = new VueRouter({
         { name: "Disclaimer", path: '/disclaimer', component: disclaimer, meta: { icon: "mdi-apps" } },
         { name: "Solution", path: '/:type', component: solution, props: true, meta: { icon: "mdi-apps" } },
         { name: "SolutionChatflow", path: '/solutions/:topic', component: solutionChatflow, props: true, meta: { icon: "mdi-tune" } },
-
         { name: "Alert", path: '/alerts/:alertid', component: vdcSettings, props: true },
     ]
 })
@@ -88,11 +89,11 @@ Vue.mixin({
     }
 })
 
-const getUser = async() => {
+const getUser = async () => {
     return axios.get("/auth/authenticated/").then(res => true).catch(() => false)
 }
 
-router.beforeEach(async(to, from, next) => {
+router.beforeEach(async (to, from, next) => {
     to.params.loggedin = await getUser()
     const AllowedEndPoint = "api/allowed";
     axios.get(AllowedEndPoint).then(results => {

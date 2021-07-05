@@ -1,6 +1,7 @@
 from jumpscale.loader import j
 from jumpscale.clients.explorer.models import NextAction, WorkloadType
 from jumpscale.clients.explorer.models import K8s
+from jumpscale.clients.explorer.models import VMSIZES
 
 
 class ChatflowSolutions:
@@ -118,25 +119,48 @@ class ChatflowSolutions:
         if not sync and not j.sals.reservation_chatflow.deployer.workloads[next_action][WorkloadType.Virtual_Machine]:
             j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         result = []
-        wids = []
         for vmachine_workloads in j.sals.reservation_chatflow.deployer.workloads[next_action][
             WorkloadType.Virtual_Machine
         ].values():
             for workload in vmachine_workloads:
+                wids = []
+                solution_dict = {}
+                if not workload.info.metadata:
+                    continue
+                try:
+                    metadata = j.data.serializers.json.loads(workload.info.metadata)
+                except:
+                    continue
+                if not metadata.get("form_info"):
+                    continue
+
+                name = metadata["form_info"].get("name")
+
                 wids.append(workload.id)
-                public_ip = ""
-                if workload.public_ip:
-                    wids.append(public_ip)
-                    workload_public_ip = j.sals.zos.get().workloads.get(workload.public_ip)
-                    public_ip = workload_public_ip.ipaddress.split("/")[0] if workload_public_ip else ""
-                result.append(
-                    {
-                        "wids": wids,
-                        "Name": workload.name,
-                        "Node": workload.info.node_id,
-                        "IP": public_ip if public_ip else workload.ipaddress,
-                    }
-                )
+                if name:
+                    if workload.public_ip:
+                        public_ip_wid = j.sals.zos.get().workloads.get(workload.public_ip)
+                        public_ip = public_ip_wid.ipaddress.split("/")[0]
+                        wids.append(public_ip_wid.id)
+                    else:
+                        public_ip = ""
+                    query = VMSIZES.get(workload.size)
+                    solution_dict.update(
+                        {
+                            "Name": name,
+                            "wids": wids,
+                            "cpu": query["cru"],
+                            "memory": query["mru"],
+                            "disk": query["sru"],
+                            "Network": workload.network_id,
+                            "IP": workload.ipaddress,
+                            "Public IP": public_ip,
+                            "Pool": workload.info.pool_id,
+                            "Node ID": workload.info.node_id,
+                        }
+                    )
+                    result.append(solution_dict)
+
         return result
 
     def list_kubernetes_solutions(self, next_action=NextAction.DEPLOY, sync=True):
@@ -440,6 +464,7 @@ class ChatflowSolutions:
             "website": 0,
             "taiga": 0,
             "etcd": 0,
+            "vmachine": 0,
         }
         j.sals.reservation_chatflow.deployer.load_user_workloads(next_action=next_action)
         for key in count_dict.keys():

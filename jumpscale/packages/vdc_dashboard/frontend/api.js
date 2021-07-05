@@ -127,6 +127,21 @@ const apiClient = {
         method: "get"
       })
     },
+    getVMs: () => {
+      return axios({
+        url: `${baseURL}/vmachine`,
+        method: "get",
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
+    deleteVm: (wid) => {
+      return axios({
+        url: `${baseURL}/vmachine`,
+        method: "delete",
+        data: { wid: wid },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    },
     deleteWorkerWorkload: (wid, podsToDelete) => {
       return axios({
         url: `${baseURL}/kube/nodes/delete`,
