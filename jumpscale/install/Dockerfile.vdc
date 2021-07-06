@@ -1,7 +1,7 @@
 FROM threefoldtech/phusion:20.04
 
 ARG BRANCH
-ARG TRC
+ARG TRC=true
 RUN apt-get update && apt-get install etcd-client curl wget git python3-pip python3-venv redis-server tmux nginx restic -y
 
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
