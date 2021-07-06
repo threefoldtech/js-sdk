@@ -1,6 +1,7 @@
 import gevent
 from jumpscale.loader import j
 
+from jumpscale.sals.vdc.vdc import VDCSTATE
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 
@@ -19,7 +20,7 @@ class UpdateExpiration(BackgroundService):
 
     def update_expiration(self, name):
         vdc = j.sals.vdc.get(name)
-        if vdc.is_empty():
+        if vdc.is_empty() or vdc.state == VDCSTATE.CREATING:
             return
         vdc.expiration = vdc.calculate_expiration_value()
         vdc.save()
