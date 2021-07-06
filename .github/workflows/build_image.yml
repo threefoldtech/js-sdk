@@ -3,6 +3,8 @@ name: Build docker image
 on:
   push:
     branches: [ development ]
+    paths: [ jumpscale/install/Dockerfile ]
+
 jobs:
     build-docker:
         runs-on: ubuntu-latest
@@ -16,7 +18,7 @@ jobs:
             password: ${{ secrets.DOCKERHUB_PASSWORD }}
             dockerfile: jumpscale/install/Dockerfile
             tags: latest
-            build_args: BRANCH=development
+            build_args: BRANCH=development,TRC=false
         - name: Convert Docker image to flist
           run: |
             TOKEN=$(curl -f -H "Authorization: bearer ${{secrets.ZEROHUB_TOKEN}}" https://itsyou.online/v1/oauth/jwt/refresh)
