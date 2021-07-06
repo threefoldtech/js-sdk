@@ -30,7 +30,7 @@ class CheckThreebot(BackgroundService):
             vdc_instance.load_info()
 
             # Check if vdc has not minmal Components
-            if not vdc_instance.kubernetes and vdc_instance.expiration > j.data.time.now().timestamp:
+            if (not vdc_instance.kubernetes) or vdc_instance.expiration < j.data.time.now().timestamp:
                 j.logger.warning(f"Check VDC threebot service: {vdc_name} is expired or not found")
                 gevent.sleep(0.1)
                 continue
