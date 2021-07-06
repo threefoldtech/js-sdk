@@ -3,6 +3,7 @@ name: js-sdk with trc and vdc dependencies
 on:
   push:
     branches: [ development ]
+    paths: [ jumpscale/install/Dockerfile ]
 jobs:
     build-docker:
         runs-on: ubuntu-latest

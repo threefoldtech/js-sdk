@@ -3,6 +3,7 @@ name: Build docker image
 on:
   push:
     branches: [ development ]
+    paths: [ jumpscale/install/Dockerfile ]
 jobs:
     build-docker:
         runs-on: ubuntu-latest
