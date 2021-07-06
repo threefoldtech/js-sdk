@@ -320,7 +320,8 @@ class UserVDC(Base):
                     etcd.append(node)
             elif workload.info.workload_type == WorkloadType.Zdb:
                 zdb = S3ZDB.from_workload(workload)
-                s3.zdbs.append(zdb)
+                if zdb:
+                    s3.zdbs.append(zdb)
             elif workload.info.workload_type == WorkloadType.Subdomain:
                 s3_domain = self._check_s3_subdomains(workload)
                 if s3_domain:
