@@ -185,6 +185,7 @@ class VMachineDeploy(MarketPlaceAppsChatflow):
                 solution_uuid=self.solution_uuid,
                 vmachine_type="ubuntu-20.04",
                 duration=duration,
+                description=vdc_deployer.description,
             )
             self.md_show_update("Deployment success...")
         except Exception as e:
