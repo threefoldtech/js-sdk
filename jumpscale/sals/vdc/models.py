@@ -49,12 +49,15 @@ class VMachine(VDCWorkloadBase):
 
     @property
     def size(self):
-        return VMSIZES(self._size).value
+        return VMSIZES[self._size].value
 
     @classmethod
     def from_workload(cls, workload):
         vmachine = cls()
         vmachine.wid = workload.id
+        metadata = j.sals.reservation_chatflow.reservation_chatflow.decrypt_reservation_metadata(workload.info.metadata)
+        metadata = j.data.serializers.json.loads(metadata)
+        vmachine.name = metadata["form_info"]["name"]
         vmachine.pool_id = workload.info.pool_id
         vmachine.node_id = workload.info.node_id
         vmachine._size = workload.size
