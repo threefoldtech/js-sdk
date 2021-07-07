@@ -45,11 +45,7 @@ class PublicIP(Base):
 class VMachine(VDCWorkloadBase):
     name = fields.String()
     public_ip = fields.Object(PublicIP)
-    _size = fields.Integer()
-
-    @property
-    def size(self):
-        return VMSIZES[self._size].value
+    size = fields.Typed(dict)
 
     @classmethod
     def from_workload(cls, workload):
@@ -60,7 +56,7 @@ class VMachine(VDCWorkloadBase):
         vmachine.name = metadata["form_info"]["name"]
         vmachine.pool_id = workload.info.pool_id
         vmachine.node_id = workload.info.node_id
-        vmachine._size = workload.size
+        vmachine.size = VMSIZES[workload.size]
         vmachine.ip_address = workload.ipaddress
         if workload.public_ip:
             vmachine.public_ip.wid = workload.public_ip
