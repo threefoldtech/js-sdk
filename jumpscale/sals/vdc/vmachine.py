@@ -118,6 +118,7 @@ class VirtualMachineDeployer(VDCBaseComponent):
             network_view,
             enable_public_ip,
             vmachine_type,
+            description=self.vdc_deployer.description,
         )
         if not wids:
             self.vdc_deployer.error(f"Failed to deploy vmachine")
@@ -135,6 +136,7 @@ class VirtualMachineDeployer(VDCBaseComponent):
         network_view,
         enable_public_ip,
         vmachine_type,
+        description="",
     ):
         vmachine_ip = None
         while not vmachine_ip:
@@ -191,6 +193,7 @@ class VirtualMachineDeployer(VDCBaseComponent):
                 pool_id=pool_id,
                 size=vm_size,
                 enable_public_ip=enable_public_ip,
+                description=description,
                 **metadata,
             )
             self.vdc_deployer.info(f"virtual machine machine wid: {wid}")
