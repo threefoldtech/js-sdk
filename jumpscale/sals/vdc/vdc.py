@@ -54,6 +54,7 @@ class UserVDC(Base):
     solution_uuid = fields.String(default=lambda: uuid.uuid4().hex)
     identity_tid = fields.Integer()
     s3 = fields.Object(S3)
+    vmachines = fields.List(fields.Object(VMachine))
     kubernetes = fields.List(fields.Object(KubernetesNode))
     etcd = fields.List(fields.Object(ETCDNode))
     threebot = fields.Object(VDCThreebot)
@@ -216,13 +217,14 @@ class UserVDC(Base):
         return QuantumStorage(self, ip_version)
 
     def load_info(self, load_proxy=False):
-        kubernetes, s3, etcd, threebot = self.get_vdc_workloads(load_proxy=load_proxy)
+        kubernetes, s3, vmachines, etcd, threebot = self.get_vdc_workloads(load_proxy=load_proxy)
 
         self.__lock.acquire()
         try:
             self.kubernetes = kubernetes
             self.etcd = etcd
             self.s3 = s3
+            self.vmachines = vmachines
             self.threebot = threebot
         finally:
             self.__lock.release()
@@ -302,6 +304,7 @@ class UserVDC(Base):
         kubernetes = []
         s3 = S3()
         etcd = []
+        vmachines = []
         threebot = VDCThreebot()
 
         proxies = []
@@ -320,8 +323,10 @@ class UserVDC(Base):
                     etcd.append(node)
             elif workload.info.workload_type == WorkloadType.Zdb:
                 zdb = S3ZDB.from_workload(workload)
-                if zdb:
-                    s3.zdbs.append(zdb)
+                s3.zdbs.append(zdb)
+            elif workload.info.workload_type == WorkloadType.Virtual_Machine:
+                vmachine = VMachine.from_workload(workload)
+                vmachines.append(vmachine)
             elif workload.info.workload_type == WorkloadType.Subdomain:
                 s3_domain = self._check_s3_subdomains(workload)
                 if s3_domain:
@@ -334,7 +339,7 @@ class UserVDC(Base):
         if load_proxy:
             self._build_zdb_proxies(s3)
 
-        return kubernetes, s3, etcd, threebot
+        return kubernetes, s3, vmachines, etcd, threebot
 
     def _check_s3_subdomains(self, workload):
         minio_wid = self.s3.minio.wid
