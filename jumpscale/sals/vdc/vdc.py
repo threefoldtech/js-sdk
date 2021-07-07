@@ -37,6 +37,7 @@ VDC_WORKLOAD_TYPES = [
     WorkloadType.Kubernetes,
     WorkloadType.Subdomain,
     WorkloadType.Reverse_proxy,
+    WorkloadType.Virtual_Machine,
 ]
 
 
