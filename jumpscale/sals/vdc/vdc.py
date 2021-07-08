@@ -135,6 +135,7 @@ class UserVDC(Base):
         workloads = []
         workloads += self.kubernetes
         workloads += self.s3.zdbs
+        workloads += self.vmachines
         if self.threebot.wid:
             workloads.append(self.threebot)
         if self.s3.minio.wid:
