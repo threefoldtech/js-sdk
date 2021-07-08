@@ -65,11 +65,14 @@ class CheckThreebot(BackgroundService):
                 # Decomission All the workloads related to threebot
                 for workload in workloads:
                     # Check that container is threebot not any other thing
+                    if workload.info.workload_type == WorkloadType.Container:
+                        if "js-sdk" in workload.flist:
+                            zdb_farms = workload.environment.get("S3_AUTO_TOPUP_FARMS")
+                            pool_id = workload.info.pool_id
+                        else:
+                            continue
 
-                    if workload.info.workload_type == WorkloadType.Container and "js-sdk" in workload.flist:
-                        zdb_farms = workload.environment.get("S3_AUTO_TOPUP_FARMS")
-                        pool_id = workload.info.pool_id
-                        zos.workloads.decomission(workload.id)
+                    zos.workloads.decomission(workload.id)
 
                 # Deploy a new threebot container
                 deployer = vdc_instance.get_deployer()
