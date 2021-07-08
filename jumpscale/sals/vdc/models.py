@@ -47,6 +47,7 @@ class VMachine(VDCWorkloadBase):
     public_ip = fields.Object(PublicIP)
     size = fields.Integer()
     resources = fields.Typed(dict)
+    ip_address = fields.String(default="")
 
     @classmethod
     def from_workload(cls, workload):
