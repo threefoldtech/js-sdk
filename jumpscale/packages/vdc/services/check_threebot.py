@@ -10,8 +10,7 @@ from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 class CheckThreebot(BackgroundService):
     def __init__(self, interval=60 * 60, *args, **kwargs):
-        """Check that Threebot Container is UP and Redeploy if DOWN
-        """
+        """Check that Threebot Container is UP and Redeploy if DOWN"""
         super().__init__(interval, *args, **kwargs)
 
     def job(self):
@@ -62,51 +61,36 @@ class CheckThreebot(BackgroundService):
                     for workload in _filter_vdc_workloads(vdc_instance)
                     if workload.info.workload_type in threebot_workload_types
                 ]
-                decomission_status = True
                 pool_id = 0
                 # Decomission All the workloads related to threebot
                 for workload in workloads:
                     # Check that container is threebot not any other thing
-                    if workload.info.workload_type == WorkloadType.Container:
-                        if "SDK_VERSION" in workload.environment.keys():
-                            zdb_farms = workload.environment.get("S3_AUTO_TOPUP_FARMS")
-                            pool_id = workload.info.pool_id
-                        else:
-                            gevent.sleep(0.1)
-                            continue
 
-                    zos.workloads.decomission(workload.id)
-                    # Check if workload decomission failed
-                    if not j.sals.reservation_chatflow.deployer.wait_workload_deletion(
-                        workload.id, identity_name=vdc_indentity
-                    ):
-                        decomission_status = False
-                        j.logger.error(f"Check VDC threebot service: Failed to decomission {workload.id}")
-                        break
+                    if workload.info.workload_type == WorkloadType.Container and "js-sdk" in workload.flist:
+                        zdb_farms = workload.environment.get("S3_AUTO_TOPUP_FARMS")
+                        pool_id = workload.info.pool_id
+                        zos.workloads.decomission(workload.id)
 
-                if decomission_status:
-                    # Deploy a new threebot container
-                    deployer = vdc_instance.get_deployer()
+                # Deploy a new threebot container
+                deployer = vdc_instance.get_deployer()
 
-                    try:
-                        kubeconfig = deployer.kubernetes.download_kube_config(master_ip)
-                    except Exception as e:
-                        j.logger.error(
-                            f"Check VDC threebot service: Failed to download kubeconfig for vdc {vdc_name} with error {e}"
-                        )
-                        gevent.sleep(0.1)
-                        continue
+                try:
+                    kubeconfig = deployer.kubernetes.download_kube_config(master_ip)
+                except Exception as e:
+                    j.logger.error(
+                        f"Check VDC threebot service: Failed to download kubeconfig for vdc {vdc_name} with error {e}"
+                    )
+                    gevent.sleep(0.1)
+                    continue
 
-                    minio_wid = 0
-                    try:
-                        threebot_wid = deployer.threebot.deploy_threebot(
-                            minio_wid, pool_id, kubeconfig, zdb_farms=zdb_farms
-                        )
-                        j.logger.info(f"Check VDC threebot service: {vdc_name} threebot new wid: {threebot_wid}")
-                    except Exception as e:
-                        j.logger.error(
-                            f"Check VDC threebot service: Can't deploy threebot for {vdc_name} with error{e}"
-                        )
+                minio_wid = 0
+                try:
+                    threebot_wid = deployer.threebot.deploy_threebot(
+                        minio_wid, pool_id, kubeconfig, zdb_farms=zdb_farms
+                    )
+                    j.logger.info(f"Check VDC threebot service: {vdc_name} threebot new wid: {threebot_wid}")
+                except Exception as e:
+                    j.logger.error(f"Check VDC threebot service: Can't deploy threebot for {vdc_name} with error{e}")
             else:
                 j.logger.info(f"Check VDC threebot service: {vdc_name} threebot is UP")
 
