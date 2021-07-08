@@ -85,8 +85,8 @@ class VirtualMachineDeployer(VDCBaseComponent):
         old_node_ids = []
         for k8s_node in self.vdc_instance.kubernetes:
             old_node_ids.append(k8s_node.node_id)
-        for vmachine in solutions.list_vmachine_solutions(sync=False):
-            old_node_ids.append(vmachine["Node ID"])
+        for vmachine in self.vdc_instance.vmachines:
+            old_node_ids.append(vmachine.node_id)
 
         cc = CapacityChecker(farm_name)
         cc.exclude_nodes(*old_node_ids)
