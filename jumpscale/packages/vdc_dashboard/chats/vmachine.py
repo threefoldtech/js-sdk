@@ -66,8 +66,8 @@ class VMachineDeploy(MarketPlaceAppsChatflow):
         self.vdc.load_info()
         for k8s_node in self.vdc.kubernetes:
             old_node_ids.append(k8s_node.node_id)
-        for vmachine in solutions.list_vmachine_solutions(sync=False):
-            old_node_ids.append(vmachine["Node ID"])
+        for vmachine in self.vdc.vmachines:
+            old_node_ids.append(vmachine.node_id)
 
         cc = CapacityChecker(farm_name)
         cc.exclude_nodes(*old_node_ids)
@@ -80,12 +80,13 @@ class VMachineDeploy(MarketPlaceAppsChatflow):
     def vm_name(self):
         self._prepare()
         valid = False
+        self.vdc.load_info()
         while not valid:
             self.solution_name = deployer.ask_name(self)
-            vm_solutions = solutions.list_vmachine_solutions(sync=False)
+            vm_solutions = self.vdc.vmachines
             valid = True
             for sol in vm_solutions:
-                if sol["Name"] == self.solution_name:
+                if sol.name == self.solution_name:
                     valid = False
                     self.md_show("The specified solution name already exists. please choose another name.")
                     break
@@ -132,12 +133,13 @@ class VMachineDeploy(MarketPlaceAppsChatflow):
     def select_farm(self):
         self.farm_name = None
         if self.diff_farm:
+            self.vdc.load_info()
             self.md_show_update("Checking the available farms")
             old_node_ids = []
             for k8s_node in self.vdc.kubernetes:
                 old_node_ids.append(k8s_node.node_id)
-            for vmachine in solutions.list_vmachine_solutions(sync=False):
-                old_node_ids.append(vmachine["Node ID"])
+            for vmachine in self.vdc.vmachines:
+                old_node_ids.append(vmachine.node_id)
             gcc = GlobalCapacityChecker()
             gcc.exclude_nodes(*old_node_ids)
             farms_names = list(gcc.get_available_farms(**self.query))
