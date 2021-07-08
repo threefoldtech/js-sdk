@@ -3,6 +3,7 @@ import random
 import uuid
 from textwrap import dedent
 import gevent
+import gevent.event
 
 import requests
 
@@ -446,15 +447,26 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.available_farms = []
         farms = j.sals.zos.get(identity_name)._explorer.farms.list()
         # farm_names = ["freefarm"]  # DEUBGGING ONLY
+        gs = []
+        only_one_event = gevent.event.Event()
 
-        for farm in farms:
+        def handle_one_farm(farm):
             available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
                 farm.name, currencies=[self.currency], ip_version="IPv4", **self.query
             )
             if available_ipv4:
                 self.available_farms.append(farm)
                 if only_one:
-                    return
+                    only_one_event.set()
+
+        for farm in farms:
+            g = gevent.spawn(handle_one_farm, farm)
+            gs.append(g)
+        if only_one:
+            only_one_event.wait()
+            return
+        else:
+            gevent.joinall(gs)
         if not self.available_farms:
             raise StopChatFlow("No available farms with enough resources for this deployment at the moment")
 
