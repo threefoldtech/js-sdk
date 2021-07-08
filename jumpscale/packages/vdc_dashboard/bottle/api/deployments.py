@@ -636,8 +636,8 @@ def redeploy_master():
 @app.route("/api/vmachine", method="GET")
 @package_authorized("vdc_dashboard")
 def get_vmachines() -> str:
-
-    solutions = j.sals.reservation_chatflow.solutions.list_vmachine_solutions()
+    vdc = get_vdc(load_info=True)
+    solutions = vdc.to_dict()["vmachines"]
     return j.data.serializers.json.dumps({"data": solutions})
 
 
