@@ -23,6 +23,10 @@
         <div>{{ item.wid }}</div>
       </template>
 
+      <template v-slot:item.public_ip="{ item }">
+        <div>{{ item.public_ip.address }}</div>
+      </template>
+
       <template v-slot:item.name="{ item }">
         <div>{{ item.name }}</div>
       </template>
@@ -96,6 +100,7 @@ module.exports = {
       selectedvm: null,
       headers: [
         { text: "WID", value: "wid" },
+        { text: "IP Address", value: "public_ip" },
         { text: "Name", value: "name" },
         { text: "CPUs", value: "cpu" },
         { text: "Memory", value: "memory" },
