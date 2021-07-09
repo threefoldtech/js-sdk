@@ -650,7 +650,7 @@ def delete_vmachine() -> str:
         return HTTPResponse(status=400, message="Missing wid!", headers={"Content-Type": "application/json"})
     zos = j.sals.zos.get()
     zos.workloads.decomission(wid)
-    pub_ip_wid = zos.workloads.get(wid).public_ip
+    pub_ip_wid = zos.workloads.get(wid).public_ip.wid
     if pub_ip_wid:
         zos.workloads.decomission(pub_ip_wid)
     return j.data.serializers.json.dumps({"data": True})
