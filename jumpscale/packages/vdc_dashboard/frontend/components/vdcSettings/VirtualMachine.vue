@@ -87,7 +87,12 @@
 
 <script>
 module.exports = {
-  props: ["tableloading"],
+  props: {
+    vmachines: {
+      type: Array,
+      default: () => []
+    },
+  },
   mixins: [dialog],
   components: {
     "solution-info": httpVueLoader("../base/Info.vue"),
@@ -95,7 +100,6 @@ module.exports = {
   },
   data() {
     return {
-      vmachines: [],
       selected: null,
       selectedvm: null,
       headers: [
@@ -127,27 +131,12 @@ module.exports = {
       this.selectedvm = wid;
       this.dialogs.cancelWorkload = true;
     },
-    getVMSinfo() {
-      this.loading = true;
-      this.$api.solutions
-        .getVMs()
-        .then((response) => {
-          this.vmachines = response.data.data;
-        })
-        .finally(() => {
-          this.loading = false;
-        });
-    },
     openChatflow(topic) {
       this.$router.push({
         name: "SolutionChatflow",
         params: { topic: topic },
       });
     },
-  },
-
-  mounted() {
-    this.getVMSinfo();
   },
 };
 </script>

@@ -633,14 +633,6 @@ def redeploy_master():
         return HTTPResponse(f"Failed to redeploy master", status=500, headers={"Content-Type": "application/json"})
 
 
-@app.route("/api/vmachine", method="GET")
-@package_authorized("vdc_dashboard")
-def get_vmachines() -> str:
-    vdc = get_vdc(load_info=True)
-    solutions = vdc.to_dict()["vmachines"]
-    return j.data.serializers.json.dumps({"data": solutions})
-
-
 @app.route("/api/vmachine", method="DELETE")
 @package_authorized("vdc_dashboard")
 def delete_vmachine() -> str:
@@ -650,7 +642,7 @@ def delete_vmachine() -> str:
         return HTTPResponse(status=400, message="Missing wid!", headers={"Content-Type": "application/json"})
     zos = j.sals.zos.get()
     zos.workloads.decomission(wid)
-    pub_ip_wid = zos.workloads.get(wid).public_ip.wid
+    pub_ip_wid = zos.workloads.get(wid).public_ip
     if pub_ip_wid:
         zos.workloads.decomission(pub_ip_wid)
     return j.data.serializers.json.dumps({"data": True})
