@@ -6,6 +6,9 @@ from jumpscale.sals.vdc.models import KubernetesRole
 from jumpscale.sals.zos import get as get_zos
 from jumpscale.tools.vdc.reporting import _filter_vdc_workloads
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
+from jumpscale.sals.vdc.vdc import VDCSTATE
+
+failed_threebots = "VDC_FALIED_THREEBOTS"
 
 
 class CheckThreebot(BackgroundService):
@@ -21,6 +24,9 @@ class CheckThreebot(BackgroundService):
             vdc_instance = j.sals.vdc.find(vdc_name)
 
             # Check if vdc is empty
+            if vdc_instance.state == VDCSTATE.EMPTY:
+                continue
+            # double check state from explorer
             if vdc_instance.is_empty():
                 j.logger.warning(f"Check VDC threebot service: {vdc_name} is empty")
                 gevent.sleep(0.1)
@@ -54,6 +60,13 @@ class CheckThreebot(BackgroundService):
 
             # Check if threebot domain is not reachable
             if not j.sals.nettools.wait_http_test(f"https://{vdc_instance.threebot.domain}", timeout=10):
+                last_failure = j.core.db.hget(failed_threebots, vdc_instance.instance_name)
+                if not last_failure:
+                    j.core.db.hset(failed_threebots, vdc_instance.instance_name, j.data.time.utcnow().timestamp)
+                    continue
+                if last_failure and j.data.time.utcnow().timestamp - float(last_failure.decode()) < 2 * 60 * 60:
+                    continue
+
                 j.logger.warning(f"Check VDC threebot service: {vdc_name} threebot is DOWN")
                 # List All workloads related to threebot
                 workloads = [
@@ -88,14 +101,17 @@ class CheckThreebot(BackgroundService):
 
                 minio_wid = 0
                 try:
+                    zdb_farms = zdb_farms.split(",")
                     threebot_wid = deployer.threebot.deploy_threebot(
                         minio_wid, pool_id, kubeconfig, zdb_farms=zdb_farms
                     )
                     j.logger.info(f"Check VDC threebot service: {vdc_name} threebot new wid: {threebot_wid}")
+                    j.core.db.hdel(failed_threebots, vdc_instance.instance_name)
                 except Exception as e:
                     j.logger.error(f"Check VDC threebot service: Can't deploy threebot for {vdc_name} with error{e}")
             else:
                 j.logger.info(f"Check VDC threebot service: {vdc_name} threebot is UP")
+                j.core.db.hdel(failed_threebots, vdc_instance.instance_name)
 
             gevent.sleep(0.1)
 

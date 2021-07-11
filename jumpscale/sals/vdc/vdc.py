@@ -92,6 +92,8 @@ class UserVDC(Base):
             self.load_info()
         if any([self.kubernetes, self.threebot.wid, self.threebot.domain, self.s3.minio.wid, self.s3.zdbs]):
             return False
+        self.state = VDCSTATE.EMPTY
+        self.save()
         return True
 
     def has_minimal_components(self):
