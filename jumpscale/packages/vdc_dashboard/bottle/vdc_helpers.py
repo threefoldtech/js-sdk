@@ -25,7 +25,7 @@ def get_vdc(load_info=False):
         abort(500, "Couldn't find any vdcs on this machine, Please make sure to have it configured properly")
     vdc_full_name = list(j.sals.vdc.list_all())[0]
     if not CURRENTVDC or load_info:
-        CURRENTVDC = j.sals.vdc.find(vdc_full_name, load_info=load_info)
+        CURRENTVDC = j.sals.vdc.find(vdc_full_name, load_info=True)
         CURRENTVDC.save()
     return CURRENTVDC
 
