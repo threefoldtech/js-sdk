@@ -71,6 +71,7 @@
       v-if="selected"
       v-model="dialogs.info"
       :data="selected"
+      :keyswithtypedictprop="['public_ip','resources']"
     ></solution-info>
 
     <cancel-workload
@@ -90,7 +91,11 @@ module.exports = {
   props: {
     vmachines: {
       type: Array,
-      default: () => []
+      default: () => [],
+    },
+    tableloading: {
+      type: Boolean,
+      default: false,
     },
   },
   mixins: [dialog],
