@@ -166,16 +166,6 @@ class VirtualMachineDeployer(VDCBaseComponent):
                 self.vdc_deployer.error("All attempts to deploy virtual machine on nodes node have been failed")
                 raise j.exceptions.Runtime("All attempts to deploy virtual machine on nodes node have been failed")
 
-            # reserve public_ip
-            if enable_public_ip:
-                public_ip_wid = self.vdc_deployer.public_ip.get_public_ip(
-                    pool_id, vmachine_node.node_id, solution_uuid=solution_uuid
-                )
-
-                if not public_ip_wid:
-                    self.vdc_deployer.error(f"Failed to reserve public ip on node {vmachine_node.node_id}")
-                    continue
-
             network_view = network_view.copy()
             private_ip_address = network_view.get_free_ip(vmachine_node)
 
