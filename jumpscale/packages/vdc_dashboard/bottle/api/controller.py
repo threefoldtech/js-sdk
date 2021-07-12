@@ -149,7 +149,7 @@ def add_vmachine(vdc):
         name,
         size,
         ssh_public_key
-        farm(optional)
+        farm_name(optional)
         nodes_ids(optional)
         enable_public_ip(optional)
 
@@ -160,10 +160,10 @@ def add_vmachine(vdc):
     vm_name = data.get("name")
     vm_size = data.get("size")
     ssh_public_key = data.get("ssh_public_key")
-    farm = data.get("farm")
+    farm_name = data.get("farm_name")
     nodes_ids = data.get("nodes_ids")
     enable_public_ip = data.get("enable_public_ip", False)
-    if nodes_ids and not farm:
+    if nodes_ids and not farm_name:
         raise MissingArgument(400, "Must specify farm with nodes_ids.")
 
     if not vm_size or not isinstance(vm_size, int):
@@ -180,7 +180,7 @@ def add_vmachine(vdc):
         raise BadRequestError(400, "public_ip should be a boolean")
 
     query = VMSIZES[vm_size]
-    farm_name, capacity_check = vdc.find_worker_farm(query, farm_name=farm, public_ip=enable_public_ip)
+    farm_name, capacity_check = vdc.find_vmachine_farm(query, farm_name=farm_name, public_ip=enable_public_ip)
     if not capacity_check:
         public_ip_msg = " with public IP" if enable_public_ip else ""
         raise NoEnoughCapacity(
