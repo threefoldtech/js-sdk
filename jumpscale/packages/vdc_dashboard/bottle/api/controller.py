@@ -146,68 +146,84 @@ def list_vmachines(vdc):
 def add_vmachine(vdc):
     """
     request body:
-        size
+        name,
+        size,
         ssh_public_key
         farm(optional)
         nodes_ids(optional)
-        public_ip(optional)
+        enable_public_ip(optional)
 
     Returns:
         wids: list of wids
     """
     data = request.json or {}
+    vm_name = data.get("name")
     vm_size = data.get("size")
+    ssh_public_key = data.get("ssh_public_key")
     farm = data.get("farm")
     nodes_ids = data.get("nodes_ids")
-    public_ip = data.get("public_ip", False)
+    enable_public_ip = data.get("enable_public_ip", False)
     if nodes_ids and not farm:
         raise MissingArgument(400, "Must specify farm with nodes_ids.")
 
-    if not vm_size:
-        raise MissingArgument(400, "'size' is required.")
+    if not vm_size or not isinstance(vm_size, int):
+        raise MissingArgument(400, f"'size' is required as integer in range {VMSIZES.keys()}.")
 
     # check stellar service
     if not j.clients.stellar.check_stellar_service():
         raise StellarServiceDown(400, "Stellar service currently down")
 
     if vm_size not in VMSIZES.keys():
-        raise sizeNotSupported(400, f"Size of '{vm_size}' is not supported")
+        raise FlavorNotSupported(400, f"Size of '{vm_size}' is not supported")
 
-    if not isinstance(public_ip, bool):
+    if not isinstance(enable_public_ip, bool):
         raise BadRequestError(400, "public_ip should be a boolean")
 
-    farm_name, capacity_check = vdc.find_worker_farm(vm_size, farm_name=farm, public_ip=public_ip)
+    query = VMSIZES[vm_size]
+    farm_name, capacity_check = vdc.find_worker_farm(query, farm_name=farm, public_ip=enable_public_ip)
     if not capacity_check:
-        public_ip_msg = " with public IP" if public_ip else ""
+        public_ip_msg = " with public IP" if enable_public_ip else ""
         raise NoEnoughCapacity(
-            400, f"There's no enough capacity in farm {farm_name} for kubernetes node of size {vm_size}{public_ip_msg}",
+            400, f"There's no enough capacity in farm {farm_name} for virtual machine of size {vm_size}{public_ip_msg}",
         )
 
-    # # Payment
-    # success, _, _ = vdc.show_external_node_payment(bot=None, farm_name=farm_name, size=vm_size, public_ip=public_ip)
-    # if not success:
-    #     raise NoEnoughFunds(400, "No enough funds in prepaid wallet to add node")
+    # Payment
+    success, _, _ = vdc.show_external_vmachine_payment(
+        bot=None, farm_name=farm_name, size=vm_size, public_ip=enable_public_ip
+    )
+    if not success:
+        raise NoEnoughFunds(400, "No enough funds in prepaid wallet to add node")
 
-    # deployer = vdc.get_deployer(network_farm=farm_name)
-    # old_wallet = deployer._set_wallet(vdc.prepaid_wallet.instance_name)
-    # duration = vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
-    # two_weeks = 2 * 7 * 24 * 60 * 60
-    # if duration > two_weeks:
-    #     duration = two_weeks
+    # deployment
+    deployer = vdc.get_deployer(network_farm=farm_name)
+    old_wallet = deployer._set_wallet(vdc.prepaid_wallet.instance_name)
+    duration = vdc.get_pools_expiration() - j.data.time.utcnow().timestamp
+    two_weeks = 2 * 7 * 24 * 60 * 60
+    if duration > two_weeks:
+        duration = two_weeks
 
-    # try:
-    #     wids = deployer.add_k8s_nodes(vm_size, farm_name=farm_name, public_ip=public_ip, nodes_ids=nodes_ids)
-    #     deployer.extend_k8s_workloads(duration, *wids)
-    #     deployer._set_wallet(old_wallet)
-    #     return wids
-    # except Exception as e:
-    #     j.logger.exception("failed to add node", exception=e)
-    #     raise AdddingNodeFailed(400, f"failed to add nodes to your cluster: {e}")
+    try:
+        wids = deployer.deploy_vmachine(
+            farm_name,
+            vm_name,
+            query,
+            vm_size,
+            ssh_public_key,
+            enable_public_ip=enable_public_ip,
+            solution_uuid=vdc.solution_uuid,
+            vmachine_type="ubuntu-20.04",
+            duration=duration,
+        )
+        deployer._set_wallet(old_wallet)
+        return wids
+    except Exception as e:
+        j.logger.exception("failed to deploy virtual machine", exception=e)
+        raise VirtualMachineDeploymentFailed(400, f"failed to deploy virtual machine to your cluster: {e}")
 
 
 @app.route("/api/controller/vmachine", method="DELETE")
 @vdc_route()
-def delete_vmachine():
+def delete_vmachine(vdc):
     """
     Request body:
         object of {"wid": <wid>}

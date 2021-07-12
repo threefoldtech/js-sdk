@@ -152,7 +152,7 @@ class VMachineDeploy(MarketPlaceAppsChatflow):
         farm_name, capacity_check = self.find_vmachine_farm(self.query, self.farm_name, self.enable_public_ip)
         if not capacity_check:
             self.stop(
-                f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {self.node_flavor}"
+                f"There's no enough capacity in farm {farm_name} for virtual machine of flavor {self.node_flavor}"
             )
         j.logger.debug("found enough capacity, continue to payment")
 
