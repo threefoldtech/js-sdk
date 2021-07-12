@@ -1270,15 +1270,14 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         identity_name = metadata.get("owner", j.core.identity.me.instance_name)
         public_ip_wid = 0
         public_ip = ""
+        # Reserve public_Ip on node_id[0]
         if enable_public_ip:
-            # Reserve public_Ip on node_id[0]
-            if enable_public_ip:
-                public_ip_wid, public_ip = self.create_public_ip(
-                    pool_id, node_id, solution_uuid=metadata.get("solution_uuid")
-                )
-                if not public_ip_wid or not public_ip:
-                    raise DeploymentFailed(f"Can not get public ip for your solutions")
-                public_ip = public_ip.split("/")[0] if public_ip else ""
+            public_ip_wid, public_ip = self.create_public_ip(
+                pool_id, node_id, solution_uuid=metadata.get("solution_uuid")
+            )
+            if not public_ip_wid or not public_ip:
+                raise DeploymentFailed(f"Can not get public ip for your solutions")
+            public_ip = public_ip.split("/")[0] if public_ip else ""
         vmachine = j.sals.zos.get(identity_name).vm.create(
             node_id, network_name, name, ip_address, ssh_keys, pool_id, size, public_ip_wid
         )
