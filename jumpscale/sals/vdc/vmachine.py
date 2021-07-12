@@ -193,7 +193,7 @@ class VirtualMachineDeployer(VDCBaseComponent):
                 return {"public_ip": public_ip, "ip_address": private_ip_address, "vm_wid": wid}
             except DeploymentFailed:
                 if enable_public_ip:
-                    self.zos.workloads.decomission(public_ip_wid)
+                    self.zos.workloads.decomission(self.zos.workloads.get(wid).public_ip)
                 self.vdc_deployer.error(f"Failed to deploy virtual machine wid: {wid}")
                 continue
         self.vdc_deployer.error(f"All attempts to deploy virtual machine have failed")
