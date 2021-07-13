@@ -489,7 +489,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         self.wait_pool_reservation(pool_info.reservation_id, 10, qr_code, bot)
         return pool_info
 
-    def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None):
+    def check_farm_capacity(
+        self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None, exclude_nodes=None
+    ):
         zos = j.sals.zos.get()
         node_filter = None
         if j.core.config.get("OVER_PROVISIONING"):
@@ -517,6 +519,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             if not zos.nodes_finder.filter_is_up(node):
                 continue
             if node.node_id in blocked_nodes:
+                continue
+            if exclude_nodes and node.node_id in exclude_nodes:
                 continue
             if not access_node and ip_version and node_filter(node):
                 access_node = node
@@ -562,12 +566,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         for vmachine in vdc.vmachines:
             old_node_ids.append(vmachine.node_id)
 
-        cc = j.sals.vdc.scheduler.CapacityChecker(farm_name)
-        cc.exclude_nodes(*old_node_ids)
+        have_capacity, _, _, _, _ = self.check_farm_capacity(farm_name, **query, exclude_nodes=old_node_ids)
 
-        if not cc.add_query(**query):
-            return False
-        return True
+        return have_capacity
 
     def show_payment(self, pool, bot):
         escrow_info = pool.escrow_information
