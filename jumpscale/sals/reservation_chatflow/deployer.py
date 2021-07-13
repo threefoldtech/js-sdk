@@ -17,6 +17,7 @@ from jumpscale.packages.tfgrid_solutions.models import PoolConfig
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.zos.zos import Zosv2
 from jumpscale.clients.explorer.models import ResourceUnitAmount
+from jumpscale.sals.vdc.scheduler import CapacityChecker
 
 GATEWAY_WORKLOAD_TYPES = [
     WorkloadType.Domain_delegate,
@@ -543,6 +544,31 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         if ip_version and not access_node:
             return False, available_cru, available_sru, available_mru, available_hru
         return True, available_cru, available_sru, available_mru, available_hru
+
+    def _check_farm_capacity(self, query, vdc, farm_name=None, public_ip=False):
+        if public_ip:
+            farm = self._explorer.farms.get(farm_name=farm_name)
+            available_ips = False
+            for address in farm.ipaddresses:
+                if not address.reservation_id:
+                    available_ips = True
+                    break
+            if not available_ips:
+                return False
+
+        old_node_ids = []
+        vdc.load_info()
+        for k8s_node in vdc.kubernetes:
+            old_node_ids.append(k8s_node.node_id)
+        for vmachine in vdc.vmachines:
+            old_node_ids.append(vmachine.node_id)
+
+        cc = CapacityChecker(farm_name)
+        cc.exclude_nodes(*old_node_ids)
+
+        if not cc.add_query(**query):
+            return False
+        return True
 
     def show_payment(self, pool, bot):
         escrow_info = pool.escrow_information

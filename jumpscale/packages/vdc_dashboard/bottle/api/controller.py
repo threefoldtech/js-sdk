@@ -141,49 +141,6 @@ def list_vmachines(vdc):
     return vdc.to_dict()["vmachines"]
 
 
-def find_vmachine_farm(vdc, query, farm_name=None, public_ip=False):
-    if farm_name:
-        return farm_name, _check_farm_capacity(vdc, query, farm_name, public_ip)
-    farms = j.config.get("NETWORK_FARMS", []) if public_ip else j.config.get("COMPUTE_FARMS", [])
-    for farm in farms:
-        if _check_farm_capacity(vdc, query, farm, public_ip):
-            return farm, True
-    else:
-        vdc.load_info()
-        pool_id = [n for n in vdc.kubernetes if n.role == KubernetesRole.MASTER][-1].pool_id
-        farm_name = j.sals.marketplace.deployer.get_pool_farm_name(pool_id)
-        return farm_name, _check_farm_capacity(vdc, query, farm_name, public_ip)
-
-
-def _check_farm_capacity(vdc, query, farm_name, public_ip=False):
-    if public_ip:
-        zos = j.sals.zos.get()
-        farm = zos._explorer.farms.get(farm_name=farm_name)
-        available_ips = False
-        for address in farm.ipaddresses:
-            if not address.reservation_id:
-                available_ips = True
-                break
-        if not available_ips:
-            return False
-
-    old_node_ids = []
-    vdc.load_info()
-    for k8s_node in vdc.kubernetes:
-        old_node_ids.append(k8s_node.node_id)
-    for vmachine in vdc.vmachines:
-        old_node_ids.append(vmachine.node_id)
-
-    from jumpscale.sals.vdc.scheduler import CapacityChecker
-
-    cc = CapacityChecker(farm_name)
-    cc.exclude_nodes(*old_node_ids)
-
-    if not cc.add_query(**query):
-        return False
-    return True
-
-
 @app.route("/api/controller/vmachine", method="POST")
 @vdc_route()
 def add_vmachine(vdc):
@@ -223,7 +180,7 @@ def add_vmachine(vdc):
         raise BadRequestError(400, "public_ip should be a boolean")
 
     query = VMSIZES[vm_size]
-    farm_name, capacity_check = find_vmachine_farm(vdc, query, farm_name=farm_name, public_ip=enable_public_ip)
+    farm_name, capacity_check = vdc.find_vmachine_farm(query, farm_name=farm_name, public_ip=enable_public_ip)
     if not capacity_check:
         public_ip_msg = " with public IP" if enable_public_ip else ""
         raise NoEnoughCapacity(
