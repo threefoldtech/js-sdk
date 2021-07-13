@@ -3,6 +3,7 @@ import random
 import uuid
 from textwrap import dedent
 import gevent
+import gevent.event
 
 import requests
 
@@ -446,15 +447,26 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.available_farms = []
         farms = j.sals.zos.get(identity_name)._explorer.farms.list()
         # farm_names = ["freefarm"]  # DEUBGGING ONLY
+        gs = []
+        only_one_event = gevent.event.Event()
 
-        for farm in farms:
+        def handle_one_farm(farm):
             available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
                 farm.name, currencies=[self.currency], ip_version="IPv4", **self.query
             )
             if available_ipv4:
                 self.available_farms.append(farm)
                 if only_one:
-                    return
+                    only_one_event.set()
+
+        for farm in farms:
+            g = gevent.spawn(handle_one_farm, farm)
+            gs.append(g)
+        if only_one:
+            only_one_event.wait()
+            return
+        else:
+            gevent.joinall(gs)
         if not self.available_farms:
             raise StopChatFlow("No available farms with enough resources for this deployment at the moment")
 
@@ -538,6 +550,37 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             result = deployer.wait_pool_reservation(self.pool_info.reservation_id, qr_code=self.qr_code, bot=self)
             if not result:
                 raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
+
+    @chatflow_step(title="Payment")
+    def extension_with_billing_package(self):
+        """
+        Extend existing pool using billing package where the user will transfer to intermediate wallet, and extension is payed for from that wallet.
+        In case of extension failure refund is done from the intermediate wallet
+        """
+        self.md_show_update("Extending pool...")
+        self.currencies = ["TFT"]
+        # User payment to deployer wallet
+        pool_info = deployer.extend_pool_request(self.pool_id, self.expiration, self.currencies, **self.query)
+
+        payment_success, _, self.payment_id = deployer.show_payment_with_billing_package(
+            self, pool_info, self.threebot_name
+        )
+
+        if not payment_success:
+            self.stop(f"Payment timedout. Please restart.")
+
+        # Create pool using deployer wallet
+        wallet = j.clients.stellar.get(deployer.WALLET_NAME)
+        try:
+            j.sals.zos.get(self.identity_name).billing.payout_farmers(wallet, pool_info)
+
+            if not deployer.wait_pool_reservation(pool_info.reservation_id, exp=5, identity_name=self.identity_name):
+                raise DeploymentFailed(f"Failed to pay to pool {pool_info.reservation_id}")
+
+        except Exception as e:
+            j.logger.exception(f"Failed to deploy", exception=e)
+            j.sals.billing.issue_refund(self.payment_id)
+            self.stop("Failed to deploy. You will be refunded with the amount paid")
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):

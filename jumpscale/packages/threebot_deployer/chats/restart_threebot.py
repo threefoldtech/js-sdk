@@ -21,7 +21,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         "choose_name",
         "enter_password",
         "new_expiration",
-        "solution_extension",
+        "extension_with_billing_package",
         "deploy",
         "initializing",
         "success",

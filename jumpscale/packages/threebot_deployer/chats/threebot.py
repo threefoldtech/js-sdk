@@ -46,7 +46,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         "reservation",
         "initializing",
         "new_expiration",
-        "solution_extension",
+        "extension_with_billing_package",
         "wireguard_configs",
         "success",
     ]

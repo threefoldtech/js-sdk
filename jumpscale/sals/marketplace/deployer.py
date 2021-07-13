@@ -9,6 +9,8 @@ from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow import DeploymentFailed
 from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
 from requests.exceptions import HTTPError
+from jumpscale.clients.stellar import TRANSACTION_FEES
+
 
 from .models import UserPool
 
@@ -130,7 +132,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
         network_names = [n[len(username) + 1 :] for n in network_views.keys()]
         if not network_views:
             raise StopChatFlow(f"You don't have any deployed network.")
-        network_name = bot.single_choice("Please select a network to connect your solution to", network_names, required=True)
+        network_name = bot.single_choice(
+            "Please select a network to connect your solution to", network_names, required=True
+        )
         return network_views[f"{username}_{network_name}"]
 
     def _check_pool_factory_owner(self, instance_name, identity_name=None):
@@ -316,7 +320,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             selected_pool_ids.append(pool.pool_id)
         return selected_nodes, selected_pool_ids
 
-    def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
+    def extend_pool_request(self, pool_id, expiration, currency, **resources):
         cloud_units = self._calculate_cloud_units(**resources)
         cu = math.ceil(cloud_units.cu * expiration)
         su = math.ceil(cloud_units.su * expiration)
@@ -329,6 +333,31 @@ class MarketPlaceDeployer(ChatflowDeployer):
             currency = [currency]
         if cu > 0 or su > 0:
             pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, 0, currency)
+            return pool_info
+
+    def show_payment_with_billing_package(self, bot, pool_info, tname):
+        """
+        Create a payment from user to intermediate wallet using billing package, which is then used to pay and is used for refunds
+        """
+        cost = pool_info.escrow_information.amount / 10e6 + TRANSACTION_FEES
+
+        self.payment_id, _ = j.sals.billing.submit_payment(
+            amount=cost,
+            wallet_name=self.WALLET_NAME,
+            refund_extra=False,
+            expiry=5,
+            description=j.data.serializers.json.dumps({"type": "3bot_pool_extend", "owner": tname}),
+        )
+
+        if cost > 0:
+            notes = []
+            return j.sals.billing.wait_payment(self.payment_id, bot=bot, notes=notes), cost, self.payment_id
+        else:
+            return None, None, None
+
+    def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
+        pool_info = self.extend_pool_request(pool_id, expiration, currency, **resources)
+        if pool_info:
             qr_code = self.show_payment(pool_info, bot)
             return pool_info, qr_code
         else:
