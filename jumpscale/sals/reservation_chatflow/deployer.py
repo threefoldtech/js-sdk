@@ -17,7 +17,6 @@ from jumpscale.packages.tfgrid_solutions.models import PoolConfig
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.zos.zos import Zosv2
 from jumpscale.clients.explorer.models import ResourceUnitAmount
-from jumpscale.sals.vdc.scheduler import CapacityChecker
 
 GATEWAY_WORKLOAD_TYPES = [
     WorkloadType.Domain_delegate,
@@ -563,7 +562,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         for vmachine in vdc.vmachines:
             old_node_ids.append(vmachine.node_id)
 
-        cc = CapacityChecker(farm_name)
+        cc = j.sals.vdc.scheduler.CapacityChecker(farm_name)
         cc.exclude_nodes(*old_node_ids)
 
         if not cc.add_query(**query):
