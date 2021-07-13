@@ -99,7 +99,7 @@
       <router-view @update-dashboard="updateDashboard"></router-view>
       <popup></popup>
     </v-main>
-    <v-footer inset absolute>
+    <v-footer inset>
       <v-col class="text-left" cols="6">
         &copy; {{ new Date().getFullYear() }} JS-SDK
       </v-col>
