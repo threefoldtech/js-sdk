@@ -844,7 +844,7 @@ class UserVDC(Base):
             return farm_name, _check_farm_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip)
         farms = j.config.get("NETWORK_FARMS", []) if public_ip else j.config.get("COMPUTE_FARMS", [])
         for farm in farms:
-            if _check_farm_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip):
+            if _check_farm_capacity(query=query, vdc=self, farm_name=farm, public_ip=public_ip):
                 return farm, True
         else:
             self.load_info()
