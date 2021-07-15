@@ -404,11 +404,6 @@ components:
         farm:
           type: string
           example: csfarm
-        nodes_ids:
-          type: array
-          items:
-            type: string
-            example: FTothsg9ZuJubAEzZByEgQQUmkWM637x93YH1QSJM242
         enable_public_ip:
           type: boolean
           example: true
@@ -803,10 +798,6 @@ components:
         size: 1
         ssh_public_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCkg3GPooZdQbeexFkNKyHjgYF1rIov7RmiQr8JR8PLIJWH3biheosCHbtfInH5pXHCMVwm6F9GLk3PXfpxW5vOan7FmmQHWRYARNIp5L+6+B+EKaJKMo6HX1QPakb2IO9az5G+KUxwRwiyVa7brblzp8DGbjcMbEz+HEF4y9r/sOIxxL3kHt1eHNEAVZlUWc0gFkleZC8zsTwWsCir4s52XC4N++Bk79DMw3Fv3WK71qN/3oXeuVoWYwvacV0lvBQfeDMArOIRnK0yA91rsPY/pwP7qmUgewnBX6+k0lvJ5JDTD1nfv/jLJwqb0KBtMZf5e8/zHhz5CvujLNZJu2pGiR5vn5q1RExWh+gJ23AxsAf1uDMJUk5miNLHDMkBzi2PEYbxxPAbleNqxMKzZ7EuLgFnwJ8wB5pCiYRMStZIDkmrgDu20Vu2/4hX7WgPveDDTvm92d/jlVHmqcftkBXSxiiYuRDT9nU+WgtBKzZByil7vTSbxxmvY/Cz6Q10QLk= ayoub@ayoub
         farm: csfarm
-        nodes_ids:
-          - 3kcJhRkTDuL51HmikzWFMndWwJbJGg8dZeqG9e72c6LV
-          - BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
-          - 3NAkUYqm5iPRmNAnmLfjwdreqDssvsebj4uPUt9BxFPm
         enable_public_ip: true
 
     nodeAddRequest:

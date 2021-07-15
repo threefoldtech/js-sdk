@@ -150,7 +150,6 @@ def add_vmachine(vdc):
         size,
         ssh_public_key
         farm_name(optional)
-        nodes_ids(optional)
         enable_public_ip(optional)
 
     Returns:
