@@ -203,7 +203,7 @@ def add_vmachine(vdc):
         duration = two_weeks
 
     try:
-        wids = deployer.deploy_vmachine(
+        vm_res = deployer.deploy_vmachine(
             farm_name,
             vm_name,
             query,
@@ -215,7 +215,7 @@ def add_vmachine(vdc):
             duration=duration,
         )
         deployer._set_wallet(old_wallet)
-        return wids
+        return [vm_res["vm_wid"]]
     except Exception as e:
         j.logger.exception("failed to deploy virtual machine", exception=e)
         raise VirtualMachineDeploymentFailed(400, f"failed to deploy virtual machine to your cluster: {e}")

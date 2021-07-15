@@ -108,7 +108,7 @@ class VirtualMachineDeployer(VDCBaseComponent):
 
         network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
 
-        wids = self.deploy_vmachine(
+        vm_res = self.deploy_vmachine(
             solution_name,
             vm_size,
             pool_id,
@@ -120,10 +120,10 @@ class VirtualMachineDeployer(VDCBaseComponent):
             vmachine_type,
             description=self.vdc_deployer.description,
         )
-        if not wids:
+        if not vm_res:
             self.vdc_deployer.error(f"Failed to deploy vmachine")
             raise j.exceptions.Runtime(f"Failed to deploy vmachine")
-        return wids
+        return vm_res
 
     def deploy_vmachine(
         self,
