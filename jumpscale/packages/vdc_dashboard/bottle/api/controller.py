@@ -161,10 +161,7 @@ def add_vmachine(vdc):
     vm_size = data.get("size")
     ssh_public_key = data.get("ssh_public_key")
     farm_name = data.get("farm_name")
-    nodes_ids = data.get("nodes_ids")
     enable_public_ip = data.get("enable_public_ip", False)
-    if nodes_ids and not farm_name:
-        raise MissingArgument(400, "Must specify farm with nodes_ids.")
 
     if not vm_size or not isinstance(vm_size, int):
         raise MissingArgument(400, f"'size' is required as integer in range {VMSIZES.keys()}.")
