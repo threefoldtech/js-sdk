@@ -566,7 +566,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             self, pool_info, self.threebot_name
         )
 
-        if not payment_success:
+        if pool_info and not payment_success:
             self.stop(f"Payment timedout. Please restart.")
 
         # Create pool using deployer wallet

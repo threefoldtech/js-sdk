@@ -339,6 +339,10 @@ class MarketPlaceDeployer(ChatflowDeployer):
         """
         Create a payment from user to intermediate wallet using billing package, which is then used to pay and is used for refunds
         """
+        # pool doesn't need extension so request won't return payment information
+        if not pool_info:
+            return None, None, None
+
         cost = pool_info.escrow_information.amount / 10e6 + TRANSACTION_FEES
 
         self.payment_id, _ = j.sals.billing.submit_payment(
