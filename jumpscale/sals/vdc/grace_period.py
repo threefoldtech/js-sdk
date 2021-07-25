@@ -34,7 +34,7 @@ class VDCGracePeriodFactory(StoredFactory):
             return False
 
         if vdc_instance.expiration_date.timestamp() > j.data.time.utcnow().timestamp + j.config.get(
-            "GRACE_PERIOD_TRIGGER", 3
+            "GRACE_PERIOD_TRIGGER", 24 * 60 * 60
         ):
             j.logger.debug(f"vdc {vdc_instance.vdc_name} still has expiration and not eligible")
             return False
