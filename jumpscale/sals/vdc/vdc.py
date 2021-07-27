@@ -327,7 +327,8 @@ class UserVDC(Base):
                     etcd.append(node)
             elif workload.info.workload_type == WorkloadType.Zdb:
                 zdb = S3ZDB.from_workload(workload)
-                s3.zdbs.append(zdb)
+                if zdb:
+                    s3.zdbs.append(zdb)
             elif workload.info.workload_type == WorkloadType.Virtual_Machine:
                 vmachine = VMachine.from_workload(workload)
                 vmachines.append(vmachine)
@@ -841,18 +842,18 @@ class UserVDC(Base):
             return farm_name, self._check_added_worker_capacity(flavor, farm_name, public_ip)
 
     def find_vmachine_farm(self, query, farm_name=None, public_ip=False):
-        _check_farm_capacity = j.sals.reservation_chatflow.deployer._check_farm_capacity
+        have_capacity = j.sals.reservation_chatflow.deployer.have_capacity
         if farm_name:
-            return farm_name, _check_farm_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip)
+            return farm_name, have_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip)
         farms = j.config.get("NETWORK_FARMS", []) if public_ip else j.config.get("COMPUTE_FARMS", [])
         for farm in farms:
-            if _check_farm_capacity(query=query, vdc=self, farm_name=farm, public_ip=public_ip):
+            if have_capacity(query=query, vdc=self, farm_name=farm, public_ip=public_ip):
                 return farm, True
         else:
             self.load_info()
             pool_id = [n for n in self.kubernetes if n.role == KubernetesRole.MASTER][-1].pool_id
             farm_name = j.sals.marketplace.deployer.get_pool_farm_name(pool_id)
-            return farm_name, _check_farm_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip)
+            return farm_name, have_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip)
 
     def _check_added_worker_capacity(self, flavor, farm_name, public_ip=False):
         if public_ip:

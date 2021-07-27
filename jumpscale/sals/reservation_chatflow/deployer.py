@@ -548,7 +548,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             return False, available_cru, available_sru, available_mru, available_hru
         return True, available_cru, available_sru, available_mru, available_hru
 
-    def _check_farm_capacity(self, query, vdc, farm_name=None, public_ip=False):
+    def have_capacity(self, query, vdc, farm_name=None, public_ip=False):
         if public_ip:
             farm = self._explorer.farms.get(farm_name=farm_name)
             available_ips = False
@@ -566,9 +566,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         for vmachine in vdc.vmachines:
             old_node_ids.append(vmachine.node_id)
 
-        have_capacity, _, _, _, _ = self.check_farm_capacity(farm_name, **query, exclude_nodes=old_node_ids)
+        farm_availability, _, _, _, _ = self.check_farm_capacity(farm_name, **query, exclude_nodes=old_node_ids)
 
-        return have_capacity
+        return farm_availability
 
     def show_payment(self, pool, bot):
         escrow_info = pool.escrow_information
