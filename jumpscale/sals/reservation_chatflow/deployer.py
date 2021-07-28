@@ -548,28 +548,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             return False, available_cru, available_sru, available_mru, available_hru
         return True, available_cru, available_sru, available_mru, available_hru
 
-    def have_capacity(self, query, vdc, farm_name=None, public_ip=False):
-        if public_ip:
-            farm = self._explorer.farms.get(farm_name=farm_name)
-            available_ips = False
-            for address in farm.ipaddresses:
-                if not address.reservation_id:
-                    available_ips = True
-                    break
-            if not available_ips:
-                return False
-
-        old_node_ids = []
-        vdc.load_info()
-        for k8s_node in vdc.kubernetes:
-            old_node_ids.append(k8s_node.node_id)
-        for vmachine in vdc.vmachines:
-            old_node_ids.append(vmachine.node_id)
-
-        farm_availability, _, _, _, _ = self.check_farm_capacity(farm_name, **query, exclude_nodes=old_node_ids)
-
-        return farm_availability
-
     def show_payment(self, pool, bot):
         escrow_info = pool.escrow_information
         resv_id = pool.reservation_id

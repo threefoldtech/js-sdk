@@ -841,19 +841,44 @@ class UserVDC(Base):
             farm_name = j.sals.marketplace.deployer.get_pool_farm_name(pool_id)
             return farm_name, self._check_added_worker_capacity(flavor, farm_name, public_ip)
 
+    def have_capacity(self, query, vdc, farm_name=None, public_ip=False):
+        if public_ip:
+            zos = j.sals.zos.get()
+            farm = zos._explorer.farms.get(farm_name=farm_name)
+            available_ips = False
+            for address in farm.ipaddresses:
+                if not address.reservation_id:
+                    available_ips = True
+                    break
+            if not available_ips:
+                return False
+
+        old_node_ids = []
+        vdc.load_info()
+        for k8s_node in vdc.kubernetes:
+            old_node_ids.append(k8s_node.node_id)
+        for vmachine in vdc.vmachines:
+            old_node_ids.append(vmachine.node_id)
+
+        cc = CapacityChecker(farm_name)
+        cc.exclude_nodes(*old_node_ids)
+
+        if not cc.add_query(**query):
+            return False
+        return True
+
     def find_vmachine_farm(self, query, farm_name=None, public_ip=False):
-        have_capacity = j.sals.reservation_chatflow.deployer.have_capacity
         if farm_name:
-            return farm_name, have_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip)
+            return farm_name, self.have_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip)
         farms = j.config.get("NETWORK_FARMS", []) if public_ip else j.config.get("COMPUTE_FARMS", [])
         for farm in farms:
-            if have_capacity(query=query, vdc=self, farm_name=farm, public_ip=public_ip):
+            if self.have_capacity(query=query, vdc=self, farm_name=farm, public_ip=public_ip):
                 return farm, True
         else:
             self.load_info()
             pool_id = [n for n in self.kubernetes if n.role == KubernetesRole.MASTER][-1].pool_id
             farm_name = j.sals.marketplace.deployer.get_pool_farm_name(pool_id)
-            return farm_name, have_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip)
+            return farm_name, self.have_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip)
 
     def _check_added_worker_capacity(self, flavor, farm_name, public_ip=False):
         if public_ip:
