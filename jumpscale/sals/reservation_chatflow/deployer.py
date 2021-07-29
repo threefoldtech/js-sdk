@@ -489,7 +489,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         self.wait_pool_reservation(pool_info.reservation_id, 10, qr_code, bot)
         return pool_info
 
-    def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None):
+    def check_farm_capacity(
+        self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None, exclude_nodes=None
+    ):
         zos = j.sals.zos.get()
         node_filter = None
         if j.core.config.get("OVER_PROVISIONING"):
@@ -517,6 +519,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             if not zos.nodes_finder.filter_is_up(node):
                 continue
             if node.node_id in blocked_nodes:
+                continue
+            if exclude_nodes and node.node_id in exclude_nodes:
                 continue
             if not access_node and ip_version and node_filter(node):
                 access_node = node
@@ -1255,7 +1259,17 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return zos.workloads.deploy(public_ip)
 
     def deploy_vmachine(
-        self, node_id, network_name, name, ip_address, ssh_keys, pool_id, size=1, enable_public_ip=False, **metadata
+        self,
+        node_id,
+        network_name,
+        name,
+        ip_address,
+        ssh_keys,
+        pool_id,
+        size=1,
+        enable_public_ip=False,
+        description="",
+        **metadata,
     ):
         identity_name = metadata.get("owner", j.core.identity.me.instance_name)
         public_ip_wid = 0
@@ -1272,6 +1286,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             node_id, network_name, name, ip_address, ssh_keys, pool_id, size, public_ip_wid
         )
         vmachine.info.metadata = self.encrypt_metadata(metadata, identity_name)
+        vmachine.info.description = description
         return j.sals.zos.get(identity_name).workloads.deploy(vmachine), public_ip
 
     def deploy_kubernetes_master(

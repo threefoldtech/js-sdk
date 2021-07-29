@@ -37,6 +37,7 @@ VDC_WORKLOAD_TYPES = [
     WorkloadType.Kubernetes,
     WorkloadType.Subdomain,
     WorkloadType.Reverse_proxy,
+    WorkloadType.Virtual_Machine,
 ]
 
 
@@ -54,6 +55,7 @@ class UserVDC(Base):
     solution_uuid = fields.String(default=lambda: uuid.uuid4().hex)
     identity_tid = fields.Integer()
     s3 = fields.Object(S3)
+    vmachines = fields.List(fields.Object(VMachine))
     kubernetes = fields.List(fields.Object(KubernetesNode))
     etcd = fields.List(fields.Object(ETCDNode))
     threebot = fields.Object(VDCThreebot)
@@ -135,6 +137,7 @@ class UserVDC(Base):
         workloads = []
         workloads += self.kubernetes
         workloads += self.s3.zdbs
+        workloads += self.vmachines
         if self.threebot.wid:
             workloads.append(self.threebot)
         if self.s3.minio.wid:
@@ -218,13 +221,14 @@ class UserVDC(Base):
         return QuantumStorage(self, ip_version)
 
     def load_info(self, load_proxy=False):
-        kubernetes, s3, etcd, threebot = self.get_vdc_workloads(load_proxy=load_proxy)
+        kubernetes, s3, vmachines, etcd, threebot = self.get_vdc_workloads(load_proxy=load_proxy)
 
         self.__lock.acquire()
         try:
             self.kubernetes = kubernetes
             self.etcd = etcd
             self.s3 = s3
+            self.vmachines = vmachines
             self.threebot = threebot
         finally:
             self.__lock.release()
@@ -304,6 +308,7 @@ class UserVDC(Base):
         kubernetes = []
         s3 = S3()
         etcd = []
+        vmachines = []
         threebot = VDCThreebot()
 
         proxies = []
@@ -324,6 +329,9 @@ class UserVDC(Base):
                 zdb = S3ZDB.from_workload(workload)
                 if zdb:
                     s3.zdbs.append(zdb)
+            elif workload.info.workload_type == WorkloadType.Virtual_Machine:
+                vmachine = VMachine.from_workload(workload)
+                vmachines.append(vmachine)
             elif workload.info.workload_type == WorkloadType.Subdomain:
                 s3_domain = self._check_s3_subdomains(workload)
                 if s3_domain:
@@ -336,7 +344,7 @@ class UserVDC(Base):
         if load_proxy:
             self._build_zdb_proxies(s3)
 
-        return kubernetes, s3, etcd, threebot
+        return kubernetes, s3, vmachines, etcd, threebot
 
     def _check_s3_subdomains(self, workload):
         minio_wid = self.s3.minio.wid
@@ -832,6 +840,45 @@ class UserVDC(Base):
             pool_id = [n for n in self.kubernetes if n.role == KubernetesRole.MASTER][-1].pool_id
             farm_name = j.sals.marketplace.deployer.get_pool_farm_name(pool_id)
             return farm_name, self._check_added_worker_capacity(flavor, farm_name, public_ip)
+
+    def have_capacity(self, query, vdc, farm_name=None, public_ip=False):
+        if public_ip:
+            zos = j.sals.zos.get()
+            farm = zos._explorer.farms.get(farm_name=farm_name)
+            available_ips = False
+            for address in farm.ipaddresses:
+                if not address.reservation_id:
+                    available_ips = True
+                    break
+            if not available_ips:
+                return False
+
+        old_node_ids = []
+        vdc.load_info()
+        for k8s_node in vdc.kubernetes:
+            old_node_ids.append(k8s_node.node_id)
+        for vmachine in vdc.vmachines:
+            old_node_ids.append(vmachine.node_id)
+
+        cc = CapacityChecker(farm_name)
+        cc.exclude_nodes(*old_node_ids)
+
+        if not cc.add_query(**query):
+            return False
+        return True
+
+    def find_vmachine_farm(self, query, farm_name=None, public_ip=False):
+        if farm_name:
+            return farm_name, self.have_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip)
+        farms = j.config.get("NETWORK_FARMS", []) if public_ip else j.config.get("COMPUTE_FARMS", [])
+        for farm in farms:
+            if self.have_capacity(query=query, vdc=self, farm_name=farm, public_ip=public_ip):
+                return farm, True
+        else:
+            self.load_info()
+            pool_id = [n for n in self.kubernetes if n.role == KubernetesRole.MASTER][-1].pool_id
+            farm_name = j.sals.marketplace.deployer.get_pool_farm_name(pool_id)
+            return farm_name, self.have_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip)
 
     def _check_added_worker_capacity(self, flavor, farm_name, public_ip=False):
         if public_ip:

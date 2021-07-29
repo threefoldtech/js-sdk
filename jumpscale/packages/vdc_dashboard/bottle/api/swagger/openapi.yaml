@@ -126,6 +126,50 @@ components:
               size:
                 type: number
                 example: 15
+        vmachines:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: vm12072021
+              public_ip:
+                type: object
+                properties:
+                  ip_address:
+                    type: string
+                    example: 185.69.167.60
+                  wid:
+                    type: number
+                    example: 46579
+              resources:
+                type: object
+                properties:
+                  cru:
+                    type: number
+                    example: 1
+                  mru:
+                    type: number
+                    example: 2
+                  sru:
+                    type: number
+                    example: 50
+              ip_address:
+                type: string
+                example: 10.200.2.2
+              wid:
+                type: number
+                example: 46579
+              node_id:
+                type: string
+                example: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+              pool_id:
+                type: number
+                example: 10155
+              size:
+                type: number
+                example: 15
         etcd:
           type: array
           items:
@@ -301,6 +345,68 @@ components:
           type: string
           example: HDD
           description: disk type, either "HDD" or "SSD"
+
+    VMachine:
+      type: object
+      properties:
+        name:
+          type: string
+          example: vm12072021
+        public_ip:
+          type: object
+          properties:
+            ip_address:
+              type: string
+              example: 185.69.167.60
+            wid:
+              type: number
+              example: 46579
+        resources:
+          type: object
+          properties:
+            cru:
+              type: number
+              example: 1
+            mru:
+              type: number
+              example: 2
+            sru:
+              type: number
+              example: 50
+        ip_address:
+          type: string
+          example: 10.200.2.2
+        wid:
+          type: number
+          example: 46579
+        node_id:
+          type: string
+          example: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+        pool_id:
+          type: number
+          example: 10155
+        size:
+          type: number
+          example: 15
+
+    VMachineAddRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: vm12072021
+        size:
+          type: number
+          example: 1
+        ssh_public_key:
+          type: string
+          example: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCkg3GPooZdQbeexFkNKyHjgYF1rIov7RmiQr8JR8PLIJWH3biheosCHbtfInH5pXHCMVwm6F9GLk3PXfpxW5vOan7FmmQHWRYARNIp5L+6+B+EKaJKMo6HX1QPakb2IO9az5G+KUxwRwiyVa7brblzp8DGbjcMbEz+HEF4y9r/sOIxxL3kHt1eHNEAVZlUWc0gFkleZC8zsTwWsCir4s52XC4N++Bk79DMw3Fv3WK71qN/3oXeuVoWYwvacV0lvBQfeDMArOIRnK0yA91rsPY/pwP7qmUgewnBX6+k0lvJ5JDTD1nfv/jLJwqb0KBtMZf5e8/zHhz5CvujLNZJu2pGiR5vn5q1RExWh+gJ23AxsAf1uDMJUk5miNLHDMkBzi2PEYbxxPAbleNqxMKzZ7EuLgFnwJ8wB5pCiYRMStZIDkmrgDu20Vu2/4hX7WgPveDDTvm92d/jlVHmqcftkBXSxiiYuRDT9nU+WgtBKzZByil7vTSbxxmvY/Cz6Q10QLk= ayoub@ayoub
+        farm:
+          type: string
+          example: csfarm
+        enable_public_ip:
+          type: boolean
+          example: true
 
     Wallet:
       type: object
@@ -605,6 +711,20 @@ components:
             node_id: qzuTJJVd5boi6Uyoco1WWnSgzTb7q8uN79AjBT9x9N3
             pool_id: 10155
             size: 16
+        vmachines:
+          - name: vm12072021
+            public_ip:
+              ip_address: 185.69.167.137
+              wid: 58347
+            resources:
+              cru: 1
+              mru: 2
+              sru: 50
+            ip_address: 10.200.2.2
+            wid: 46579
+            node_id: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+            pool_id: 10155
+            size: 1
         etcd: []
         threebot:
           domain: abdelrahman-mt2.vdcdev.grid.tf
@@ -653,6 +773,32 @@ components:
         node_id: BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
         pool_id: 10155
         usage: 0
+
+    vmachine:
+      description: Virtual Machine workload
+      value:
+        name: vm12072021
+        public_ip:
+          ip_address: 185.69.167.137
+          wid: 58347
+        resources:
+          cru: 1
+          mru: 2
+          sru: 50
+        ip_address: 10.200.2.2
+        wid: 46579
+        node_id: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+        pool_id: 10155
+        size: 1
+
+    vmachineAddRequest:
+      description: virtual machine add request
+      value:
+        name: vm12072021
+        size: 1
+        ssh_public_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCkg3GPooZdQbeexFkNKyHjgYF1rIov7RmiQr8JR8PLIJWH3biheosCHbtfInH5pXHCMVwm6F9GLk3PXfpxW5vOan7FmmQHWRYARNIp5L+6+B+EKaJKMo6HX1QPakb2IO9az5G+KUxwRwiyVa7brblzp8DGbjcMbEz+HEF4y9r/sOIxxL3kHt1eHNEAVZlUWc0gFkleZC8zsTwWsCir4s52XC4N++Bk79DMw3Fv3WK71qN/3oXeuVoWYwvacV0lvBQfeDMArOIRnK0yA91rsPY/pwP7qmUgewnBX6+k0lvJ5JDTD1nfv/jLJwqb0KBtMZf5e8/zHhz5CvujLNZJu2pGiR5vn5q1RExWh+gJ23AxsAf1uDMJUk5miNLHDMkBzi2PEYbxxPAbleNqxMKzZ7EuLgFnwJ8wB5pCiYRMStZIDkmrgDu20Vu2/4hX7WgPveDDTvm92d/jlVHmqcftkBXSxiiYuRDT9nU+WgtBKzZByil7vTSbxxmvY/Cz6Q10QLk= ayoub@ayoub
+        farm: csfarm
+        enable_public_ip: true
 
     nodeAddRequest:
       description: Adding kubernetes node request.
@@ -898,6 +1044,87 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /vmachine:
+    get:
+      summary: Get virtual machines information
+      description: Get a list of virtual machines.
+      responses:
+        '200':    # status code
+          description: VMachine object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VMachine'
+                example:
+                  vdc:
+                    $ref: '#/components/examples/vmachine'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Add virtual machine workload
+      description: Add virtual machine
+      requestBody:
+        description: virtual machine configuration
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VMachineAddRequest'
+              example:
+                nodeAddRequest:
+                  $ref: '#/components/examples/vmachineAddRequest'
+
+      responses:
+        '200':
+          description: list of virtual machine objects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkloadIDs'
+                example:
+                  workloadIDs:
+                    $ref: '#/components/examples/workloadIDs'
+
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete virtual machine workload
+      description: Delete virtual machine workload with specific ID
+      requestBody:
+        description: virtual machine workload ID
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkloadID'
+              example:
+                  $ref: '#/components/examples/workloadID'
+      responses:
+        '200':
+          description: success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+                example:
+                  success:
+                    $ref: '#/components/examples/success'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /zdb:
     get:
       summary: Get zdb information

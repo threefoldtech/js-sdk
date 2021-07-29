@@ -633,14 +633,6 @@ def redeploy_master():
         return HTTPResponse(f"Failed to redeploy master", status=500, headers={"Content-Type": "application/json"})
 
 
-@app.route("/api/vmachine", method="GET")
-@package_authorized("vdc_dashboard")
-def get_vmachines() -> str:
-
-    solutions = j.sals.reservation_chatflow.solutions.list_vmachine_solutions()
-    return j.data.serializers.json.dumps({"data": solutions})
-
-
 @app.route("/api/vmachine", method="DELETE")
 @package_authorized("vdc_dashboard")
 def delete_vmachine() -> str:

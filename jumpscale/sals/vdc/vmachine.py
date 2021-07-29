@@ -85,8 +85,8 @@ class VirtualMachineDeployer(VDCBaseComponent):
         old_node_ids = []
         for k8s_node in self.vdc_instance.kubernetes:
             old_node_ids.append(k8s_node.node_id)
-        for vmachine in solutions.list_vmachine_solutions(sync=False):
-            old_node_ids.append(vmachine["Node ID"])
+        for vmachine in self.vdc_instance.vmachines:
+            old_node_ids.append(vmachine.node_id)
 
         cc = CapacityChecker(farm_name)
         cc.exclude_nodes(*old_node_ids)
@@ -108,7 +108,7 @@ class VirtualMachineDeployer(VDCBaseComponent):
 
         network_view = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
 
-        wids = self.deploy_vmachine(
+        vm_res = self.deploy_vmachine(
             solution_name,
             vm_size,
             pool_id,
@@ -118,11 +118,12 @@ class VirtualMachineDeployer(VDCBaseComponent):
             network_view,
             enable_public_ip,
             vmachine_type,
+            description=self.vdc_deployer.description,
         )
-        if not wids:
+        if not vm_res:
             self.vdc_deployer.error(f"Failed to deploy vmachine")
             raise j.exceptions.Runtime(f"Failed to deploy vmachine")
-        return wids
+        return vm_res
 
     def deploy_vmachine(
         self,
@@ -135,6 +136,7 @@ class VirtualMachineDeployer(VDCBaseComponent):
         network_view,
         enable_public_ip,
         vmachine_type,
+        description="",
     ):
         vmachine_ip = None
         while not vmachine_ip:
@@ -181,6 +183,7 @@ class VirtualMachineDeployer(VDCBaseComponent):
                 pool_id=pool_id,
                 size=vm_size,
                 enable_public_ip=enable_public_ip,
+                description=description,
                 **metadata,
             )
             self.vdc_deployer.info(f"virtual machine machine wid: {wid}")

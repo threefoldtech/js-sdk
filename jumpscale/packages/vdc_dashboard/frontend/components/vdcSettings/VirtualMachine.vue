@@ -20,22 +20,26 @@
     >
       <template slot="no-data">No virtual machines available</template>
       <template v-slot:item.wid="{ item }">
-        <div>{{ item["wids"][0] }}</div>
+        <div>{{ item.wid }}</div>
+      </template>
+
+      <template v-slot:item.public_ip="{ item }">
+        <div>{{ item.public_ip.address }}</div>
       </template>
 
       <template v-slot:item.name="{ item }">
-        <div>{{ item["Name"] }}</div>
+        <div>{{ item.name }}</div>
       </template>
 
       <template v-slot:item.cpu="{ item }">
-        <div>{{ item.cpu }}</div>
+        <div>{{ item.resources.cru }}</div>
       </template>
 
       <template v-slot:item.memory="{ item }">
-        <div>{{ item.memory }}</div>
+        <div>{{ item.resources.mru }}</div>
       </template>
       <template v-slot:item.disk="{ item }">
-        <div>{{ item.disk }} GB</div>
+        <div>{{ item.resources.sru }} GB</div>
       </template>
 
       <template v-slot:item.actions="{ item }">
@@ -52,7 +56,7 @@
 
         <v-tooltip top>
           <template v-slot:activator="{ on, attrs }">
-            <v-btn icon @click.stop="deleteVm(item.wids)">
+            <v-btn icon @click.stop="deleteVm(item.wid)">
               <v-icon v-bind="attrs" v-on="on" color="#810000"
                 >mdi-delete</v-icon
               >
@@ -67,6 +71,7 @@
       v-if="selected"
       v-model="dialogs.info"
       :data="selected"
+      :keyswithtypedictprop="['public_ip','resources']"
     ></solution-info>
 
     <cancel-workload
@@ -83,7 +88,16 @@
 
 <script>
 module.exports = {
-  props: ["tableloading"],
+  props: {
+    vmachines: {
+      type: Array,
+      default: () => [],
+    },
+    tableloading: {
+      type: Boolean,
+      default: false,
+    },
+  },
   mixins: [dialog],
   components: {
     "solution-info": httpVueLoader("../base/Info.vue"),
@@ -91,11 +105,11 @@ module.exports = {
   },
   data() {
     return {
-      vmachines: [],
       selected: null,
       selectedvm: null,
       headers: [
         { text: "WID", value: "wid" },
+        { text: "IP Address", value: "public_ip" },
         { text: "Name", value: "name" },
         { text: "CPUs", value: "cpu" },
         { text: "Memory", value: "memory" },
@@ -118,20 +132,9 @@ module.exports = {
       this.selected = record;
       this.dialogs.info = true;
     },
-    deleteVm(wids) {
-      this.selectedvm = wids[0];
+    deleteVm(wid) {
+      this.selectedvm = wid;
       this.dialogs.cancelWorkload = true;
-    },
-    getVMSinfo() {
-      this.loading = true;
-      this.$api.solutions
-        .getVMs()
-        .then((response) => {
-          this.vmachines = response.data.data;
-        })
-        .finally(() => {
-          this.loading = false;
-        });
     },
     openChatflow(topic) {
       this.$router.push({
@@ -139,10 +142,6 @@ module.exports = {
         params: { topic: topic },
       });
     },
-  },
-
-  mounted() {
-    this.getVMSinfo();
   },
 };
 </script>

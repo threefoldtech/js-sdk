@@ -41,6 +41,10 @@ class AdddingNodeFailed(BaseError):
     pass
 
 
+class VirtualMachineDeploymentFailed(BaseError):
+    pass
+
+
 class CannotDeleteMasterNode(BaseError):
     pass
 

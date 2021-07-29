@@ -6,8 +6,7 @@ from jumpscale.sals.chatflows.chatflows import chatflow_step
 from jumpscale.sals.marketplace import MarketPlaceAppsChatflow
 from jumpscale.sals.reservation_chatflow import deployer, solutions
 from jumpscale.sals.vdc.deployer import VDCIdentityError
-from jumpscale.sals.vdc.scheduler import CapacityChecker, GlobalCapacityChecker
-from jumpscale.sals.vdc.models import KubernetesRole
+from jumpscale.sals.vdc.scheduler import GlobalCapacityChecker
 
 
 class VMachineDeploy(MarketPlaceAppsChatflow):
@@ -37,55 +36,17 @@ class VMachineDeploy(MarketPlaceAppsChatflow):
         self.solution_uuid = j.data.idgenerator.uuid.uuid4().hex
         self.identity_name = j.core.identity.me.instance_name
 
-    def find_vmachine_farm(self, query, farm_name=None, public_ip=False):
-        if farm_name:
-            return farm_name, self._check_farm_capacity(query, farm_name, public_ip)
-        farms = j.config.get("NETWORK_FARMS", []) if public_ip else j.config.get("COMPUTE_FARMS", [])
-        for farm in farms:
-            if self._check_farm_capacity(query, farm, public_ip):
-                return farm, True
-        else:
-            self.vdc.load_info()
-            pool_id = [n for n in self.vdc.kubernetes if n.role == KubernetesRole.MASTER][-1].pool_id
-            farm_name = j.sals.marketplace.deployer.get_pool_farm_name(pool_id)
-            return farm_name, self._check_farm_capacity(query, farm_name, public_ip)
-
-    def _check_farm_capacity(self, query, farm_name=None, public_ip=False):
-        if public_ip:
-            zos = j.sals.zos.get()
-            farm = zos._explorer.farms.get(farm_name=farm_name)
-            available_ips = False
-            for address in farm.ipaddresses:
-                if not address.reservation_id:
-                    available_ips = True
-                    break
-            if not available_ips:
-                return False
-
-        old_node_ids = []
-        self.vdc.load_info()
-        for k8s_node in self.vdc.kubernetes:
-            old_node_ids.append(k8s_node.node_id)
-        for vmachine in solutions.list_vmachine_solutions(sync=False):
-            old_node_ids.append(vmachine["Node ID"])
-
-        cc = CapacityChecker(farm_name)
-        cc.exclude_nodes(*old_node_ids)
-
-        if not cc.add_query(**query):
-            return False
-        return True
-
     @chatflow_step(title="Solution Name")
     def vm_name(self):
         self._prepare()
         valid = False
+        self.vdc.load_info()
         while not valid:
             self.solution_name = deployer.ask_name(self)
-            vm_solutions = solutions.list_vmachine_solutions(sync=False)
+            vm_solutions = self.vdc.vmachines
             valid = True
             for sol in vm_solutions:
-                if sol["Name"] == self.solution_name:
+                if sol.name == self.solution_name:
                     valid = False
                     self.md_show("The specified solution name already exists. please choose another name.")
                     break
@@ -132,12 +93,13 @@ class VMachineDeploy(MarketPlaceAppsChatflow):
     def select_farm(self):
         self.farm_name = None
         if self.diff_farm:
+            self.vdc.load_info()
             self.md_show_update("Checking the available farms")
             old_node_ids = []
             for k8s_node in self.vdc.kubernetes:
                 old_node_ids.append(k8s_node.node_id)
-            for vmachine in solutions.list_vmachine_solutions(sync=False):
-                old_node_ids.append(vmachine["Node ID"])
+            for vmachine in self.vdc.vmachines:
+                old_node_ids.append(vmachine.node_id)
             gcc = GlobalCapacityChecker()
             gcc.exclude_nodes(*old_node_ids)
             farms_names = list(gcc.get_available_farms(**self.query))
@@ -147,10 +109,10 @@ class VMachineDeploy(MarketPlaceAppsChatflow):
 
     @chatflow_step(title="Deploying virtual machine")
     def add_vmachine(self):
-        farm_name, capacity_check = self.find_vmachine_farm(self.query, self.farm_name, self.enable_public_ip)
+        farm_name, capacity_check = self.vdc.find_vmachine_farm(self.query, self.farm_name, self.enable_public_ip)
         if not capacity_check:
             self.stop(
-                f"There's no enough capacity in farm {farm_name} for kubernetes node of flavor {self.node_flavor}"
+                f"There's no enough capacity in farm {farm_name} for virtual machine of flavor {self.node_flavor}"
             )
         j.logger.debug("found enough capacity, continue to payment")
 

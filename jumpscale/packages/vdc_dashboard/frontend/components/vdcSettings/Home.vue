@@ -22,7 +22,7 @@
       </v-tab-item>
       <v-tab-item class="ml-2">
         <v-card flat>
-          <virtual-machine :vdc="vdc" :loading="tableloading"></virtual-machine>
+          <virtual-machine :vmachines="vdc ? vdc.vmachines : []" :tableloading="tableloading"></virtual-machine>
         </v-card>
       </v-tab-item>
       <v-tab-item class="ml-2">
