@@ -553,10 +553,10 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         def clean_traefik(manager, ns):
             # wait until traefik chart is installed on the cluster then uninstall it
             checks = 12
-            while checks > 0 and not is_traefik_installed(manager):
+            while checks > 0 and not is_traefik_installed(manager, ns):
                 gevent.sleep(5)
                 checks -= 1
-            if is_traefik_installed(manager):
+            if is_traefik_installed(manager, ns):
                 manager.delete_deployed_release("traefik", ns)
 
         kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml"
