@@ -59,33 +59,14 @@ class SystemBackupService(BackgroundService):
             j.logger.warning(
                 f"[Backup Package - System Backup Service] couldn't get instance of BackupJob with name {self.BACKUP_JOB_NAME}!"
             )
-            j.tools.notificationsqueue.push(
-                f"couldn't get instance of BackupJob with name {self.BACKUP_JOB_NAME}!",
-                category="SystemBackupService",
-                level=LEVEL.WARNING,
-            )
 
             if not SystemBackupService._create_system_backup_job():
                 j.logger.error(
                     f"[Backup Package - System Backup Service] There is no preconfigure restic repo/s. Backup job won't executed!"
                 )
-                j.tools.notificationsqueue.push(
-                    f"There is no preconfigure restic repo/s. Backup job won't executed!",
-                    category="SystemBackupService",
-                    level=LEVEL.ERROR,
-                )
-                j.tools.alerthandler.alert_raise(
-                    app_name="SystemBackupJob",
-                    category="exception",
-                    message="There is no preconfigure restic repo/s. System Backup job won't executed!",
-                    alert_type="exception",
-                )
                 return
             j.logger.info(
                 f"[Backup Package - System Backup Service] {self.BACKUP_JOB_NAME} job successfully created\npaths to backup: {self.BACKUP_JOB_PATHS}\npaths excluded: {self.PATHS_TO_EXCLUDE}."
-            )
-            j.tools.notificationsqueue.push(
-                f"System backup job job successfully created!", category="SystemBackupService", level=LEVEL.INFO
             )
 
         backupjob = j.sals.backupjob.get(self.BACKUP_JOB_NAME)
