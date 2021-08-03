@@ -89,7 +89,6 @@ class VDCS3Deployer(VDCBaseComponent):
         self.vdc_deployer.error("no nodes available to deploy minio container")
 
     def deploy_s3_zdb(self, pool_id, scheduler, storage_per_zdb, password, solution_uuid, no_nodes=None):
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_one_zdb_batch {datetime.datetime.now()}\n")
         deployment_nodes = []
         wids = []
         no_nodes = no_nodes or S3_NO_DATA_NODES + S3_NO_PARITY_NODES
@@ -131,7 +130,6 @@ class VDCS3Deployer(VDCBaseComponent):
                     continue
             if len(wids) == no_nodes:
                 self.vdc_deployer.info(f"{no_nodes} zdbs deployed successfully on pool {pool_id}")
-                open("/tmp/times", "a").write(f"TIMESTAMP: end_one_zdb_batch {datetime.datetime.now()}\n")
                 return wids
             deployment_nodes = []
         self.vdc_deployer.error("no nodes available to deploy zdb")
