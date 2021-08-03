@@ -577,8 +577,7 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             "traefik/traefik",
             "kube-system",
             version=version,
-            chart_values_file=f"""<(echo -e 'image:
-tag: 2.4.8
+            chart_values_file=f"""<(echo -e '
 additionalArguments:
   - "--certificatesresolvers.default.acme.tlschallenge"
   - "--certificatesresolvers.default.acme.email=dsafsdajfksdhfkjadsfoo@you.com"
