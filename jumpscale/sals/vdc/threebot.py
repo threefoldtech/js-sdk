@@ -88,7 +88,6 @@ class VDCThreebotDeployer(VDCBaseComponent):
     def deploy_threebot(
         self, minio_wid, pool_id, kube_config, embed_trc=True, backup_config=None, zdb_farms=None, cert=None
     ):
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_threebot {datetime.datetime.now()}\n")
         backup_config = backup_config or {}
         etcd_backup_config = j.core.config.get("VDC_S3_CONFIG", {})
         flist = THREEBOT_VDC_FLIST if embed_trc else THREEBOT_FLIST
@@ -221,7 +220,6 @@ class VDCThreebotDeployer(VDCBaseComponent):
                     wid, self.bot, identity_name=self.identity.instance_name, cancel_by_uuid=False
                 )
                 if success:
-                    open("/tmp/times", "a").write(f"TIMESTAMP: end_threebot {datetime.datetime.now()}\n")
                     return wid
                 raise DeploymentFailed()
             except DeploymentFailed:
