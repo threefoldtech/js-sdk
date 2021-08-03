@@ -535,10 +535,10 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         return workloads_to_delete
 
     # TODO: better implementatiom
-    def upgrade_traefik(self, version="2.4.8"):
+    def upgrade_traefik(self, version="9.20.1"):
         """
         Args:
-            version: traefik helm version default: "2.4.8"
+            version: traefik chart helm version default: "9.20.1"
         Upgrades traefik chart installed on k3s to support different CAs
         """
 
@@ -576,8 +576,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             "traefik",
             "traefik/traefik",
             "kube-system",
-            chart_values_file=f"""<(echo -e 'image:
-  tag: {version}
+            version=version,
+            chart_values_file=f"""<(echo -e '
 additionalArguments:
   - "--certificatesresolvers.default.acme.tlschallenge"
   - "--certificatesresolvers.default.acme.email=dsafsdajfksdhfkjadsfoo@you.com"
