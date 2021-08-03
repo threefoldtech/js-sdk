@@ -452,7 +452,6 @@ class VDCDeployer:
         self.bot_show_update("Deploying Kubernetes Workers...")
         self.vdc_instance.load_info()
         public_ip = [n for n in self.vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_workers {datetime.datetime.now()}\n")
         wids = self.kubernetes.extend_cluster(
             compute_farm,
             public_ip,
@@ -464,7 +463,6 @@ class VDCDeployer:
             solution_uuid=self.vdc_uuid,
             external=False,
         )
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_workers {datetime.datetime.now()}\n")
         if not wids:
             self.error(f"failed to deploy kubernetes workers")
         return wids
@@ -476,11 +474,9 @@ class VDCDeployer:
         nv = deployer.get_network_view(self.vdc_name, identity_name=self.identity.instance_name)
         master_size = VDC_SIZE.VDC_FLAVORS[self.flavor]["k8s"]["controller_size"]
         pub_keys = pub_keys or []
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_master {datetime.datetime.now()}\n")
         master_ip = self.kubernetes.deploy_master(
             master_pool_id, gs, master_size, self.password_hash, pub_keys, self.vdc_uuid, nv, endpoint
         )
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_master {datetime.datetime.now()}\n")
         if not master_ip:
             self.error(f"failed to deploy kubernetes master")
             return
@@ -494,7 +490,6 @@ class VDCDeployer:
         self.bot_show_update("Deploying Kubernetes Workers...")
         self.vdc_instance.load_info()
         public_ip = [n for n in self.vdc_instance.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_workers {datetime.datetime.now()}\n")
         wids = self.kubernetes.extend_cluster(
             compute_farm,
             public_ip,
@@ -507,7 +502,6 @@ class VDCDeployer:
             external=False,
             no_extend_pool=True,
         )
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_workers {datetime.datetime.now()}\n")
         if not wids:
             self.error(f"failed to deploy kubernetes workers")
             return None
@@ -527,7 +521,6 @@ class VDCDeployer:
     ):
 
         self.bot_show_update(f"Deploying {solution_name} virtual machine...")
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_vmachine {datetime.datetime.now()}\n")
 
         results = self.vmachine.start_vmachine_deployment(
             farm_name,
@@ -541,7 +534,6 @@ class VDCDeployer:
             duration=duration,
         )
 
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_vmachine {datetime.datetime.now()}\n")
 
         if not results:
             self.error(f"failed to deploy virtual machine")
@@ -549,14 +541,12 @@ class VDCDeployer:
         return results
 
     def deploy_external_etcd(self, compute_farm):
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_etcd {datetime.datetime.now()}\n")
         self.bot_show_update("Deploying External ETCD Cluster...")
         etcd_ips = self.kubernetes.deploy_external_etcd(farm_name=compute_farm, solution_uuid=self.vdc_uuid)
         if not etcd_ips:
             self.error("failed to deploy etcd cluster")
             return
         endpoint = ",".join([f"http://{ip_address}:2379" for ip_address in etcd_ips])
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_etcd {datetime.datetime.now()}\n")
         return endpoint
 
     def _set_wallet(self, alternate_wallet_name=None):
@@ -676,15 +666,11 @@ class VDCDeployer:
 
         # initialize VDC pools
         self.bot_show_update("Creating VDC Pools")
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_vdc_pools {datetime.datetime.now()}\n")
         self.init_vdc(self.compute_farm, self.network_farm, zdb_farms=zdb_farms)
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_vdc_pools {datetime.datetime.now()}\n")
         self.bot_show_update("Deploying network")
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_vdc_network {datetime.datetime.now()}\n")
         if not self.deploy_vdc_network():
             self.error("Failed to deploy network")
             raise j.exceptions.Runtime("Failed to deploy network")
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_vdc_network {datetime.datetime.now()}\n")
         gs = GlobalScheduler()
 
         with new_vdc_context(self):

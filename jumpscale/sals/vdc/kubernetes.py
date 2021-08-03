@@ -471,8 +471,6 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         Args:
             master ip: public ip address of kubernetes master
         """
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_master_ssh {datetime.datetime.now()}\n")
-        open("/tmp/times", "a").write(f"ip: {master_ip}\n")
         if not j.sals.nettools.wait_connection_test(master_ip, 6443, timeout=120):
             raise j.exceptions.Runtime(
                 f"Couldn't download kube config for vdc: failed to wait for cluster init {self.vdc_name}."
@@ -502,7 +500,6 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         out = j.data.serializers.yaml.dumps(config_dict)
         j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}")
         j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml", out)
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_master_ssh {datetime.datetime.now()}\n")
         return out
 
     def delete_worker(self, wid, is_ready=False):
