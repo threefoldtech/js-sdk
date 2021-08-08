@@ -27,7 +27,7 @@ git reset --hard origin/${SDK_VERSION}
 git checkout $SDK_VERSION
 
 if $poetry_install; then
-  poetry install
+  poetry install --no-dev
 fi
 
 # Execute the initialization script from the newly fetched branch

@@ -1,5 +1,5 @@
 #################
-# Exit Code Number    Meaning                                                   
+# Exit Code Number    Meaning
 # 0                   Okay
 # 64                  Error: poetry install failed                              POETRY_INSTALL_ERROR
 # 65                  Error: hard reset files to HEAD failed                    GIT_RESET_ERROR
@@ -60,7 +60,7 @@ if $RESET_SUCCEEDED; then
     MAX_TRIES=4
     COUNT=0
     while [  $COUNT -lt $MAX_TRIES ]; do
-        poetry install --no-interaction
+        poetry install --no-interaction --no-dev
         if [ $? -eq 0 ];then
           git stash pop
           echo "Code updated and all defined dependencies successfully installed!"
