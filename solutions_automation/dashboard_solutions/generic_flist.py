@@ -20,12 +20,22 @@ class FlistAutomated(GedisChatBotPatch, FlistDeploy):
     NODE_ID_MESSAGE = r"^Do you want to automatically select a node to deploy (.*)\?$"
     POOL_MESSAGE = r"^Please select a pool( for (.*))?$"
     NODE_SELECTION_MESSAGE = r"^Please choose the node you want to deploy (.*) on$"
+    REDIS_CHANNEL_TYPE = "Please add the channel type"
+    REDIS_IP = "Please add the IP address where the logs will be output to"
+    REDIS_PORT = "Please add the port available where the logs will be output to"
+    REDIS_CHANNEL_NAME = (
+        "Please add the channel name to be used. The channels will be in the form NAME-stdout and NAME-stderr"
+    )
 
     QS = {
         # strs
         NAME_MESSAGE: "get_name",
         FLIST_MESSGAE: "flist",
         ENTRY_POINT: "entry_point",
+        REDIS_CHANNEL_TYPE: "redis_chaneel_type",
+        REDIS_IP: "redis_ip",
+        REDIS_PORT: "redis_port",
+        REDIS_CHANNEL_NAME: "redis_channel_name",
         # ints
         CPU_MESSAGE: "cpu",
         MEM_MESSAGE: "memory",

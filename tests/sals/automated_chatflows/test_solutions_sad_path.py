@@ -326,6 +326,23 @@ class TFGridSolutionChatflowsSadPath(ChatflowsBase):
                 network=self.network_name,
             )
             self.solution_uuid = generic_flist.solution_id
+        import pdb
+
+        pdb.set_trace()
         self.info("Check that generic flist deploying has been failed")
         error_message = "Something wrong happened"
         self.assertIn(error_message, str(exp.value))
+
+    def test09_deploy_container_with_push_logs_to_redis(self):
+        """Test case for deploying a container with push logs to redis server.
+
+        **Test Scenario**
+
+        - get redis server instance.
+        - Deploy a container with push logs to redis server.
+        - Check that container deploying has been failed.
+        """
+        self.info("get redis server instance")
+        redis = j.clients.redis.get("redis_test")
+
+        self.info("Deploy an ubuntu and push container logs to redis server")
