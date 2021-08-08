@@ -30,7 +30,7 @@ _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
 }  # TODO: add tftech link
 _HORIZON_NETWORKS = {
     "TEST": "https://horizon-testnet.stellar.org",
-    "STD": "https://horizon.stellar.org",
+    "STD": "https://stellar-mainnet.grid.tf/",
     "TFTECHTEST": "https://horizon.testnet.threefold.io",
 }
 _NETWORK_PASSPHRASES = {
