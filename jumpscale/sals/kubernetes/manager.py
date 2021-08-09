@@ -165,6 +165,16 @@ class Manager:
         ssh_client = j.clients.sshclient.get(instance, user=user, host=host, sshkey=instance)
         return ssh_client
 
+    def delete_namespaces(self, namespaces: list):
+        """ Delete list of namespaces
+
+        Args:
+            namespaces (list): list containing namespaces to delete
+        """
+        namespaces_str = " ".join(namespaces)
+        self.execute_native_cmd(f"kubectl delete ns {namespaces_str}")
+        j.logger.info(f"Namespaces: {namespaces_str} are deleted")
+
     @helm_required
     def delete_deployed_release(self, release, namespace="default", vdc_instance=None):
         """deletes deployed helm release

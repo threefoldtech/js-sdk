@@ -83,7 +83,7 @@ def get_kubeconfig() -> str:
 def delete_node():
     data = j.data.serializers.json.loads(request.body.read())
     wid = data.get("wid")
-    pods_to_delete = data.get("pods_to_delete")
+    releases_to_delete = data.get("releases_to_delete")
     if not wid:
         abort(400, "Error: Not all required params was passed.")
     vdc = get_vdc()
@@ -91,10 +91,9 @@ def delete_node():
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     deployer = vdc.get_deployer()
 
-    # Delete pods that can't be redeployed on other nodes due to resources limitations
-    for pod_ns in pods_to_delete:
-        deployer.vdc_k8s_manager.execute_native_cmd(f"kubectl delete ns {pod_ns}")
-        j.logger.info(f"{pod_ns} deleted")
+    # Delete all releases which have pods on this node
+    if releases_to_delete:
+        deployer.vdc_k8s_manager.delete_namespaces(releases_to_delete)
 
     # Delete the node
     try:
@@ -118,11 +117,11 @@ def check_before_delete_node():
         return HTTPResponse(status=404, headers={"Content-Type": "application/json"})
     deployer = vdc.get_deployer()
     try:
-        is_ready, pods_to_delete = deployer.kubernetes.check_drain_availability(wid)
+        releases_to_delete = deployer.kubernetes.list_node_releases(wid)
     except Exception as e:
         j.logger.error(f"Error: Failed to check before delete workload due to the following {str(e)}")
         abort(500, "Error: Failed to check before delete workload")
-    return j.data.serializers.json.dumps({"is_ready": is_ready, "pods_to_delete": pods_to_delete})
+    return j.data.serializers.json.dumps({"releases_to_delete": releases_to_delete})
 
 
 @app.route("/api/s3/zdbs/delete", method="POST")

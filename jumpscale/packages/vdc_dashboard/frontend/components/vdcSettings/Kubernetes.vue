@@ -112,8 +112,7 @@
       title="Delete Worker"
       :messages="deletionMessages"
       :wid="selectedworker"
-      :isnodereadytodelete="isNodeReadyToDelete"
-      :podstodelete="podsToDelete"
+      :releasestodelete="releasesToDelete"
       @reload-vdcinfo="reloadVdcInfo"
     ></cancel-workload>
     <redeploy-master
@@ -161,8 +160,7 @@ module.exports = {
         warningMsg: "",
         successMsg: "Worker deleted successfully",
       },
-      isNodeReadyToDelete: false,
-      podsToDelete: null,
+      releasesToDelete: null,
       isVDCAutoscalable: false,
     };
   },
@@ -180,20 +178,18 @@ module.exports = {
     deleteNode(wid) {
       this.selectedworker = wid;
       this.tableLoading = true;
+      this.deletionMessages.warningMsg = "";
       this.$api.solutions.checkBeforeDeleteWorkerWorkload(wid)
         .then((response) => {
-          console.log("Check Before Delete Node Response:" , response.data);
-          this.isNodeReadyToDelete = response.data.is_ready;
-          this.podsToDelete = response.data.pods_to_delete;
-          podsString = "<br>"
+          this.releasesToDelete = response.data.releases_to_delete;
+          releasesString = "<br>"
           timeWarning = "<br> This operation may take time, to safely delete your worker"
-          for (pod in this.podsToDelete){
-            podsString += "- " + this.podsToDelete[pod] + "<br>"
+          for (release in this.releasesToDelete){
+            releasesString += "- " + this.releasesToDelete[release] + "<br>"
           }
-          if (!this.isNodeReadyToDelete) {
-            this.deletionMessages.warningMsg = "The following release/s will be deleted: " + podsString + timeWarning;
+          if (this.releasesToDelete.length > 0) {
+            this.deletionMessages.warningMsg = "The following release/s will be deleted: " + releasesString + timeWarning;
           }
-          console.log("Deletion msg:" ,this.deletionMessages);
         }).finally(() => {
           this.tableLoading = false;
           this.dialogs.cancelWorkload = true;

@@ -142,11 +142,11 @@ const apiClient = {
         headers: { 'Content-Type': 'application/json' }
       })
     },
-    deleteWorkerWorkload: (wid, podsToDelete) => {
+    deleteWorkerWorkload: (wid, releasesToDelete) => {
       return axios({
         url: `${baseURL}/kube/nodes/delete`,
         method: "post",
-        data: { wid: wid, pods_to_delete: podsToDelete },
+        data: { wid: wid, releases_to_delete: releasesToDelete },
         headers: { 'Content-Type': 'application/json' }
       })
     },

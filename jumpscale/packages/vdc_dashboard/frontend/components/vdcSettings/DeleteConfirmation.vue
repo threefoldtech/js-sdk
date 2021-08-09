@@ -9,7 +9,7 @@
   >
     <template #default>
       {{ messages.confirmationMsg }}
-      <v-alert v-if="isnodereadytodelete == false" border="top" colored-border type="warning" elevation="2">
+      <v-alert v-if="messages.warningMsg" border="top" colored-border type="warning" elevation="2">
         <span v-html="messages.warningMsg"></span>
       </v-alert>
     </template>
@@ -28,14 +28,13 @@ module.exports = {
     api: String,
     wid: Number,
     messages: Object,
-    isnodereadytodelete: Boolean,
-    podstodelete: Array
+    releasestodelete: Array
   },
   methods: {
     submit() {
       this.loading = true;
       this.error = null;
-      this.$api.solutions[this.api](this.wid, this.podstodelete)
+      this.$api.solutions[this.api](this.wid, this.releasestodelete)
         .then((response) => {
           this.alert(this.messages.successMsg, "success");
           this.close();
