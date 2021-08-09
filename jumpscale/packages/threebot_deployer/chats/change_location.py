@@ -30,7 +30,7 @@ class ThreebotRedeploy(MarketPlaceAppsChatflow):
         "deploy",
         "initializing",
         "new_expiration",
-        "solution_extension",
+        "extension_with_billing_package",
         "success",
     ]
 

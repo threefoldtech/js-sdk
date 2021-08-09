@@ -15,6 +15,7 @@ from jumpscale.clients.explorer.models import (
     PublicIP,
     WorkloadType,
     ZdbNamespace,
+    VirtualMachine,
 )
 from jumpscale.clients.stellar import TRANSACTION_FEES
 from jumpscale.clients.stellar import TRANSACTION_FEES
@@ -36,6 +37,7 @@ VDC_WORKLOAD_TYPES = [
     WorkloadType.Kubernetes,
     WorkloadType.Subdomain,
     WorkloadType.Reverse_proxy,
+    WorkloadType.Virtual_Machine,
 ]
 
 
@@ -53,6 +55,7 @@ class UserVDC(Base):
     solution_uuid = fields.String(default=lambda: uuid.uuid4().hex)
     identity_tid = fields.Integer()
     s3 = fields.Object(S3)
+    vmachines = fields.List(fields.Object(VMachine))
     kubernetes = fields.List(fields.Object(KubernetesNode))
     etcd = fields.List(fields.Object(ETCDNode))
     threebot = fields.Object(VDCThreebot)
@@ -91,6 +94,8 @@ class UserVDC(Base):
             self.load_info()
         if any([self.kubernetes, self.threebot.wid, self.threebot.domain, self.s3.minio.wid, self.s3.zdbs]):
             return False
+        self.state = VDCSTATE.EMPTY
+        self.save()
         return True
 
     def has_minimal_components(self):
@@ -132,6 +137,7 @@ class UserVDC(Base):
         workloads = []
         workloads += self.kubernetes
         workloads += self.s3.zdbs
+        workloads += self.vmachines
         if self.threebot.wid:
             workloads.append(self.threebot)
         if self.s3.minio.wid:
@@ -215,13 +221,14 @@ class UserVDC(Base):
         return QuantumStorage(self, ip_version)
 
     def load_info(self, load_proxy=False):
-        kubernetes, s3, etcd, threebot = self.get_vdc_workloads(load_proxy=load_proxy)
+        kubernetes, s3, vmachines, etcd, threebot = self.get_vdc_workloads(load_proxy=load_proxy)
 
         self.__lock.acquire()
         try:
             self.kubernetes = kubernetes
             self.etcd = etcd
             self.s3 = s3
+            self.vmachines = vmachines
             self.threebot = threebot
         finally:
             self.__lock.release()
@@ -301,6 +308,7 @@ class UserVDC(Base):
         kubernetes = []
         s3 = S3()
         etcd = []
+        vmachines = []
         threebot = VDCThreebot()
 
         proxies = []
@@ -319,7 +327,11 @@ class UserVDC(Base):
                     etcd.append(node)
             elif workload.info.workload_type == WorkloadType.Zdb:
                 zdb = S3ZDB.from_workload(workload)
-                s3.zdbs.append(zdb)
+                if zdb:
+                    s3.zdbs.append(zdb)
+            elif workload.info.workload_type == WorkloadType.Virtual_Machine:
+                vmachine = VMachine.from_workload(workload)
+                vmachines.append(vmachine)
             elif workload.info.workload_type == WorkloadType.Subdomain:
                 s3_domain = self._check_s3_subdomains(workload)
                 if s3_domain:
@@ -332,7 +344,7 @@ class UserVDC(Base):
         if load_proxy:
             self._build_zdb_proxies(s3)
 
-        return kubernetes, s3, etcd, threebot
+        return kubernetes, s3, vmachines, etcd, threebot
 
     def _check_s3_subdomains(self, workload):
         minio_wid = self.s3.minio.wid
@@ -553,7 +565,57 @@ class UserVDC(Base):
             refund_extra=False,
             expiry=expiry,
             description=j.data.serializers.json.dumps(
-                {"type": "VDC_ZDB_EXTEND", "owner": self.owner_tname, "solution_uuid": self.solution_uuid,}
+                {"type": "VDC_ZDB_EXTEND", "owner": self.owner_tname, "solution_uuid": self.solution_uuid}
+            ),
+        )
+        if amount > 0:
+            notes = []
+            if discount:
+                notes = ["For testing purposes, we applied a discount of {:.0f}%".format(discount * 100)]
+            return j.sals.billing.wait_payment(payment_id, bot=bot, notes=notes), amount, payment_id
+        else:
+            return True, amount, payment_id
+
+    def show_external_vmachine_payment(self, bot, farm_name, size_number, expiry=5, wallet_name=None, public_ip=False):
+        discount = FARM_DISCOUNT.get()
+        duration = self.calculate_expiration_value() - j.data.time.utcnow().timestamp
+        month = 60 * 60 * 24 * 30
+        if duration > month:
+            duration = month
+
+        zos = j.sals.zos.get()
+        farm_id = zos._explorer.farms.get(farm_name=farm_name).id
+        vmachine = VirtualMachine()
+        vmachine.size = size_number
+        amount = j.tools.zos.consumption.cost(vmachine, duration, farm_id) + TRANSACTION_FEES
+
+        if public_ip:
+            pub_ip = PublicIP()
+            amount += j.tools.zos.consumption.cost(pub_ip, duration, farm_id)
+
+        prepaid_balance = self._get_wallet_balance(self.prepaid_wallet)
+        if prepaid_balance >= amount:
+            if bot:
+                result = bot.single_choice(
+                    f"Do you want to use your existing balance to pay {round(amount,4)} TFT? (This will impact the overall expiration of your plan)",
+                    ["Yes", "No"],
+                    required=True,
+                )
+                if result == "Yes":
+                    amount = 0
+            else:
+                amount = 0
+        elif not bot:
+            # Not enough funds in prepaid wallet and no bot passed to use to view QRcode
+            return False, amount, None
+
+        payment_id, _ = j.sals.billing.submit_payment(
+            amount=amount,
+            wallet_name=wallet_name or self.prepaid_wallet.instance_name,
+            refund_extra=False,
+            expiry=expiry,
+            description=j.data.serializers.json.dumps(
+                {"type": "VM_CREATION", "owner": self.owner_tname, "solution_uuid": self.solution_uuid}
             ),
         )
         if amount > 0:
@@ -778,6 +840,45 @@ class UserVDC(Base):
             pool_id = [n for n in self.kubernetes if n.role == KubernetesRole.MASTER][-1].pool_id
             farm_name = j.sals.marketplace.deployer.get_pool_farm_name(pool_id)
             return farm_name, self._check_added_worker_capacity(flavor, farm_name, public_ip)
+
+    def have_capacity(self, query, vdc, farm_name=None, public_ip=False):
+        if public_ip:
+            zos = j.sals.zos.get()
+            farm = zos._explorer.farms.get(farm_name=farm_name)
+            available_ips = False
+            for address in farm.ipaddresses:
+                if not address.reservation_id:
+                    available_ips = True
+                    break
+            if not available_ips:
+                return False
+
+        old_node_ids = []
+        vdc.load_info()
+        for k8s_node in vdc.kubernetes:
+            old_node_ids.append(k8s_node.node_id)
+        for vmachine in vdc.vmachines:
+            old_node_ids.append(vmachine.node_id)
+
+        cc = CapacityChecker(farm_name)
+        cc.exclude_nodes(*old_node_ids)
+
+        if not cc.add_query(**query):
+            return False
+        return True
+
+    def find_vmachine_farm(self, query, farm_name=None, public_ip=False):
+        if farm_name:
+            return farm_name, self.have_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip)
+        farms = j.config.get("NETWORK_FARMS", []) if public_ip else j.config.get("COMPUTE_FARMS", [])
+        for farm in farms:
+            if self.have_capacity(query=query, vdc=self, farm_name=farm, public_ip=public_ip):
+                return farm, True
+        else:
+            self.load_info()
+            pool_id = [n for n in self.kubernetes if n.role == KubernetesRole.MASTER][-1].pool_id
+            farm_name = j.sals.marketplace.deployer.get_pool_farm_name(pool_id)
+            return farm_name, self.have_capacity(query=query, vdc=self, farm_name=farm_name, public_ip=public_ip)
 
     def _check_added_worker_capacity(self, flavor, farm_name, public_ip=False):
         if public_ip:

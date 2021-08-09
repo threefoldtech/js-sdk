@@ -6,7 +6,7 @@ Each service defines an interval to define the period of the service and defines
 Any service should:
 - Inherit from `BackgroundService` class defined here: `from jumpscale.tools.servicemanager.servicemanager import BackgroundService`
 - Define an interval in the constructor
-- Implement the abtsract `job` method of the `BackgroundService` base class.
+- Implement the abstract `job` method of the `BackgroundService` base class.
 
 ### How it schedules services
 
@@ -16,6 +16,18 @@ After the greenlet finishes execution the callback is fired which schedules the 
 
 To add a service to the service manager you should call the `add_service` method which takes the package name and package path as parameters.
 It loads the file in this path as a module and gets the service object defined in the service.py file.
+
+### Immediately schedule service
+
+The services first start will be after the requested interval.
+If you need to make the service first interval immediately on server start, It can be added in your service by adding
+
+```python3
+self.schedule_on_start = True
+```
+
+in your service init after calling super() init.
+
 
 ### Example service
 
@@ -28,6 +40,7 @@ class TestService(BackgroundService):
             Test service that runs every 1 minute
         '''
         super().__init__(interval, *args, **kwargs)
+        self.schedule_on_start = True # immediately schedule the service (optional step and the line can be removed, default=False)
 
     def job(self):
         print("[Test Service] Done")
@@ -57,6 +70,7 @@ class BackgroundService(ABC):
             interval (int | CronTab object | str): scheduled job is executed every interval in seconds / CronTab object / CronTab-formatted string
         """
         self.interval = interval
+        self.schedule_on_start = False
 
     @abstractmethod
     def job(self):
@@ -183,7 +197,7 @@ class ServiceManager(Base):
             j.logger.debug(f"Service {service.name} is already running. Reloading...")
             self.stop_service(service.name)
 
-        next_start = ceil(self.seconds_to_next_interval(service.interval))
+        next_start = 0 if service.schedule_on_start else ceil(self.seconds_to_next_interval(service.interval))
         self._scheduled[service.name] = gevent.spawn_later(next_start, self._schedule_service, service=service)
         self.services[service.name] = service
         j.logger.debug(f"Service {service.name} is added.")

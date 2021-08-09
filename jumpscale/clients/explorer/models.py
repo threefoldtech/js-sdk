@@ -549,6 +549,7 @@ class VirtualMachine(Base):
     id = fields.Integer()
     name = fields.String(default="")
     hub_url = fields.String(default="")
+    description = fields.String(default="")
     network_connection = fields.List(fields.Object(ContainerNetworkConnection))
     network_id = fields.String()
     farmer_tid = fields.Integer()
@@ -557,7 +558,6 @@ class VirtualMachine(Base):
     ssh_keys = fields.List(fields.String())
     public_ip = fields.Integer()
     ipaddress = fields.IPAddress()
-
     SIZES = VMSIZES
 
     def resource_units(self):

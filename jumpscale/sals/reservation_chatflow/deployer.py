@@ -489,7 +489,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         self.wait_pool_reservation(pool_info.reservation_id, 10, qr_code, bot)
         return pool_info
 
-    def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None):
+    def check_farm_capacity(
+        self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None, exclude_nodes=None
+    ):
         zos = j.sals.zos.get()
         node_filter = None
         if j.core.config.get("OVER_PROVISIONING"):
@@ -517,6 +519,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             if not zos.nodes_finder.filter_is_up(node):
                 continue
             if node.node_id in blocked_nodes:
+                continue
+            if exclude_nodes and node.node_id in exclude_nodes:
                 continue
             if not access_node and ip_version and node_filter(node):
                 access_node = node
@@ -646,9 +650,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         available_pools=None,
         workload_name=None,
     ):
-        if j.config.get("OVER_PROVISIONING"):
-            cru = 0
-            mru = 0
         available_pools = available_pools or self.list_pools(cu, su, ipv4u)
         if not available_pools:
             raise StopChatFlow("no available pools with enough capacity for your workload")
@@ -1118,6 +1119,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             interactive,
             encrypted_secret_env,
             public_ipv6=public_ipv6,
+            disk_type=disk_type,
         )
         if volumes:
             for mount_point, vol_id in volumes.items():
@@ -1186,8 +1188,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         logs_config["channel_name"] = channel_name.value
         return logs_config
 
-    def schedule_container(self, pool_id, cru=None, sru=None, mru=None, hru=None, ip_version=None):
-        query = {"cru": cru, "sru": sru, "mru": mru, "hru": hru, "ip_version": ip_version}
+    def schedule_container(self, pool_id, cru=None, sru=None, mru=None, hru=None, ip_version=None, ipv4u=None):
+        query = {"cru": cru, "sru": sru, "mru": mru, "hru": hru, "ip_version": ip_version, "ipv4u": ipv4u}
         return j.sals.reservation_chatflow.reservation_chatflow.get_nodes(1, pool_ids=[pool_id], **query)[0]
 
     def ask_container_placement(
@@ -1257,23 +1259,34 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return zos.workloads.deploy(public_ip)
 
     def deploy_vmachine(
-        self, node_id, network_name, name, ip_address, ssh_keys, pool_id, size=1, enable_public_ip=False, **metadata
+        self,
+        node_id,
+        network_name,
+        name,
+        ip_address,
+        ssh_keys,
+        pool_id,
+        size=1,
+        enable_public_ip=False,
+        description="",
+        **metadata,
     ):
         identity_name = metadata.get("owner", j.core.identity.me.instance_name)
         public_ip_wid = 0
         public_ip = ""
+        # Reserve public_Ip on node_id[0]
         if enable_public_ip:
-            # Reserve public_Ip on node_id[0]
-            if enable_public_ip:
-                public_ip_wid, public_ip = self.create_public_ip(
-                    pool_id, node_id, solution_uuid=metadata.get("solution_uuid")
-                )
-                if not public_ip_wid or not public_ip:
-                    raise DeploymentFailed(f"Can not get public ip for your solutions")
-                public_ip = public_ip.split("/")[0] if public_ip else ""
+            public_ip_wid, public_ip = self.create_public_ip(
+                pool_id, node_id, solution_uuid=metadata.get("solution_uuid")
+            )
+            if not public_ip_wid or not public_ip:
+                raise DeploymentFailed(f"Can not get public ip for your solutions")
+            public_ip = public_ip.split("/")[0] if public_ip else ""
         vmachine = j.sals.zos.get(identity_name).vm.create(
             node_id, network_name, name, ip_address, ssh_keys, pool_id, size, public_ip_wid
         )
+        vmachine.info.metadata = self.encrypt_metadata(metadata, identity_name)
+        vmachine.info.description = description
         return j.sals.zos.get(identity_name).workloads.deploy(vmachine), public_ip
 
     def deploy_kubernetes_master(

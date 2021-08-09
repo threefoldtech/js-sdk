@@ -2,12 +2,13 @@ from jumpscale.loader import j
 
 from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
-UPGRADE_TO_VER = "2.4.8"
+UPGRADE_TO_VER = "9.20.1"
 
 
 class UpgradeTraefik(BackgroundService):
     def __init__(self, interval=5 * 60, *args, **kwargs):
         super().__init__(interval, *args, **kwargs)
+        self.schedule_on_start = True
 
     def job(self):
         current_ver = self.get_traefik_version()
@@ -23,7 +24,7 @@ class UpgradeTraefik(BackgroundService):
         results = j.data.serializers.json.loads(out)
         for release in results:
             if release["name"] == "traefik":
-                return release["app_version"]
+                return release["chart"].replace("traefik-", "")
 
 
 service = UpgradeTraefik()

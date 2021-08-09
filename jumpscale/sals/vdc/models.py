@@ -7,6 +7,7 @@ import netaddr
 from jumpscale.sals.zos import get as get_zos
 
 from .size import VDC_SIZE
+from jumpscale.clients.explorer.models import VMSIZES
 
 
 K8S_SIZES = VDC_SIZE.K8S_SIZES
@@ -34,6 +35,40 @@ class VDCHostBase(VDCWorkloadBase):
 class KubernetesRole(Enum):
     MASTER = "master"
     WORKER = "worker"
+
+
+class PublicIP(Base):
+    wid = fields.Integer(default=None)
+    address = fields.String(default="")
+
+
+class VMachine(VDCWorkloadBase):
+    name = fields.String()
+    public_ip = fields.Object(PublicIP)
+    size = fields.Integer()
+    resources = fields.Typed(dict)
+    ip_address = fields.String(default="")
+
+    @classmethod
+    def from_workload(cls, workload):
+        vmachine = cls()
+        vmachine.wid = workload.id
+        metadata = j.sals.reservation_chatflow.reservation_chatflow.decrypt_reservation_metadata(workload.info.metadata)
+        metadata = j.data.serializers.json.loads(metadata)
+        vmachine.name = metadata["form_info"]["name"]
+        vmachine.pool_id = workload.info.pool_id
+        vmachine.node_id = workload.info.node_id
+        vmachine.size = workload.size
+        vmachine.resources = VMSIZES.get(workload.size)
+        vmachine.ip_address = workload.ipaddress
+        if workload.public_ip:
+            vmachine.public_ip.wid = workload.public_ip
+            zos = get_zos()
+            public_ip_workload = zos.workloads.get(workload.public_ip)
+            address = str(netaddr.IPNetwork(public_ip_workload.ipaddress).ip)
+            vmachine.public_ip.address = address
+
+        return vmachine
 
 
 class KubernetesNode(VDCHostBase):
@@ -118,4 +153,4 @@ class VDCThreebot(VDCHostBase):
     domain = fields.String()
 
 
-__all__ = ["VDCThreebot", "S3", "S3ZDB", "S3Container", "KubernetesNode", "KubernetesRole", "ETCDNode"]
+__all__ = ["VDCThreebot", "S3", "VMachine", "S3ZDB", "S3Container", "KubernetesNode", "KubernetesRole", "ETCDNode"]

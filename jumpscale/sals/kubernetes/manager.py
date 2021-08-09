@@ -113,6 +113,7 @@ class Manager:
         chart_values_file=None,
         extra_config_string_safe=None,
         timeout="7m0s",
+        version=None,
     ):
         """deploy a helm chart
 
@@ -141,6 +142,8 @@ class Manager:
         cmd = f"helm --kubeconfig {self.config_path} --namespace {namespace} install --timeout {timeout} --create-namespace {release} {chart_name} {params}"
         if chart_values_file:
             cmd += f" -f {chart_values_file}"
+        if version:
+            cmd += f" --version {version}"
         rc, out, err = self._execute(cmd)
         if rc != 0:
             raise j.exceptions.Runtime(f"Failed to deploy chart {chart_name}, error was {err}")

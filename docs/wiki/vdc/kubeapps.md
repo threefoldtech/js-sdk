@@ -2,9 +2,9 @@ Kubeapps is a web-based UI for deploying and managing applications in Kubernetes
 
 ### Step 1: Install Kubeapps
 
-##### you can use our chatflow from VDC market place  
+##### you can use our chatflow from VDC market place
 
-or 
+or
 
 Use the Helm chart to install the latest version of Kubeapps:
 

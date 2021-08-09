@@ -517,8 +517,6 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         Args:
             master ip: public ip address of kubernetes master
         """
-        open("/tmp/times", "a").write(f"TIMESTAMP: start_master_ssh {datetime.datetime.now()}\n")
-        open("/tmp/times", "a").write(f"ip: {master_ip}\n")
         if not j.sals.nettools.wait_connection_test(master_ip, 6443, timeout=120):
             raise j.exceptions.Runtime(
                 f"Couldn't download kube config for vdc: failed to wait for cluster init {self.vdc_name}."
@@ -548,7 +546,6 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         out = j.data.serializers.yaml.dumps(config_dict)
         j.sals.fs.mkdirs(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}")
         j.sals.fs.write_file(f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml", out)
-        open("/tmp/times", "a").write(f"TIMESTAMP: end_master_ssh {datetime.datetime.now()}\n")
         return out
 
     def get_node_name(self, wid):
@@ -584,10 +581,10 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         return workloads_to_delete
 
     # TODO: better implementatiom
-    def upgrade_traefik(self, version="2.4.8"):
+    def upgrade_traefik(self, version="9.20.1"):
         """
         Args:
-            version: traefik helm version default: "2.4.8"
+            version: traefik chart helm version default: "9.20.1"
         Upgrades traefik chart installed on k3s to support different CAs
         """
 
@@ -602,10 +599,10 @@ class VDCKubernetesDeployer(VDCBaseComponent):
         def clean_traefik(manager, ns):
             # wait until traefik chart is installed on the cluster then uninstall it
             checks = 12
-            while checks > 0 and not is_traefik_installed(manager):
+            while checks > 0 and not is_traefik_installed(manager, ns):
                 gevent.sleep(5)
                 checks -= 1
-            if is_traefik_installed(manager):
+            if is_traefik_installed(manager, ns):
                 manager.delete_deployed_release("traefik", ns)
 
         kubeconfig_path = f"{j.core.dirs.CFGDIR}/vdc/kube/{self.vdc_deployer.tname}/{self.vdc_name}.yaml"
@@ -625,8 +622,8 @@ class VDCKubernetesDeployer(VDCBaseComponent):
             "traefik",
             "traefik/traefik",
             "kube-system",
-            chart_values_file=f"""<(echo -e 'image:
-  tag: {version}
+            version=version,
+            chart_values_file=f"""<(echo -e '
 additionalArguments:
   - "--certificatesresolvers.default.acme.tlschallenge"
   - "--certificatesresolvers.default.acme.email=dsafsdajfksdhfkjadsfoo@you.com"

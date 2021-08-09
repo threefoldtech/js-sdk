@@ -1,3 +1,4 @@
+from jumpscale.sals.marketplace import solutions
 import os
 import math
 from uuid import uuid4
@@ -20,10 +21,7 @@ from jumpscale.packages.vdc_dashboard.bottle.vdc_helpers import (
     check_plan_autoscalable,
     get_wallet_info,
 )
-from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import (
-    get_all_deployments,
-    get_deployments,
-)
+from jumpscale.packages.vdc_dashboard.sals.vdc_dashboard_sals import get_deployments, get_all_vdc_deployments
 
 from .root import app
 
@@ -174,10 +172,11 @@ def list_deployments(solution_type: str) -> str:
 @package_authorized("vdc_dashboard")
 def list_all_deployments() -> str:
     deployments = []
+    vdc = get_vdc()
     data = j.data.serializers.json.loads(request.body.read())
     solution_types = data.get("solution_types")
     try:
-        deployments = get_all_deployments(solution_types)
+        deployments = get_all_vdc_deployments(vdc.vdc_name, solution_types=solution_types)
     except Exception as e:
         j.logger.exception(message=str(e), exception=e)
 
@@ -631,3 +630,18 @@ def redeploy_master():
     except Exception as e:
         j.logger.exception("Failed to redeploy master", exception=e)
         return HTTPResponse(f"Failed to redeploy master", status=500, headers={"Content-Type": "application/json"})
+
+
+@app.route("/api/vmachine", method="DELETE")
+@package_authorized("vdc_dashboard")
+def delete_vmachine() -> str:
+    data = j.data.serializers.json.loads(request.body.read())
+    wid = data.get("wid")
+    if not wid:
+        return HTTPResponse(status=400, message="Missing wid!", headers={"Content-Type": "application/json"})
+    zos = j.sals.zos.get()
+    zos.workloads.decomission(wid)
+    pub_ip_wid = zos.workloads.get(wid).public_ip
+    if pub_ip_wid:
+        zos.workloads.decomission(pub_ip_wid)
+    return j.data.serializers.json.dumps({"data": True})

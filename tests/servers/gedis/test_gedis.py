@@ -75,6 +75,7 @@ class TestGedis(TestCase):
 
         jobs = []
         for i in range(COUNT):
+            time.sleep(0.1)
             jobs.append(pool.spawn(register, i))
 
         gevent.joinall(jobs)
@@ -83,12 +84,14 @@ class TestGedis(TestCase):
 
         jobs = []
         for i in range(COUNT):
+            time.sleep(0.1)
             jobs.append(pool.spawn(execute, i))
 
         gevent.joinall(jobs)
 
         jobs = []
         for i in range(COUNT):
+            time.sleep(0.1)
             jobs.append(pool.spawn(unregister, i))
 
         gevent.joinall(jobs)

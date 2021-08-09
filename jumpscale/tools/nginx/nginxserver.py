@@ -35,7 +35,8 @@ class NginxServer(Base):
         cmd.stop_cmd = f"nginx -c {self.config_path} -s stop"
         cmd.path = nginx.cfg_dir
         cmd.timeout = 10
-        cmd.check_cmd = f'test -f "{self.get_pid_file_path()}"'
+        pid_file_path = self.get_pid_file_path()
+        cmd.check_cmd = f'pid=$(cat "{pid_file_path}") && [[ $(ps -p $pid -o command=) == "nginx: master"* ]]'
         cmd.process_strings_regex = [self.check_command_string]
         cmd.save()
         if not cmd.is_running():
@@ -50,17 +51,11 @@ class NginxServer(Base):
 
     def is_running(self):
         """Check if nginxserver is running
-        
+
         Returns:
             bool: True if Nginx master process is running, otherwise False.
         """
-        try:
-            pid_file_path = self.get_pid_file_path()
-        except FileNotFoundError:
-            # nginx conf file created after the server run for first time, so this possible first time to run the threebot server.
-            j.logger.warning(f"can't find the Nginx configuration file {self.config_path}, not created yet?")
-            return False
-        return j.sals.fs.exists(pid_file_path)
+        return j.tools.startupcmd.get(f"nginx_{self.server_name}").is_running()
 
     def reload(self):
         """

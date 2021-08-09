@@ -1,17 +1,17 @@
 <template>
-    <base-dialog title="Application details" v-model="dialog" :loading="loading">
-      <template #default>
-        <json-renderer
-          title="App details"
-          :jsonobj="data"
-          :ignored="KeysIgnored"
-          :typedict="KeysWithTypeDict"
-        ></json-renderer>
-      </template>
-      <template #actions>
-        <v-btn text @click="close">Close</v-btn>
-      </template>
-    </base-dialog>
+  <base-dialog title="Application details" v-model="dialog" :loading="loading">
+    <template #default>
+      <json-renderer
+        title="App details"
+        :jsonobj="data"
+        :ignored="KeysIgnored"
+        :typedict="[...KeysWithTypeDict, ...keyswithtypedictprop]"
+      ></json-renderer>
+    </template>
+    <template #actions>
+      <v-btn text @click="close">Close</v-btn>
+    </template>
+  </base-dialog>
 </template>
 
 <script>
@@ -26,7 +26,10 @@ module.exports = {
       KeysWithTypeDict: ["progress"],
     };
   },
-  props: { data: Object },
+  props: {
+    data: Object,
+    keyswithtypedictprop: { type: Array, default: () => [] },
+  },
   mixins: [dialog],
 };
 </script>
