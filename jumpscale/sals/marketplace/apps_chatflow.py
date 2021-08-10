@@ -579,8 +579,13 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
 
         except Exception as e:
             j.logger.exception(f"Failed to deploy", exception=e)
-            j.sals.billing.issue_refund(self.payment_id)
-            self.stop("Failed to deploy. You will be refunded with the amount paid")
+            if self.payment_id:
+                # deployment needed payment
+                j.sals.billing.issue_refund(self.payment_id)
+                self.stop("Failed to deploy. You will be refunded with the amount paid")
+            else:
+                # Stellar service is down
+                self.stop("Failed to restart 3Bot at the moment please try again later")
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
