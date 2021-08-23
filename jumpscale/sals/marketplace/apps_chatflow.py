@@ -570,22 +570,25 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             self.stop(f"Payment timedout. Please restart.")
 
         # Create pool using deployer wallet
-        wallet = j.clients.stellar.get(deployer.WALLET_NAME)
-        try:
-            j.sals.zos.get(self.identity_name).billing.payout_farmers(wallet, pool_info)
+        if payment_success:
+            wallet = j.clients.stellar.get(deployer.WALLET_NAME)
+            try:
+                j.sals.zos.get(self.identity_name).billing.payout_farmers(wallet, pool_info)
 
-            if not deployer.wait_pool_reservation(pool_info.reservation_id, exp=5, identity_name=self.identity_name):
-                raise DeploymentFailed(f"Failed to pay to pool {pool_info.reservation_id}")
+                if not deployer.wait_pool_reservation(
+                    pool_info.reservation_id, exp=5, identity_name=self.identity_name
+                ):
+                    raise DeploymentFailed(f"Failed to pay to pool {pool_info.reservation_id}")
 
-        except Exception as e:
-            j.logger.exception(f"Failed to deploy", exception=e)
-            if self.payment_id:
-                # deployment needed payment
-                j.sals.billing.issue_refund(self.payment_id)
-                self.stop("Failed to deploy. You will be refunded with the amount paid")
-            else:
-                # Stellar service is down
-                self.stop("Failed to restart 3Bot at the moment please try again later")
+            except Exception as e:
+                j.logger.exception(f"Failed to deploy", exception=e)
+                if self.payment_id:
+                    # deployment needed payment
+                    j.sals.billing.issue_refund(self.payment_id)
+                    self.stop("Failed to deploy. You will be refunded with the amount paid")
+                else:
+                    # Stellar service is down
+                    self.stop("Failed to restart 3Bot at the moment please try again later")
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):
