@@ -1,7 +1,7 @@
 <template>
   <div>
   <v-card class="ma-4 mt-2" width="300" :loading="loading" :disabled="loading">
-    <v-card-title class="primary--text">{{pkg.name}}</v-card-title>
+    <v-card-title class="primary--text">{{pkg.ui_name}}</v-card-title>
     <v-card-subtitle v-if="pkg.system_package">System Package</v-card-subtitle>
     <v-card-text style="height:75px">
       {{pkg.path.length > PACKAGE_PATH_MAXLENGTH ?
@@ -31,7 +31,7 @@
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-btn icon v-if="pkg.installed && pkg.chatflows" @click="showChatflows()">
-            <v-icon v-bind="attrs" v-on="on" color="primary">mdi-card-text-outline</v-icon>
+            <v-icon v-bind="attrs" v-on="on" color="primary">mdi-chat</v-icon>
           </v-btn>
         </template>
         <span>Chatflows</span>

@@ -11,38 +11,41 @@ from .network import is_private
 class NodeFinder:
     """ """
 
-    def __init__(self, identity):
+    def __init__(self, identity=None, explorer=None):
         self._identity = identity
-        explorer = identity.explorer
+        explorer = explorer or identity.explorer  # to make the usage of node finder without identity
         self._nodes = explorer.nodes
         self._farms = explorer.farms
         self._pools = explorer.pools
 
     def filter_is_up(self, node: Node):
-        """filter function that filters out nodes that have not received update for more then 10 minutes
-        """
+        """filter function that filters out nodes that have not received update for more then 10 minutes"""
         ago = now().timestamp - (60 * 10)
         return node.updated.timestamp() > ago
 
     def filter_is_free_to_use(self, node: Node):
-        """filter function that filters out nodes that are marked as free to use
-        """
+        """filter function that filters out nodes that are marked as free to use"""
         return node.free_to_use
 
     def filter_is_not_free_to_use(self, node):
-        """filter function that filters out nodes that are not marked as free to use
-        """
+        """filter function that filters out nodes that are not marked as free to use"""
         return not node.free_to_use
 
     def filter_public_ip4(self, node):
-        """filter function that filters out nodes that have a public IPv4 address
-        """
+        """filter function that filters out nodes that have a public IPv4 address"""
         return filter_public_ip(node, 4)
 
     def filter_public_ip6(self, node):
-        """filter function that filters out nodes that have a public IPv6 address
-        """
+        """filter function that filters out nodes that have a public IPv6 address"""
         return filter_public_ip(node, 6)
+
+    def filter_accessnode_ip4(self, node):
+        """filter function that filters out nodes that have a public config with IPv4 address"""
+        return is_access_node(node, 4)
+
+    def filter_accessnode_ip6(self, node):
+        """filter function that filters out nodes that have a public config with IPv6 address"""
+        return is_access_node(node, 6)
 
     def filter_farm_currency(self, farm: Farm, currency: str):
         """filter function that filters farms by the type of currency supported for capacity reservation
@@ -158,6 +161,16 @@ class NodeFinder:
 
         return self._nodes.list(farm_id=farm_id, country=country, city=city, cru=cru, sru=sru, mru=mru, hru=hru)
 
+    def filter_public_ip_bridge(self, node):
+        if not any([self.filter_public_ip4(node), self.filter_public_ip6(node)]):
+            return False
+
+        for iface in node.ifaces:
+            if iface.name == "br-pub":
+                return True
+
+        return False
+
 
 def is_public_ip(ip, version):
     """
@@ -201,4 +214,25 @@ def filter_public_ip(node, version):
             for addr in iface.addrs:
                 if is_public_ip(addr, version):
                     return True
+    return False
+
+
+def is_access_node(node, version):
+    """
+
+    Args:
+      node:
+      version:
+
+    Returns:
+
+    """
+    if version not in [4, 6]:
+        raise Input("ip version can only be 4 or 6")
+
+    if node.public_config and node.public_config.master:
+        if version == 4:
+            return is_public_ip(node.public_config.ipv4, 4)
+        elif node.public_config.ipv6:
+            return is_public_ip(node.public_config.ipv6, 6)
     return False

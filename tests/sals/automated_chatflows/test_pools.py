@@ -2,6 +2,7 @@ import pytest
 from jumpscale.loader import j
 from solutions_automation import deployer
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
+from gevent import sleep
 
 
 @pytest.mark.integration
@@ -38,8 +39,15 @@ class PoolChatflows(ChatflowsBase):
         su = j.data.idgenerator.random_int(1, 2)
         time_unit = "Day"
         time_to_live = j.data.idgenerator.random_int(1, 2)
+        farm = self.get_farm_name().capitalize()
         pool = deployer.create_pool(
-            solution_name=name, cu=cu, su=su, time_unit=time_unit, time_to_live=time_to_live, wallet_name="demos_wallet"
+            solution_name=name,
+            farm=farm,
+            cu=cu,
+            su=su,
+            time_unit=time_unit,
+            time_to_live=time_to_live,
+            wallet_name="demos_wallet",
         )
 
         self.info("Check that the pool has been created with the same units.")
@@ -50,7 +58,6 @@ class PoolChatflows(ChatflowsBase):
         self.assertEqual(pool_data.cus, float(calculated_cu))
         self.assertEqual(pool_data.sus, float(calculated_su))
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test02_extend_pool(self):
         """Test case for extending a pool.
 
@@ -62,8 +69,9 @@ class PoolChatflows(ChatflowsBase):
         """
         self.info("Create a pool with some CU and SU units.")
         name = self.random_name()
-        pool = deployer.create_pool(solution_name=name, wallet_name="demos_wallet")
-        reservation_id = pool.pool_data.reservation_id
+        farm = self.get_farm_name().capitalize()
+        pool = deployer.create_pool(solution_name=name, wallet_name="demos_wallet", farm=farm)
+        pool_id = pool.pool_data.reservation_id
 
         self.info("Extend the pool has been created.")
         cu = j.data.idgenerator.random_int(0, 2)
@@ -71,12 +79,14 @@ class PoolChatflows(ChatflowsBase):
         time_unit = "Day"
         time_to_live = j.data.idgenerator.random_int(1, 2)
         deployer.extend_pool(
-            pool_name=name, wallet_name="demos_wallet", cu=cu, su=su, time_unit=time_unit, time_to_live=time_to_live,
+            pool_id=pool_id, wallet_name="demos_wallet", cu=cu, su=su, time_unit=time_unit, time_to_live=time_to_live,
         )
 
         self.info("Check that the pool has been extended with the same units.")
-        pool_data = j.sals.zos.get().pools.get(reservation_id)
-        calculated_su = (su + 1) * time_to_live * 60 * 60 * 24
-        calculated_cu = (cu + 1) * time_to_live * 60 * 60 * 24
+        pool_data = j.sals.zos.get().pools.get(pool_id)
+
+        calculated_cu = (1 * 1 * 60 * 60 * 24) + (cu * time_to_live * 60 * 60 * 24)
+        calculated_su = (1 * 1 * 60 * 60 * 24) + (su * time_to_live * 60 * 60 * 24)
+
         self.assertEqual(pool_data.cus, float(calculated_cu))
         self.assertEqual(pool_data.sus, float(calculated_su))

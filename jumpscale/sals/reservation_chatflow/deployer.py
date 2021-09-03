@@ -5,7 +5,7 @@ from collections import defaultdict
 from decimal import Decimal
 from textwrap import dedent
 import requests
-
+import random
 import gevent
 import netaddr
 from nacl.public import Box
@@ -16,7 +16,7 @@ from jumpscale.loader import j
 from jumpscale.packages.tfgrid_solutions.models import PoolConfig
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.zos.zos import Zosv2
-
+from jumpscale.clients.explorer.models import ResourceUnitAmount
 
 GATEWAY_WORKLOAD_TYPES = [
     WorkloadType.Domain_delegate,
@@ -127,28 +127,29 @@ class NetworkView:
                     if conn.network_id == self.name:
                         self.used_ips.append(conn.ipaddress)
 
-    def add_node(self, node, pool_id):
-        used_ip_ranges = set()
-        for workload in self.network_workloads:
-            if workload.info.node_id == node.node_id:
-                return
-            used_ip_ranges.add(workload.iprange)
-            for peer in workload.peers:
-                used_ip_ranges.add(peer.iprange)
-        else:
-            network_range = netaddr.IPNetwork(self.iprange)
-            for idx, subnet in enumerate(network_range.subnet(24)):
-                if str(subnet) not in used_ip_ranges:
-                    break
+    def add_node(self, node, pool_id, subnet=""):
+        if not subnet:
+            used_ip_ranges = set()
+            for workload in self.network_workloads:
+                if workload.info.node_id == node.node_id:
+                    return
+                used_ip_ranges.add(workload.iprange)
+                for peer in workload.peers:
+                    used_ip_ranges.add(peer.iprange)
             else:
-                raise StopChatFlow("Failed to find free network")
-            network = j.sals.zos.get(self.identity_name).network.create(self.iprange, self.name)
-            node_workloads = {}
-            for net_workload in self.network_workloads:
-                node_workloads[net_workload.info.node_id] = net_workload
-            network.network_resources = list(node_workloads.values())  # add only latest network resource for each node
-            j.sals.zos.get(self.identity_name).network.add_node(network, node.node_id, str(subnet), pool_id)
-            return network
+                network_range = netaddr.IPNetwork(self.iprange)
+                for idx, subnet in enumerate(network_range.subnet(24)):
+                    if str(subnet) not in used_ip_ranges:
+                        break
+                else:
+                    raise StopChatFlow("Failed to find free network")
+        network = j.sals.zos.get(self.identity_name).network.create(self.iprange, self.name)
+        node_workloads = {}
+        for net_workload in self.network_workloads:
+            node_workloads[net_workload.info.node_id] = net_workload
+        network.network_resources = list(node_workloads.values())  # add only latest network resource for each node
+        j.sals.zos.get(self.identity_name).network.add_node(network, node.node_id, str(subnet), pool_id)
+        return network
 
     def add_multiple_nodes(self, node_ids, pool_ids):
         used_ip_ranges = set()
@@ -216,6 +217,22 @@ class NetworkView:
             j.sals.zos.get(self.identity_name).network.add_node(network, node_id, str(subnet), pool_id=pool_id)
         wg_quick = j.sals.zos.get(self.identity_name).network.add_access(network, node_id, str(subnet), ipv4=use_ipv4)
         return network, wg_quick
+
+    def delete_node(self, node_id):
+        zos = j.sals.zos.get(self.identity_name)
+        to_delete_wids = []
+        network = zos.network.create(self.iprange, self.name)
+        for workload in self.network_workloads:
+            if workload.info.node_id == node_id:
+                to_delete_wids.append(workload.id)
+                to_delete_wids.extend(zos.network.delete_node(network, node_id))
+        for wid in to_delete_wids:
+            zos.workloads.decomission(wid)
+        for wid in to_delete_wids:
+            ChatflowDeployer().wait_workload_deletion(wid)
+        for w in network.network_resources:
+            wid = zos.workloads.deploy(w)
+            j.logger.info(f"deploying workload {wid}")
 
     def delete_access(self, ip_range, node_id=None):
         node_id = node_id or self.network_workloads[0].info.node_id
@@ -346,7 +363,7 @@ class ChatflowDeployer:
             box = Box(sk, pk)
             return box.decrypt(base64.b85decode(encrypted_metadata.encode())).decode()
         except Exception as e:
-            j.logger.error(f"error when decrypting metadata. {str(e)}")
+            j.logger.warning(f"error when decrypting metadata. {str(e)}")
             return "{}"
 
     def list_networks(self, next_action=NextAction.DEPLOY, sync=True):
@@ -370,6 +387,7 @@ class ChatflowDeployer:
         form = bot.new_form()
         cu = form.int_ask("Required Amount of Compute Unit (CU)", required=True, min=0, default=0)
         su = form.int_ask("Required Amount of Storage Unit (SU)", required=True, min=0, default=0)
+        ipv4u = form.int_ask("Required Amount of Public IP Unit (IPv4U)", required=True, min=0, default=0)
         time_unit = form.drop_down_choice(
             "Please choose the duration unit", ["Day", "Month", "Year"], required=True, default="Month"
         )
@@ -378,7 +396,7 @@ class ChatflowDeployer:
             """- Compute Unit (CU) is the amount of data processing power specified as the number of virtual CPU cores (logical CPUs) and RAM (Random Access Memory).
 - Storage Unit (SU) is the size of data storage capacity.
 
-You can get more detail information about clout units on the wiki: <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">Cloud units details</a>.
+You can get more detail information about cloud units on the wiki: <a href="https://wiki.threefold.io/#/grid_concepts?id=cloud-units-v4" target="_blank">Cloud units details</a>.
 
 
 The way this form works is you define how much cloud units you want to reserve and define for how long you would like the selected amount of cloud units.
@@ -404,14 +422,17 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
         cu = cu.value * 60 * 60 * 24 * days * ttl
         su = su.value * 60 * 60 * 24 * days * ttl
-        return (cu, su, ["TFT"])
+        ipv4u = ipv4u.value * 60 * 60 * 24 * days * ttl
+        return (cu, su, ipv4u, ["TFT"])
 
     def create_pool(self, bot):
-        cu, su, currencies = self._pool_form(bot)
+        cu, su, ipv4u, currencies = self._pool_form(bot)
         all_farms = self._explorer.farms.list()
         available_farms = {}
         farms_by_name = {}
         for farm in all_farms:
+            if ipv4u and not farm.ipaddresses:
+                continue
             farm_assets = [w.asset for w in farm.wallet_addresses]
             if currencies[0] not in farm_assets:
                 continue
@@ -436,7 +457,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 f"{farm.capitalize()}{location}: CRU: {resources[0]} SRU: {resources[1]} HRU: {resources[2]} MRU {resources[3]}"
             ] = farm
         if not farm_messages:
-            raise StopChatFlow(f"There are no farms available that the support {currencies[0]} currency")
+            raise StopChatFlow(
+                f"There are no available farms that have enough resources for this deployment: currency: {currencies[0]}, cu: {cu}, su: {su}, ipv4u: {ipv4u} "
+            )
         selected_farm = bot.drop_down_choice(
             "Please choose a farm to reserve capacity from. By reserving IT Capacity, you are purchasing the capacity from one of the farms. The available Resource Units (RU): CRU, MRU, HRU, SRU, NRU are displayed for you to make a more-informed decision on farm selection. ",
             list(farm_messages.keys()),
@@ -444,28 +467,32 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         )
         farm = farm_messages[selected_farm]
         try:
-            pool_info = j.sals.zos.get().pools.create(cu, su, 0, farm, currencies)
+            pool_info = j.sals.zos.get().pools.create(cu, su, ipv4u, farm, currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to reserve pool.\n{str(e)}")
-        qr_code = self.show_payment(pool_info, bot)
-        self.wait_pool_payment(bot, pool_info.reservation_id, 10, qr_code, trigger_cus=cu, trigger_sus=su)
+        # Make sure we have amount to pay can set the custom farm prices to 0
+        # Or gateways farms which don't require payment
+        if pool_info.escrow_information.amount > 0:
+            qr_code = self.show_payment(pool_info, bot)
+            self.wait_pool_reservation(pool_info.reservation_id, 30, qr_code=qr_code, bot=bot)
         return pool_info
 
     def extend_pool(self, bot, pool_id):
-        cu, su, currencies = self._pool_form(bot)
+        cu, su, ipv4u, currencies = self._pool_form(bot)
         currencies = ["TFT"]
         try:
-            pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, 0, currencies=currencies)
+            pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, ipv4u, currencies=currencies)
         except Exception as e:
             raise StopChatFlow(f"failed to extend pool.\n{str(e)}")
         qr_code = self.show_payment(pool_info, bot)
         pool = j.sals.zos.get().pools.get(pool_id)
-        trigger_cus = pool.cus + (cu * 0.75) if cu else 0
-        trigger_sus = pool.sus + (su * 0.75) if su else 0
-        self.wait_pool_payment(bot, pool_id, 10, qr_code, trigger_cus=trigger_cus, trigger_sus=trigger_sus)
+        self.wait_pool_reservation(pool_info.reservation_id, 10, qr_code, bot)
         return pool_info
 
-    def check_farm_capacity(self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None):
+    def check_farm_capacity(
+        self, farm_name, currencies=None, sru=None, cru=None, mru=None, hru=None, ip_version=None, exclude_nodes=None
+    ):
+        zos = j.sals.zos.get()
         node_filter = None
         if j.core.config.get("OVER_PROVISIONING"):
             cru = None
@@ -474,11 +501,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             raise j.exceptions.Runtime(f"{ip_version} is not a valid IP Version")
         else:
             if ip_version == "IPv4":
-                node_filter = j.sals.zos.get().nodes_finder.filter_public_ip4
+                node_filter = zos.nodes_finder.filter_accessnode_ip4
             elif ip_version == "IPv6":
-                node_filter = j.sals.zos.get().nodes_finder.filter_public_ip6
+                node_filter = zos.nodes_finder.filter_accessnode_ip6
         currencies = currencies or []
-        farm_nodes = j.sals.zos.get().nodes_finder.nodes_search(farm_name=farm_name)
+        farm_nodes = zos.nodes_finder.nodes_search(farm_name=farm_name)
         available_cru = 0
         available_sru = 0
         available_mru = 0
@@ -489,9 +516,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         for node in farm_nodes:
             if "FreeTFT" in currencies and not node.free_to_use:
                 continue
-            if not j.sals.zos.get().nodes_finder.filter_is_up(node):
+            if not zos.nodes_finder.filter_is_up(node):
                 continue
             if node.node_id in blocked_nodes:
+                continue
+            if exclude_nodes and node.node_id in exclude_nodes:
                 continue
             if not access_node and ip_version and node_filter(node):
                 access_node = node
@@ -500,6 +529,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             available_sru += node.total_resources.sru - node.reserved_resources.sru
             available_mru += node.total_resources.mru - node.reserved_resources.mru
             available_hru += node.total_resources.hru - node.reserved_resources.hru
+
+        farm_id = self._explorer.farms.get(farm_name=farm_name).id
+        gateways = [g for g in self._explorer.gateway.list(farm_id) if zos.gateways_finder.filter_is_up(g)]
+        running_nodes += len(gateways)
 
         if not running_nodes:
             return False, available_cru, available_sru, available_mru, available_hru
@@ -566,7 +599,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             return None
         return qr_code
 
-    def list_pools(self, cu=None, su=None):
+    def list_pools(self, cu=None, su=None, ipv4u=None):
         all_pools = [p for p in j.sals.zos.get().pools.list() if p.node_ids]
 
         available_pools = {}
@@ -579,7 +612,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 name = local_config.name
             if hidden:
                 continue
-            res = self.check_pool_capacity(pool, cu, su)
+            res = self.check_pool_capacity(pool, cu, su, ipv4u)
             available = res[0]
             if available:
                 resources = res[1:]
@@ -588,26 +621,36 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 available_pools[pool.pool_id] = resources
         return available_pools
 
-    def check_pool_capacity(self, pool, cu=None, su=None):
+    def check_pool_capacity(self, pool, cu=None, su=None, ipv4u=None):
         available_su = pool.sus
         available_cu = pool.cus
+        available_ipv4u = pool.ipv4us
         if pool.empty_at < 0:
             return False, 0, 0
         if cu and available_cu < cu:
-            return False, available_cu, available_su
+            return False, available_cu, available_su, available_ipv4u
         if su and available_su < su:
-            return False, available_cu, available_su
+            return False, available_cu, available_su, available_ipv4u
+        if ipv4u and available_ipv4u < ipv4u:
+            return False, available_cu, available_su, available_ipv4u
         if (cu or su) and pool.empty_at < j.data.time.now().timestamp:
             return False, 0, 0
-        return True, available_cu, available_su
+        return True, available_cu, available_su, available_ipv4u
 
     def select_pool(
-        self, bot, cu=None, su=None, sru=None, mru=None, hru=None, cru=None, available_pools=None, workload_name=None
+        self,
+        bot,
+        cu=None,
+        su=None,
+        ipv4u=None,
+        sru=None,
+        mru=None,
+        hru=None,
+        cru=None,
+        available_pools=None,
+        workload_name=None,
     ):
-        if j.config.get("OVER_PROVISIONING"):
-            cru = 0
-            mru = 0
-        available_pools = available_pools or self.list_pools(cu, su)
+        available_pools = available_pools or self.list_pools(cu, su, ipv4u)
         if not available_pools:
             raise StopChatFlow("no available pools with enough capacity for your workload")
         pool_messages = {}
@@ -616,9 +659,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             if not nodes:
                 continue
 
-            pool_msg = f"Pool: {pool} cu: {available_pools[pool][0]} su:" f" {available_pools[pool][1]}"
-            if len(available_pools[pool]) > 2:
-                pool_msg += f" Name: {available_pools[pool][2]}"
+            pool_cus, pool_sus, pool_ipv4us = available_pools[pool][:3]
+            pool_msg = f"Pool: {pool} cu: {pool_cus} su: {pool_sus} ipv4u: {pool_ipv4us}"
+            if len(available_pools[pool]) > 3:
+                pool_msg += f" Name: {available_pools[pool][3]}"
             pool_messages[pool_msg] = pool
         if not pool_messages:
             raise StopChatFlow("no available resources in the farms bound to your pools")
@@ -628,8 +672,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         pool = bot.drop_down_choice(msg, list(pool_messages.keys()), required=True)
         return pool_messages[pool]
 
-    def get_pool_farm_id(self, pool_id=None, pool=None):
-        pool = pool or j.sals.zos.get().pools.get(pool_id)
+    def get_pool_farm_id(self, pool_id=None, pool=None, identity_name=None):
+        zos = j.sals.zos.get(identity_name)
+        pool = pool or zos.pools.get(pool_id)
         pool_id = pool.pool_id
         if not pool.node_ids:
             raise StopChatFlow(f"Pool {pool_id} doesn't contain any nodes")
@@ -637,7 +682,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         while not farm_id:
             for node_id in pool.node_ids:
                 try:
-                    node = self._explorer.nodes.get(node_id)
+                    node = zos._explorer.nodes.get(node_id)
                     farm_id = node.farm_id
                     break
                 except requests.exceptions.HTTPError:
@@ -684,7 +729,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         encrypted_metadata = base64.b85encode(box.encrypt(metadata.encode())).decode()
         return encrypted_metadata
 
-    def deploy_network(self, name, access_node, ip_range, ip_version, pool_id, identity_name=None, **metadata):
+    def deploy_network(
+        self, name, access_node, ip_range, ip_version, pool_id, identity_name=None, description="", **metadata
+    ):
         identity_name = identity_name or j.core.identity.me.instance_name
         network = j.sals.zos.get(identity_name).network.create(ip_range, name)
         node_subnets = netaddr.IPNetwork(ip_range).subnet(24)
@@ -703,9 +750,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         ids = []
         parent_id = None
         for workload in network.network_resources:
-            workload.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
             metadata["parent_network"] = parent_id
             workload.info.metadata = self.encrypt_metadata(metadata, identity_name)
+            workload.info.description = (
+                description if description else j.data.serializers.json.dumps({"parent_id": parent_id})
+            )
             ids.append(j.sals.zos.get(identity_name).workloads.deploy(workload))
             parent_id = ids[-1]
         network_config["ids"] = ids
@@ -721,6 +770,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         use_ipv4=True,
         bot=None,
         identity_name=None,
+        description="",
         **metadata,
     ):
         identity_name = identity_name or j.core.identity.me.instance_name
@@ -755,7 +805,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         parent_id = network_view.network_workloads[-1].id
         for resource in node_workloads.values():
             resource.info.reference = ""
-            resource.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
+            resource.info.description = (
+                description if description else j.data.serializers.json.dumps({"parent_id": parent_id})
+            )
             metadata["parent_network"] = parent_id
             old_metadata = node_metadata.get(resource.info.node_id, {})
             old_metadata.pop("parent_network", None)
@@ -767,7 +819,15 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         return result
 
     def delete_access(
-        self, network_name, iprange, network_view=None, node_id=None, bot=None, identity_name=None, **metadata
+        self,
+        network_name,
+        iprange,
+        network_view=None,
+        node_id=None,
+        bot=None,
+        identity_name=None,
+        description="",
+        **metadata,
     ):
         network_view = network_view or NetworkView(network_name)
         network = network_view.delete_access(iprange, node_id)
@@ -800,7 +860,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         result = []
         for resource in node_workloads.values():
             resource.info.reference = ""
-            resource.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
+            resource.info.description = (
+                description if description else j.data.serializers.json.dumps({"parent_id": parent_id})
+            )
             metadata["parent_network"] = parent_id
             old_metadata = node_metadata.get(resource.info.node_id, {})
             old_metadata.pop("parent_network", None)
@@ -810,7 +872,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             parent_id = result[-1]
         return result
 
-    def wait_workload(self, workload_id, bot=None, expiry=10, breaking_node_id=None, identity_name=None):
+    def wait_workload(
+        self, workload_id, bot=None, expiry=10, breaking_node_id=None, identity_name=None, cancel_by_uuid=True
+    ):
         j.logger.info(f"waiting workload {workload_id} to finish deployment")
         expiry = expiry or 10
         expiration_provisioning = j.data.time.now().timestamp + expiry * 60
@@ -841,8 +905,18 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 # if the workload is network we can overlook it
                 return True
             if cancel:
-                j.sals.reservation_chatflow.solutions.cancel_solution([workload_id], identity_name)
-            raise StopChatFlow(f"Workload {workload_id} failed to deploy because the node is down {node.node_id}")
+                if cancel_by_uuid:
+                    j.sals.reservation_chatflow.solutions.cancel_solution([workload_id], identity_name)
+                else:
+                    try:
+                        j.sals.zos.get(identity_name).workloads.decomission(workload_id)
+                    except Exception as e:
+                        j.logger.error(f"failed to delete expired workload {workload_id} due to error {str(e)}")
+            raise DeploymentFailed(
+                f"Workload {workload_id} failed to deploy because the node is down {node.node_id}",
+                wid=workload_id,
+                identity_name=identity_name,
+            )
 
         # wait for workload
         while True:
@@ -873,17 +947,34 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             if expiration_provisioning < j.data.time.get().timestamp:
                 j.sals.reservation_chatflow.reservation_chatflow.block_node(workload.info.node_id)
                 if workload.info.workload_type != WorkloadType.Network_resource:
-                    j.sals.reservation_chatflow.solutions.cancel_solution([workload_id], identity_name)
+                    if cancel_by_uuid:
+                        j.sals.reservation_chatflow.solutions.cancel_solution([workload_id], identity_name)
+                    else:
+                        try:
+                            j.sals.zos.get(identity_name).workloads.decomission(workload_id)
+                        except Exception as e:
+                            j.logger.error(f"failed to delete expired workload {workload_id} due to error {str(e)}")
                 elif breaking_node_id and workload.info.node_id != breaking_node_id:
                     return True
-                raise StopChatFlow(f"Workload {workload_id} failed to deploy in time")
+                raise DeploymentFailed(f"Workload {workload_id} failed to deploy in time")
             gevent.sleep(1)
 
-    def add_network_node(self, name, node, pool_id, network_view=None, bot=None, identity_name=None, **metadata):
+    def add_network_node(
+        self,
+        name,
+        node,
+        pool_id,
+        network_view=None,
+        bot=None,
+        identity_name=None,
+        description="",
+        subnet="",
+        **metadata,
+    ):
         identity_name = identity_name or j.core.identity.me.instance_name
         if not network_view:
             network_view = NetworkView(name, identity_name=identity_name)
-        network = network_view.add_node(node, pool_id)
+        network = network_view.add_node(node, pool_id, subnet)
         if not network:
             return
         parent_id = network_view.network_workloads[-1].id
@@ -914,7 +1005,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             )
         for workload in node_workloads.values():
             workload.info.reference = ""
-            workload.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
+            workload.info.description = (
+                description if description else j.data.serializers.json.dumps({"parent_id": parent_id})
+            )
             metadata["parent_network"] = parent_id
             old_metadata = node_metadata.get(workload.info.node_id, {})
             old_metadata.pop("parent_network", None)
@@ -924,9 +1017,11 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             parent_id = ids[-1]
         return {"ids": ids, "rid": ids[0]}
 
-    def add_multiple_network_nodes(self, name, node_ids, pool_ids, network_view=None, bot=None, **metadata):
+    def add_multiple_network_nodes(
+        self, name, node_ids, pool_ids, network_view=None, bot=None, identity_name=None, description="", **metadata
+    ):
         if not network_view:
-            network_view = NetworkView(name)
+            network_view = NetworkView(name, identity_name=identity_name)
         network = network_view.add_multiple_nodes(node_ids, pool_ids)
         if not network:
             return
@@ -938,7 +1033,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         for workload in network.network_resources:
             node_workloads[workload.info.node_id] = workload
         dry_run_name = uuid.uuid4().hex
-        with NetworkView.dry_run_context(dry_run_name):
+        with NetworkView.dry_run_context(dry_run_name, identity_name):
             network_view.dry_run(
                 dry_run_name,
                 list(node_workloads.keys()),
@@ -948,10 +1043,12 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             )
         for workload in node_workloads.values():
             workload.info.reference = ""
-            workload.info.description = j.data.serializers.json.dumps({"parent_id": parent_id})
+            workload.info.description = (
+                description if description else j.data.serializers.json.dumps({"parent_id": parent_id})
+            )
             metadata["parent_network"] = parent_id
-            workload.info.metadata = self.encrypt_metadata(metadata)
-            ids.append(j.sals.zos.get().workloads.deploy(workload))
+            workload.info.metadata = self.encrypt_metadata(metadata, identity_name)
+            ids.append(j.sals.zos.get(identity_name).workloads.deploy(workload))
             parent_id = ids[-1]
         return {"ids": ids, "rid": ids[0]}
 
@@ -959,14 +1056,19 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         network_views = network_views or self.list_networks()
         if not network_views:
             raise StopChatFlow(f"You don't have any deployed network.")
-        network_name = bot.single_choice("Please select a network", list(network_views.keys()), required=True)
+        network_name = bot.single_choice(
+            "Please select a network to connect your solution to", list(network_views.keys()), required=True
+        )
         return network_views[network_name]
 
-    def deploy_volume(self, pool_id, node_id, size, volume_type=DiskType.SSD, **metadata):
-        volume = j.sals.zos.get().volume.create(node_id, pool_id, size, volume_type)
+    def deploy_volume(
+        self, pool_id, node_id, size, volume_type=DiskType.SSD, identity_name=None, description="", **metadata
+    ):
+        volume = j.sals.zos.get(identity_name).volume.create(node_id, pool_id, size, volume_type)
         if metadata:
-            volume.info.metadata = self.encrypt_metadata(metadata)
-        return j.sals.zos.get().workloads.deploy(volume)
+            volume.info.metadata = self.encrypt_metadata(metadata, identity_name)
+            volume.info.description = description
+        return j.sals.zos.get(identity_name).workloads.deploy(volume)
 
     def deploy_container(
         self,
@@ -987,6 +1089,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         log_config=None,
         public_ipv6=False,
         identity_name=None,
+        description="",
         **metadata,
     ):
         """
@@ -998,7 +1101,10 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         encrypted_secret_env = {}
         if secret_env:
             for key, val in secret_env.items():
+                val = val or ""
                 encrypted_secret_env[key] = j.sals.zos.get(identity_name).container.encrypt_secret(node_id, val)
+        for key, val in env.items():
+            env[key] = val or ""
         container = j.sals.zos.get(identity_name).container.create(
             node_id,
             network_name,
@@ -1013,12 +1119,14 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             interactive,
             encrypted_secret_env,
             public_ipv6=public_ipv6,
+            disk_type=disk_type,
         )
         if volumes:
             for mount_point, vol_id in volumes.items():
                 j.sals.zos.get(identity_name).volume.attach_existing(container, f"{vol_id}-1", mount_point)
         if metadata:
             container.info.metadata = self.encrypt_metadata(metadata, identity_name=identity_name)
+            container.info.description = description
         if log_config:
             j.sals.zos.get(identity_name).container.add_logs(container, **log_config)
         return j.sals.zos.get(identity_name).workloads.deploy(container)
@@ -1080,8 +1188,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         logs_config["channel_name"] = channel_name.value
         return logs_config
 
-    def schedule_container(self, pool_id, cru=None, sru=None, mru=None, hru=None, ip_version=None):
-        query = {"cru": cru, "sru": sru, "mru": mru, "hru": hru, "ip_version": ip_version}
+    def schedule_container(self, pool_id, cru=None, sru=None, mru=None, hru=None, ip_version=None, ipv4u=None):
+        query = {"cru": cru, "sru": sru, "mru": mru, "hru": hru, "ip_version": ip_version, "ipv4u": ipv4u}
         return j.sals.reservation_chatflow.reservation_chatflow.get_nodes(1, pool_ids=[pool_id], **query)[0]
 
     def ask_container_placement(
@@ -1099,7 +1207,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         if not workload_name:
             workload_name = "your workload"
         automatic_choice = bot.single_choice(
-            "Do you want to automatically select a node for deployment for" f" {workload_name}?",
+            f"Do you want to automatically select a node to deploy {workload_name} on?",
             ["YES", "NO"],
             default="YES",
             required=True,
@@ -1121,48 +1229,154 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         )
         return node_messages[node_id]
 
-    def calculate_capacity_units(self, cru=0, mru=0, sru=0, hru=0):
+    def calculate_capacity_units(self, cru=0, mru=0, sru=0, hru=0, ipv4u=0):
         """
-        return cu, su
+        return:
+        CloudUnits(object): contains all the needed resources cu, su and ipv4
         """
-        cu = min((mru - 1) / 4, cru * 4 / 2)
-        su = (hru / 1000 + sru / 100 / 2) / 1.2
-        if cu < 0:
-            cu = 0
-        if su < 0:
-            su = 0
-        return cu, su
+
+        return ResourceUnitAmount(cru=cru, mru=mru, sru=sru, hru=hru, ipv4u=ipv4u).cloud_units()
 
     def get_network_view(self, network_name, workloads=None, identity_name=None):
-        return NetworkView(network_name, workloads, identity_name=identity_name)
+        nv = NetworkView(network_name, workloads, identity_name=identity_name)
+        if not nv.network_workloads:
+            return
+        return nv
 
-    def delegate_domain(self, pool_id, gateway_id, domain_name, **metadata):
-        domain_delegate = j.sals.zos.get().gateway.delegate_domain(gateway_id, domain_name, pool_id)
+    def delegate_domain(self, pool_id, gateway_id, domain_name, identity_name=None, description="", **metadata):
+        domain_delegate = j.sals.zos.get(identity_name).gateway.delegate_domain(gateway_id, domain_name, pool_id)
         if metadata:
-            domain_delegate.info.metadata = self.encrypt_metadata(metadata)
-        return j.sals.zos.get().workloads.deploy(domain_delegate)
+            domain_delegate.info.metadata = self.encrypt_metadata(metadata, identity_name)
+        domain_delegate.info.description = description
+        return j.sals.zos.get(identity_name).workloads.deploy(domain_delegate)
+
+    def deploy_public_ip(self, pool_id, node_id, ip_address, identity_name=None, description="", **metadata):
+        zos = j.sals.zos.get(identity_name)
+        public_ip = zos.public_ip.create(node_id, pool_id, ip_address)
+        if metadata:
+            public_ip.info.metadata = self.encrypt_metadata(metadata, identity_name)
+        public_ip.info.description = description
+        return zos.workloads.deploy(public_ip)
+
+    def deploy_vmachine(
+        self,
+        node_id,
+        network_name,
+        name,
+        ip_address,
+        ssh_keys,
+        pool_id,
+        size=1,
+        enable_public_ip=False,
+        description="",
+        **metadata,
+    ):
+        identity_name = metadata.get("owner", j.core.identity.me.instance_name)
+        public_ip_wid = 0
+        public_ip = ""
+        # Reserve public_Ip on node_id[0]
+        if enable_public_ip:
+            public_ip_wid, public_ip = self.create_public_ip(
+                pool_id, node_id, solution_uuid=metadata.get("solution_uuid")
+            )
+            if not public_ip_wid or not public_ip:
+                raise DeploymentFailed(f"Can not get public ip for your solutions")
+            public_ip = public_ip.split("/")[0] if public_ip else ""
+        vmachine = j.sals.zos.get(identity_name).vm.create(
+            node_id, network_name, name, ip_address, ssh_keys, pool_id, size, public_ip_wid
+        )
+        vmachine.info.metadata = self.encrypt_metadata(metadata, identity_name)
+        vmachine.info.description = description
+        return j.sals.zos.get(identity_name).workloads.deploy(vmachine), public_ip
 
     def deploy_kubernetes_master(
-        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, size=1, **metadata
+        self,
+        pool_id,
+        node_id,
+        network_name,
+        cluster_secret,
+        ssh_keys,
+        ip_address,
+        size=1,
+        identity_name=None,
+        description="",
+        public_ip_wid=0,
+        datastore_endpoint="",
+        disable_default_ingress=False,
+        **metadata,
     ):
-        master = j.sals.zos.get().kubernetes.add_master(
-            node_id, network_name, cluster_secret, ip_address, size, ssh_keys, pool_id
+        master = j.sals.zos.get(identity_name).kubernetes.add_master(
+            node_id,
+            network_name,
+            cluster_secret,
+            ip_address,
+            size,
+            ssh_keys,
+            pool_id,
+            public_ip_wid,
+            disable_default_ingress,
+            datastore_endpoint,
         )
-        master.info.description = j.data.serializers.json.dumps({"role": "master"})
+        desc = {"role": "master"}
         if metadata:
-            master.info.metadata = self.encrypt_metadata(metadata)
-        return j.sals.zos.get().workloads.deploy(master)
+            master.info.metadata = self.encrypt_metadata(metadata, identity_name)
+        master.info.description = description if description else j.data.serializers.json.dumps(desc)
+        return j.sals.zos.get(identity_name).workloads.deploy(master)
 
     def deploy_kubernetes_worker(
-        self, pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size=1, **metadata
+        self,
+        pool_id,
+        node_id,
+        network_name,
+        cluster_secret,
+        ssh_keys,
+        ip_address,
+        master_ip,
+        size=1,
+        identity_name=None,
+        description="",
+        public_ip_wid=0,
+        **metadata,
     ):
-        worker = j.sals.zos.get().kubernetes.add_worker(
-            node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id
+        worker = j.sals.zos.get(identity_name).kubernetes.add_worker(
+            node_id, network_name, cluster_secret, ip_address, size, master_ip, ssh_keys, pool_id, public_ip_wid
         )
-        worker.info.description = j.data.serializers.json.dumps({"role": "worker"})
+        desc = {"role": "worker"}
         if metadata:
-            worker.info.metadata = self.encrypt_metadata(metadata)
-        return j.sals.zos.get().workloads.deploy(worker)
+            worker.info.metadata = self.encrypt_metadata(metadata, identity_name)
+        worker.info.description = description if description else j.data.serializers.json.dumps(desc)
+        return j.sals.zos.get(identity_name).workloads.deploy(worker)
+
+    def fetch_available_ips(self, farm):
+        addresses = [address for address in farm.ipaddresses if not address.reservation_id]
+        random.shuffle(addresses)
+        return addresses
+
+    def create_public_ip(self, pool_id, node_id, solution_uuid=None):
+        """
+        try to reserve a public ip on network farm and returns the wid
+        """
+        solution_uuid = solution_uuid or uuid.uuid4().hex
+        zos = j.sals.zos.get()
+        node = zos._explorer.nodes.get(node_id)
+        farm = zos._explorer.farms.get(node.farm_id)
+        identity = j.core.identity.me.instance_name
+        for farmer_address in self.fetch_available_ips(farm):
+            address = farmer_address.address
+            wid = deployer.deploy_public_ip(
+                pool_id, node_id, address, identity_name=identity, solution_uuid=solution_uuid
+            )
+            try:
+                success = deployer.wait_workload(wid, bot=None, expiry=5, cancel_by_uuid=False, identity_name=identity)
+                if not success:
+                    raise DeploymentFailed(f"public ip workload failed. wid: {wid}")
+                return wid, address
+            except DeploymentFailed as e:
+                raise StopChatFlow(f"failed to reserve public ip {address} on node {node_id} due to error {str(e)}")
+                continue
+        raise StopChatFlow(
+            f"all tries to reserve a public ip failed on farm: {farm.name} pool: {pool_id} node: {node_id}"
+        )
 
     def deploy_kubernetes_cluster(
         self,
@@ -1174,10 +1388,12 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         size=1,
         ip_addresses=None,
         slave_pool_ids=None,
+        description="",
+        public_ip=False,
         **metadata,
     ):
         """
-        deplou k8s cluster with the same number of nodes as specifed in node_ids
+        deploy k8s cluster with the same number of nodes as specified in node_ids
 
         Args:
             pool_id: this one is always used for master.
@@ -1215,16 +1431,51 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
         # deploy_master
         master_ip = ip_addresses[0]
+        # Reserve public_Ip on node_id[0]
+        public_id_wid = 0
+        master_public_ip = ""
+        if public_ip:
+            public_id_wid, master_public_ip = self.create_public_ip(
+                pool_id, node_ids[0], solution_uuid=metadata.get("solution_uuid")
+            )
+            master_public_ip = master_public_ip.split("/")[0] if master_public_ip else ""
+
         master_resv_id = self.deploy_kubernetes_master(
-            pool_ids[0], node_ids[0], network_name, cluster_secret, ssh_keys, master_ip, size, **metadata
+            pool_ids[0],
+            node_ids[0],
+            network_name,
+            cluster_secret,
+            ssh_keys,
+            master_ip,
+            size,
+            decription=description,
+            public_ip_wid=public_id_wid,
+            **metadata,
         )
-        result.append({"node_id": node_ids[0], "ip_address": master_ip, "reservation_id": master_resv_id})
+
+        result.append(
+            {
+                "node_id": node_ids[0],
+                "ip_address": master_ip,
+                "reservation_id": master_resv_id,
+                "public_ip": master_public_ip,
+            }
+        )
         for i in range(1, len(node_ids)):
             node_id = node_ids[i]
             pool_id = pool_ids[i]
             ip_address = ip_addresses[i]
             resv_id = self.deploy_kubernetes_worker(
-                pool_id, node_id, network_name, cluster_secret, ssh_keys, ip_address, master_ip, size, **metadata
+                pool_id,
+                node_id,
+                network_name,
+                cluster_secret,
+                ssh_keys,
+                ip_address,
+                master_ip,
+                size,
+                decription=description,
+                **metadata,
             )
             result.append({"node_id": node_id, "ip_address": ip_address, "reservation_id": resv_id})
         return result
@@ -1262,7 +1513,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         selected_nodes = []
         selected_pool_ids = []
         for i in range(number_of_nodes):
-            cu, su = self.calculate_capacity_units(**resource_query_list[i])
+            cloud_units = self.calculate_capacity_units(**resource_query_list[i])
+            cu, su = cloud_units.cu, cloud_units.su
             pool_choices = {}
             for p in pools:
                 if pools[p][0] < cu or pools[p][1] < su:
@@ -1271,6 +1523,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 if not nodes:
                     continue
                 pool_choices[p] = pools[p]
+            bot.md_show_update(f"## Setup pool and container node for node {i+1}", md=True)
+            gevent.sleep(2)
             pool_id = self.select_pool(bot, available_pools=pool_choices, workload_name=workload_names[i], cu=cu, su=su)
             node = self.ask_container_placement(
                 bot, pool_id, workload_name=workload_names[i], ip_version=ip_version, **resource_query_list[i]
@@ -1281,15 +1535,16 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             selected_pool_ids.append(pool_id)
         return selected_nodes, selected_pool_ids
 
-    def list_pool_gateways(self, pool_id):
+    def list_pool_gateways(self, pool_id, identity_name=None):
         """
         return dict of gateways where keys are descriptive string of each gateway
         """
-        pool = j.sals.zos.get().pools.get(pool_id)
-        farm_id = self.get_pool_farm_id(pool_id)
+        zos = j.sals.zos.get(identity_name)
+        pool = zos.pools.get(pool_id)
+        farm_id = self.get_pool_farm_id(pool_id, identity_name=identity_name)
         if farm_id < 0:
             raise StopChatFlow(f"no available gateways in pool {pool_id} farm: {farm_id}")
-        gateways = self._explorer.gateway.list(farm_id=farm_id)
+        gateways = zos._explorer.gateway.list(farm_id=farm_id)
         if not gateways:
             raise StopChatFlow(f"no available gateways in pool {pool_id} farm: {farm_id}")
         result = {}
@@ -1353,7 +1608,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             raise StopChatFlow(f"no gateways available in your pools")
         return result
 
-    def select_gateway(self, bot, pool_ids=None):
+    def select_gateway(self, bot, pool_ids=None, identity_name=None):
         """
         Args:
             pool_ids: if specified it will only list gateways inside these pools
@@ -1361,26 +1616,43 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         Returns:
             gateway, pool_objects
         """
-        gateways = self.list_all_gateways(pool_ids)
+        gateways = self.list_all_gateways(pool_ids, identity_name)
 
         selected = bot.single_choice("Please select a gateway", list(gateways.keys()), required=True)
         return gateways[selected]["gateway"], gateways[selected]["pool"]
 
-    def create_ipv6_gateway(self, gateway_id, pool_id, public_key, **metadata):
+    def create_ipv6_gateway(self, gateway_id, pool_id, public_key, identity_name=None, description="", **metadata):
         if isinstance(public_key, bytes):
             public_key = public_key.decode()
-        workload = j.sals.zos.get().gateway.gateway_4to6(gateway_id, public_key, pool_id)
+        workload = j.sals.zos.get(identity_name).gateway.gateway_4to6(gateway_id, public_key, pool_id)
         if metadata:
-            workload.info.metadata = self.encrypt_metadata(metadata)
-        return j.sals.zos.get().workloads.deploy(workload)
+            workload.info.metadata = self.encrypt_metadata(metadata, identity_name)
+            workload.info.description = description
+        return j.sals.zos.get(identity_name).workloads.deploy(workload)
 
-    def deploy_zdb(self, pool_id, node_id, size, mode, password, disk_type="SSD", public=False, **metadata):
-        workload = j.sals.zos.get().zdb.create(node_id, size, mode, password, pool_id, disk_type, public)
+    def deploy_zdb(
+        self,
+        pool_id,
+        node_id,
+        size,
+        mode,
+        password,
+        disk_type="SSD",
+        public=False,
+        identity_name=None,
+        description="",
+        **metadata,
+    ):
+        metadata["password"] = password
+        workload = j.sals.zos.get(identity_name).zdb.create(node_id, size, mode, password, pool_id, disk_type, public)
         if metadata:
-            workload.info.metadata = self.encrypt_metadata(metadata)
-        return j.sals.zos.get().workloads.deploy(workload)
+            workload.info.metadata = self.encrypt_metadata(metadata, identity_name)
+            workload.info.description = description
+        return j.sals.zos.get(identity_name).workloads.deploy(workload)
 
-    def create_subdomain(self, pool_id, gateway_id, subdomain, addresses=None, identity_name=None, **metadata):
+    def create_subdomain(
+        self, pool_id, gateway_id, subdomain, addresses=None, identity_name=None, description="", **metadata
+    ):
         """
         creates an A record pointing to the specified addresses
         if no addresses are specified, the record will point the gateway IP address (used for exposing solutions)
@@ -1392,9 +1664,12 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         workload = j.sals.zos.get(identity_name).gateway.sub_domain(gateway_id, subdomain, addresses, pool_id)
         if metadata:
             workload.info.metadata = self.encrypt_metadata(metadata, identity_name)
+            workload.info.description = description
         return j.sals.zos.get(identity_name).workloads.deploy(workload)
 
-    def create_proxy(self, pool_id, gateway_id, domain_name, trc_secret, identity_name=None, **metadata):
+    def create_proxy(
+        self, pool_id, gateway_id, domain_name, trc_secret, identity_name=None, description="", **metadata
+    ):
         """
         creates a reverse tunnel on the gateway node
         """
@@ -1402,6 +1677,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         workload = j.sals.zos.get(identity_name).gateway.tcp_proxy_reverse(gateway_id, domain_name, trc_secret, pool_id)
         if metadata:
             workload.info.metadata = self.encrypt_metadata(metadata, identity_name)
+            workload.info.description = description
         return j.sals.zos.get(identity_name).workloads.deploy(workload)
 
     def expose_and_create_certificate(
@@ -1420,6 +1696,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         log_config=None,
         bot=None,
         public_key="",
+        identity_name=None,
+        description="",
         **metadata,
     ):
         """
@@ -1439,19 +1717,27 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             public_key: your public key in case you want to have ssh access on the nginx container
 
         """
+        zos = j.sals.zos.get(identity_name)
         test_cert = j.config.get("TEST_CERT")
         proxy_pool_id = proxy_pool_id or pool_id
-        gateway = self._explorer.gateway.get(gateway_id)
+        gateway = zos._explorer.gateway.get(gateway_id)
 
         proxy_id = self.create_proxy(
-            pool_id=proxy_pool_id, gateway_id=gateway_id, domain_name=domain, trc_secret=trc_secret, **metadata
+            pool_id=proxy_pool_id,
+            gateway_id=gateway_id,
+            domain_name=domain,
+            trc_secret=trc_secret,
+            identity_name=identity_name,
+            description=description,
+            **metadata,
         )
-        success = self.wait_workload(proxy_id)
+        success = self.wait_workload(proxy_id, identity_name=identity_name)
         if not success:
             raise DeploymentFailed(
                 f"failed to create reverse proxy on gateway {gateway_id} workload {proxy_id}",
                 wid=proxy_id,
                 solution_uuid=metadata.get("solution_uuid"),
+                identity_name=identity_name,
             )
 
         tf_gateway = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
@@ -1461,7 +1747,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             "EMAIL": email,
             "SOLUTION_IP": solution_ip,
             "SOLUTION_PORT": str(solution_port),
-            "DOMAIN": domain,
             "ENFORCE_HTTPS": "true" if enforce_https else "false",
             "PUBKEY": public_key,
             "TEST_CERT": "true" if test_cert else "false",
@@ -1470,20 +1755,22 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
             node_id = node.node_id
         else:
-            node = self._explorer.nodes.get(node_id)
+            node = zos._explorer.nodes.get(node_id)
 
-        res = self.add_network_node(network_name, node, pool_id, bot=bot)
+        res = self.add_network_node(network_name, node, pool_id, identity_name=identity_name, bot=bot)
         if res:
             for wid in res["ids"]:
-                success = self.wait_workload(wid, bot, breaking_node_id=node.node_id)
+                success = self.wait_workload(
+                    wid, bot, expiry=3, identity_name=identity_name, breaking_node_id=node.node_id
+                )
                 if not success:
                     raise DeploymentFailed(
                         f"failed to add node {node.node_id} to network workload {wid}",
                         wid=wid,
                         solution_uuid=metadata.get("solution_uuid"),
+                        identity_name=identity_name,
                     )
-        network_view = NetworkView(network_name)
-        network_view = network_view.copy()
+        network_view = self.get_network_view(network_name, identity_name=identity_name)
         ip_address = network_view.get_free_ip(node)
         resv_id = self.deploy_container(
             pool_id=pool_id,
@@ -1494,11 +1781,14 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             disk_type=DiskType.HDD,
             disk_size=512,
             secret_env=secret_env,
+            env={"DOMAIN": domain},
             public_ipv6=False,
             log_config=log_config,
+            identity_name=identity_name,
+            description=description,
             **metadata,
         )
-        return resv_id
+        return resv_id, proxy_id
 
     def expose_address(
         self,
@@ -1516,11 +1806,13 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         bot=None,
         log_config=None,
         identity_name=None,
+        description="",
         **metadata,
     ):
         identity_name = identity_name or j.core.identity.me.instance_name
+        zos = j.sals.zos.get(identity_name)
         proxy_pool_id = proxy_pool_id or pool_id
-        gateway = self._explorer.gateway.get(gateway_id)
+        gateway = zos._explorer.gateway.get(gateway_id)
 
         reverse_id = None
         if reserve_proxy:
@@ -1532,15 +1824,17 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 domain_name=domain_name,
                 trc_secret=trc_secret,
                 identity_name=identity_name,
+                description=description,
                 **metadata,
             )
             reverse_id = resv_id
-            success = self.wait_workload(resv_id)
+            success = self.wait_workload(resv_id, identity_name=identity_name)
             if not success:
                 raise DeploymentFailed(
                     f"failed to create reverse proxy on gateway {gateway_id} to network workload {resv_id}",
                     wid=resv_id,
                     solution_uuid=metadata.get("solution_uuid"),
+                    identity_name=identity_name,
                 )
 
         remote = f"{gateway.dns_nameserver[0]}:{gateway.tcp_router_port}"
@@ -1549,19 +1843,20 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             node = self.schedule_container(pool_id=pool_id, cru=1, mru=1, hru=1)
             node_id = node.node_id
         else:
-            node = self._explorer.nodes.get(node_id)
+            node = zos._explorer.nodes.get(node_id)
 
         res = self.add_network_node(network_name, node, pool_id, identity_name=identity_name, bot=bot)
         if res:
             for wid in res["ids"]:
-                success = self.wait_workload(wid, bot, breaking_node_id=node.node_id)
+                success = self.wait_workload(wid, bot, breaking_node_id=node.node_id, identity_name=identity_name)
                 if not success:
                     if reserve_proxy:
-                        j.sals.reservation_chatflow.solutions.cancel([resv_id])
+                        j.sals.reservation_chatflow.solutions.cancel([resv_id], identity_name=identity_name)
                     raise DeploymentFailed(
                         f"Failed to add node {node.node_id} to network {wid}",
                         wid=wid,
                         solution_uuid=metadata.get("solution_uuid"),
+                        identity_name=identity_name,
                     )
         network_view = NetworkView(network_name, identity_name=identity_name)
         network_view = network_view.copy()
@@ -1574,7 +1869,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             "REMOTE_IP": gateway.dns_nameserver[0],
             "REMOTE_PORT": str(gateway.tcp_router_port),
         }
-        print(log_config)
         resv_id = self.deploy_container(
             pool_id=pool_id,
             node_id=node_id,
@@ -1587,6 +1881,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             public_ipv6=False,
             log_config=log_config,
             identity_name=identity_name,
+            description=description,
             **metadata,
         )
         return resv_id, reverse_id
@@ -1600,6 +1895,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         disk_type=DiskType.HDD,
         disk_size=10,
         pool_ids=None,
+        identity_name=None,
+        description="",
         **metadata,
     ):
         """
@@ -1622,9 +1919,6 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         else:
             pool_ids = pool_ids or [pool_id] * zdb_no
 
-        if len(pool_ids) != len(node_ids):
-            raise StopChatFlow("pool_ids must be same length as node_ids")
-
         if not node_ids and zdb_no:
             query = {}
             if disk_type == DiskType.SSD:
@@ -1632,7 +1926,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             else:
                 query["hru"] = disk_size
             for pool_id in pool_ids:
-                node = j.sals.reservation_chatflow.reservation_chatflow.nodes_get(
+                node = j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
                     pool_ids=[pool_id], number_of_nodes=1, **query
                 )[0]
                 node_ids.append(node.node_id)
@@ -1648,6 +1942,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 mode=ZDBMode.Seq,
                 password=password,
                 disk_type=disk_type,
+                identity_name=identity_name,
+                description=description,
                 **metadata,
             )
             result.append(resv_id)
@@ -1674,6 +1970,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         bot=None,
         public_ipv6=False,
         secondary_pool_id=None,
+        identity_name=None,
+        description="",
         **metadata,
     ):
         secondary_pool_id = secondary_pool_id or pool_id
@@ -1683,21 +1981,25 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         shards = ",".join(zdb_configs)
         secret_env["SHARDS"] = shards
         secret_env["SECRET_KEY"] = sk
-        env = {
-            "DATA": str(data),
-            "PARITY": str(parity),
-            "ACCESS_KEY": ak,
-            "SSH_KEY": ssh_key,
-            "MINIO_PROMETHEUS_AUTH_TYPE": "public",
-        }
+        secret_env["ACCESS_KEY"] = ak
+        env = {"DATA": str(data), "PARITY": str(parity), "SSH_KEY": ssh_key, "MINIO_PROMETHEUS_AUTH_TYPE": "public"}
         result = []
-        master_volume_id = self.deploy_volume(pool_id, minio_nodes[0], disk_size, disk_type, **metadata)
-        success = self.wait_workload(master_volume_id, bot)
+        master_volume_id = self.deploy_volume(
+            pool_id,
+            minio_nodes[0],
+            disk_size,
+            disk_type,
+            identity_name=identity_name,
+            description=description,
+            **metadata,
+        )
+        success = self.wait_workload(master_volume_id, bot, identity_name=identity_name)
         if not success:
             raise DeploymentFailed(
                 f"Failed to create volume {master_volume_id} for minio container on" f" node {minio_nodes[0]}",
                 wid=master_volume_id,
                 solution_uuid=metadata.get("solution_uuid"),
+                identity_name=identity_name,
             )
         master_cont_id = self.deploy_container(
             pool_id=pool_id,
@@ -1712,18 +2014,29 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             volumes={"/data": master_volume_id},
             public_ipv6=public_ipv6,
             flist="https://hub.grid.tf/tf-official-apps/minio:latest.flist",
+            identity_name=identity_name,
+            description=description,
             **metadata,
         )
         result.append(master_cont_id)
         if mode == "Master/Slave":
             secret_env["MASTER"] = secret_env.pop("TLOG")
-            slave_volume_id = self.deploy_volume(pool_id, minio_nodes[1], disk_size, disk_type, **metadata)
-            success = self.wait_workload(slave_volume_id, bot)
+            slave_volume_id = self.deploy_volume(
+                pool_id,
+                minio_nodes[1],
+                disk_size,
+                disk_type,
+                identity_name=identity_name,
+                description=description,
+                **metadata,
+            )
+            success = self.wait_workload(slave_volume_id, bot, identity_name=identity_name)
             if not success:
                 raise DeploymentFailed(
                     f"Failed to create volume {slave_volume_id} for minio container on" f" node {minio_nodes[1]}",
                     solution_uuid=metadata.get("solution_uuid"),
                     wid=slave_volume_id,
+                    identity_name=identity_name,
                 )
             slave_cont_id = self.deploy_container(
                 pool_id=secondary_pool_id,
@@ -1738,6 +2051,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 volumes={"/data": slave_volume_id},
                 public_ipv6=public_ipv6,
                 flist="https://hub.grid.tf/tf-official-apps/minio:latest.flist",
+                identity_name=identity_name,
+                description=description,
                 **metadata,
             )
             result.append(slave_cont_id)
@@ -1745,8 +2060,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
     def deploy_etcd_containers(
         self,
-        pool_id,
-        node_id,
+        pool_ids,
+        node_ids,
         network_name,
         ip_addresses,
         etcd_cluster,
@@ -1757,13 +2072,18 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         disk_type=DiskType.SSD,
         entrypoint="etcd",
         public_ipv6=False,
+        identity_name=None,
+        description="",
+        secret_env=None,
+        log_config=None,
+        ssh_key="",
         **metadata,
     ):
         """
         Deploy single and cluster etcd nodes
         Args:
-            pool_id : Pool used to deploy etcd solution
-            node_id : Node used to deploy etcd solution
+            pool_ids : Pools used to deploy etcd solution
+            node_ids : Nodes used to deploy etcd solution
             network_name : Network name used to deploy etcd solution
             ip_addresses (List): List of IP address for every etcd node
             etcd_cluster (str): Contains ETCD_INITIAL_CLUSTER value
@@ -1779,7 +2099,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             List: List of reservation ids
         """
         etcd_cluster = etcd_cluster.rstrip(",")
-        solution_uuid = metadata["solution_uuid"]
+        solution_uuid = metadata.get("solution_uuid", uuid.uuid4().hex)
         env_cluster = {
             "ETCD_INITIAL_CLUSTER_TOKEN": f"etcd_cluster_{solution_uuid}",
             "ETCD_INITIAL_CLUSTER_STATE": "new",
@@ -1798,12 +2118,13 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     "ETCD_ADVERTISE_CLIENT_URLS": f"http://{ip_address}:2379",
                     "ETCD_LISTEN_CLIENT_URLS": "http://0.0.0.0:2379",
                     "ETCD_INITIAL_CLUSTER": etcd_cluster,
+                    "SSH_KEY": ssh_key,
                 }
             )
             result.append(
                 self.deploy_container(
-                    pool_id,
-                    node_id,
+                    pool_ids[n],
+                    node_ids[n],
                     network_name,
                     ip_address,
                     etcd_flist,
@@ -1813,14 +2134,18 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                     disk_size,
                     disk_type,
                     entrypoint=entrypoint,
+                    secret_env=secret_env,
                     public_ipv6=public_ipv6,
+                    description=description,
+                    identity_name=identity_name,
+                    log_config=log_config,
                     **metadata,
                 )
             )
         return result
 
-    def get_zdb_url(self, zdb_id, password):
-        workload = j.sals.zos.get().workloads.get(zdb_id)
+    def get_zdb_url(self, zdb_id, password, identity_name=None, workload=None):
+        workload = workload or j.sals.zos.get(identity_name).workloads.get(zdb_id)
         result_json = j.data.serializers.json.loads(workload.info.result.data_json)
         if "IPs" in result_json:
             ip = result_json["IPs"][0]
@@ -1839,15 +2164,16 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
 
         Args:
             bot: chatflow object
-            resource_query: query dict {"cru": 1, "sru": 2, "mru": 1, "hru": 1}.
+            resource_query: query dict {"cru": 1, "sru": 2, "mru": 1, "hru": 1,"ipv4u": 1}.
             pool_ids: if specfied it will limit the pools shown in the chatflow to only these pools
             workload_name: name shown in the message
+            ip_version: determine ip version for the selected pools
         Returns:
             ([], []): first list contains the selected node objects. second list contains selected pool ids
         """
         resource_query = resource_query or {}
-        cu, su = self.calculate_capacity_units(**resource_query)
-        pools = self.list_pools(cu, su)
+        cloud_units = self.calculate_capacity_units(**resource_query)
+        pools = self.list_pools(cloud_units.cu, cloud_units.su, cloud_units.ipv4u)
         if pool_ids:
             filtered_pools = {}
             for pool_id in pools:
@@ -1871,6 +2197,9 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
                 messages[f"Name: {name} Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}"] = p
             else:
                 messages[f"Pool: {p} CU: {pools[p][0]} SU: {pools[p][1]}"] = p
+
+        if not messages:
+            raise StopChatFlow(f"no pools available for resources: {resource_query}")
 
         while True:
             pool_choices = bot.multi_list_choice(
@@ -1918,8 +2247,8 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         while j.data.time.get().timestamp < expiration:
             bot.md_show_update(msg, html=True)
             pool = j.sals.zos.get(identity_name).pools.get(pool_id)
-            if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
-                bot.md_show_update("Preparing app resources")
+            if pool.cus >= trigger_cus or pool.sus >= trigger_sus:
+                bot.md_show_update("Preparing application resources")
                 return True
             gevent.sleep(2)
 
@@ -1930,7 +2259,7 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         msg = "<h2> Waiting for payment...</h2>"
         if qr_code:
             qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
-            msg += f"Please scan the QR Code below for the payment details if you missed it from the previous screen"
+            msg += f"Please scan the QR Code below (Using ThreeFold Connect Application) for the payment details"
             qr_code_msg = f"""
             <div class="text-center">
                 <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
@@ -1942,10 +2271,34 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             bot.md_show_update(msg, html=True)
             pool = j.sals.zos.get(identity_name).pools.get(pool_id)
             if pool.cus >= trigger_cus and pool.sus >= trigger_sus:
-                bot.md_show_update("Preparing app resources")
+                bot.md_show_update("Preparing application resources")
                 return True
             gevent.sleep(2)
 
+        return False
+
+    def wait_pool_reservation(self, reservation_id, exp=5, qr_code=None, bot=None, identity_name=None):
+        expiration = j.data.time.now().timestamp + exp * 60
+        msg = "<h2> Waiting for payment...</h2>"
+        if qr_code:
+            qr_encoded = j.tools.qrcode.base64_get(qr_code, scale=2)
+            msg += f"Please scan the QR Code below (Using ThreeFold Connect Application) for the payment"
+            qr_code_msg = f"""
+            <div class="text-center">
+                <img style="border:1px dashed #85929E" src="data:image/png;base64,{qr_encoded}"/>
+            </div>
+            """
+            msg = msg + self.msg_payment_info + qr_code_msg
+        zos = j.sals.zos.get(identity_name)
+        if bot:
+            bot.md_show_update(msg, html=True)
+        while j.data.time.get().timestamp < expiration:
+            payment_info = zos.pools.get_payment_info(reservation_id)
+            if payment_info.paid and payment_info.released:
+                return True
+            if payment_info.canceled:
+                raise DeploymentFailed(f"pool reservation {reservation_id} was cancelled because: {payment_info.cause}")
+            gevent.sleep(2)
         return False
 
     def get_payment_info(self, pool):
@@ -1977,27 +2330,28 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
         <h4> Memo Text (Reservation ID): </h4>  p-{info['resv_id']} \n
         <h4> Total Amount: </h4> {total_amount} {info['thecurrency']} \n
 
-        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.1 {info['thecurrency']} will automatically occurs per transaction.</h5>
+        <h5>Inserting the memo-text is an important way to identify a transaction recipient beyond a wallet address. Failure to do so will result in a failed payment. Please also keep in mind that an additional Transaction fee of 0.01 {info['thecurrency']} will automatically occur per transaction.</h5>
         """
 
         return msg_text, qr_code
 
     def test_managed_domain(self, gateway_id, managed_domain, pool_id, gateway=None, identity_name=None):
+        zos = j.sals.zos.get(identity_name)
         identity_name = identity_name or j.core.identity.me.instance_name
-        gateway = gateway or self._explorer.gateway.get(gateway_id)
+        gateway = gateway or zos._explorer.gateway.get(gateway_id)
         subdomain = f"{uuid.uuid4().hex}.{managed_domain}"
         addresses = [j.sals.nettools.get_host_by_name(gateway.dns_nameserver[0])]
         subdomain_id = self.create_subdomain(pool_id, gateway_id, subdomain, addresses, identity_name=identity_name)
-        success = self.wait_workload(subdomain_id)
+        success = self.wait_workload(subdomain_id, identity_name=identity_name)
         if not success:
             return False
         try:
             j.sals.nettools.get_host_by_name(subdomain)
         except Exception as e:
             j.logger.error(f"managed domain test failed for {managed_domain} due to error {str(e)}")
-            j.sals.zos.get(identity_name).workloads.decomission(subdomain_id)
+            zos.workloads.decomission(subdomain_id)
             return False
-        j.sals.zos.get(identity_name).workloads.decomission(subdomain_id)
+        zos.workloads.decomission(subdomain_id)
         return True
 
     def block_managed_domain(self, managed_domain):
@@ -2024,6 +2378,26 @@ As an example, if you want to be able to run some workloads that consumes `5CU` 
             failure_count = int(failure_count_dict[key])
             result[node_id] = {"expiration": expiration, "failure_count": failure_count}
         return result
+
+    def clear_blocked_managed_domains(self):
+        blocked_domains_keys = j.core.db.keys(f"{DOMAINS_DISALLOW_PREFIX}:*")
+
+        if blocked_domains_keys:
+            j.core.db.delete(*blocked_domains_keys)
+        j.core.db.delete(DOMAINS_COUNT_KEY)
+
+        return True
+
+    def wait_workload_deletion(self, wid, timeout=5, identity_name=None):
+        j.logger.info(f"waiting workload {wid} to be deleted")
+        zos = j.sals.zos.get(identity_name)
+        expiry = j.data.time.now().timestamp + timeout * 60
+        while j.data.time.now().timestamp < expiry:
+            workload = zos.workloads.get(wid)
+            if workload.info.next_action == NextAction.DELETED:
+                return True
+            gevent.sleep(2)
+        return False
 
 
 deployer = ChatflowDeployer()

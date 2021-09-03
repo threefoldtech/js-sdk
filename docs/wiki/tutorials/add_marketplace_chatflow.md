@@ -58,7 +58,7 @@
             ```
     - In `reservation` step, you deploy your workloads as your app needs
 
-4. At the end of the file, you have to add reference for youe chat class with reference name `chat`
+4. At the end of the file, you have to add reference for your chat class with reference name `chat`
 
     ```python
     chat = AppDeploy

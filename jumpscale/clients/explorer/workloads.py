@@ -1,5 +1,6 @@
 import binascii
 from typing import Iterator, List, Union
+import gevent
 
 from jumpscale.loader import j
 
@@ -18,6 +19,7 @@ from .models import (
     WorkloadType,
     ZdbNamespace,
     PublicIP,
+    VirtualMachine,
 )
 from .pagination import get_all, get_page
 
@@ -42,6 +44,7 @@ class Decoder:
             WorkloadType.Gateway4to6: Gateway4to6,
             WorkloadType.Network_resource: NetworkResource,
             WorkloadType.Public_IP: PublicIP,
+            WorkloadType.Virtual_Machine: VirtualMachine,
         }
 
     def workload(self):
@@ -240,3 +243,56 @@ class Workloads:
         data = j.data.serializers.json.dumps({"signature": signature, "tid": tid, "epoch": j.data.time.now().timestamp})
         self._session.post(url, data=data)
         return True
+
+    def list_workloads(
+        self, customer_tid: int = None, next_action: str = None, page=None
+    ) -> List[
+        Union[
+            Container,
+            Gateway4to6,
+            GatewayDelegate,
+            GatewayProxy,
+            GatewayReverseProxy,
+            GatewaySubdomain,
+            K8s,
+            NetworkResource,
+            Volume,
+            ZdbNamespace,
+            PublicIP,
+        ]
+    ]:
+        """List workloads by gevent
+
+        Args:
+            customer_tid (int, optional): filter by customer ID. Defaults to None.
+            next_action (str, optional): filter by workload next action value,. Defaults to None.
+            page ([type], optional): page number to filter with. Defaults to None.
+
+        Returns:
+            List[ Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, PublicIP, ] ]: List of user's workloads
+        """
+        workloads = []
+
+        def filter_next_action(reservation):
+            if next_action is None:
+                return True
+            return reservation.info.next_action.name == next_action
+
+        url = self._base_url
+        if page:
+            query = _build_query(customer_tid=customer_tid, next_action=next_action)
+            workloads, pages_no = get_page(self._session, page, Decoder, url, query)
+        else:
+            # get pages number
+            query = _build_query(customer_tid=customer_tid, next_action=next_action)
+            workloads, pages_no = get_page(self._session, 1, Decoder, url, query)
+
+            def get_page_workloads(page):
+                workloads.extend(self.list(customer_tid, next_action, page=page))
+
+            threads = []
+            for p in range(2, pages_no + 1):
+                thread = gevent.spawn(get_page_workloads, p)
+                threads.append(thread)
+            gevent.joinall(threads)
+        return list(filter(filter_next_action, workloads))

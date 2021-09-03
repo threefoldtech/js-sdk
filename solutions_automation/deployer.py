@@ -6,6 +6,9 @@ from solutions_automation.dashboard_solutions.minio import MinioAutomated
 from solutions_automation.dashboard_solutions.monitoring import MonitoringAutomated
 from solutions_automation.dashboard_solutions.network import NetworkDeployAutomated
 from solutions_automation.dashboard_solutions.pools import PoolAutomated
+from solutions_automation.dashboard_solutions.extend_pools import PoolExtendAutomated
+from solutions_automation.dashboard_solutions.four_to6gw import FourToSixGatewayAutomated
+from solutions_automation.dashboard_solutions.etcd import EtcdAutomated
 from solutions_automation.dashboard_solutions.ubuntu import UbuntuAutomated
 from solutions_automation.marketplace.blog import BlogAutomated
 from solutions_automation.marketplace.cryptpad import CryptpadAutomated
@@ -86,6 +89,7 @@ def deploy_taiga(solution_name, host_email, smtp_host, host_email_password, secr
 
 def deploy_ubuntu(
     solution_name,
+    pool="choose_random",
     version="ubuntu-18.04",
     cpu=1,
     memory=1024,
@@ -98,11 +102,11 @@ def deploy_ubuntu(
     node="choose_random",
     ipv4="choose_random",
     network="choose_random",
-    pool="choose_random",
     debug=True,
 ):
     return UbuntuAutomated(
         solution_name=solution_name,
+        pool=pool,
         version=version,
         cpu=cpu,
         memory=memory,
@@ -115,7 +119,6 @@ def deploy_ubuntu(
         node=node,
         ipv4=ipv4,
         network=network,
-        pool=pool,
         debug=debug,
     )
 
@@ -123,9 +126,10 @@ def deploy_ubuntu(
 def deploy_kubernetes(
     solution_name,
     secret,
-    size="1 vCPU 2 GiB ram 50GiB disk space",
+    size="vCPU: 1, RAM: 2 GiB, Disk Space: 25 GiB",
     workernodes=1,
     network="choose_random",
+    public_ip="No",
     pools="multi_choice",
     ssh="~/.ssh/id_rsa.pub",
     debug=True,
@@ -136,6 +140,7 @@ def deploy_kubernetes(
         size=size,
         workernodes=workernodes,
         network=network,
+        public_ip=public_ip,
         pools=pools,
         ssh=ssh,
         debug=debug,
@@ -147,7 +152,8 @@ def deploy_minio(
     username,
     password,
     setup="single",
-    zdb_disk_type="SSD",
+    zdb_disk_type="HDD",
+    zdb_size=10,
     cpu=1,
     memory=1024,
     data_shards=2,
@@ -170,6 +176,7 @@ def deploy_minio(
         password=password,
         setup=setup,
         zdb_disk_type=zdb_disk_type,
+        zdb_size=zdb_size,
         cpu=cpu,
         memory=memory,
         data_shards=data_shards,
@@ -187,9 +194,34 @@ def deploy_minio(
     )
 
 
-# TODO: uncomment after Fixing importing problem
-# def deploy_4to6gw(public_key, gateway="choose_random", debug=True):
-#     return FourToSixGatewayAutomated(public_key=public_key, gateway=gateway, debug=debug)
+def deploy_4to6gw(public_key="", gateway="choose_random", debug=True):
+    return FourToSixGatewayAutomated(public_key=public_key, gateway=gateway, debug=debug)
+
+
+def deploy_etcd(
+    solution_name,
+    network="choose_random",
+    etcd_nodes=1,
+    cpu=1,
+    memory=1024,
+    disk_size=1024,
+    pool="choose_random",
+    ipv6="NO",
+    node_automatic="YES",
+    address_etcd_node="choose_random",
+):
+    return EtcdAutomated(
+        solution_name=solution_name,
+        network=network,
+        etcd_nodes=etcd_nodes,
+        cpu=cpu,
+        memory=memory,
+        disk_size=disk_size,
+        pool=pool,
+        ipv6=ipv6,
+        node_automatic=node_automatic,
+        address_etcd_node=address_etcd_node,
+    )
 
 
 def delegated_domain(domain, gateway="choose_random", debug=True):
@@ -208,7 +240,7 @@ def deploy_generic_flist(
     env_vars={"name": "TEST"},
     log="NO",
     ipv6="NO",
-    node_automatic="NO",
+    node_automatic="YES",
     node="choose_random",
     ipv4="choose_random",
     network="choose_random",
@@ -284,21 +316,21 @@ def deploy_monitoring(
 
 def create_network(
     solution_name,
+    pool="choose_random",
     ip_version="IPv4",
     ip_select="Choose ip range for me",
     ip_range="",
     access_node="choose_random",
-    pool="choose_random",
     debug=True,
 ):
     return NetworkDeployAutomated(
         solution_name=solution_name,
+        pool=pool,
         type="Create",
         ip_version=ip_version,
         ip_select=ip_select,
         ip_range=ip_range,
         access_node=access_node,
-        pool=pool,
         debug=True,
     )
 
@@ -332,29 +364,28 @@ def deploy_exposed(
 
 
 def create_pool(
-    solution_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True
+    solution_name, wallet_name, farm="Freefarm", cu=1, su=1, ipv4u=0, time_unit="Day", time_to_live=1, debug=True
 ):
     return PoolAutomated(
-        type="create",
         solution_name=solution_name,
         wallet_name=wallet_name,
         farm=farm,
         cu=cu,
         su=su,
+        ipv4u=ipv4u,
         time_unit=time_unit,
         time_to_live=time_to_live,
         debug=debug,
     )
 
 
-def extend_pool(pool_name, wallet_name, farm="choose_random", cu=1, su=1, time_unit="Day", time_to_live=1, debug=True):
-    return PoolAutomated(
-        type="extend",
-        pool_name=pool_name,
+def extend_pool(pool_id, wallet_name, cu=1, su=1, ipv4u=0, time_unit="Day", time_to_live=1, debug=True):
+    return PoolExtendAutomated(
+        pool_id=pool_id,
         wallet_name=wallet_name,
-        farm=farm,
         cu=cu,
         su=su,
+        ipv4u=ipv4u,
         time_unit=time_unit,
         time_to_live=time_to_live,
         debug=debug,
@@ -404,5 +435,7 @@ def change_threebot_size(name, password, flavor="Silver (CPU 1 - Memory 2 GB - D
     return ThreebotChangeSizeAutomated(tname=name, password=password, flavor=flavor)
 
 
-def change_threebot_location(name, password):
-    return ThreebotChangeLocation(tname=name, password=password)
+def change_threebot_location(name, password, expiration_time, node_policy="Automatic"):
+    return ThreebotChangeLocation(
+        tname=name, password=password, node_policy=node_policy, expiration_time=expiration_time
+    )

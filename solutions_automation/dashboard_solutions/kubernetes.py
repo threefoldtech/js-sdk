@@ -6,12 +6,13 @@ class KubernetesAutomated(GedisChatBotPatch, KubernetesDeploy):
     NAME_MESSAGE = "Please enter a name for your workload (Can be used to prepare domain for you and needed to track your solution on the grid)"
     NODE_SIZE_MESSAGE = "Choose the size of your nodes"
     WORKERS_NUM_MESSAGE = "Please specify the number of worker nodes"
-    NETWORK_MESSAGE = "Please select a network"
-    SSH_MESSAGE = "Please upload your public SSH key to be able to access the depolyed container via ssh"
+    NETWORK_MESSAGE = "Please select a network to connect your solution to"
+    SSH_MESSAGE = "Please upload your public SSH key to be able to access the deployed container via ssh"
     SECRET_MESSAGE = "Please add the cluster secret"
     IP_MASTER_MESSAGE = "Please choose IP Address for Master node"
-    IP_SLAVE_MESSAGE = "Please choose IP Address for Slave node"
+    IP_SLAVE_MESSAGE = r"Please choose IP Address for Slave node (.*)"
     POOL_MESSAGE = "Please select the pools you wish to distribute you Kubernetes nodes on"
+    PUBLIC_IP = "Do you want to enable public IP"
 
     QS = {
         # strs
@@ -23,8 +24,17 @@ class KubernetesAutomated(GedisChatBotPatch, KubernetesDeploy):
         # single choice
         NODE_SIZE_MESSAGE: "size",
         NETWORK_MESSAGE: "network",
+        PUBLIC_IP: "public_ip",
         IP_MASTER_MESSAGE: "choose_random",
         IP_SLAVE_MESSAGE: "choose_random",
         # multi choice
         POOL_MESSAGE: "pools",
     }
+
+    def multi_list_choice(self, msg, options, *args, **kwargs):
+        selected = self.fetch_param(msg, *args, **kwargs)
+        if options:
+            for m in options:
+                if str(selected) in m:
+                    return [m]
+        return [selected]

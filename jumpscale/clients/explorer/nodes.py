@@ -3,7 +3,7 @@ from typing import Iterator, List
 from jumpscale.core.exceptions import Input
 
 from .base import BaseResource
-from .models import Node
+from .models import Node, NodePublicIface
 from .pagination import get_all, get_page
 
 
@@ -159,13 +159,13 @@ class Nodes(BaseResource):
         """
         node = self.get(node_id)
 
-        public_config = node.public_config
+        public_config = node.public_config or NodePublicIface()
         public_config.master = master_iface
         public_config.ipv4 = ipv4
         public_config.gw4 = gw4
         public_config.ipv6 = ipv6
         public_config.gw6 = gw6
-        public_config.type = "MACVLAN"
+        public_config.type = 0
         public_config.version += 1
 
         data = public_config.to_dict()

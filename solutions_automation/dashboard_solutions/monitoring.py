@@ -10,12 +10,12 @@ class MonitoringAutomated(GedisChatBotPatch, MonitoringDeploy):
     DISK_SIZE = "Please specify the size of root filesystem (in MB)"
     VOLUME_SIZE = "Please specify the volume size in GiB"
     POOL_RADIS = "Please select a pool for Redis"
-    REDIS_NODE_SELECT = "Do you want to automatically select a node for deployment for Redis?"
+    REDIS_NODE_SELECT = "Do you want to automatically select a node to deploy Redis on?"
     POOL_PROMETHEUS = "Please select a pool for Prometheus"
-    PROMETHEUS_NODE_SELECT = "Do you want to automatically select a node for deployment for Prometheus?"
+    PROMETHEUS_NODE_SELECT = "Do you want to automatically select a node to deploy Prometheus on?"
     POOL_GRAFANA = "Please select a pool for Grafana"
-    GRAFANA_NODE_SELECT = "Do you want to automatically select a node for deployment for Grafana?"
-    NETWORK_MESSAGE = "Please select a network"
+    GRAFANA_NODE_SELECT = "Do you want to automatically select a node to deploy Grafana on?"
+    NETWORK_MESSAGE = "Please select a network to connect your solution to"
     IP_REDIS = "Please choose IP Address for Redis"
     IP_PROMETHEUS = "Please choose IP Address for Prometheus"
     IP_GRAFANA = "Please choose IP Address for Grafana"
@@ -44,3 +44,11 @@ class MonitoringAutomated(GedisChatBotPatch, MonitoringDeploy):
         PROMETHEUS_NODE: "prometheus_node",
         GRAFANA_NODE: "grafana_node",
     }
+
+    def single_choice(self, msg, *args, **kwargs):
+        selected = self.fetch_param(msg, *args, **kwargs)
+        if args:
+            for m in args[0]:
+                if str(selected) in m:
+                    return m
+        return selected

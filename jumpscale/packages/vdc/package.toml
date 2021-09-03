@@ -1,0 +1,34 @@
+name = "vdc"
+is_package_authorized = true
+is_auth = false
+is_admin = false
+frontend = "/vdc"
+
+[[static_dirs]]
+name = "frontend"
+path_url = ""
+path_location = "frontend/"
+index = "index.html"
+spa = true
+
+[[bottle_servers]]
+name = "main"
+file_path = "bottle/api.py"
+path_url = "/api/"
+path_dest = "/api/"
+host = "0.0.0.0"
+
+[[servers]]
+name = "vdc_proxy"
+domain = "vdc.testnet.grid.tf"
+letsencryptemail = "motaweam@incubaid.com"
+includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.vdc*"]
+
+[[servers.locations]]
+name = "custom"
+type = "custom"
+custom_config = """
+location / {
+   rewrite ^(.+) /vdc;
+}
+"""

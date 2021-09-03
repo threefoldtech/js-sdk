@@ -10,7 +10,7 @@
     :persistent="true"
   >
     <template #default>
-      Please enter the password of <b class="font-weight-black">{{ data.name }}</b>. This will stop your running 3Bot and delete all backups.
+      Please enter the password of <b class="font-weight-black">{{ data.name }}</b>. {{ messages.confirmationMsg }}
       <v-form @submit="submit">
         <v-text-field :type="'password'" v-model="form.password" dense></v-text-field>
       </v-form>
@@ -34,6 +34,7 @@ module.exports = {
     title: String,
     api: String,
     data: Object,
+    messages: Object,
   },
   methods: {
     submit() {
@@ -45,7 +46,7 @@ module.exports = {
         this.$api.solutions
           [this.api](this.data.solution_uuid, this.form.password)
           .then((response) => {
-            this.alert("3bot Destroyed", "success");
+            this.alert(this.messages.successMsg, "success");
             this.$router.go(0);
           }).catch((err) => {
             this.error = err.response.data["error"];

@@ -104,7 +104,15 @@
         return window.self === window.top
       },
       chatUID () {
-        return `${this.package}_${this.chat}`
+        let uid = `${this.package}_${this.chat}`
+        const query = this.$route.query || {}
+        let keys = Object.keys(query)
+        keys.sort()
+        keys.forEach((key) => {
+          uid += `${key}_${query[key]}`
+        })
+
+        return MD5(uid)
       },
       nextButtonDisable () {
         return ['error', 'loading', 'infinite_loading'].includes(this.work.payload.category)

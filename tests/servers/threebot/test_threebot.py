@@ -47,15 +47,15 @@ class Test3BotServer(BaseTests):
     def check_threebot_main_running_servers(self):
         self.info("Make sure that server started successfully by check nginx_main, redis_default and gedis work.")
         self.info("*** nginx server ***")
-        self.assertTrue(j.sals.process.get_pids("nginx"), "Nginx didn't start correctly")
         self.info(" * Check that nginx server connection works successfully and right port.")
         self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 80, 5))
         self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 443, 5))
+        self.assertTrue(j.sals.process.get_pids("nginx"), "Nginx didn't start correctly")
 
         self.info("*** redis server ***")
-        self.assertTrue(j.sals.process.get_pids("redis"), "redis didn't start correctly")
         self.info(" * Check that redis server connection  works successfully and right port.")
         self.assertTrue(j.sals.nettools.tcp_connection_test("localhost", 6379, 5))
+        self.assertTrue(j.sals.process.get_pids("redis-server"), "redis didn't start correctly")
 
         self.info("*** gedis server ***")
         self.info(" * Check that gedis server connection  works successfully and right port.")
@@ -166,17 +166,27 @@ class Test3BotServer(BaseTests):
         - Try to delete non exists package, and make sure that the error has been raised.
         """
         self.info("Add a package")
-        from jumpscale.packages import marketplace
+        from jumpscale.packages import farmmanagement
 
-        path = j.sals.fs.dirname(marketplace.__file__)
+        path = j.sals.fs.dirname(farmmanagement.__file__)
 
-        marketplace = j.servers.threebot.default.packages.add(path)
-        marketplace_dir = {"marketplace": {"name": "marketplace", "path": path, "giturl": None, "kwargs": {},}}
-        self.assertEqual(marketplace, marketplace_dir)
+        farm_management = j.servers.threebot.default.packages.add(path)
+        farm_management_dir = {
+            "farmmanagement": {
+                "name": "farmmanagement",
+                "path": path,
+                "giturl": None,
+                "kwargs": {},
+                "admins": [],
+                "ui_name": "farmmanagement",
+            }
+        }
+
+        self.assertEqual(farm_management, farm_management_dir)
 
         self.info("Check that the package has been added")
         packages_list = j.servers.threebot.default.packages.list_all()
-        self.assertIn("marketplace", packages_list)
+        self.assertIn("farmmanagement", packages_list)
 
         self.info("Try to add wrong package, and check that there is an error")
         with self.assertRaises(Exception) as error:
@@ -184,11 +194,11 @@ class Test3BotServer(BaseTests):
             self.assertIn("No such file or directory : 'test_wrong_package/package.toml'", error.exception.args[0])
 
         self.info("Delete a package")
-        j.servers.threebot.default.packages.delete("marketplace")
+        j.servers.threebot.default.packages.delete("farmmanagement")
 
         self.info("Check that the package is deleted correctly")
         packages_list = j.servers.threebot.default.packages.list_all()
-        self.assertNotIn("marketplace", packages_list)
+        self.assertNotIn("farmmanagement", packages_list)
 
         self.info("Try to delete non exists package, and make sure that the error has been raised")
         with self.assertRaises(Exception) as error:

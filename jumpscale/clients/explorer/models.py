@@ -1,6 +1,7 @@
 import ipaddress
 from datetime import datetime
 from enum import Enum
+from collections import OrderedDict
 
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
@@ -49,6 +50,12 @@ class FarmerIP(Base):
     reservation_id = fields.Integer()
 
 
+class CloudUnitMonthPrice(Base):
+    cu = fields.Float(default=10)
+    su = fields.Float(default=8)
+    ipv4u = fields.Float(default=6)
+
+
 class Farm(Base):
     id = fields.Integer()
     threebot_id = fields.Integer()
@@ -60,9 +67,18 @@ class Farm(Base):
     resource_prices = fields.List(fields.Object(ResourceUnitPrice))
     prefix_zero = fields.IPRange()
     ipaddresses = fields.List(fields.Object(FarmerIP))
+    enable_custom_pricing = fields.Boolean(default=False)
+    farm_cloudunits_price = fields.Object(CloudUnitMonthPrice)
+    is_grid3_compliant = fields.Boolean(default=False)
 
     def __str__(self):
         return " - ".join([x for x in [self.name, str(self.location)] if x])
+
+
+class FarmThreebotPrice(Base):
+    threebot_id = fields.Integer()
+    farm_id = fields.Integer()
+    custom_cloudunits_price = fields.Object(CloudUnitMonthPrice)
 
 
 class WorkloadsAmount(Base):
@@ -167,6 +183,7 @@ class HardwareProof(Base):
 
 class Node(Base):
     node_id = fields.String(default="")
+    hostname = fields.String(default="")
     node_id_v1 = fields.String(default="")
     farm_id = fields.Integer()
     os_version = fields.String(default="")
@@ -253,6 +270,7 @@ class WorkloadType(Enum):
     Gateway4to6 = 9
     Network_resource = 10
     Public_IP = 11
+    Virtual_Machine = 12
 
 
 class ZDBMode(Enum):
@@ -409,6 +427,30 @@ class ContainerStats(Base):
     data = fields.Object(ContainerStatsRedis)
 
 
+VMSIZES = OrderedDict(
+    {
+        1: {"cru": 1, "mru": 2, "sru": 50},
+        2: {"cru": 2, "mru": 4, "sru": 100},
+        3: {"cru": 2, "mru": 8, "sru": 25},
+        4: {"cru": 2, "mru": 5, "sru": 50},
+        5: {"cru": 2, "mru": 8, "sru": 200},
+        6: {"cru": 4, "mru": 16, "sru": 50},
+        7: {"cru": 4, "mru": 16, "sru": 100},
+        8: {"cru": 4, "mru": 16, "sru": 400},
+        9: {"cru": 8, "mru": 32, "sru": 100},
+        10: {"cru": 8, "mru": 32, "sru": 200},
+        11: {"cru": 8, "mru": 32, "sru": 800},
+        12: {"cru": 16, "mru": 64, "sru": 200},
+        13: {"cru": 16, "mru": 64, "sru": 400},
+        14: {"cru": 16, "mru": 64, "sru": 800},
+        15: {"cru": 1, "mru": 2, "sru": 25},
+        16: {"cru": 2, "mru": 4, "sru": 50},
+        17: {"cru": 4, "mru": 8, "sru": 50},
+        18: {"cru": 1, "mru": 1, "sru": 25},
+    }
+)
+
+
 class K8s(Base):
     id = fields.Integer()
     size = fields.Integer()
@@ -420,32 +462,17 @@ class K8s(Base):
     public_ip = fields.Integer()
     stats_aggregator = fields.List(fields.Object(Statsaggregator))
     info = fields.Object(ReservationInfo)
+    datastore_endpoint = fields.String(default="")
+    disable_default_ingress = fields.Boolean(default=True)
+
+    SIZES = VMSIZES
 
     def resource_units(self):
-        size_table = {
-            1: {"cru": 1, "mru": 2, "sru": 50},
-            2: {"cru": 2, "mru": 4, "sru": 100},
-            3: {"cru": 2, "mru": 8, "sru": 25},
-            4: {"cru": 2, "mru": 5, "sru": 50},
-            5: {"cru": 2, "mru": 8, "sru": 200},
-            6: {"cru": 4, "mru": 16, "sru": 50},
-            7: {"cru": 4, "mru": 16, "sru": 100},
-            8: {"cru": 4, "mru": 16, "sru": 400},
-            9: {"cru": 8, "mru": 32, "sru": 100},
-            10: {"cru": 8, "mru": 32, "sru": 200},
-            11: {"cru": 8, "mru": 32, "sru": 800},
-            12: {"cru": 16, "mru": 64, "sru": 200},
-            13: {"cru": 16, "mru": 64, "sru": 400},
-            14: {"cru": 16, "mru": 64, "sru": 800},
-            15: {"cru": 1, "mru": 2, "sru": 25},
-            16: {"cru": 2, "mru": 4, "sru": 50},
-            17: {"cru": 4, "mru": 8, "sru": 50},
-        }
 
         resource_units = ResourceUnitAmount()
-        size = size_table.get(self.size)
+        size = VMSIZES.get(self.size)
         if not size:
-            raise j.exceptions.Input(f"k8s size {self.size} not supported")
+            raise j.exceptions.Input(f"kubernetes size {self.size} not supported")
 
         resource_units.cru += size["cru"]
         resource_units.mru += size["mru"]
@@ -515,6 +542,34 @@ class Container(Base):
             resource_units.hru += storage_size
         elif cap.disk_type == DiskType.SSD:
             resource_units.sru += storage_size
+        return resource_units
+
+
+class VirtualMachine(Base):
+    id = fields.Integer()
+    name = fields.String(default="")
+    hub_url = fields.String(default="")
+    description = fields.String(default="")
+    network_connection = fields.List(fields.Object(ContainerNetworkConnection))
+    network_id = fields.String()
+    farmer_tid = fields.Integer()
+    size = fields.Integer()
+    info = fields.Object(ReservationInfo)
+    ssh_keys = fields.List(fields.String())
+    public_ip = fields.Integer()
+    ipaddress = fields.IPAddress()
+    SIZES = VMSIZES
+
+    def resource_units(self):
+
+        resource_units = ResourceUnitAmount()
+        size = VMSIZES.get(self.size)
+        if not size:
+            raise j.exceptions.Input(f"VM size {self.size} not supported")
+
+        resource_units.cru += size["cru"]
+        resource_units.mru += size["mru"]
+        resource_units.sru += size["sru"]
         return resource_units
 
 
@@ -640,6 +695,8 @@ class PoolCreate(Base):
     data_reservation = fields.Object(PoolCreateData)
     customer_tid = fields.Integer()
     customer_signature = fields.String()
+    sponsor_tid = fields.Integer()
+    sponsor_signature = fields.String()
 
 
 class Pool(Base):
@@ -651,6 +708,7 @@ class Pool(Base):
     last_updated = fields.DateTime()
     active_cu = fields.Float()
     active_su = fields.Float()
+    active_ipv4 = fields.Float()
     empty_at = fields.Integer()  # can't be set to date because of max int64 value
     customer_tid = fields.Integer()
     active_workload_ids = fields.List(fields.Integer())
@@ -665,3 +723,16 @@ class PoolEscrow(Base):
 class PoolCreated(Base):
     reservation_id = fields.Integer()
     escrow_information = fields.Object(PoolEscrow)
+
+
+class PoolPayment(Base):
+    id = fields.Integer()
+    farmer_id = fields.Integer()
+    address = fields.String()
+    expiration = fields.DateTime()
+    asset = fields.String()
+    amount = fields.Integer()
+    paid = fields.Boolean()
+    released = fields.Boolean()
+    canceled = fields.Boolean()
+    cause = fields.String()

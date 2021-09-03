@@ -1,13 +1,14 @@
 // require('./farmmanagement/weblibs/gmaps/vue-google-maps.js')
-
 module.exports = new Promise(async (resolve, reject) => {
-    const vuex = await import(
-        "/weblibs/vuex/vuex.esm.browser.js"
-    );
+    const vuex = await
+        import(
+            "/weblibs/vuex/vuex.esm.browser.js"
+        );
     resolve({
         name: "farmManagement",
         components: {
-            nodestable: "url:/farmmanagement/components/nodestable/index.vue"
+            nodestable: "url:/farmmanagement/components/nodestable/index.vue",
+            cspricestable: "url:/farmmanagement/components/cspricestable/index.vue",
         },
         data() {
             return {
@@ -15,6 +16,7 @@ module.exports = new Promise(async (resolve, reject) => {
                 addFarmDialog: false,
                 addNodeDialog: false,
                 settingsDialog: false,
+                showSetFarmPrice: false,
                 farmDescriptionRules: [v => v.length <= 250 || "Max 250 characters"],
                 searchFarms: "",
                 'searchnodes': "",
@@ -24,23 +26,27 @@ module.exports = new Promise(async (resolve, reject) => {
                 showResult: false,
                 itemsPerPage: 4,
                 expanded: [],
+                addCustomModelError: null,
                 headers: [
                     { text: "Id", value: "id" },
                     {
                         text: "Farm name",
-                        align: "left",
                         sortable: false,
                         value: "name"
                     },
+                    { text: "CU ($/mo)", value: "cu" },
+                    { text: "SU ($/mo)", value: "su" },
+                    { text: "IPv4u ($/mo)", value: "ipv4u" },
                     { text: "Actions", value: "action", sortable: false }
                 ],
+                prices: [{ node: 3 }, { node: 8 }],
                 newFarm: {
                     threebot_id: "",
                     location: {
                         latitude: 0,
                         longitude: 0
                     },
-                    wallet_addresses:[],
+                    wallet_addresses: [],
                     // resource_prices: [
                     //     {
                     //         currency: "USD",
@@ -52,27 +58,44 @@ module.exports = new Promise(async (resolve, reject) => {
                     //     }
                     // ]
                 },
+                farm_price: {
+                    cu: null,
+                    su: null,
+                    ipv4u: null
+                },
+                customPrice: {
+                    threebotName: '',
+                    cu: null,
+                    su: null,
+                    ipv4u: null,
+                    threebotId: null
+                },
                 newFarmAlert: undefined,
+                priceUpdate: undefined,
                 searchAddressInput: "",
+                openAddCustomModel: false,
                 namerules: [v => !!v || "Name is required"],
                 nameError: [],
                 mailError: [],
-                countries: []
+                countries: [],
+                loading: false,
+                upgrade: false,
+                showUpgradeConfirmation: false,
             }
         },
         computed: {
-            ...vuex.mapGetters("farmmanagement", ["farms", "nodes", "user", "tfgridUrl"]),
+            ...vuex.mapGetters("farmmanagement", ["farms", "nodes", "farm", "user", "tfgridUrl", "customPricesList"]),
             parsedLocation() {
                 return {
                     lat: this.newFarm.location.latitude,
                     lng: this.newFarm.location.longitude
                 };
-            }
+            },
         },
         async mounted() {
             await this.getTfgridUrl();
             await this.getUser();
-            this.getFarms();
+            await this.getFarms();
             this.initialiseRefresh()
             this.newFarm.threebot_id = this.user.id;
         },
@@ -82,8 +105,51 @@ module.exports = new Promise(async (resolve, reject) => {
                 "registerFarm",
                 "getFarms",
                 "getNodes",
-                "getTfgridUrl"
+                "getTfgridUrl",
+                "setCustomPricesList",
+                "setDefaultFarmPrices",
+                "createOrUpdateFarmThreebotCustomPrice",
+                "setFarm",
+                "updateFarm",
             ]),
+            upgradeToGrid3(farm) {
+                this.upgrade = true;
+                // change the grid 3 flag to be true
+                farm.is_grid3_compliant = true;
+                this.updateFarm(farm)
+                    .then(response => {
+                        if (response.status == 200) {
+                            this.editFarmAlert = {
+                                message: "farm configuration updated",
+                                type: "success",
+                            }
+                            this.upgrade = false;
+                            this.showUpgradeConfirmation = false;
+                        } else {
+                            this.editFarmAlert = {
+                                message: response.data['error'],
+                                type: "error",
+                            }
+                        }
+                        setTimeout(() => {
+                            this.editFarmAlert = undefined
+                        }, 2000)
+                    }).catch(err => {
+                        var msg = "server error"
+                        if (err.response) {
+                            // The request was made and the server responded with a status code
+                            // that falls out of the range of 2xx
+                            msg = err.response.data['error'] ? err.response.data['error'] : "server error"
+                        }
+                        this.editFarmAlert = {
+                            message: msg,
+                            type: "error",
+                        }
+                        setTimeout(() => {
+                            this.editFarmAlert = undefined
+                        }, 15000)
+                    })
+            },
             initialiseRefresh() {
                 const that = this;
                 this.refreshInterval = setInterval(() => {
@@ -100,9 +166,10 @@ module.exports = new Promise(async (resolve, reject) => {
             },
             viewNodes(item) {
                 this.getNodes(item.id);
+                this.setCustomPricesList(item.id)
                 this.farmSelected = item;
-                console.log(item)
-                console.log(this.farmSelected)
+                this.setFarm(item);
+                this.farm_price = item.farm_cloudunits_price && Object.assign(this.farm_price, item.farm_cloudunits_price) || { cu: item.explorer_prices.cu, su: item.explorer_prices.su, ipv4u: item.explorer_prices.ipv4u };
             },
             viewSettings(farm) {
                 this.farmToEdit = farm;
@@ -129,7 +196,7 @@ module.exports = new Promise(async (resolve, reject) => {
 
 
                 this.registerFarm(this.newFarm).then(response => {
-                    if (response.status == 201) {
+                    if (response.data) {
                         this.newFarmAlert = {
                             message: "farm created",
                             type: "success",
@@ -183,7 +250,41 @@ module.exports = new Promise(async (resolve, reject) => {
             },
             goToEdit(farm) {
                 this.$router.history.push(`/edit/${farm.id}`)
-            }
+            },
+            setFarmPrice(cu, su, ipv4u) {
+                let prices = { cu: cu, su: su, ipv4u: ipv4u }
+                let farmCustomPricesInfo = { farmId: this.farmSelected.id, prices: prices }
+                this.setDefaultFarmPrices(farmCustomPricesInfo)
+                    .then(response => {
+                        this.showSetFarmPrice = false;
+                        this.getFarms();
+                    }).catch(err => {
+                        console.log(err)
+                    })
+            },
+            addCustomPrice(threebotName, cu, su, ipv4u) {
+                if (this.$refs.customPriceForm.validate()) {
+                    let prices = { cu: +cu, su: +su, ipv4u: +ipv4u }
+                    let farmCustomPricesInfo = { farmId: this.farmSelected.id, prices: prices, threebotName: threebotName }
+                    this.createOrUpdateFarmThreebotCustomPrice(farmCustomPricesInfo)
+                        .then(response => {
+                            this.openAddCustomModel = false;
+                            this.setCustomPricesList(farmCustomPricesInfo.farmId);
+                            this.customPrice = {
+                                threebotName: '',
+                                cu: null,
+                                su: null,
+                                ipv4u: null,
+                                threebotId: null
+                            };
+                            this.addCustomModelError = null;
+                            this.$refs.customPriceForm.resetValidation();
+                        }).catch(err => {
+                            console.log("Error: ", err.response.data.error)
+                            this.addCustomModelError = err.response.data.error
+                        })
+                }
+            },
         }
     });
 });

@@ -3,6 +3,7 @@ import random
 import uuid
 from textwrap import dedent
 import gevent
+import gevent.event
 
 import requests
 
@@ -22,8 +23,12 @@ RESOURCE_VALUE_KEYS = {"cru": "CPU {}", "mru": "Memory {} GB", "sru": "Disk {} G
 
 
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
+    def __init__(self, *args, **kwargs):
+        self._branch = None
+        super().__init__(*args, **kwargs)
+
     def _init_solution(self):
-        self.md_show_update("Checking payment service...")
+        self.md_show_update("It will take a few seconds to be ready to help you ...")
         # check stellar service
         if not j.clients.stellar.check_stellar_service():
             raise StopChatFlow("Payment service is currently down, try again later")
@@ -39,6 +44,23 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.allow_custom_domain = False
         self.currency = "TFT"
         self.identity_name = j.core.identity.me.instance_name
+
+    @property
+    def branch(self):
+        if not self._branch:
+            try:
+                path = j.packages.threebot_deployer.__file__
+                git_client = j.clients.git.get("default_threebot")
+                git_client.path = j.tools.git.find_git_path(path)
+                git_client.save()
+                self._branch = git_client.branch_name
+            except Exception as e:
+                # won't fail unless we move the 3bot deployer package
+                j.logger.critical(
+                    f"Using development as default branch. Threebot package location is changed/courrpted, Please fix me, Error: {str(e)}"
+                )
+                self._branch = "development"
+        return self._branch
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
@@ -99,11 +121,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                         pool.pool_id, math.ceil(cu_diff), math.ceil(su_diff), 0, currencies=[self.currency]
                     )
                     deployer.pay_for_pool(pool_info)
-                    trigger_cus = pool.cus + (cu_diff * 0.9) if cu_diff else 0
-                    trigger_sus = pool.sus + (su_diff * 0.9) if su_diff else 0
-                    result = deployer.wait_demo_payment(
-                        self, pool.pool_id, trigger_cus=trigger_cus, trigger_sus=trigger_sus
-                    )
+                    result = deployer.wait_pool_reservation(pool_info.reservation_id, bot=self)
                     if not result:
                         raise StopChatFlow(
                             f"can not provision resources. reservation_id: {pool_info.reservation_id}, pool_id: {pool.pool_id}"
@@ -125,7 +143,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     **self.query,
                 )
                 deployer.pay_for_pool(self.pool_info)
-                result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
+                result = deployer.wait_pool_reservation(self.pool_info.reservation_id, bot=self)
                 if not result:
                     raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
                 self.pool_id = self.pool_info.reservation_id
@@ -144,7 +162,7 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     f"provisioning the pool, invalid escrow information probably caused by a misconfigured, pool creation request was {self.pool_info}"
                 )
             deployer.pay_for_pool(self.pool_info)
-            result = deployer.wait_demo_payment(self, self.pool_info.reservation_id)
+            result = deployer.wait_pool_reservation(self.pool_info.reservation_id, bot=self)
             if not result:
                 raise StopChatFlow(f"provisioning the pool timed out. pool_id: {self.pool_info.reservation_id}")
             self.wgcfg = deployer.init_new_user_network(
@@ -286,14 +304,14 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def _get_domain(self):
         # get domain for the ip address
         self.md_show_update("Preparing gateways ...")
-        gateways = deployer.list_all_gateways(self.username, self.farm_name, identity_name=self.identity_name)
+        prefered_gw_farm = "csfarmer"
+        gateways = deployer.list_all_gateways(self.username, prefered_gw_farm, identity_name=self.identity_name)
         if not gateways:
             raise StopChatFlow(
                 "There are no available gateways in the farms bound to your pools. The resources you paid for will be re-used in your upcoming deployments."
             )
 
         domains = dict()
-        is_http_failure = False
         is_managed_domains = False
         gateway_values = list(gateways.values())
         random.shuffle(gateway_values)
@@ -304,8 +322,16 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
             for domain in gateway.managed_domains:
                 self.addresses = []
                 is_managed_domains = True
-                if domain in blocked_domains:
+                if domain in blocked_domains or domain.startswith("vdc"):
                     continue
+
+                # use 3bot with 3bot domains and solutions with webgw1 and webgw2
+                if self.SOLUTION_TYPE == "threebot" and not domain.startswith("3bot"):
+                    continue
+
+                if self.SOLUTION_TYPE != "threebot" and not domain.startswith("webg"):
+                    continue
+
                 success = deployer.test_managed_domain(
                     gateway.node_id, domain, gw_dict["pool"].pool_id, gateway, identity_name=self.identity_name
                 )
@@ -315,23 +341,14 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                     continue
                 else:
                     deployer.unblock_managed_domain(domain)
-                try:
-                    if not j.core.config.get("TEST_CERT") and j.sals.crtsh.has_reached_limit(domain):
-                        continue
-                except requests.exceptions.HTTPError:
-                    is_http_failure = True
-                    continue
                 domains[domain] = gw_dict
                 self.gateway_pool = gw_dict["pool"]
                 self.gateway = gw_dict["gateway"]
                 managed_domain = domain
 
                 solution_name = self.solution_name.replace(f"{self.solution_metadata['owner']}-", "").replace("_", "-")
-                owner_prefix = self.solution_metadata["owner"].replace(".3bot", "").replace(".", "").replace("_", "-")
-                solution_type = self.SOLUTION_TYPE.replace(".", "").replace("_", "-")
                 # check if domain name is free or append random number
-                full_domain = f"{owner_prefix}-{solution_type}-{solution_name}.{managed_domain}"
-
+                full_domain = f"{solution_name}.{managed_domain}"
                 metafilter = lambda metadata: metadata.get("owner") == self.username
                 # no need to load workloads in deployer object because it is already loaded when checking for name and/or network
                 user_subdomains = {}
@@ -356,13 +373,14 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                                     break
                             if is_free:
                                 solutions.cancel_solution_by_uuid(sol_uuid)
+                                deployer.wait_workload_deletion(dom["wid"], timeout=3, identity_name=self.identity_name)
 
                     if j.tools.dnstool.is_free(full_domain):
                         self.domain = full_domain
                         break
                     else:
-                        random_number = random.randint(1000, 100000)
-                        full_domain = f"{owner_prefix}-{solution_type}-{solution_name}-{random_number}.{managed_domain}"
+                        random_number = random.randint(1, 1000)
+                        full_domain = f"{solution_name}-{random_number}.{managed_domain}"
 
                 for ns in self.gateway.dns_nameserver:
                     try:
@@ -372,16 +390,11 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 if not self.addresses:
                     continue
                 return self.domain
-
-        if is_http_failure:
-            raise StopChatFlow(
-                'An error encountered while trying to fetch certifcates information from <a href="crt.sh" target="_blank">crt.sh</a>. Please try again later.'
-            )
-        elif not is_managed_domains:
+        if not is_managed_domains:
             raise StopChatFlow("Couldn't find managed domains in the available gateways. Please contact support.")
         else:
             raise StopChatFlow(
-                "Letsencrypt limit has been reached on all gateways. The resources you paid for will be re-used in your upcoming deployments."
+                "No active gateways were found.Please contact support. The resources you paid for will be re-used in your upcoming deployments."
             )
 
     def _config_logs(self):
@@ -434,16 +447,26 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
         self.available_farms = []
         farms = j.sals.zos.get(identity_name)._explorer.farms.list()
         # farm_names = ["freefarm"]  # DEUBGGING ONLY
+        gs = []
+        only_one_event = gevent.event.Event()
 
-        for farm in farms:
-            farm_name = farm.name
+        def handle_one_farm(farm):
             available_ipv4, _, _, _, _ = deployer.check_farm_capacity(
-                farm_name, currencies=[self.currency], ip_version="IPv4", **self.query
+                farm.name, currencies=[self.currency], ip_version="IPv4", **self.query
             )
             if available_ipv4:
                 self.available_farms.append(farm)
                 if only_one:
-                    return
+                    only_one_event.set()
+
+        for farm in farms:
+            g = gevent.spawn(handle_one_farm, farm)
+            gs.append(g)
+        if only_one:
+            only_one_event.wait()
+            return
+        else:
+            gevent.joinall(gs)
         if not self.available_farms:
             raise StopChatFlow("No available farms with enough resources for this deployment at the moment")
 
@@ -518,14 +541,54 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def solution_extension(self):
         self.md_show_update("Extending pool...")
         self.currencies = ["TFT"]
+
         self.pool_info, self.qr_code = deployer.extend_solution_pool(
             self, self.pool_id, self.expiration, self.currencies, **self.query
         )
         if self.pool_info and self.qr_code:
             # cru = 1 so cus will be = 0
-            result = deployer.wait_pool_payment(self, self.pool_id, qr_code=self.qr_code, trigger_sus=self.pool.sus + 1)
+            result = deployer.wait_pool_reservation(self.pool_info.reservation_id, qr_code=self.qr_code, bot=self)
             if not result:
                 raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {self.pool_id}")
+
+    @chatflow_step(title="Payment")
+    def extension_with_billing_package(self):
+        """
+        Extend existing pool using billing package where the user will transfer to intermediate wallet, and extension is payed for from that wallet.
+        In case of extension failure refund is done from the intermediate wallet
+        """
+        self.md_show_update("Extending pool...")
+        self.currencies = ["TFT"]
+        # User payment to deployer wallet
+        pool_info = deployer.extend_pool_request(self.pool_id, self.expiration, self.currencies, **self.query)
+
+        payment_success, _, self.payment_id = deployer.show_payment_with_billing_package(
+            self, pool_info, self.threebot_name
+        )
+
+        if pool_info and not payment_success:
+            self.stop(f"Payment timedout. Please restart.")
+
+        # Create pool using deployer wallet
+        if payment_success:
+            wallet = j.clients.stellar.get(deployer.WALLET_NAME)
+            try:
+                j.sals.zos.get(self.identity_name).billing.payout_farmers(wallet, pool_info)
+
+                if not deployer.wait_pool_reservation(
+                    pool_info.reservation_id, exp=5, identity_name=self.identity_name
+                ):
+                    raise DeploymentFailed(f"Failed to pay to pool {pool_info.reservation_id}")
+
+            except Exception as e:
+                j.logger.exception(f"Failed to deploy", exception=e)
+                if self.payment_id:
+                    # deployment needed payment
+                    j.sals.billing.issue_refund(self.payment_id)
+                    self.stop("Failed to deploy. You will be refunded with the amount paid")
+                else:
+                    # Stellar service is down
+                    self.stop("Failed to restart 3Bot at the moment please try again later")
 
     @chatflow_step(title="Reservation", disable_previous=True)
     def reservation(self):

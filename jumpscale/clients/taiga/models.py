@@ -11,6 +11,23 @@ class CircleResource:
         self._client = taigaclient
         self._api = self._client.api
 
+    def check_by_name(self, list_obj, name_to_find):
+        """Check if list contains name, used to check priorities, severities, statuses, types and etc
+            and return the equivalent id.
+
+        Args:
+            list_obj (list): list of objects that we need to search into
+            name_to_find (str): word to search for in the list
+
+        Returns:
+            int: Id of the matched object if found, or id of the first object in the list.
+        """
+        for obj in list_obj:
+            if obj.name == name_to_find:
+                return obj.id
+
+        return list_obj[0].id
+
 
 class CircleIssue(CircleResource):
     def __init__(self, taigaclient, original_object):
@@ -522,7 +539,16 @@ class Circle(CircleResource):
 
         return self._original_object.add_issue(subject, prio, status, issue_type, severity)
 
-    def move_issue(self, issue, project):
+    def copy_issue(self, issue, project):
+        """Copy issue to specific project
+
+        Args:
+            issue (int , CircleIssue): issue or issue id to be copied
+            to_project (int, Circle, FunnelCircle, ProjectCircle, TeamCircle):  circle or circle id to copy issue into
+
+        Returns:
+            Issue: created issue object
+        """
         issue_id = issue
         issue_obj = issue
         project_id = project
@@ -531,15 +557,80 @@ class Circle(CircleResource):
             issue_id = issue.id
             issue_obj = issue
         else:
-            issue_obj = self._client._get_issue_by_id(issue_id)
+            issue_obj = self._client.api.issues.get(issue_id)
 
         if not isinstance(project, int):
             project_id = project.id
             project_obj = project
         else:
-            project_obj = Circle(self._client, self._client._get_project(project_id))
+            project_obj = Circle(self._client, self._client.api.projects.get(project_id))
 
-        created = project_obj.create_issue(issue_obj.subject)
+        issue_priority = self.check_by_name(
+            project_obj.priorities, self._client.api.priorities.get(issue_obj.priority).name
+        )
+        issue_type = self.check_by_name(
+            project_obj.list_issue_types(), self._client.api.issue_types.get(issue_obj.type).name
+        )
+        issue_severity = self.check_by_name(
+            project_obj.list_severities(), self._client.api.severities.get(issue_obj.severity).name
+        )
+        issue_status = self.check_by_name(project_obj.list_issue_statuses(), issue_obj.status_extra_info["name"])
+        issue_custom_field = self._client.get_issue_custom_fields(issue_id)
+
+        created = project_obj.add_issue(
+            issue_obj.subject,
+            issue_priority,
+            issue_status,
+            issue_type,
+            issue_severity,
+            description=issue_obj.description,
+            watchers=issue_obj.watchers,
+            assigned_to=issue_obj.assigned_to,
+        )
+
+        for field in issue_custom_field:
+            is_found = False
+            new_attr = None
+            for attr in project_obj.list_issue_attributes():
+                if attr.name == field["name"] and not is_found:
+                    created.set_attribute(attr.id, field["value"])
+                    is_found = True
+
+            if not is_found:
+                new_attr = project_obj.add_issue_attribute(field["name"])
+                created.set_attribute(new_attr.id, field["value"])
+
+        return created
+
+    def move_issue(self, issue, project):
+        """Move issue to specific project
+        HINT: Move will delete the issue from original circle
+
+        Args:
+            issue (int , CircleIssue): issue or issue id to be movied
+            to_project (int, Circle, FunnelCircle, ProjectCircle, TeamCircle):  circle or circle id to move issue into
+
+        Returns:
+            Issue: created issue object
+        """
+        issue_id = issue
+        issue_obj = issue
+        project_id = project
+        project_obj = project
+        if not isinstance(issue, int):
+            issue_id = issue.id
+            issue_obj = issue
+        else:
+            issue_obj = self._client.api.issues.get(issue_id)
+
+        if not isinstance(project, int):
+            project_id = project.id
+            project_obj = project
+        else:
+            project_obj = Circle(self._client, self._client.api.projects.get(project_id))
+
+        created = self.copy_issue(issue_obj, project_obj)
+
         if created:
             issue_obj.delete()
         return created

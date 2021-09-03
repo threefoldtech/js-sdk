@@ -1,8 +1,7 @@
 from shlex import quote
 
-from beaker.middleware import SessionMiddleware
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, get_user_info, login_required
+from jumpscale.packages.auth.bottle.auth import get_user_info, login_required
 
 from bottle import Bottle, HTTPResponse, abort, request
 
@@ -53,6 +52,3 @@ def destroy():
         raise j.exceptions.Value(status)
 
     return j.data.serializers.json.dumps({"data": {"status": status}})
-
-
-app = SessionMiddleware(app, SESSION_OPTS)

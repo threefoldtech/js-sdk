@@ -1,0 +1,5 @@
+exec: jsng "j.servers.threebot.start_default(wait=True, local=False)"
+test: bash -c "curl http://localhost:31000/admin/api/heartbeat --connect-timeout 10 -f"
+log: stdout
+after:
+  - init

@@ -3,7 +3,6 @@ from gevent import monkey
 monkey.patch_all(subprocess=False)  # noqa: E402
 
 import sys
-
 import click
 import tempfile
 import subprocess
@@ -69,7 +68,8 @@ http {
 @click.option(
     "--local/--no-local", default=False, help="run threebot server on none privileged ports instead of 80/443"
 )
-def start(identity=None, background=False, local=False, development=False, domain=None, email=None):
+@click.option("--cert/--no-cert", default=True, help="Generate certificates for ssl virtual hosts")
+def start(identity=None, background=False, local=False, cert=True, development=False, domain=None, email=None):
     """start 3Bot server after making sure identity is ok
     It will start with the default identity in j.me, if you'd like to specify an identity
     please pass the optional arguments
@@ -139,9 +139,7 @@ def start(identity=None, background=False, local=False, development=False, domai
 
     if background:
         cmd = j.tools.startupcmd.get("threebot_default")
-        cmd.start_cmd = (
-            f"jsng 'j.servers.threebot.start_default(wait=True, local={local}, domain={domain}, email={email})'"
-        )
+        cmd.start_cmd = f"jsng 'j.servers.threebot.start_default(wait=True, local={local}, domain={domain}, email={email}, cert={cert})'"
         cmd.process_strings_regex = [".*threebot_default.sh"]
         cmd.ports = [8000, 8999]
         cmd.start()
@@ -158,7 +156,7 @@ def start(identity=None, background=False, local=False, development=False, domai
                 f"{{WHITE}}Visit admin dashboard at: {{GREEN}}http://localhost:{PORTS.HTTP}/\n{{RESET}}"
             )
     else:
-        j.servers.threebot.start_default(wait=True, local=local, domain=domain, email=email)
+        j.servers.threebot.start_default(wait=True, local=local, domain=domain, email=email, cert=cert)
 
 
 @click.command()
@@ -241,6 +239,12 @@ def clean(all=False):
             print(f"exception for debugging {e}")
 
 
+@click.command()
+@click.option("-o", "--output", default="export.tar.gz", help="exported output file")
+def export(output):
+    j.tools.export.export_threebot_state(output)
+
+
 @click.group()
 def cli():
     pass
@@ -248,40 +252,28 @@ def cli():
 
 def have_wallets():
     wallets = j.clients.stellar.list_all()
-    test, main = False, False
     for wallet_name in wallets:
         wallet = j.clients.stellar.get(wallet_name)
-        if wallet.network.value == "TEST":
-            test = True
-        elif wallet.network.value == "STD":
-            main = True
-    return test, main
-
-
-def create_test_wallet(wallet_name):
-    try:
-        j.clients.stellar.create_testnet_funded_wallet(wallet_name)
-    except Exception as e:
-        j.logger.error(str(e))
+        if wallet.network.value == "STD":
+            return True
+    return False
 
 
 def create_main_wallet(wallet_name):
     wallet_actor = Wallet()
     try:
-        wallet_actor.create_wallet(wallet_name, "STD")
+        wallet_actor.create_wallet(wallet_name)
     except Exception as e:
         j.logger.error(str(e))
 
 
 def create_wallets_if_not_exists():
-    test, main = have_wallets()
+    main_wallet = have_wallets()
     if not j.core.identity.is_configured:
         j.logger.warning("skipping wallets creation, identity isn't configured yet")
         return
     else:
-        if not test and "testnet" in j.core.identity.me.explorer_url:
-            create_test_wallet("test")
-        if not main and "explorer.grid.tf" in j.core.identity.me.explorer_url:
+        if not main_wallet:
             create_main_wallet("main")
 
 
@@ -290,6 +282,7 @@ cli.add_command(stop)
 cli.add_command(status)
 cli.add_command(restart)
 cli.add_command(clean)
+cli.add_command(export)
 
 
 if __name__ == "__main__":

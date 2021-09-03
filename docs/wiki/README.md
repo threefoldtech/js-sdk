@@ -9,8 +9,8 @@
     * [API](generated_apis.md)
 * Tutorials
     * [Developing a Package and Deploying a Website](./tutorials/deploying_website_and_packages.md)
-    * [Adding funds to the wallet](./tutorials/add_funds_to_wallet.md)
     * [Deploy ubuntu container](./tutorials/deploy_ubuntu_container.md)
+    * [Billing](./tutorials/billing.md)
 * Developers
     * Structure
     * [Developer setup](./devsetup.md)
@@ -25,4 +25,3 @@
     * [API](generated_apis.md)
     * Builders
     * [Github actions](./githubactions.md)
-

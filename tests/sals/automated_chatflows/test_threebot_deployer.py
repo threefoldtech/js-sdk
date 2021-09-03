@@ -2,10 +2,12 @@ from time import time
 
 import pytest
 from jumpscale.loader import j
+from jumpscale.packages.threebot_deployer.bottle.utils import stop_threebot_solution, list_threebot_solutions
+from jumpscale.packages.threebot_deployer.models import USER_THREEBOT_FACTORY
+from jumpscale.packages.threebot_deployer.models.user_solutions import ThreebotState
 from solutions_automation import deployer
 from tests.sals.automated_chatflows.chatflows_base import ChatflowsBase
-from jumpscale.packages.threebot_deployer.bottle.utils import stop_threebot_solution
-from jumpscale.packages.threebot_deployer.models import USER_THREEBOT_FACTORY
+from gevent import sleep
 
 
 @pytest.mark.integration
@@ -15,6 +17,12 @@ class ThreebotChatflows(ChatflowsBase):
         super().setUpClass()
         # Accept admin T&C for testing identity.
         cls.accept_terms_conditions(type_="marketplace")
+
+        from jumpscale.packages import threebot_deployer
+
+        path = j.sals.fs.dirname(threebot_deployer.__file__)
+        threebot_deployer = j.servers.threebot.default.packages.add(path)
+
         cls.solution_uuid = ""
         cls.secret = ""
 
@@ -28,7 +36,19 @@ class ThreebotChatflows(ChatflowsBase):
         if self.solution_uuid and self.secret:
             stop_threebot_solution(self.tname, self.solution_uuid, self.secret)
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
+    def wait_for_threebot_state(self, threebot_name, status, timeout=300):
+        now = j.data.time.now().timestamp
+        while j.data.time.now().timestamp < now + timeout:
+            threebot = [
+                threebot for threebot in list_threebot_solutions(self.tname) if threebot["name"] == threebot_name
+            ][0]
+            if not threebot:
+                raise j.exceptions.Runtime(f"Couldn't find threebot {threebot_name}")
+            if threebot["state"] == status.value:
+                return True
+            sleep(2)
+        return False
+
     def test01_deploy_threebot(self):
         """Test case for deploying a threebot.
 
@@ -40,14 +60,14 @@ class ThreebotChatflows(ChatflowsBase):
         self.info("Deploy a threebot")
         name = self.random_name()
         self.secret = self.random_name()
-        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=time() + 60 * 15, ssh="")
+        expiration = j.data.time.utcnow().timestamp + 60 * 15
+        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
 
         self.info("Check that threebot is reachable.")
         request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test02_start_deployed_threebot(self):
         """Test case for starting a threebot.
 
@@ -61,11 +81,13 @@ class ThreebotChatflows(ChatflowsBase):
         self.info("Deploy a threebot")
         name = self.random_name()
         self.secret = self.random_name()
-        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=time() + 60 * 15, ssh="")
+        expiration = j.data.time.utcnow().timestamp + 60 * 15
+        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
 
         self.info("Stop the deployed threebot")
         stop_threebot_solution(self.tname, self.solution_uuid, self.secret)
+        self.assertTrue(self.wait_for_threebot_state(name, ThreebotState.STOPPED), "Threebot didn't stop")
 
         self.info("Start the stopped threebot")
         threebot = deployer.start_threebot(name, self.secret)
@@ -75,7 +97,6 @@ class ThreebotChatflows(ChatflowsBase):
         request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test03_change_deployed_threebot_size(self):
         """Test case for changing a threebot size.
 
@@ -89,11 +110,13 @@ class ThreebotChatflows(ChatflowsBase):
         self.info("Deploy a threebot")
         name = self.random_name()
         self.secret = self.random_name()
-        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=time() + 60 * 15, ssh="")
+        expiration = j.data.time.utcnow().timestamp + 60 * 15
+        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
 
         self.info("Stop the deployed threebot")
         stop_threebot_solution(self.tname, self.solution_uuid, self.secret)
+        self.assertTrue(self.wait_for_threebot_state(name, ThreebotState.STOPPED), "Threebot didn't stop")
 
         self.info("Start the stopped threebot")
         threebot = deployer.change_threebot_size(
@@ -110,7 +133,6 @@ class ThreebotChatflows(ChatflowsBase):
         request = j.tools.http.get(f"http://{threebot.domain}", verify=False, timeout=self.timeout)
         self.assertEqual(request.status_code, 200)
 
-    @pytest.mark.skip("https://github.com/threefoldtech/js-sdk/issues/1672")
     def test04_change_deployed_threebot_location(self):
         """Test case for changing a threebot location.
 
@@ -123,15 +145,18 @@ class ThreebotChatflows(ChatflowsBase):
         """
         self.info("Deploy a threebot")
         name = self.random_name()
+        expiration = j.data.time.utcnow().timestamp + 60 * 15
         self.secret = self.random_name()
-        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=time() + 60 * 15, ssh="")
+        threebot = deployer.deploy_threebot(solution_name=name, secret=self.secret, expiration=expiration, ssh="")
         self.solution_uuid = threebot.solution_id
 
         self.info("Stop the deployed threebot")
         stop_threebot_solution(self.tname, self.solution_uuid, self.secret)
+        self.assertTrue(self.wait_for_threebot_state(name, ThreebotState.STOPPED), "Threebot didn't stop")
 
         self.info("Start the stopped threebot")
-        threebot = deployer.change_threebot_location(name, self.secret)
+        expiration = j.data.time.utcnow().timestamp + 60 * 15
+        threebot = deployer.change_threebot_location(name, self.secret, expiration_time=expiration)
         self.solution_uuid = threebot.solution_id
 
         self.info("Check that threebot is reachable.")

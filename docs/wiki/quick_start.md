@@ -37,7 +37,7 @@ Just doing `python3 -m pip install js-sdk` is enough
 ### Installation for experts or developers
 
 - Make sure to have the [requirements](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/quick_start.md#system-requirements-for-installation-on-the-host) installed
-This version of the SDK tries to be isolated as possible in case of developers or the endusers, and we are achieving that level of isolation using poetry for the whole development/publishing process
+This version of the SDK tries to be isolated as possible in case of developers or the end users, and we are achieving that level of isolation using poetry for the whole development/publishing process
 
 - To install poetry `pip3 install poetry` or from [here](https://python-poetry.org/docs/#installation)
 - Clone the repository `git clone https://github.com/threefoldtech/js-sdk`
@@ -60,7 +60,7 @@ After the installation steps you should have an executable `threebot`
 - in case of pip it should be available for the user
 - in case of poetry you need to be in the isolated environment using `poetry shell`
 
-threebot server can run using `threebot start --local` starts a server on `8443, 8080`. If you want to use `80, 443` ports you need to set [capabilities](runninng3bot.md) for nginx binary (in case of linux) or install as root in case of OSX
+threebot server can run using `threebot start --local` starts a server on `8443, 8080`. If you want to use `80, 443` ports you need to set [capabilities](running3bot.md) for nginx binary (in case of linux) or install as root in case of OSX
 
   ```bash
   threebot start --local
@@ -82,35 +82,28 @@ See [here](https://github.com/threefoldtech/js-sdk/blob/30fbc245e22030e5b3fc1a39
 
 ## Access admin panel
 
-Now the admin panel should available on the host and can be accesse through `<HOST>/admin` where you will be redirected to 3bot login. The admin panel ha many functionalities but our main usage in this tutorial will be to deploy an ubuntu container using its chatflow.
+Now the admin panel should available on the host and can be accessed through `<HOST>/admin` where you will be redirected to 3bot login. The admin panel ha many functionalities but our main usage in this tutorial will be to deploy an ubuntu container using its chatflow.
 Note: if you started threebot server with `--local` option, then the admin can be accessed with `https://localhost:8443/admin/`
 
 ## Create a new wallet
 
-There are two options to be create a wallet, first is using the jsng shell where you will setup the wallet and can get FreeTFTs and TFTs. Second is through the admin dashboard where you will not be able to set up and recieve FreeTFTs and test TFTs.
+First we need to setup the payment method which is the wallet we will use to pay for the deployment machine. This can be done through the admin under `Wallet manager`.
 
-1. Using jsng shell:
+![solutions menu](images/wallet_manager.png)
 
-    See [here](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/tutorials/add_funds_to_wallet.md)
+One of the following can be done:
 
-2. Using admin panel:
-    First we need to setup the payment method wich is the wallet we will use to pay for the deployment machine. This can be done through the admin under `Wallet manager`.
+- **Create a new wallet**: You can create a new wallet by clicking on the `create wallet` button then entering the name of the wallet to be created. Make sure you save the secret of the wallet created to be able get the wallet incase it was lost. Transfer the amount of tokens you need to your wallet to have enough funds for the deployment.
+![Create wallet](images/create_wallet.png)
 
-    ![solutions menu](images/wallet_manager.png)
-
-    One of the following can be done:
-
-    - **Create a new wallet**: You can create a new wallet by clicking on the `create wallet` button then entering the name of the wallet to be created. Make sure you save the secret of the wallet created to be able get the wallet incase it was lost. Transfer the amount of tokens you need to your wallet to have enough funds for the deployment.
-    ![Create wallet](images/create_wallet.png)
-
-    - **Import an existing wallet**:If you already have a stellar wallet then you can simply import it by clicking on `import wallet` then entering the wallet name and secret.
-    ![Import wallet](images/import_wallet.png)
+- **Import an existing wallet**:If you already have a stellar wallet then you can simply import it by clicking on `import wallet` then entering the wallet name and secret.
+![Import wallet](images/import_wallet.png)
 
 Now that the wallet is setup, you are ready for your first deployment.
 
 ## Adding tokens to a stellar wallet
 
-To know how to obtain tokens [see here](https://github.com/threefoldfoundation/info_gridmanual/blob/development_capacitypool/src/2_gettingstarted/getting_started_get_tft.md)
+To know how to obtain tokens [see here](https://sdk.threefold.io/#/sdk__mainnet_gettft)
 
 ## Create your Capacity pool
 

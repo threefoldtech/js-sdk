@@ -9,7 +9,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - uses: actions/checkout@v2
-        - uses: olegtarasov/get-tag@v2 # getting tagname
+        - uses: olegtarasov/get-tag@master # getting tagname
           id: tagName
         - uses: docker/build-push-action@v1
           with:
@@ -19,7 +19,7 @@ jobs:
             password: ${{ secrets.DOCKERHUB_PASSWORD }}
             dockerfile: jumpscale/install/Dockerfile
             tags: ${{ steps.tagName.outputs.tag }}
-            build_args: BRANCH=${{ steps.tagName.outputs.tag }}
+            build_args: BRANCH=${{ steps.tagName.outputs.tag }},TRC=false
         - name: Convert Docker image to flist
           run: |
             TOKEN=$(curl -f -H "Authorization: bearer ${{secrets.ZEROHUB_TOKEN}}" https://itsyou.online/v1/oauth/jwt/refresh)

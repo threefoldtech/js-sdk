@@ -11,6 +11,7 @@ from jumpscale.clients.explorer.models import (
     K8s,
     NetworkResource,
     NextAction,
+    VirtualMachine,
     Volume,
     ZdbNamespace,
     PublicIP,
@@ -58,6 +59,38 @@ class Workloads:
         if isinstance(next_action, NextAction):
             next_action = next_action.name
         return self._workloads.list(customer_tid, next_action)
+
+    def list_workloads(
+        self, customer_tid: int, next_action: Union[NextAction, str] = None, page=None
+    ) -> List[
+        Union[
+            Container,
+            Gateway4to6,
+            GatewayDelegate,
+            GatewayProxy,
+            GatewayReverseProxy,
+            GatewaySubdomain,
+            K8s,
+            NetworkResource,
+            Volume,
+            ZdbNamespace,
+            PublicIP,
+        ]
+    ]:
+        """list workloads by gevent and optionally filter them by owner or next_action state
+
+        Args:
+          customer_tid(int): filter by user ID
+          next_action(Union[NextAction, str], optional): filter by next_action state, defaults to None
+          page ([type], optional): page number to filter with. Defaults to None.
+
+        Returns:
+          List[ Union[ Container, Gateway4to6, GatewayDelegate, GatewayProxy, GatewayReverseProxy, GatewaySubdomain, K8s, NetworkResource, Volume, ZdbNamespace, PublicIP, ] ]: description]
+
+        """
+        if isinstance(next_action, NextAction):
+            next_action = next_action.name
+        return self._workloads.list_workloads(customer_tid, next_action, page=page)
 
     def iter(
         self, customer_tid: int, next_action: Union[NextAction, str] = None
@@ -132,6 +165,7 @@ class Workloads:
             Volume,
             ZdbNamespace,
             PublicIP,
+            VirtualMachine,
         ],
     ) -> int:
         """deploy a workload on a node
@@ -168,5 +202,20 @@ class Workloads:
         """
         me = self._identity
         workload = self.get(workload_id)
+        if workload.info.next_action.value > 3:
+            # workload is not deployed
+            return
         signature = sign_delete_request(workload, me.tid, me.nacl.signing_key)
         return self._workloads.sign_delete(workload_id, me.tid, signature)
+
+    def wait(self, wid, timeout=5):
+        expiration = j.data.time.now().timestamp + timeout * 60
+        while j.data.time.now().timestamp < expiration:
+            workload = self.get(wid)
+            if not workload.info.result.workload_id:
+                continue
+
+            success = workload.info.result.state.value == 1
+            msg = workload.info.result.message
+            return success, msg
+        raise j.exceptions.Timeout(f"waiting for workload {wid} timeout")

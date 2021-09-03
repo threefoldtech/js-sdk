@@ -2,7 +2,7 @@
 
 ## Overview
 
-Marketplace package is created to offer a centralized place where end-users can deploy different types of solutions without needing to have an identity registered in the explorer or even have a 3bot running. All the user needs is to have TF Connect ([Android](https://play.google.com/store/apps/details?id=org.jimber.threebotlogin&hl=en)/[IOS](https://apps.apple.com/us/app/3bot-connect/id1459845885)) app installed on his mobile device with logged in user.
+Marketplace package is created to offer a centralized place where end-users can deploy different types of solutions without needing to have an identity registered in the explorer or even have a 3bot running. All the user needs is to have ThreeFold Connect ([Android](https://play.google.com/store/apps/details?id=org.jimber.threebotlogin&hl=en)/[IOS](https://apps.apple.com/us/app/3bot-connect/id1459845885)) app installed on his mobile device with logged in user.
 
 ### Components
 
@@ -12,7 +12,7 @@ Maketplace deployment requires three machines. One machine has `js-sdk` installe
 
 #### Create your wallet
 
-the marketplace requires wallet with TFT with name `demos_wallet` [create your wallet](https://github.com/threefoldtech/js-sdk/blob/development/docs/wiki/tutorials/add_funds_to_wallet.md#from-js-ng-shell-advanced)
+The marketplace requires wallet with TFT with name `demos_wallet` [create your wallet](https://sdk.threefold.io/#/sdk__3bot_sdk_wallet)
 
 #### Adding marketplace package
 Marketplace package is installed normally like any other package using the admin dashboard or from `jsng` shell using the package path as below:

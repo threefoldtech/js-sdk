@@ -1,14 +1,16 @@
 import math
 import random
 
-from jumpscale.clients.explorer.models import NextAction, WorkloadType
+from jumpscale.sals.zos.billing import InsufficientFunds
+from jumpscale.clients.explorer.models import Container, DiskType, NextAction, WorkloadType
 from jumpscale.core.base import StoredFactory
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import StopChatFlow
 from jumpscale.sals.reservation_chatflow import DeploymentFailed
 from jumpscale.sals.reservation_chatflow.deployer import ChatflowDeployer, NetworkView
-
 from requests.exceptions import HTTPError
+from jumpscale.clients.stellar import TRANSACTION_FEES
+
 
 from .models import UserPool
 
@@ -75,19 +77,24 @@ class MarketPlaceDeployer(ChatflowDeployer):
         info = self.get_payment_info(pool)
         WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
         wallet = j.clients.stellar.get(name=WALLET_NAME)
-        wallet.transfer(
-            destination_address=info["escrow_address"],
-            amount=info["total_amount_dec"],
-            asset=info["escrow_asset"],
-            memo_text=f"p-{info['resv_id']}",
-        )
-        return info
+        # try payment for 5 mins
+        zos = j.sals.zos.get()
+        now = j.data.time.utcnow().timestamp
+        while j.data.time.utcnow().timestamp <= now + 5 * 60:
+            try:
+                zos.billing.payout_farmers(wallet, pool)
+                return info
+            except InsufficientFunds as e:
+                raise e
+            except Exception as e:
+                j.logger.warning(str(e))
+        raise StopChatFlow(f"Failed to pay for pool {pool} in time, Please try again later")
 
-    def list_pools(self, username=None, cu=None, su=None):
+    def list_pools(self, username=None, cu=None, su=None, ipv4u=None):
         all_pools = self.list_user_pools(username)
         available_pools = {}
         for pool in all_pools:
-            res = self.check_pool_capacity(pool, cu, su)
+            res = self.check_pool_capacity(pool, cu, su, ipv4u)
             available = res[0]
             if available:
                 resources = res[1:]
@@ -125,7 +132,9 @@ class MarketPlaceDeployer(ChatflowDeployer):
         network_names = [n[len(username) + 1 :] for n in network_views.keys()]
         if not network_views:
             raise StopChatFlow(f"You don't have any deployed network.")
-        network_name = bot.single_choice("Please select a network", network_names, required=True)
+        network_name = bot.single_choice(
+            "Please select a network to connect your solution to", network_names, required=True
+        )
         return network_views[f"{username}_{network_name}"]
 
     def _check_pool_factory_owner(self, instance_name, identity_name=None):
@@ -150,16 +159,32 @@ class MarketPlaceDeployer(ChatflowDeployer):
         farms_ids_with_gateways = [
             gateway_farm.farm_id for gateway_farm in deployer._explorer.gateway.list() if gateway_farm.farm_id > 0
         ]
+        # verify gateway farms is already there
+        for farm_id in farms_ids_with_gateways.copy():
+            try:
+                deployer._explorer.farms.get(farm_id)
+            except:
+                j.logger.warning(f"farm {farm_id} doesn't exist anymore, skipping that gateway")
+                farms_ids_with_gateways.remove(farm_id)
+
         farms_names_with_gateways = set(
             map(lambda farm_id: deployer._explorer.farms.get(farm_id=farm_id).name, farms_ids_with_gateways)
         )
+        if farm_name in farms_names_with_gateways:
+            farms_names_with_gateways = [farm_name]
 
-        for farm_name in farms_names_with_gateways:
-            gw_pool_name = f"marketplace_gateway_{farm_name}"
+        for farm_name_with_gw in farms_names_with_gateways:
+            gw_pool_name = f"marketplace_gateway_{farm_name_with_gw}"
             if gw_pool_name not in pool_factory.list_all() or not self._check_pool_factory_owner(
                 gw_pool_name, identity_name
             ):
-                gateways_pool_info = deployer.create_gateway_emptypool(gw_pool_name, farm_name, identity_name)
+                try:
+                    gateways_pool_info = deployer.create_gateway_emptypool(
+                        gw_pool_name, farm_name_with_gw, identity_name
+                    )
+                except Exception as e:
+                    j.logger.warning(f"Error creating farm on {farm_name_with_gw}, due to:\n{str(e)}")
+                    continue
                 gateways_pools_ids.append(gateways_pool_info.reservation_id)
             else:
                 pool_id = pool_factory.get(gw_pool_name).pool_id
@@ -218,7 +243,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
         selected_nodes = []
         selected_pool_ids = []
         for i in range(number_of_nodes):
-            cu, su = self.calculate_capacity_units(**resource_query_list[i])
+            cloud_units = self.calculate_capacity_units(**resource_query_list[i])
+            cu, su = cloud_units.cu, cloud_units.su
             pool_choices = {}
             for p in pools:
                 if pools[p][0] < cu or pools[p][1] < su:
@@ -252,7 +278,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
             ([], []): first list contains the selected node objects. second list contains selected pool ids
         """
         resource_query = resource_query or {}
-        cu, su = self.calculate_capacity_units(**resource_query)
+        cloud_units = self.calculate_capacity_units(**resource_query)
+        cu, su = cloud_units.cu, cloud_units.su
         pools = self.list_pools(username, cu, su)
         if pool_ids:
             filtered_pools = {}
@@ -293,10 +320,10 @@ class MarketPlaceDeployer(ChatflowDeployer):
             selected_pool_ids.append(pool.pool_id)
         return selected_nodes, selected_pool_ids
 
-    def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
-        cu, su = self.calculate_capacity_units(**resources)
-        cu = math.ceil(cu * expiration)
-        su = math.ceil(su * expiration)
+    def extend_pool_request(self, pool_id, expiration, currency, **resources):
+        cloud_units = self._calculate_cloud_units(**resources)
+        cu = math.ceil(cloud_units.cu * expiration)
+        su = math.ceil(cloud_units.su * expiration)
 
         # guard in case of negative results
         cu = max(cu, 0)
@@ -306,14 +333,45 @@ class MarketPlaceDeployer(ChatflowDeployer):
             currency = [currency]
         if cu > 0 or su > 0:
             pool_info = j.sals.zos.get().pools.extend(pool_id, cu, su, 0, currency)
+            return pool_info
+
+    def show_payment_with_billing_package(self, bot, pool_info, tname):
+        """
+        Create a payment from user to intermediate wallet using billing package, which is then used to pay and is used for refunds
+        """
+        # pool doesn't need extension so request won't return payment information
+        if not pool_info:
+            return None, None, None
+
+        cost = pool_info.escrow_information.amount / 10e6 + TRANSACTION_FEES
+
+        self.payment_id, _ = j.sals.billing.submit_payment(
+            amount=cost,
+            wallet_name=self.WALLET_NAME,
+            refund_extra=False,
+            expiry=5,
+            description=j.data.serializers.json.dumps({"type": "3bot_pool_extend", "owner": tname}),
+        )
+
+        if cost > 0:
+            notes = []
+            return j.sals.billing.wait_payment(self.payment_id, bot=bot, notes=notes), cost, self.payment_id
+        else:
+            return None, None, None
+
+    def extend_solution_pool(self, bot, pool_id, expiration, currency, **resources):
+        pool_info = self.extend_pool_request(pool_id, expiration, currency, **resources)
+        if pool_info:
             qr_code = self.show_payment(pool_info, bot)
             return pool_info, qr_code
         else:
             return None, None
 
     def create_solution_pool(self, bot, username, farm_name, expiration, currency, **resources):
-        cu, su = self.calculate_capacity_units(**resources)
-        pool_info = j.sals.zos.get().pools.create(int(cu * expiration), int(su * expiration), 0, farm_name, [currency])
+        cloud_units = self.calculate_capacity_units(**resources)
+        pool_info = j.sals.zos.get().pools.create(
+            int(cloud_units.cu * expiration), int(cloud_units.su * expiration), 0, farm_name, [currency]
+        )
         user_pool = pool_factory.new(f"pool_{username.replace('.3bot', '')}_{pool_info.reservation_id}")
         user_pool.owner = username
         user_pool.pool_id = pool_info.reservation_id
@@ -321,11 +379,21 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return pool_info
 
     def create_3bot_pool(self, farm_name, expiration, currency, identity_name, **resources):
-        cu, su = self.calculate_capacity_units(**resources)
+
+        cloud_units = self._calculate_cloud_units(**resources)
+
         pool_info = j.sals.zos.get(identity_name).pools.create(
-            int(cu * expiration), int(su * expiration), 0, farm_name, [currency]
+            int(cloud_units.cu * expiration), int(cloud_units.su * expiration), 0, farm_name, [currency]
         )
         return pool_info
+
+    def _calculate_cloud_units(self, **resources):
+        cont1 = Container()
+        cont1.capacity.cpu = round(resources["cru"])
+        cont1.capacity.memory = round(resources["mru"] * 1024)
+        cont1.capacity.disk_size = round(resources["sru"] * 1024)
+        cont1.capacity.disk_type = DiskType.SSD
+        return cont1.resource_units().cloud_units()
 
     def create_gateway_emptypool(self, gwpool_name, farm_name, identity_name=None):
         identity_name = identity_name or j.core.identity.me.instance_name
@@ -372,7 +440,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
             valid = True
             try:
                 j.sals.reservation_chatflow.reservation_chatflow.get_nodes(
-                    1, cru=cru, mru=mru, sru=sru, hru=hru, ip_version=ip_version, pool_ids=[pool.pool_id],
+                    1, cru=cru, mru=mru, sru=sru, hru=hru, ip_version=ip_version, pool_ids=[pool.pool_id]
                 )
             except StopChatFlow as e:
                 j.logger.warning(
@@ -402,7 +470,8 @@ class MarketPlaceDeployer(ChatflowDeployer):
         return self.get_farm_name(self.get_pool_farm_id(pool_id=pool_id))
 
     def get_best_fit_pool(self, pools, expiration, cru=0, mru=0, sru=0, hru=0, farm_name=None, node_id=None):
-        cu, su = self.calculate_capacity_units(cru, mru, sru, hru)
+        cloud_units = self.calculate_capacity_units(cru, mru, sru, hru)
+        cu, su = cloud_units.cu, cloud_units.su
         required_cu = cu * expiration
         required_su = su * expiration
         exact_fit_pools = []  # contains pools that are exact match of the required resources
@@ -475,7 +544,7 @@ class MarketPlaceDeployer(ChatflowDeployer):
     def init_new_user(self, bot, username, farm_name, expiration, currency, **resources):
         pool_info = self.create_solution_pool(bot, username, farm_name, expiration, currency, **resources)
         qr_code = self.show_payment(pool_info, bot)
-        result = self.wait_pool_payment(bot, pool_info.reservation_id, qr_code=qr_code)
+        result = self.wait_pool_reservation(pool_info.reservation_id, qr_code=qr_code, bot=bot)
         if not result:
             raise StopChatFlow(f"Waiting for pool payment timedout. pool_id: {pool_info.reservation_id}")
 
@@ -521,6 +590,17 @@ class MarketPlaceDeployer(ChatflowDeployer):
             disallowed_node_ids = set(j.sals.reservation_chatflow.reservation_chatflow.list_blocked_nodes().keys())
             nodes = [node for node in nodes if node.node_id not in disallowed_node_ids]
         return nodes
+
+    def clear_user_pools(self):
+        """Clean all current local pools
+        these pools won't be reused after that
+        WARNING: THIS ACTION COULD NOT BE UNDONE
+        """
+        for pool in pool_factory.list_all():
+            pool_factory.delete(pool)
+            j.logger.info(f"Cleaning pool: {pool}")
+        j.logger.info("Cleaning Done")
+        return True
 
 
 deployer = MarketPlaceDeployer()

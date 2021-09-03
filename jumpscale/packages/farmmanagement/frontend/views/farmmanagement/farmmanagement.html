@@ -1,7 +1,7 @@
 <section v-if="isLoggedIn()" class="farmmanagement">
   <v-row class="my-3 mx-1">
-    <v-card style="width: 100%;">
-      <v-card-title primary-title class="primary py-3 mb-5 white--text">
+    <v-card style="width: 100%">
+      <v-card-title primary-title class="primary py-5 mb-5 white--text">
         <v-row>
           <v-col cols="6" class="py-0">
             My Farms
@@ -13,7 +13,7 @@
             </v-btn>
           </v-col>
           <v-col></v-col>
-          <v-col cols="4" class="py-0">
+          <v-col cols="3" class="py-0">
             <v-text-field dark class="pt-0" v-model="searchFarms" append-icon="fa-search" label="Search" single-line
               hide-details>
             </v-text-field>
@@ -22,35 +22,169 @@
       </v-card-title>
       <v-card-text>
         <v-row>
-          <v-data-table item-key="name" :search="searchFarms" :headers="headers" :items="farms" :items-per-page="10"
-            @click:row="viewNodes" style="width: 100%;" :footer-props="{
+          <v-data-table item-key="name" :search="searchFarms" :loading="loading" :headers="headers" :items="farms"
+            :items-per-page="10" @click:row="viewNodes" style="width: 100%" :footer-props="{
               prevIcon: 'fa-angle-left',
               nextIcon: 'fa-angle-right'
             }">
+            <template v-slot:item.cu="{ item }">
+              <span>{{item.farm_cloudunits_price.cu || item.explorer_default_prices.cu}}</span>
+            </template>
+
+            <template v-slot:item.su="{ item }">
+              <span>{{item.farm_cloudunits_price.su || item.explorer_default_prices.su}}</span>
+            </template>
+
+            <template v-slot:item.ipv4u="{ item }">
+              <span>{{item.farm_cloudunits_price.ipv4u || item.explorer_default_prices.ipv4u}}</span>
+            </template>
+
             <template v-slot:item.action="{ item }">
               <v-btn fab small text @click="viewNodes(item)">
-                <v-icon small>
-                  fa-eye
-                </v-icon>
+                <v-icon small> fa-eye </v-icon>
               </v-btn>
-              <v-btn fab small text @click.stop="goToEdit(item)">
-                <v-icon small>
-                  fa-cog
-                </v-icon>
+              <v-btn fab small text @click="goToEdit(item)">
+                <v-icon small> fa-cog </v-icon>
               </v-btn>
+
+              <v-btn color="primary" small @click="showSetFarmPrice = true">
+                Set farm prices
+              </v-btn>
+
+              <v-btn color="accent" small @click="openAddCustomModel = true">
+                Add a Deal
+              </v-btn>
+
+              <v-tooltip top v-if="!item.is_grid3_compliant">
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn :loading="upgrade" :disabled="upgrade" color="blue-grey" small class="ma-2 white--text" fab
+                    v-bind="attrs" v-on="on" @click="showUpgradeConfirmation = true">
+                    <v-icon dark small>
+                      fa-arrow-alt-circle-up
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>UPGRADE TO GRID 3 PRICING</span>
+              </v-tooltip>
+
+              <v-dialog v-model="showUpgradeConfirmation" max-width="700px">
+                <v-card style="width: 100%">
+                  <v-card-title primary-title class="primary py-3 mb-5 white--text">
+                    Upgrade To Grid 3 Pricing
+                    <v-spacer />
+                  </v-card-title>
+                  <v-card-text>
+                    <v-container>
+                      <v-row>
+                        <span>Do you want to upgrade to Grid 3 Pricing?</span>
+                      </v-row>
+                    </v-container>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn text class="mr-3" @click="showUpgradeConfirmation = false">Cancel</v-btn>
+                    <v-btn text color="secondary" class="mr-3"
+                      @click="upgradeToGrid3(farmSelected)">Upgrade</v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+
+              <v-dialog v-model="showSetFarmPrice" scrollable max-width="700px">
+                <v-card style="width: 100%">
+                  <v-card-title primary-title class="primary py-3 mb-5 white--text">
+                    Set farm prices
+                    <v-spacer />
+                  </v-card-title>
+                  <v-card-text>
+                    <v-container>
+                      <v-row>
+                        <span>Set farm prices for the farm in dollars per
+                          month</span>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="12" sm="4">
+                          <v-text-field v-model.number="farm_price.cu" label="CU"></v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="4">
+                          <v-text-field v-model.number="farm_price.su" label="SU"></v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="4">
+                          <v-text-field v-model.number="farm_price.ipv4u" label="IPv4U"></v-text-field>
+                        </v-col>
+                      </v-row>
+                    </v-container>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-alert :type="priceUpdate.type" v-if="priceUpdate" colored-border elevation="2">
+                      {{priceUpdate.message}}
+                    </v-alert>
+                    <v-btn text class="mr-3" @click="showSetFarmPrice = false">Cancel</v-btn>
+                    <v-btn text color="secondary" class="mr-3"
+                      @click="setFarmPrice(farm_price.cu, farm_price.su, farm_price.ipv4u)">Save</v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+
+              <v-dialog v-model="openAddCustomModel" persistent max-width="700px"
+                @keydown.esc="openAddCustomModel = false">
+                <v-form ref="customPriceForm">
+                  <v-card>
+                    <v-card-title primary-title class="primary py-3 mb-5 white--text">
+                      <span class="headline">Add custom price</span>
+                    </v-card-title>
+                    <v-card-text>
+                      <v-alert v-if="addCustomModelError" dense outlined type="error" class="mb-5">{{
+                        addCustomModelError }}</v-alert>
+                      <v-container>
+                        <v-row>
+                          <span>Add custom prices for a 3Bot</span>
+                        </v-row>
+                        <v-row>
+                          <v-col cols="12">
+                            <v-text-field v-model="customPrice.threebotName" label="3Bot Name*"
+                              :rules="[v => !!v || '3Bot name is required']"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6" md="4">
+                            <v-text-field v-model="customPrice.cu" label="CU*"
+                              :rules="[v => !!v || 'field is required']"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6" md="4">
+                            <v-text-field v-model="customPrice.su" label="SU*"
+                              :rules="[v => !!v || 'field is required']"></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6" md="4">
+                            <v-text-field v-model="customPrice.ipv4u" label="IPv4U*"
+                              :rules="[v => !!v || 'field is required']"></v-text-field>
+                          </v-col>
+                        </v-row>
+                      </v-container>
+                      <small>*indicates required field</small>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn color="black darken-1" text @click="openAddCustomModel = false">
+                        Close
+                      </v-btn>
+                      <v-btn color="blue darken-1" text
+                        @click="addCustomPrice(customPrice.threebotName, customPrice.cu, customPrice.su, customPrice.ipv4u)">
+                        Save
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-form>
+              </v-dialog>
             </template>
           </v-data-table>
         </v-row>
       </v-card-text>
     </v-card>
-    </v-flex>
   </v-row>
   <v-row class="my-3 mx-1">
-    <v-card v-if="!farmSelected.name" style="width: 100%;">
+    <v-card v-if="!farmSelected.name" style="width: 100%">
       <v-card-title primary-title class="primary py-3 mb-5 white--text">
         <v-row>
           <v-col cols="6" class="py-0">
-
             <v-icon small color="white" left>fa-server</v-icon>
             Nodes in farm
           </v-col>
@@ -60,17 +194,32 @@
         <p class="text-center">please select a farm to view the nodes.</p>
       </v-card-text>
     </v-card>
-    <nodesTable style="height: 100%; width:100%;" :farmselected="farmSelected" v-if="farmSelected && farmSelected.name">
-    </nodesTable>
+    <nodesTable style="height: 100%; width: 100%" :farmselected="farmSelected" v-if="farmSelected && farmSelected.name">
+  </v-row>
+
+  <v-row class="my-3 mx-1">
+    <v-card v-if="!farmSelected.name" style="width: 100%">
+      <v-card-title primary-title class="primary py-3 mb-5 white--text">
+        <v-row>
+          <v-col cols="6" class="py-0">Custom price list</v-col>
+        </v-row>
+      </v-card-title>
+      <v-card-text>
+        <p class="text-center">
+          please select a farm to view the custom prices.
+        </p>
+      </v-card-text>
+    </v-card>
+    <cspricestable style="height: 100%; width: 100%" :farmselected="farmSelected"
+      v-if="farmSelected && farmSelected.name" />
   </v-row>
 
   <v-dialog v-model="addFarmDialog" scrollable max-width="700px">
-    <v-card style="width: 100%;">
+    <v-card style="width: 100%">
       <v-card-title primary-title class="primary py-3 mb-5 white--text">
         <v-icon color="white" left>fa-server</v-icon>
         Add a farm
         <v-spacer />
-
       </v-card-title>
       <v-card-text>
         <v-text-field v-model="newFarm.name" label="Farm name" :rules="namerules" :error-messages="nameError"
@@ -78,7 +227,8 @@
         <v-text-field v-model="newFarm.iyo_organization" label="Organization ID (optional)"></v-text-field>
         <v-text-field v-model="newFarm.email" required label="Email address" :error-messages="mailError"
           @input="mailError = []"></v-text-field>
-        <v-select v-model="newFarm.location.country" menu-props="auto" :items="countries" label="Country (optional)"></v-select>
+        <v-select v-model="newFarm.location.country" menu-props="auto" :items="countries" label="Country (optional)">
+        </v-select>
         <v-container>
           <v-row v-for="(wallet, i) in newFarm.wallet_addresses" :key="wallet.id">
             <v-col cols="12" sm="4">
@@ -104,11 +254,10 @@
           style="width: 100%; height: 300px" @click="setPlace">
           <GmapMarker :position="parsedLocation" />
         </google-map> -->
-
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-alert :type="newFarmAlert.type" v-if=newFarmAlert border="right" colored-border elevation="2">
+        <v-alert :type="newFarmAlert.type" v-if="newFarmAlert" border="right" colored-border elevation="2">
           {{newFarmAlert.message}}
         </v-alert>
         <v-btn text class="mr-3" @click="addFarmDialog = false">Cancel</v-btn>

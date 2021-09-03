@@ -70,18 +70,11 @@ const apiClient = {
                 data: { name: name }
             })
         },
-        create_testnet_funded: (name) => {
-            return axios({
-                url: `${baseURL}/wallet/create_testnet_funded`,
-                method: "post",
-                data: { name: name }
-            })
-        },
-        import: (name, secret, network) => {
+        import: (name, secret) => {
             return axios({
                 url: `${baseURL}/wallet/import_wallet`,
                 method: "post",
-                data: { name: name, secret: secret, network: network }
+                data: { name: name, secret: secret }
             })
         },
         delete: (name) => {
@@ -98,7 +91,6 @@ const apiClient = {
                 data: { name: name }
             })
         },
-
     },
     packages: {
         list: () => {
@@ -197,6 +189,19 @@ const apiClient = {
         clearBlockedNodes: () => {
             return axios({
                 url: `${baseURL}/admin/clear_blocked_nodes`,
+            })
+        },
+        getThreebotState: () => {
+          return axios({
+            url: `/admin/api/export`,
+            headers: { 'Content-Type': 'application/json' },
+            responseType: 'arraybuffer',
+            method: "get"
+          })
+        },
+        clearBlockedManagedDomains: () => {
+            return axios({
+                url: `${baseURL}/admin/clear_blocked_managed_domains`,
             })
         },
         getNotifications: () => {
@@ -366,6 +371,15 @@ const apiClient = {
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
                 data: { solution_type: solution_type }
+            })
+        },
+        getK8sDetails: (k8s_solution_name) =>{
+            return axios({
+                url: `/tfgrid_solutions/actors/solutions/get_k8s_solution_details`,
+                method: "post",
+                headers: { 'Content-Type': 'application/json' },
+                data: { k8s_solution_name: k8s_solution_name }
+
             })
         },
         getPools: (include_hidden) => {

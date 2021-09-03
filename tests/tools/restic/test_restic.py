@@ -143,7 +143,10 @@ class TestRestic(TestCase):
         res = {}  # path: content
         for f in j.sals.fs.walk(path):
             if j.sals.fs.is_file(f):
-                res[f[len(path) :]] = j.sals.fs.read_file(f)
+                # basename can be used here, no need to use full path
+                # as the output can be different with different restic versions
+                # and basenames are already UUIDs
+                res[j.sals.fs.basename(f)] = j.sals.fs.read_file(f)
         return res
 
     def _check_dirs_equal(self, first_dir, second_dir):
@@ -171,10 +174,9 @@ class TestRestic(TestCase):
         backup_dir = self._create_temp_dir()
         j.logger.info("Creating a backup of this directory")
         self.instance.backup(original_dir.name, tags=["tag1", "tag2"])
-        restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
-        j.logger.info(f"Restoring and checking the backup in {restore_path}")
+        j.logger.info(f"Restoring and checking the backup in {backup_dir.name}")
         self.instance.restore(backup_dir.name, path=original_dir.name)
-        self.assertTrue(self._check_dirs_equal(original_dir.name, restore_path))
+        self.assertTrue(self._check_dirs_equal(original_dir.name, backup_dir.name))
 
     def test02_multiple_restores(self):
         """Test case for directory backup and restore with modifications.
@@ -208,22 +210,19 @@ class TestRestic(TestCase):
         j.logger.info("Creating another backup of this directory")
         self.instance.backup(original_dir.name, tags=["tag3", "tag4"])
         snapshots = self.instance.list_snapshots()
-        restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
-        j.logger.info(f"Restoring and checking the new version in {restore_path}")
+        j.logger.info(f"Restoring and checking the new version in {backup_dir.name}")
         self.instance.restore(backup_dir.name, snapshot_id=snapshots[1]["id"])
-        self.assertTrue(self._check_dirs_equal(original_dir.name, restore_path))
+        self.assertTrue(self._check_dirs_equal(original_dir.name, backup_dir.name))
 
         backup_dir.clear_contents()
-        restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
-        j.logger.info(f"Restoring and checking the old version in {restore_path}")
+        j.logger.info(f"Restoring and checking the old version in {backup_dir.name}")
         self.instance.restore(backup_dir.name, snapshot_id=snapshots[0]["id"])
-        self.assertTrue(self._check_dirs_equal(first_dir_copy.name, restore_path))
+        self.assertTrue(self._check_dirs_equal(first_dir_copy.name, backup_dir.name))
 
         backup_dir.clear_contents()
-        restore_path = j.sals.fs.join_paths(backup_dir.name, original_dir.name[1:])
         j.logger.info(f"Restoring and checking the latest version of the original directory using the hostname")
         self.instance.restore(backup_dir.name, host=j.sals.nettools.get_host_name())
-        self.assertTrue(self._check_dirs_equal(original_dir.name, restore_path))
+        self.assertTrue(self._check_dirs_equal(original_dir.name, backup_dir.name))
 
     def test03_snapshot_listing(self):
         """Test case for snapshots listing.

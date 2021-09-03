@@ -2,7 +2,7 @@ from typing import Iterator, List
 
 from jumpscale.loader import j
 
-from .models import Pool, PoolCreate, PoolCreated
+from .models import Pool, PoolCreate, PoolCreated, PoolPayment
 from .pagination import get_all, get_page
 
 
@@ -80,3 +80,16 @@ class Pools:
         url = self._base_url + f"/{pool_id}"
         resp = self._session.get(url)
         return Pool.from_dict(resp.json())
+
+    def get_payment_info(self, reservation_id: int) -> PoolPayment:
+        """get pool payment info
+
+        Args:
+            reservation_id (int)
+
+        Returns:
+            PoolPayment: pool payment info
+        """
+        url = self._base_url + f"/payment/{reservation_id}"
+        resp = self._session.get(url)
+        return PoolPayment.from_dict(resp.json())

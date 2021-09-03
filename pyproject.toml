@@ -1,18 +1,15 @@
 [tool.poetry]
 name = "js-sdk"
 packages = [{ include = "jumpscale" }]
-version = "11.0b14"
+version = "11.5b4"
 description = "SDK for threefold grid"
 authors = ["xmonader <xmonader@gmail.com>"]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
-cryptography = "3.0"
-js-ng = "11.0b10"
-greenlet = "0.4.16"
+cryptography = "3.3.2"
+js-ng = "11.0b13"
 python = "^3.6"
-captcha = "^0.3"
-pillow = "^7.1.0"
 cryptocompare = "^0.6.4"
 certifi = "^2019.6"
 base58 = "^2.0.0"
@@ -24,14 +21,29 @@ python-taiga = "^1.0.0"
 dnspython = "^1.16"
 PyGithub = "^1.43"
 python-digitalocean = "^1.15.0"
-stellar-sdk = "2.4.1"
+stellar-sdk = "2.10.0"
 pypng = "^0.0.20"
 pyqrcode = "^1.2.1"
 beaker = "^1.11.0"
 certbot-nginx = "1.5.0"
 requests_unixsocket = "^0.2.0"
 protobuf = "^3.12.2"
+namecom = "^0.5.0"
 crontab = "^0.22.9"
+importlib-metadata = "^4.0.1"
+
+[tool.poetry.dev-dependencies]
+ipython = "^7.6"
+ipdb = "^0.12.1"
+black = {version = "^18.3-alpha.0", allow-prereleases = true}
+flake8 = "^3.7"
+parameterized = "^0.7.0"
+pytest = "^5.0"
+codecov = "^2.0"
+hypothesis = "^4.28"
+pytest-cov = "^2.7"
+objgraph = "^3.4.1"
+
 
 [tool.poetry.scripts]
 threebot = "jumpscale.entry_points.threebot:cli"
@@ -42,4 +54,4 @@ build-backend = "poetry.masonry.api"
 
 [tool.pytest.ini_options]
 markers = ["integration: marks tests as integration (deselect with '-m \"not integration\"')",
-           "unittests"]
+           "unittests", "extend"]

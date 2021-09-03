@@ -82,8 +82,8 @@ class FlistDeploy(GedisChatBot):
         }
         if self.container_volume_attach:
             query["sru"] += math.ceil(self.vol_size / 1024)
-        cu, su = deployer.calculate_capacity_units(**query)
-        self.pool_id = deployer.select_pool(self, cu=cu, su=su, **query)
+        cloud_units = j.sals.marketplace.deployer._calculate_cloud_units(**query)
+        self.pool_id = deployer.select_pool(self, cu=cloud_units.cu, su=cloud_units.su, **query)
 
     @chatflow_step(title="Network")
     def flist_network(self):
@@ -141,7 +141,7 @@ class FlistDeploy(GedisChatBot):
         else:
             self.ip_version = None
 
-    @chatflow_step(title="Container node id")
+    @chatflow_step(title="Choose a node to deploy on")
     def container_node_id(self):
         query = {
             "cru": self.resources["cpu"],

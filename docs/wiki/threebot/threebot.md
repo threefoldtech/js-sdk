@@ -30,13 +30,13 @@ Content:
 It can be used without any options to start a threebot server on standard ports (http and https).
 
 ```
-threebot
+threebot start
 ```
 
 In case you need to start a local threebot, ny passing `--local` option will, it will search for free port on `80xx` range and starts threebot on this port.
 
 ```
-threebot --local
+threebot start --local
 ```
 
 ### Manual start
@@ -202,11 +202,11 @@ Some components will be defined by default based on the parent package classes i
         from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
         class TestService(BackgroundService):
-          def __init__(self, name="packagename_test", interval=20, *args, **kwargs):
+          def __init__(self, interval=20, *args, **kwargs):
             """
                 Test service that runs every 1 hour
             """
-            super().__init__(name, interval, *args, **kwargs)
+            super().__init__(interval, *args, **kwargs)
 
           def job(self):
             print("[Packagename - Test Service] Done")

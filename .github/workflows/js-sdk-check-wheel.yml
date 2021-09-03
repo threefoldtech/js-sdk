@@ -1,0 +1,48 @@
+# This workflow will clean install Python dependencies, build the wheel from pyproject.toml 
+# and confirm that it has the right stuff and it can install correctly using pip.
+# For more information see:
+# https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: js-sdk-check-wheel
+
+on:
+  push:
+    branches: [ development ]
+  pull_request:
+    branches: [ development ]
+
+jobs:
+  check-the-wheels:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-18.04, ubuntu-20.04]
+        python-version: [3.6, 3.7, 3.8]
+        experimental: [false]
+        #include:
+        #  - python-version: 3.9
+        #    os: ubuntu-20.04
+        #    experimental: true
+        #    name: Experimental build - latest Python
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Gathering dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y redis-server tmux nginx
+          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install check-wheel-contents poetry
+      - name: Validates pyproject.toml
+        run: poetry check
+      - name: Build the wheels archives
+        run: poetry build --format wheel
+      - name: Making Sure The wheels Spin right
+        run: check-wheel-contents --ignore W002 dist/*.whl
+      - name: confirm that the wheel is pip-installable
+        run: python3 -m pip install dist/*.whl

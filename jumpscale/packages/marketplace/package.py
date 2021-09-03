@@ -8,11 +8,12 @@ class marketplace:
         WALLET_NAME = j.sals.marketplace.deployer.WALLET_NAME
         if WALLET_NAME not in j.clients.stellar.list_all():
             secret = kwargs.get("secret", None)
-            wallet = j.clients.stellar.new(WALLET_NAME, secret=secret, network="TEST")
             if not secret:
-                wallet.activate_through_friendbot()
-                wallet.add_known_trustline("TFT")
-            wallet.save()
+                j.logger.critical(f"Couldn't find wallet {WALLET_NAME} or its secret")
+            else:
+                wallet = j.clients.stellar.new(WALLET_NAME, secret=secret)
+                wallet.save()
+                j.logger.info(f"{WALLET_NAME} wallet has been imported successfully and ready to use.")
 
     def uninstall(self):
         """Called when package is deleted

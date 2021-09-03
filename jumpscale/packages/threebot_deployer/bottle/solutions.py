@@ -1,4 +1,3 @@
-from beaker.middleware import SessionMiddleware
 from bottle import Bottle, request, HTTPResponse
 from jumpscale.packages.threebot_deployer.bottle.utils import (
     list_threebot_solutions,
@@ -7,7 +6,7 @@ from jumpscale.packages.threebot_deployer.bottle.utils import (
 )
 
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
+from jumpscale.packages.auth.bottle.auth import login_required, get_user_info
 from jumpscale.packages.marketplace.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 from jumpscale.core.exceptions import exceptions
@@ -117,6 +116,3 @@ def accept():
         return HTTPResponse(
             j.data.serializers.json.dumps({"allowed": True}), status=201, headers={"Content-Type": "application/json"}
         )
-
-
-app = SessionMiddleware(app, SESSION_OPTS)

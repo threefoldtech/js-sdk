@@ -94,6 +94,8 @@ class Location(Base):
     location_type = fields.Enum(LocationType)
     is_auth = fields.Boolean(default=False)
     is_admin = fields.Boolean(default=False)
+    package_name = fields.String()
+    is_package_authorized = fields.Boolean(default=False)
     custom_config = fields.String(default=None)
     proxy_buffering = fields.Enum(ProxyBuffering)
     proxy_buffers = fields.String()
@@ -146,6 +148,11 @@ class Certbot(Base):
     eab_kid = fields.String()
     eab_hmac_key = fields.String()
 
+    # for existing certificates
+    key_path = fields.String()
+    cert_path = fields.String()
+    fullchain_path = fields.String()
+
     @property
     def run_cmd(self):
         args = [self.DEFAULT_NAME]
@@ -165,6 +172,21 @@ class Certbot(Base):
                     args.append(value)
 
         return args
+
+    @property
+    def install_cmd(self):
+        # replace "certbot" with "certbot install"
+        cmd = self.run_cmd
+        cmd.insert(1, "install")
+        return cmd
+
+    @property
+    def renew_cmd(self):
+        # replace "certbot" with "certbot install"
+        renew_certbot = Certbot(work_dir=self.work_dir, config_dir=self.config_dir, logs_dir=self.logs_dir, domain="")
+        cmd = renew_certbot.run_cmd
+        cmd.insert(1, "renew")
+        return cmd
 
 
 class NginxCertbot(Certbot):
@@ -222,7 +244,7 @@ class Website(Base):
     domain = fields.String()
     ssl = fields.Boolean()
     port = fields.Integer(default=PORTS.HTTP)
-    locations = fields.Factory(Location)
+    locations = fields.Factory(Location, stored=False)
     includes = fields.List(fields.String())
 
     selfsigned = fields.Boolean(default=True)
@@ -231,6 +253,10 @@ class Website(Base):
     letsencryptemail = fields.String()
     acme_server_type = fields.Enum(AcmeServer)
     acme_server_url = fields.URL()
+    # in case of using existing key/certificate
+    key_path = fields.String()
+    cert_path = fields.String()
+    fullchain_path = fields.String()
 
     @property
     def certbot(self):
@@ -239,6 +265,9 @@ class Website(Base):
             email=self.letsencryptemail,
             server=self.acme_server_url,
             nginx_server_root=self.parent.cfg_dir,
+            key_path=self.key_path,
+            cert_path=self.cert_path,
+            fullchain_path=self.fullchain_path,
         )
 
         if self.acme_server_type == AcmeServer.LETSENCRYPT:
@@ -293,11 +322,43 @@ class Website(Base):
     def get_config(self):
         return render_config_template("website", base_dir=j.core.dirs.BASEDIR, website=self)
 
-    def generate_certificates(self):
+    def generate_certificates(self, retries=6):
         if self.domain:
-            rc, out, err = j.sals.process.execute(self.certbot.run_cmd)
+            if self.key_path and self.cert_path and self.fullchain_path:
+                # only use install command if an existing key and certificate were set
+                self.install_certifcate()
+            else:
+                self.obtain_and_install_certifcate(retries=retries)
+
+    def install_certifcate(self):
+        """Construct and Execute install certificate command
+        Alternative to certbot install
+
+        """
+        cmd = self.certbot.install_cmd
+        j.logger.debug(f"Execute: {' '.join(cmd)}")
+        rc, out, err = j.sals.process.execute(cmd)
+        if rc > 0:
+            j.logger.error(f"Installing certificate failed {out}\n{err}")
+        else:
+            j.logger.info(f"Certificate installed successfully {out}")
+
+    def obtain_and_install_certifcate(self, retries=6):
+        """Construct and Execute run certificate command,This will issue a new certificate managed by Certbot
+        Alternative to certbot run
+
+        Args:
+            retries (int, optional): Number of retries Certbot will try to install the certificate if failed. Defaults to 6.
+        """
+        cmd = self.certbot.run_cmd
+        j.logger.debug(f"Execute: {' '.join(cmd)}")
+        for _ in range(retries):
+            rc, out, err = j.sals.process.execute(cmd)
             if rc > 0:
                 j.logger.error(f"Generating certificate failed {out}\n{err}")
+            else:
+                j.logger.error(f"Certificate Generated successfully {out}")
+                break
 
     def generate_self_signed_certificates(self):
         keypempath = f"{self.parent.cfg_dir}/key.pem"
@@ -327,9 +388,9 @@ class Website(Base):
             location.configure()
 
         j.sals.fs.write_file(self.cfg_file, self.get_config())
-
-        if generate_certificates and self.ssl:
+        if self.ssl:
             self.generate_self_signed_certificates()
+        if generate_certificates and self.ssl:
             self.generate_certificates()
 
     def clean(self):
@@ -337,7 +398,8 @@ class Website(Base):
 
 
 class NginxConfig(Base):
-    websites = fields.Factory(Website)
+    websites = fields.Factory(Website, stored=False)
+    cert = fields.Boolean(default=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

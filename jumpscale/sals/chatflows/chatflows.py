@@ -1,7 +1,6 @@
 import base64
 import sys
 import uuid
-from captcha.image import ImageCaptcha
 from importlib import import_module
 import inspect
 import json
@@ -82,6 +81,7 @@ class GedisChatBot:
 
     steps = []
     title = "Zero Chat Bot"
+    alert_view_url = None
 
     def __init__(self, **kwargs):
         """
@@ -147,7 +147,7 @@ class GedisChatBot:
                 getattr(self, step_name)()
             except StopChatFlow as e:
                 internal_error = True
-                j.logger.exception("error", exception=e)
+                j.logger.exception(f"chatflow stopped in step {step_name}. exception: {str(e)}", exception=e)
                 traceback_info = j.tools.errorhandler.get_traceback()
                 j.tools.alerthandler.alert_raise(
                     app_name="chatflows",
@@ -170,7 +170,7 @@ class GedisChatBot:
                 ).get("operations", []):
                     message = "Not enough funds"
                 internal_error = True
-                j.logger.exception("error", exception=e)
+                j.logger.exception(f"error when executing step {step_name}. exception: {str(e)}", exception=e)
                 traceback_info = j.tools.errorhandler.get_traceback()
                 alert = j.tools.alerthandler.alert_raise(
                     app_name="chatflows",
@@ -180,7 +180,14 @@ class GedisChatBot:
                     traceback=traceback_info,
                 )
                 username = self.user_info()["username"]
-                if username in j.core.identity.me.admins:
+                if self.alert_view_url:
+                    self.send_error(
+                        f"""{message}, please check alert: <a href="{self.alert_view_url}/{alert.id}" target="_parent">{alert.id} </a>. This could occur if Stellar service was down."""
+                        f"Use the refresh button on the upper right to restart {self.title} creation",
+                        md=True,
+                        html=True,
+                    )
+                elif username in j.core.identity.me.admins:
                     self.send_error(
                         f"""{message}, please check alert: <a href="/admin/#/alerts/{alert.id}" target="_parent">{alert.id} </a>. This could occur if Stellar service was down."""
                         f"Use the refresh button on the upper right to restart {self.title} creation",
@@ -561,26 +568,6 @@ class GedisChatBot:
         qrcode = j.tools.qrcode.base64_get(data, scale=scale)
         self.send_data({"category": "qrcode_show", "msg": msg, "qrcode": qrcode, "kwargs": kwargs}, is_slide=True)
         self._queue_in.get()
-
-    def captcha_msg(self, **kwargs):
-        image = ImageCaptcha()
-        captcha = j.data.idgenerator.generateXCharID(4)
-        data = image.generate(captcha)
-        kwargs["value"] = captcha
-        return (
-            captcha,
-            {
-                "category": "captcha_ask",
-                "captcha": base64.b64encode(data.read()).decode(),
-                "value": captcha,
-                "msg": "Are you human?",
-                "kwargs": kwargs,
-            },
-        )
-
-    def captcha_ask(self, **kwargs):
-        captcha, message = self.captcha_msg(required=True, **kwargs)
-        return self.ask(message) == captcha
 
     def md_msg(self, msg, **kwargs):
         return {"category": "md_show", "msg": msg, "kwargs": kwargs}

@@ -42,7 +42,13 @@ class HTTPServer:
 
 
 class TestNginxSal(BaseTests):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        j.sals.process.kill_process_by_name("nginx")
+
     def setUp(self):
+        super().setUp()
         self.nginx_conf = j.sals.nginx.get("testing")
         self.config_base_dir = self.nginx_conf.cfg_dir
         self.config_file = self.nginx_conf.cfg_file
@@ -73,10 +79,9 @@ class TestNginxSal(BaseTests):
         self.assertIn("Welcome to 3Bot", request_content(http_link))
         self.info("Cleaning up the config and stoping the server")
         self.nginx_server.stop()
-        self.nginx_conf.clean()
 
         self.info("Checking the server is stopped")
-        self.assertFalse(j.sals.fs.is_file(j.sals.fs.join_paths(self.config_base_dir, NGINX_CONFIG_FILE)))
+        self.assertFalse(j.sals.nettools.wait_http_test(http_link, 5))
         self.assertTrue(wait_connection_lost_test(http_link, 5))
 
     def test02_static_location(self):
@@ -272,3 +277,4 @@ class TestNginxSal(BaseTests):
             self.nginx_server.stop()
         self.nginx_conf.clean()
         self.server.stop()
+        super().tearDown()

@@ -6,6 +6,7 @@ from jumpscale.loader import j
 from jumpscale.packages.admin.bottle.models import UserEntry as AdminUserEntry
 from jumpscale.packages.marketplace.bottle.models import UserEntry as MarkerplaceUserEntry
 from tests.base_tests import BaseTests
+from solutions_automation import deployer
 
 
 class ChatflowsBase(BaseTests):
@@ -14,10 +15,11 @@ class ChatflowsBase(BaseTests):
         # Load the needed packages here if it's needed.
         # set TEST_CERT and OVER_PROVISIONING to True.
         cls.test_cert = j.core.config.get("TEST_CERT", False)
-        cls.over_provisioning = j.core.config.get("OVER_PROVISIONING", False)
+        # cls.over_provisioning = j.core.config.get("OVER_PROVISIONING", False)
+        cls.sort_nodes_by_sru = j.core.config.get("SORT_NODES_BY_SRU", False)
         j.core.config.set("TEST_CERT", True)
-        j.core.config.set("OVER_PROVISIONING", True)
-
+        # j.core.config.set("OVER_PROVISIONING", True)
+        j.core.config.set("SORT_NODES_BY_SRU", True)
         # Get environment variables to create identity.
         cls.tname = os.environ.get("TNAME")
         cls.email = os.environ.get("EMAIL")
@@ -30,7 +32,7 @@ class ChatflowsBase(BaseTests):
             )
 
         # Import the wallet to be used for payment.
-        j.clients.stellar.get("demos_wallet", network="TEST", secret=cls.wallet_secret)
+        cls.get_wallet(name="demos_wallet", secret=cls.wallet_secret)
 
         # Check if there is identity registered to set it back after the tests are finished.
         cls.me = None
@@ -49,13 +51,13 @@ class ChatflowsBase(BaseTests):
         cls.server.start()
 
         # Timeout for any exposed solution to be reachable.
-        cls.timeout = 5
+        cls.timeout = 60
 
     @classmethod
     def tearDownClass(cls):
         # Return TEST_CERT, OVER_PROVISIONING values after the tests are finished.
         j.core.config.set("TEST_CERT", cls.test_cert)
-        j.core.config.set("OVER_PROVISIONING", cls.over_provisioning)
+        # j.core.config.set("OVER_PROVISIONING", cls.over_provisioning)
 
         # Stop threebot server and the testing identity.
         cls.server.stop()
@@ -67,7 +69,11 @@ class ChatflowsBase(BaseTests):
 
     @staticmethod
     def get_wallet(name, secret):
-        return j.clients.stellar.get(name, network="TEST", secret=secret)
+        wallet = j.clients.stellar.get(name)
+        wallet.secret = secret
+        wallet.network = "STD"
+        wallet.save()
+        return wallet
 
     @staticmethod
     def random_name():

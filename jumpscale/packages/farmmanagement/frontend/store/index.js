@@ -6,7 +6,7 @@ import farmmanagement from './farmmanagement.js'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
-  modules: {
-    farmmanagement
-  }
+    modules: {
+        farmmanagement,
+    }
 })

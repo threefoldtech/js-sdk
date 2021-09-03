@@ -1,7 +1,7 @@
 validators = {
     common: {
         required: (field) => {
-            return field.val !== undefined ? true : 'Field is required'
+            return field.val ? true : 'Field is required'
         },
         min_length: (field, length) => {
             if (field.val !== undefined) {
@@ -25,11 +25,30 @@ validators = {
 
 
         },
-        is_identifier: (field) => {
-            let errmsg = `Invalid value. It should be a valid identifier, all lowercase and starting with a letter, no spaces and no special characters`;
-            const regex = /^[a-z]([a-z0-9]*)$/
+        is_identifier: (field, identifier) => {
+            if (identifier) {
 
-            if (!regex.test(field.val)) {
+                let errmsg = `Invalid value. It should be a valid identifier, all lowercase and starting with a letter, no spaces and no special characters`;
+                const regex = /^[a-z]([a-z0-9]*)$/
+                if (!regex.test(field.val)) {
+                    return errmsg;
+                }
+            }
+            return true;
+        },
+        not_exist: (field, args) => {
+            let errmsg = `Invalid value. ${args[0]} with this name already exists`;
+
+            if (args[1].includes(field.val)) {
+                return errmsg;
+            }
+
+            return true;
+        },
+        not_allowed: (field, args) => {
+            let errmsg = `Invalid value. ${args[0]} can not be set to ${field.val} please choose another value`;
+
+            if (args[1].includes(field.val)) {
                 return errmsg;
             }
 
@@ -54,6 +73,12 @@ validators = {
         }
     },
     secret_ask: {
+        isAlphanumeric: (field) => {
+            if (!field.val.match(/[A-Z]/i)) {
+                return 'Value must be alphanumeric, including at least one character'
+            }
+
+        }
 
     },
     text_ask: {
@@ -122,13 +147,6 @@ validators = {
         allowed_types: (field, types) => {
             if (field.file && types) {
                 return types.includes(field.file.type) ? true : `Invalid file type, allowed types ${types.join(',')}`
-            }
-        }
-    },
-    captcha_ask: {
-        is_valid: (field) => {
-            if (field.val !== undefined) {
-                return field.val === field.payload.value ? true : `Invalid captcha, please try again`
             }
         }
     },

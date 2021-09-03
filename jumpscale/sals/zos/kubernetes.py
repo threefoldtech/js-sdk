@@ -24,6 +24,8 @@ class KubernetesGenerator:
         ssh_keys: List[str],
         pool_id: int,
         public_ip_wid: int = 0,
+        disable_default_ingress=True,
+        datastore_endpoint="",
     ) -> K8s:
         """create a kubernetes marster workload object
 
@@ -43,7 +45,7 @@ class KubernetesGenerator:
           Input: if size is not supported
 
         """
-        if size not in range(1, 18):
+        if size not in range(1, 19):
             raise Input(f"VM size {size} is not supported")
 
         master = K8s()
@@ -60,6 +62,8 @@ class KubernetesGenerator:
             ssh_keys = [ssh_keys]
         master.ssh_keys = ssh_keys
         master.public_ip = public_ip_wid
+        master.disable_default_ingress = disable_default_ingress
+        master.datastore_endpoint = datastore_endpoint
 
         return master
 
@@ -103,6 +107,7 @@ class KubernetesGenerator:
             ssh_keys=ssh_keys,
             pool_id=pool_id,
             public_ip_wid=public_ip_wid,
+            disable_default_ingress=False,
         )
         worker.master_ips = [master_ip]
         return worker

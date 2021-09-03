@@ -1,7 +1,7 @@
 <html lang="en">
   <head>
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.3/dist/vuetify.min.css" rel="stylesheet">
     <link href='https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css' rel='stylesheet' />
     <link href="/chatflows/static/style.css" rel="stylesheet">
   </head>
@@ -11,13 +11,14 @@
     <script src="/chatflows/static/mixins/field.js"></script>
     <script src="https://unpkg.com/vue"></script>
     <script src="https://unpkg.com/vuex"></script>
-    <script src="https://unpkg.com/vuetify"></script>
+    <script src="https://unpkg.com/vuetify@2.3"></script>
     <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
     <script src="https://unpkg.com/http-vue-loader"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.js"></script>
     <script src='https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js'></script>
+    <script src="https://www.unpkg.com/md5@2.3.0/dist/md5.min.js"></script>
     <script type="text/javascript">
 
       Vue.use(Vuex)
@@ -47,7 +48,6 @@
       httpVueLoader.register(Vue, `${baseUrl}/components/QRCode.vue`)
       httpVueLoader.register(Vue, `${baseUrl}/components/Markdown.vue`)
       httpVueLoader.register(Vue, `${baseUrl}/components/Form.vue`)
-      httpVueLoader.register(Vue, `${baseUrl}/components/Captcha.vue`)
       httpVueLoader.register(Vue, `${baseUrl}/components/Loading.vue`)
       httpVueLoader.register(Vue, `${baseUrl}/components/InfiniteLoading.vue`)
       httpVueLoader.register(Vue, `${baseUrl}/components/Confirm.vue`)
@@ -74,7 +74,6 @@
               upload_file: 'UploadFile',
               download_file: 'DownloadFile',
               qrcode_show: 'QRCode',
-              captcha_ask: 'Captcha',
               md_show: 'Markdown',
               confirm: 'Confirm',
               loading: 'Loading',

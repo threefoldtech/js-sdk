@@ -4,19 +4,22 @@ from urllib.parse import urlencode, quote, unquote
 
 import nacl
 import requests
-from beaker.middleware import SessionMiddleware
-from bottle import Bottle, abort, redirect, request, response
+from bottle import Bottle, request, abort, redirect, response
 from nacl.public import Box
 from nacl.signing import VerifyKey
 
 from jumpscale.loader import j
 
-SESSION_OPTS = {"session.type": "file", "session.data_dir": f"{j.core.dirs.VARDIR}/data", "session.auto": True}
 REDIRECT_URL = "https://login.threefold.me"
 CALLBACK_URL = "/auth/3bot_callback"
 LOGIN_URL = "/auth/login"
 
 app = Bottle()
+
+
+@app.hook("before_request")
+def setup_request():
+    request.session = request.environ.get("beaker.session", {})
 
 
 templates_path = j.sals.fs.join_paths(j.sals.fs.dirname(__file__), "templates")
@@ -25,12 +28,12 @@ env = j.tools.jinja2.get_env(templates_path)
 
 @app.route("/login")
 def login():
-    """List available providers for login and redirect to the selected provider (TF Connect)
+    """List available providers for login and redirect to the selected provider (ThreeFold Connect)
 
     Returns:
         Renders the template of login page
     """
-    session = request.environ.get("beaker.session")
+    session = request.environ.get("beaker.session", {})
     provider = request.query.get("provider")
     next_url = quote(request.query.get("next_url", session.get("next_url", "/")))
 
@@ -131,7 +134,8 @@ def callback():
     )
 
     if res.status_code != 200:
-        return abort(400, "Email is not verified")
+        next_url = request.query.get("next_url", "/auth/logout")
+        return env.get_template("email_not_verified.html").render(next_url=next_url)
 
     username = username.lower()  # workaround usernames that are returned by signed attempt with camel cases
     session["username"] = username
@@ -267,7 +271,7 @@ def authenticated(handler):
     """
 
     def decorator(*args, **kwargs):
-        session = request.environ.get("beaker.session")
+        session = request.environ.get("beaker.session", {})
         if j.core.config.get_config().get("threebot_connect", True) and j.core.identity.is_configured:
             if not session.get("authorized", False):
                 return abort(401)
@@ -318,6 +322,40 @@ def is_authorized():
     return get_user_info()
 
 
+@app.route("/package_authorized/<package_name>")
+@authenticated
+def is_package_authorized(package_name):
+    """
+    get user information if it is authorized user in the package config
+
+    Returns:
+        [JSON string]: [user information session]
+    """
+    authorized_users = get_package_admins(package_name)
+    user_info = get_user_info()
+    user_dict = j.data.serializers.json.loads(user_info)
+    username = user_dict["username"]
+    # if the package doesn't include admins then allow any authenticated user
+    if authorized_users and not any([username in authorized_users, username in j.core.identity.me.admins]):
+        return abort(403)
+    return user_info
+
+
+def package_authorized(package_name):
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            authorized_users = get_package_admins(package_name)
+            session = request.environ.get("beaker.session")
+            username = session.get("username")
+            if authorized_users and not any([username in authorized_users, username in j.core.identity.me.admins]):
+                return abort(403)
+            return function(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 def login_required(func):
     """Decorator for the methods we want to secure
 
@@ -327,7 +365,7 @@ def login_required(func):
 
     @wraps(func)
     def decorator(*args, **kwargs):
-        session = request.environ.get("beaker.session")
+        session = request.environ.get("beaker.session", {})
         if j.core.config.get_config().get("threebot_connect", True):
             if not session.get("authorized", False):
                 session["next_url"] = request.url
@@ -337,4 +375,16 @@ def login_required(func):
     return decorator
 
 
-app = SessionMiddleware(app, SESSION_OPTS)
+def add_package_user(package_name, username):
+    package = j.servers.threebot.default.packages.get(package_name)
+    if not package:
+        raise j.exceptions.Validation(f"can't add admin to non installed package {package_name}")
+    package.admins.append(username)
+    j.servers.threebot.default.packages.save()
+
+
+def get_package_admins(package_name):
+    package = j.servers.threebot.default.packages.get(package_name)
+    if not package:
+        raise j.exceptions.Validation(f"package {package_name} is not installed")
+    return package.admins

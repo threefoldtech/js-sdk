@@ -1,0 +1,27 @@
+{
+    "S3_AUTO_TOPUP_FARMS": {
+        "devnet": ["lochristi_dev_lab"],
+        "testnet": ["freefarm"],
+        "mainnet": ["freefarm"]
+    },
+    "ZDB_FARMS": {
+        "devnet": ["lochristi_dev_lab"],
+        "testnet": ["freefarm"],
+        "mainnet": ["freefarm"]
+    },
+    "COMPUTE_FARMS": {
+        "devnet": ["lochristi_dev_lab"],
+        "testnet": ["freefarm"],
+        "mainnet": ["freefarm"]
+    },
+    "NETWORK_FARMS": {
+        "devnet": ["lochristi_dev_lab"],
+        "testnet": ["freefarm"],
+        "mainnet": ["freefarm"]
+    },
+    "PROXY_FARMS": {
+        "devnet": ["csfarmer"],
+        "testnet": ["csfarmer"],
+        "mainnet": ["csfarmer"]
+    }
+}

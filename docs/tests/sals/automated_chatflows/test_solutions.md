@@ -56,3 +56,24 @@ Test case for exposing a container with generic flist.
 - Deploy a container with a flist.
 - Expose this container's coreX endpoint to a subdomain.
 - Check that the container coreX is reachable through the subdomain.
+
+### test07_4to6gw
+
+Test case for deploying a 4to6 GW.
+
+**Test Scenario**
+
+- Deploy a 4to6 GW.
+- Get and up wireguard.
+- Check that the 4to6 GW is reachable.
+- Check that the ipv6 GW is reachable.
+
+### test08_etcd
+
+Test case for deploying etcd.
+
+**Test Scenario**
+
+- Deploy etcd.
+- Check that etcd is reachable.
+- Check put a Hello by etcdctl.

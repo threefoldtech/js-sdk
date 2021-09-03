@@ -1,0 +1,54 @@
+name = "vdc_dashboard"
+is_auth = true
+is_package_authorized = true
+is_admin = false
+frontend = "/vdc_dashboard"
+
+[[static_dirs]]
+name = "frontend"
+path_url = ""
+path_location = "frontend/"
+index = "index.html"
+spa = true
+
+[[static_dirs]]
+name = "swagger_ui"
+path_url = "/apidoc"
+path_location = "bottle/api/swagger/"
+index = "index.html"
+spa = false
+is_auth = false
+is_admin = false
+is_package_authorized = false
+
+[[bottle_servers]]
+name = "main"
+file_path = "bottle/app.py"
+path_url = "/api/"
+path_dest = "/api/"
+host = "0.0.0.0"
+
+[[bottle_servers]]
+name = "controller"
+file_path = "bottle/api/controller.py"
+path_url = "/api/controller"
+path_dest = "/api/controller"
+host = "0.0.0.0"
+is_auth = false
+is_admin = false
+is_package_authorized = false
+
+[[servers]]
+name = "vdc_dashboard_root_proxy"
+domain = ""
+letsencryptemail = "motaweam@incubaid.com"
+includes = ["default_443.chatflows_*", "default_443.auth_*", "default_443.vdc_dashboard*"]
+
+[[servers.locations]]
+name = "custom"
+type = "custom"
+custom_config = """
+location / {
+   rewrite ^(.+) /vdc_dashboard;
+}
+"""

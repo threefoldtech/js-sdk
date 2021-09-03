@@ -1,0 +1,1366 @@
+openapi: 3.0.0
+
+info:
+  title: VDC controller API
+  description: Control VDC nodes, zdbs and configurations.
+  version: 0.1.0
+
+servers:
+  - url: /vdc_dashboard/api/controller
+
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: number
+          example: 400
+        type:
+          type: string
+          example: MissingArgument
+        message:
+          type: string
+          example: missing argument 'flavor'
+
+    VDC:
+      type: object
+      properties:
+        vdc_name:
+          type: string
+          example: mt2
+        owner_tname:
+          type: string
+          example: abdelrahman
+        solution_uuid:
+          type: string
+          example: ef2a77c38c2d4c03bb921b7543efdd85
+        identity_tid:
+          type: number
+          example: 3565
+        s3:
+          type: object
+          properties:
+            minio:
+              type: object
+              properties:
+                ip_address:
+                  type: string
+                  example: 0.0.0.0
+                wid:
+                  type: number
+                  example: 0
+                node_id:
+                  type: string
+                  format: nullable
+                pool_id:
+                  type: number
+                  example: 0
+            zdbs:
+              type: array
+              items:
+                type: object
+                properties:
+                  size:
+                    type: number
+                    example: 10
+                  port:
+                    type: number
+                    example: 9900
+                  namespace:
+                    type: string
+                    example: 46564-1
+                  proxy_address:
+                    type: string
+                    format: nullable
+                  ip_address:
+                    type: string
+                    example: 2a02:1802:5e:0:b814:91ff:fe72:d44e
+                  wid:
+                    type: number
+                    example: 46564
+                  node_id:
+                    type: string
+                    example: BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
+                  pool_id:
+                    type: number
+                    example: 10155
+            domain:
+              type: string
+              format: nullable
+            domain_wid:
+              type: number
+              example: 0
+        kubernetes:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                example: master
+              public_ip:
+                type: string
+                example: 185.69.167.60
+              ip_address:
+                type: string
+                example: 10.200.2.2
+              wid:
+                type: number
+                example: 46579
+              node_id:
+                type: string
+                example: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+              pool_id:
+                type: number
+                example: 10155
+              size:
+                type: number
+                example: 15
+        vmachines:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: vm12072021
+              public_ip:
+                type: object
+                properties:
+                  ip_address:
+                    type: string
+                    example: 185.69.167.60
+                  wid:
+                    type: number
+                    example: 46579
+              resources:
+                type: object
+                properties:
+                  cru:
+                    type: number
+                    example: 1
+                  mru:
+                    type: number
+                    example: 2
+                  sru:
+                    type: number
+                    example: 50
+              ip_address:
+                type: string
+                example: 10.200.2.2
+              wid:
+                type: number
+                example: 46579
+              node_id:
+                type: string
+                example: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+              pool_id:
+                type: number
+                example: 10155
+              size:
+                type: number
+                example: 15
+        etcd:
+          type: array
+          items:
+            type: object
+            properties:
+              ip_address:
+                type: string
+                example: 10.200.3.5
+        threebot:
+          type: object
+          properties:
+            domain:
+              type: string
+              example: abdelrahman-mt2.vdcdev.grid.tf
+            ip_address:
+              type: string
+              example: 10.200.3.2
+            wid:
+              type: number
+              example: 46590
+            node_id:
+              type: string
+              example: BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
+            pool_id:
+              type: number
+              example: 10155
+        created:
+          type: number
+          example: 1618736039
+        last_updated:
+          type: number
+          example: 1618736039
+        is_blocked:
+          type: boolean
+        explorer_url:
+          type: string
+          example: https://explorer.devnet.grid.tf/api/v1
+        flavor:
+          type: string
+          example: silver
+        expiration_days:
+          type: number
+          example: 295
+        expiration_date:
+          type: number
+          example: 1645141553.5139973
+        total_capacity:
+          type: number
+          example: 2
+        wallet:
+          type: object
+          properties:
+            address:
+              type: string
+              example: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            network:
+              type: string
+              example: STD
+            secret:
+              type: string
+              example: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+            balances:
+              type: array
+              items:
+                type: object
+                properties:
+                  balance:
+                    type: string
+                    example: 13.0373290
+                  asset_code:
+                    type: string
+                    example: TFT
+                  asset_issuer:
+                    type: string
+                    example: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        price:
+          type: number
+          example: 2
+
+    Node:
+      type: object
+      properties:
+        role:
+          type: string
+          example: worker
+        public_ip:
+          type: string
+          example: ::/128
+        ip_address:
+          type: string
+          example: 10.200.0.2
+        wid:
+          type: number
+          example: 46580
+        node_id:
+          type: string
+          example: qzuTJJVd5boi6Uyoco1WWnSgzTb7q8uN79AjBT9x9N3
+        pool_id:
+          type: number
+          example: 10155
+        size:
+          type: number
+          example: 16
+
+    NodeAddRequest:
+      type: object
+      properties:
+        flavor:
+          type: string
+          example: SMALL
+          description: node size, can be "SMALL", "MEDIUM" or "BIG"
+        farm:
+          type: string
+          example: csfarm
+        nodes_ids:
+          type: array
+          items:
+            type: string
+            example: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YWJIE
+        public_ip:
+          type: boolean
+          example: false
+      required:
+        - flavor
+
+    ZDB:
+      type: object
+      properties:
+        size:
+          type: number
+          example: 10
+        port:
+          type: number
+          example: 9900
+        namespace:
+          type: string
+          example: 46564-1
+        proxy_address:
+          type: string
+          format: nullable
+        ip_address:
+          type: string
+          example: 2a02:1802:5e:0:b814:91ff:fe72:d44e
+        wid:
+          type: number
+          example: 46564
+        node_id:
+          type: string
+          example: BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
+        pool_id:
+          type: number
+          example: 10155
+        usage:
+          type: number
+          example: 0
+
+    ZDBAddRequest:
+      type: object
+      properties:
+        capacity:
+          type: number
+          example: 10
+          description: zdb size in GBs
+        farm:
+          type: string
+          example: csfarm
+        nodes_ids:
+          type: array
+          items:
+            type: string
+            example: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YWJIE
+        disk_type:
+          type: string
+          example: HDD
+          description: disk type, either "HDD" or "SSD"
+
+    VMachine:
+      type: object
+      properties:
+        name:
+          type: string
+          example: vm12072021
+        public_ip:
+          type: object
+          properties:
+            ip_address:
+              type: string
+              example: 185.69.167.60
+            wid:
+              type: number
+              example: 46579
+        resources:
+          type: object
+          properties:
+            cru:
+              type: number
+              example: 1
+            mru:
+              type: number
+              example: 2
+            sru:
+              type: number
+              example: 50
+        ip_address:
+          type: string
+          example: 10.200.2.2
+        wid:
+          type: number
+          example: 46579
+        node_id:
+          type: string
+          example: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+        pool_id:
+          type: number
+          example: 10155
+        size:
+          type: number
+          example: 15
+
+    VMachineAddRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: vm12072021
+        size:
+          type: number
+          example: 1
+        ssh_public_key:
+          type: string
+          example: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCkg3GPooZdQbeexFkNKyHjgYF1rIov7RmiQr8JR8PLIJWH3biheosCHbtfInH5pXHCMVwm6F9GLk3PXfpxW5vOan7FmmQHWRYARNIp5L+6+B+EKaJKMo6HX1QPakb2IO9az5G+KUxwRwiyVa7brblzp8DGbjcMbEz+HEF4y9r/sOIxxL3kHt1eHNEAVZlUWc0gFkleZC8zsTwWsCir4s52XC4N++Bk79DMw3Fv3WK71qN/3oXeuVoWYwvacV0lvBQfeDMArOIRnK0yA91rsPY/pwP7qmUgewnBX6+k0lvJ5JDTD1nfv/jLJwqb0KBtMZf5e8/zHhz5CvujLNZJu2pGiR5vn5q1RExWh+gJ23AxsAf1uDMJUk5miNLHDMkBzi2PEYbxxPAbleNqxMKzZ7EuLgFnwJ8wB5pCiYRMStZIDkmrgDu20Vu2/4hX7WgPveDDTvm92d/jlVHmqcftkBXSxiiYuRDT9nU+WgtBKzZByil7vTSbxxmvY/Cz6Q10QLk= ayoub@ayoub
+        farm:
+          type: string
+          example: csfarm
+        enable_public_ip:
+          type: boolean
+          example: true
+
+    Wallet:
+      type: object
+      properties:
+        address:
+          type: string
+          example: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        network:
+          type: string
+          example: STD
+        secret:
+          type: string
+          example: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        balances:
+          type: array
+          items:
+            type: object
+            properties:
+              balance:
+                type: string
+                example: 10
+              asset_code:
+                type: string
+                example: TFT
+              asset_issuer:
+                type: string
+                example: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+    Pool:
+      type: object
+      properties:
+        pool_id:
+          type: number
+          example: 10155
+        cus:
+          type: number
+          example: 15579261.25
+        sus:
+          type: number
+          example: 2921802.8290000004
+        ipv4us:
+          type: number
+          example: 964957
+        node_ids:
+          type: array
+          items:
+            type: string
+            example: 3kcJhRkTDuL51HmikzWFMndWwJbJGg8dZeqG9e72c6LV
+        last_updated:
+          type: number
+          example: 1619585651
+        active_cu:
+          type: number
+          example: 1.75
+        active_su:
+          type: number
+          example: 0.33000000000000007
+        active_ipv4:
+          type: number
+          example: 1
+        empty_at:
+          type: number
+          example: 1620550608
+        customer_tid:
+          type: number
+          example: 3565
+        active_workload_ids:
+          type: array
+          items:
+            type: number
+            example: 46563
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        type:
+          type: string
+          example: exception
+        level:
+          type: number
+          example: 40
+        app_name:
+          type: string
+          example: servicemanager
+        category:
+          type: string
+          example:
+        message:
+          type: string
+          example: "Service vdc_dashboard_k8s_auto_extend raised an exception: ('Connection aborted.' ConnectionResetError(104 'Connection reset by peer'))"
+        public_message:
+          type: string
+          example:
+        count:
+          type: number
+          example: 24
+        status:
+          type: string
+          example: open
+        first_occurrence:
+          type: number
+          example: 1619097688
+        last_occurrence:
+          type: number
+          example: 1619578682
+        data:
+          type: string
+          format: nullable
+        event:
+          type: array
+          items:
+            type: string
+            example: xyz
+        tracebacks:
+          type: array
+          items:
+            type: string
+            format: nullable
+
+    Backup:
+      type: object
+      properties:
+        name:
+          type: string
+          example: schedule-202103290609
+        vdc_backup:
+          type: string
+          example: vdc-20210329060953
+        config_backup:
+          type: string
+          example: config-20210329060953
+        expiration:
+          type: number
+          example: 1619590197
+        status:
+          type: string
+          example: Completed
+        start_timestamp:
+          type: number
+          example: 1616998197
+        completion_timestamp:
+          type: number
+          example: 1616998198
+        errors:
+          type: number
+          example: 0
+        progress:
+          type: object
+          properties:
+            totalItems:
+              type: number
+              example: 55
+            itemsBackedUp:
+              type: number
+              example: 55
+
+    WorkloadID:
+      type: object
+      properties:
+        wid:
+          type: number
+          example: 456643
+      required:
+        - wid
+
+    WorkloadIDs:
+      type: array
+      items:
+        type: number
+        example: 456643
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+      required:
+        - success
+
+    RunningStatus:
+      type: object
+      properties:
+        running:
+          type: boolean
+          example: true
+      required:
+        - running
+
+  examples:
+    vdc:
+      description: full VDC information, including capacity and wallets.
+      value:
+        vdc_name: mt2
+        owner_tname: abdelrahman
+        solution_uuid: ef2a77c38c2d4c03bb921b7543efdd85
+        identity_tid: 3565
+        s3:
+          minio:
+            ip_address: 0.0.0.0
+            wid: 0
+            node_id: null
+            pool_id: 0
+          zdbs:
+            - size: 10
+              port: 9900
+              namespace: 46564-1
+              proxy_address: null
+              ip_address: '2a02:1802:5e:0:b814:91ff:fe72:d44e'
+              wid: 46564
+              node_id: BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
+              pool_id: 10155
+            - size: 10
+              port: 9900
+              namespace: 46565-1
+              proxy_address: null
+              ip_address: '2a02:1802:5e:0:b814:91ff:fe72:d44e'
+              wid: 46565
+              node_id: BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
+              pool_id: 10155
+            - size: 10
+              port: 9900
+              namespace: 46566-1
+              proxy_address: null
+              ip_address: '2a02:1802:5e:0:a8d9:daff:fedd:ef6f'
+              wid: 46566
+              node_id: BBmMHCw392RLiByVEUT2ac6y6qJpbW9xj8TRdgk5rMGN
+              pool_id: 10155
+            - size: 10
+              port: 9900
+              namespace: 46567-1
+              proxy_address: null
+              ip_address: '2a02:1802:5e:0:b814:91ff:fe72:d44e'
+              wid: 46567
+              node_id: BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
+              pool_id: 10155
+            - size: 10
+              port: 9900
+              namespace: 46568-1
+              proxy_address: null
+              ip_address: '2a02:1802:5e:0:c46:cff:fe32:39ae'
+              wid: 46568
+              node_id: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+              pool_id: 10155
+            - size: 10
+              port: 9900
+              namespace: 46569-1
+              proxy_address: null
+              ip_address: '2a02:1802:5e:0:a8d9:daff:fedd:ef6f'
+              wid: 46569
+              node_id: BBmMHCw392RLiByVEUT2ac6y6qJpbW9xj8TRdgk5rMGN
+              pool_id: 10155
+            - size: 10
+              port: 9900
+              namespace: 46570-1
+              proxy_address: null
+              ip_address: '2a02:1802:5e:0:68eb:88ff:fe03:96cb'
+              wid: 46570
+              node_id: 48YmkyvfoXnXqEojpJieMfFPnCv2enEuqEJcmhvkcdAk
+              pool_id: 10155
+            - size: 10
+              port: 9900
+              namespace: 46571-1
+              proxy_address: null
+              ip_address: '2a02:1802:5e:0:a8d9:daff:fedd:ef6f'
+              wid: 46571
+              node_id: BBmMHCw392RLiByVEUT2ac6y6qJpbW9xj8TRdgk5rMGN
+              pool_id: 10155
+            - size: 10
+              port: 9900
+              namespace: 46572-1
+              proxy_address: null
+              ip_address: '2a02:1802:5e:0:c46:cff:fe32:39ae'
+              wid: 46572
+              node_id: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+              pool_id: 10155
+            - size: 10
+              port: 9900
+              namespace: 46573-1
+              proxy_address: null
+              ip_address: '2a02:1802:5e:0:c46:cff:fe32:39ae'
+              wid: 46573
+              node_id: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+              pool_id: 10155
+          domain: null
+          domain_wid: 0
+        kubernetes:
+          - role: master
+            public_ip: 185.69.167.60
+            ip_address: 10.200.2.2
+            wid: 46579
+            node_id: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+            pool_id: 10155
+            size: 15
+          - role: worker
+            public_ip: '::/128'
+            ip_address: 10.200.0.2
+            wid: 46580
+            node_id: qzuTJJVd5boi6Uyoco1WWnSgzTb7q8uN79AjBT9x9N3
+            pool_id: 10155
+            size: 16
+        vmachines:
+          - name: vm12072021
+            public_ip:
+              ip_address: 185.69.167.137
+              wid: 58347
+            resources:
+              cru: 1
+              mru: 2
+              sru: 50
+            ip_address: 10.200.2.2
+            wid: 46579
+            node_id: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+            pool_id: 10155
+            size: 1
+        etcd: []
+        threebot:
+          domain: abdelrahman-mt2.vdcdev.grid.tf
+          ip_address: 10.200.3.2
+          wid: 46590
+          node_id: BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
+          pool_id: 10155
+        created: 1618736039
+        last_updated: 1618736039
+        is_blocked: false
+        explorer_url: 'https://explorer.devnet.grid.tf/api/v1'
+        flavor: silver
+        expiration_days: 295
+        expiration_date: 1645141553.5139973
+        total_capacity: 2
+        wallet:
+          address: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+          network: STD
+          secret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+          balances:
+            - balance: '13'
+              asset_code: TFT
+              asset_issuer: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        price: 2
+
+    node:
+      description: Kubernetes node
+      value:
+        role: worker
+        public_ip: '::/128'
+        ip_address: 10.200.0.2
+        wid: 46580
+        node_id: qzuTJJVd5boi6Uyoco1WWnSgzTb7q8uN79AjBT9x9N3
+        pool_id: 10155
+        size: 16
+
+    zdb:
+      description: ZDB workload
+      value:
+        size: 10
+        port: 9900
+        namespace: 46564-1
+        proxy_address: null
+        ip_address: '2a02:1802:5e:0:b814:91ff:fe72:d44e'
+        wid: 46564
+        node_id: BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
+        pool_id: 10155
+        usage: 0
+
+    vmachine:
+      description: Virtual Machine workload
+      value:
+        name: vm12072021
+        public_ip:
+          ip_address: 185.69.167.137
+          wid: 58347
+        resources:
+          cru: 1
+          mru: 2
+          sru: 50
+        ip_address: 10.200.2.2
+        wid: 46579
+        node_id: 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+        pool_id: 10155
+        size: 1
+
+    vmachineAddRequest:
+      description: virtual machine add request
+      value:
+        name: vm12072021
+        size: 1
+        ssh_public_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCkg3GPooZdQbeexFkNKyHjgYF1rIov7RmiQr8JR8PLIJWH3biheosCHbtfInH5pXHCMVwm6F9GLk3PXfpxW5vOan7FmmQHWRYARNIp5L+6+B+EKaJKMo6HX1QPakb2IO9az5G+KUxwRwiyVa7brblzp8DGbjcMbEz+HEF4y9r/sOIxxL3kHt1eHNEAVZlUWc0gFkleZC8zsTwWsCir4s52XC4N++Bk79DMw3Fv3WK71qN/3oXeuVoWYwvacV0lvBQfeDMArOIRnK0yA91rsPY/pwP7qmUgewnBX6+k0lvJ5JDTD1nfv/jLJwqb0KBtMZf5e8/zHhz5CvujLNZJu2pGiR5vn5q1RExWh+gJ23AxsAf1uDMJUk5miNLHDMkBzi2PEYbxxPAbleNqxMKzZ7EuLgFnwJ8wB5pCiYRMStZIDkmrgDu20Vu2/4hX7WgPveDDTvm92d/jlVHmqcftkBXSxiiYuRDT9nU+WgtBKzZByil7vTSbxxmvY/Cz6Q10QLk= ayoub@ayoub
+        farm: csfarm
+        enable_public_ip: true
+
+    nodeAddRequest:
+      description: Adding kubernetes node request.
+      value:
+        flavor: SMALL
+
+    zdbAddRequest:
+      description: zdb add request
+      value:
+        capacity: 10
+        farm: csfarm
+        nodes_ids:
+          - 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YWJIE
+        disk_type: HDD
+
+    wallet:
+      description: funding wallet
+      value:
+        address: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        network: STD
+        secret: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+        balances:
+          - balance: '13.0299670'
+            asset_code: TFT
+            asset_issuer: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+    pool:
+      description: Pool
+      value:
+        pool_id: 10155
+        cus: 15579261.25
+        sus: 2921802.8290000004
+        ipv4us: 964957
+        node_ids:
+          - 3kcJhRkTDuL51HmikzWFMndWwJbJGg8dZeqG9e72c6LV
+          - BpTAry1Na2s1J8RAHNyDsbvaBSM3FjR4gMXEKga3UPbs
+          - 3NAkUYqm5iPRmNAnmLfjwdreqDssvsebj4uPUt9BxFPm
+          - 3We9p7C3wihY3ZZSP5w4ujEBPVtm685fVW563MVFbnE8
+          - qzuTJJVd5boi6Uyoco1WWnSgzTb7q8uN79AjBT9x9N3
+          - 5f4QEXpTcKt9Tbngn4hvraXd2G4QVFkagabUeKpn55oc
+          - 48YmkyvfoXnXqEojpJieMfFPnCv2enEuqEJcmhvkcdAk
+          - DJHD5cMjRkuVh4enQ6dqCAuPNUPfH2a45gLv7JDDswbT
+          - HtKZ3SwHcGM7nTsm8ykRGttfodFfLkghrmD5FGypgobK
+          - 2anfZwrzskXiUHPLTqH1veJAia8G6rW2eFLy5YFMa1MP
+          - FTothsg9ZuJubAEzZByEgQQUmkWM637x93YH1QSJM242
+          - BBmMHCw392RLiByVEUT2ac6y6qJpbW9xj8TRdgk5rMGN
+          - Gr8NxBLHe7yjSsnSTgTqGr7BHbyAUVPJqs8fnudEE4Sf
+        last_updated: 1619585651
+        active_cu: 1.75
+        active_su: 0.33000000000000007
+        active_ipv4: 1
+        empty_at: 1620550608
+        customer_tid: 3565
+        active_workload_ids:
+          - 46563
+          - 46566
+          - 46569
+          - 46570
+          - 46579
+          - 46568
+          - 46572
+          - 46573
+          - 46578
+          - 46564
+          - 46565
+          - 46567
+          - 46571
+          - 46577
+          - 46576
+          - 46580
+          - 46587
+          - 46590
+          - 46589
+          - 46588
+          - 46826
+          - 46824
+          - 46823
+          - 46825
+
+    alert:
+      description: Alert
+      value:
+        id: 1
+        type: exception
+        level: 40
+        app_name: servicemanager
+        category: ''
+        message: >-
+          Service vdc_dashboard_k8s_auto_extend raised an exception: ('Connection
+          aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+        public_message: ''
+        count: 24
+        status: open
+        first_occurrence: 1619097688
+        last_occurrence: 1619578682
+        data: null
+        event: []
+        tracebacks:
+          - null
+          - null
+          - null
+
+    backup:
+      description: Backup
+      value:
+        name: schedule-202103290609
+        vdc_backup: vdc-20210329060953
+        config_backup: config-20210329060953
+        expiration: 1619590197
+        status: Completed
+        start_timestamp: 1616998197
+        completion_timestamp: 1616998198
+        errors: 0
+        progress:
+          totalItems: 55
+          itemsBackedUp: 55
+
+    workloadID:
+      description: Workload ID object
+      value:
+          wid: 46580
+
+    workloadIDs:
+      description: Workload IDS
+      value:
+        - 46580
+
+    success:
+      description: Success response
+      value:
+        success: true
+
+    running:
+      description: Running status
+      value:
+        running: true
+
+security:
+  - basicAuth: []
+  - ApiKeyAuth: []
+
+paths:
+  /vdc:
+    get:
+      summary: Get full VDC information
+      description: Get full VDC information with capacity and wallets.
+      responses:
+        '200':    # status code
+          description: VDC object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VDC'
+                example:
+                  vdc:
+                    $ref: '#/components/examples/vdc'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /node:
+    get:
+      summary: Get kubernetes nodes
+      description: Get a list of kubernetes nodes
+      responses:
+        '200':
+          description: list of nodes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Node'
+                  example:
+                    node:
+                      $ref: '#/components/examples/node'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Add kubernetes node
+      description: Add kubernetes node with pre-configured flavors and other options
+      requestBody:
+        description: node configuration
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NodeAddRequest'
+              example:
+                nodeAddRequest:
+                  $ref: '#/components/examples/nodeAddRequest'
+
+      responses:
+        '200':
+          description: list of workload IDs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkloadIDs'
+                example:
+                  workloadIDs:
+                    $ref: '#/components/examples/workloadIDs'
+
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete kubernetes node
+      description: Delete kubernetes node with specific ID
+      requestBody:
+        description: Node workload ID
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkloadID'
+              example:
+                  $ref: '#/components/examples/workloadID'
+      responses:
+        '200':
+          description: success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+                example:
+                  success:
+                    $ref: '#/components/examples/success'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /vmachine:
+    get:
+      summary: Get virtual machines information
+      description: Get a list of virtual machines.
+      responses:
+        '200':    # status code
+          description: VMachine object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VMachine'
+                example:
+                  vdc:
+                    $ref: '#/components/examples/vmachine'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Add virtual machine workload
+      description: Add virtual machine
+      requestBody:
+        description: virtual machine configuration
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VMachineAddRequest'
+              example:
+                nodeAddRequest:
+                  $ref: '#/components/examples/vmachineAddRequest'
+
+      responses:
+        '200':
+          description: list of virtual machine objects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkloadIDs'
+                example:
+                  workloadIDs:
+                    $ref: '#/components/examples/workloadIDs'
+
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete virtual machine workload
+      description: Delete virtual machine workload with specific ID
+      requestBody:
+        description: virtual machine workload ID
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkloadID'
+              example:
+                  $ref: '#/components/examples/workloadID'
+      responses:
+        '200':
+          description: success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+                example:
+                  success:
+                    $ref: '#/components/examples/success'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /zdb:
+    get:
+      summary: Get zdb information
+      description: Get a list of zdb workloads (containers)
+      responses:
+        '200':
+          description: list of zdb workloads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ZDB'
+                  example:
+                    zdb:
+                      $ref: '#/components/examples/zdv'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Add zdb workload
+      description: Add zdb workload (container) with pre-configured capacity and other options
+      requestBody:
+        description: zdb configuration
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ZDBAddRequest'
+              example:
+                nodeAddRequest:
+                  $ref: '#/components/examples/zdbAddRequest'
+
+      responses:
+        '200':
+          description: list of workload IDs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkloadIDs'
+                example:
+                  workloadIDs:
+                    $ref: '#/components/examples/workloadIDs'
+
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete zdb workload
+      description: Delete zdb node with specific ID
+      requestBody:
+        description: zdb workload ID
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkloadID'
+              example:
+                  $ref: '#/components/examples/workloadID'
+      responses:
+        '200':
+          description: success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+                example:
+                  success:
+                    $ref: '#/components/examples/success'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /wallet:
+    get:
+      summary: Get VDC wallet information
+      description: Get funding wallet information (with secrets)
+      responses:
+        '200':    # status code
+          description: Wallets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+                example:
+                  wallet:
+                    $ref: '#/components/examples/wallet'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /pools:
+    get:
+      summary: Get pools information
+      description: Get a list of capacity pools
+      responses:
+        '200':    # status code
+          description: Capacity pools
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pool'
+                  example:
+                    pool:
+                      $ref: '#/components/examples/pool'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /alerts/{app_name}:
+    get:
+      summary: Get alerts
+      description: Get a list of alerts in current VDC
+      parameters:
+        - in: path
+          name: app_name
+          schema:
+            type: string
+          required: false
+          description: app name to filter alerts with, e.g. "init"
+      responses:
+        '200':    # status code
+          description: Alerts list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alert'
+                  example:
+                    alert:
+                      $ref: '#/components/examples/alert'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /backup:
+    get:
+      summary: Get backup information
+      description: Get a list of available backups
+      responses:
+        '200':    # status code
+          description: Backups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Backup'
+                  example:
+                    backup:
+                      $ref: '#/components/examples/backup'
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /kubeconfig:
+    get:
+      summary: Get the kubenetes config in YAML format
+      responses:
+        '200':
+          description: YAML configuration file
+          content:
+            "application/x-yaml":
+              schema:
+                type: string
+                format: binary
+            text/plain:
+              schema:
+                type: string
+                format: binary
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /zstor_config:
+    get:
+      summary: Get Zstor config in TOML format
+      responses:
+        '200':
+          description: TOML configuration file
+          content:
+            application/toml:
+              schema:
+                type: string
+                format: binary
+            text/plain:
+              schema:
+                type: string
+                format: binary
+        default:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /status:
+    get:
+      summary: Get VDC status
+      description: Get VDC running status
+      responses:
+        '200':
+          description: Running status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunningStatus'
+                example:
+                  running:
+                    $ref: '#/components/examples/running'

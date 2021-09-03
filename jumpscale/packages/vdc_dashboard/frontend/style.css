@@ -1,0 +1,17 @@
+.v-main__wrap {
+    /* padding: 40px !important; */
+    /* padding-top: 10px !important; */
+    background-color: #FBFCFC !important;
+}
+
+.theme--light.v-tabs-items {
+    background-color: #FBFCFC !important;
+}
+
+.version {
+    position: fixed;
+    bottom: 20px;
+    right: 10px;
+    font-size: small;
+    color: grey;
+}

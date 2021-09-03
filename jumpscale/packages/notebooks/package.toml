@@ -1,6 +1,7 @@
 name = "notebooks"
 is_auth = true
 is_admin = true
+excluded = true
 frontend = "/notebooks"
 
 [[servers]]

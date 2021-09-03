@@ -9,7 +9,7 @@ chmod -R 500 /etc/ssh
 service ssh restart
 echo $SSHKEY > /root/.ssh/authorized_keys
 
-
+chmod u+x $HOME/.poetry/bin/poetry
 
 echo "[*] Switching to the correct version (${SDK_VERSION}) ..."
 cd ${SDK_PATH}
@@ -24,9 +24,10 @@ fi
 
 
 git reset --hard origin/${SDK_VERSION}
+git checkout $SDK_VERSION
 
 if $poetry_install; then
-  poetry install
+  poetry install --no-dev
 fi
 
 # Execute the initialization script from the newly fetched branch
@@ -43,6 +44,7 @@ if ! [ -f jumpscale/packages/tfgrid_solutions/scripts/threebot/initialize.sh ]; 
   echo "BACKUP_PASSWORD=${BACKUP_PASSWORD}" >> ~/.bashrc
   echo "BACKUP_TOKEN=${BACKUP_TOKEN}" >> ~/.bashrc
   echo "DOMAIN=${DOMAIN}" >> ~/.bashrc
+  echo "THREEBOT_WALLET_SECRET=${THREEBOT_WALLET_SECRET}" >> ~/.bashrc
 
   echo "EMAIL_HOST=${EMAIL_HOST}" >> ~/.bashrc
   echo "EMAIL_HOST_USER=${EMAIL_HOST_USER}" >> ~/.bashrc

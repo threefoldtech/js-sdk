@@ -3,12 +3,14 @@ from textwrap import dedent
 from jumpscale.loader import j
 from jumpscale.sals.chatflows.chatflows import GedisChatBot, chatflow_step
 from jumpscale.sals.reservation_chatflow import DeploymentFailed, deployer, deployment_context, solutions
+from jumpscale.clients.explorer.models import K8s
 
 
 class KubernetesDeploy(GedisChatBot):
     steps = [
         "kubernetes_name",
         "choose_flavor",
+        "add_public_ip",
         "nodes_selection",
         "network_selection",
         "public_key_get",
@@ -17,6 +19,7 @@ class KubernetesDeploy(GedisChatBot):
         "success",
     ]
     title = "Kubernetes"
+    KUBERNETES_SIZES = K8s.SIZES
 
     def _deployment_start(self):
         deployer.chatflow_pools_check()
@@ -42,21 +45,30 @@ class KubernetesDeploy(GedisChatBot):
     @chatflow_step(title="Master and Worker flavors")
     def choose_flavor(self):
         form = self.new_form()
-        sizes = ["1 vCPU 2 GiB ram 50GiB disk space", "2 vCPUs 4 GiB ram 100GiB disk space"]
+        sizes = [
+            f"vCPU: {data.get('cru')}, RAM: {data.get('mru')} GiB, Disk Space: {data.get('sru')} GiB"
+            for data in self.KUBERNETES_SIZES.values()
+        ]
         cluster_size_string = form.drop_down_choice("Choose the size of your nodes", sizes, default=sizes[0])
-
         self.workernodes = form.int_ask(
             "Please specify the number of worker nodes", default=1, required=True, min=1
         )  # minimum should be 1
 
         form.ask()
         self.cluster_size = sizes.index(cluster_size_string.value) + 1
-        if self.cluster_size == 1:
-            self.master_query = self.worker_query = {"sru": 50, "mru": 2, "cru": 1}
-        else:
-            self.master_query = self.worker_query = {"sru": 100, "mru": 4, "cru": 2}
+        self.master_query = self.worker_query = self.KUBERNETES_SIZES.get(self.cluster_size)
 
-    @chatflow_step(title="Containers' node id")
+    @chatflow_step(title="Public IP")
+    def add_public_ip(self):
+        choices = ["No", "Yes"]
+        choice = self.single_choice("Do you want to enable public IP", choices, default="No", required=True)
+        self.enable_public_ip = False
+        self.master_query.update({"ipv4u": 0})
+        if choice == "Yes":
+            self.enable_public_ip = True
+            self.master_query.update({"ipv4u": 1})
+
+    @chatflow_step(title="Select Pools")
     def nodes_selection(self):
         no_nodes = self.workernodes.value + 1
         workload_name = "Kubernetes nodes"
@@ -71,12 +83,12 @@ class KubernetesDeploy(GedisChatBot):
     @chatflow_step(title="Access keys and secret")
     def public_key_get(self):
         self.ssh_keys = self.upload_file(
-            """Please upload your public SSH key to be able to access the depolyed container via ssh
+            """Please upload your public SSH key to be able to access the deployed container via ssh
                 Note: please use keys compatible with Dropbear server eg: RSA""",
             required=True,
         ).splitlines()
 
-        self.cluster_secret = self.string_ask("Please add the cluster secret", default="secret", required=True)
+        self.cluster_secret = self.secret_ask("Please add the cluster secret", required=True)
 
     @chatflow_step(title="IP selection")
     @deployment_context()
@@ -134,6 +146,7 @@ class KubernetesDeploy(GedisChatBot):
             ip_addresses=self.ip_addresses,
             slave_pool_ids=self.selected_pool_ids[1:],
             solution_uuid=self.solution_id,
+            public_ip=self.enable_public_ip,
             **self.solution_metadata,
         )
 
@@ -148,14 +161,19 @@ class KubernetesDeploy(GedisChatBot):
 
     @chatflow_step(title="Success", disable_previous=True, final_step=True)
     def success(self):
+        ip = self.reservations[0]["ip_address"]
+
+        if self.reservations[0]["public_ip"]:
+            ip = self.reservations[0]["public_ip"]
+
         res = f"""\
         # Kubernetes cluster has been deployed successfully:
         <br />\n
         - Master
-            - IP: {self.reservations[0]["ip_address"]}
-            - To connect: `ssh rancher@{self.reservations[0]["ip_address"]}`
+            - IP: {ip}
+            - To connect: `ssh rancher@{ip}`
+            <br />\n
         <br />\n
-
         """
         res = dedent(res)
         worker_res = ""
