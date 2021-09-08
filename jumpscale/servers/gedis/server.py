@@ -233,7 +233,7 @@ class GedisServer(Base):
 
     def _on_connection(self, socket, address):
         j.logger.debug(f"New connection from {address}")
-        parser = DefaultParser(4096)
+        parser = DefaultParser(65536)
         connection = RedisConnectionAdapter(socket)
         try:
             encoder = ResponseEncoder(socket)
@@ -278,6 +278,7 @@ class GedisServer(Base):
                 except ConnectionError:
                     j.logger.debug(f"Client {address} closed the connection", address)
                     parser.on_disconnect()
+                    return
 
                 except Exception as exception:
                     j.logger.exception("internal error", exception=exception)
