@@ -277,6 +277,8 @@ class GedisServer(Base):
 
                 except ConnectionError:
                     j.logger.debug(f"Client {address} closed the connection", address)
+                    parser.on_disconnect()
+                    return
 
                 except Exception as exception:
                     j.logger.exception("internal error", exception=exception)
@@ -285,8 +287,6 @@ class GedisServer(Base):
 
                 response["success"] = response["error"] is None
                 encoder.encode(json.dumps(response, default=serialize))
-
-            parser.on_disconnect()
 
         except BrokenPipeError:
             pass
