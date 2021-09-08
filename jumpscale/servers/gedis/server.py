@@ -15,7 +15,7 @@ from gevent.server import StreamServer
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 from redis.connection import DefaultParser, Encoder
-from redis.exceptions import ConnectionError
+from redis.exceptions import ConnectionError, TimeoutError
 from .baseactor import BaseActor
 from .systemactor import CoreActor, SystemActor
 
@@ -275,8 +275,8 @@ class GedisServer(Base):
                             result = self._execute(method, args, kwargs)
                             response.update(result)
 
-                except ConnectionError:
-                    j.logger.debug(f"Client {address} closed the connection", address)
+                except (TimeoutError, ConnectionError):
+                    j.logger.debug(f"Client {address} closed the connection/or timeout", address)
                     parser.on_disconnect()
                     return
 
