@@ -142,12 +142,20 @@ module.exports = {
         });
     },
   },
-  created() {
-    this.getQRCode();
+  watch: {
+    wallet(w) {
+      w && this.getQRCode();
+    },
+    price() {
+      this.wallet && this.getQRCode();
+    },
   },
-  updated() {
-    if (this.wallet && !this.qrcode && !this.qrcodeLoading) this.getQRCode();
-  },
+  // created() {
+  //   this.getQRCode();
+  // },
+  // updated() {
+  //   if (this.wallet && !this.qrcode && !this.qrcodeLoading) this.getQRCode();
+  // },
 };
 </script>
 <style scoped>
