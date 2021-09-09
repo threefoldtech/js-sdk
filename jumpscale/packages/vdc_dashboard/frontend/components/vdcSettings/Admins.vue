@@ -18,11 +18,11 @@
         min-width="50"
         v-for="admin in admins"
         :key="admin"
-        @click:close="removeAdmin(admin)"
+        @click:close="admins.length > 1 ? removeAdmin(admin) : undefined"
         outlined
         label
-        close
-        close-icon="mdi-close-circle-outline"
+        :close="admins.length > 1"
+        :close-icon="admins.length > 1 ? 'mdi-close-circle-outline' : undefined"
         >{{ admin }}</v-chip
       >
     </base-section>
