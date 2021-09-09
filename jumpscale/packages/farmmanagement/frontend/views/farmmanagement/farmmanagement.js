@@ -77,7 +77,7 @@ module.exports = new Promise(async (resolve, reject) => {
                 namerules: [v => !!v || "Name is required"],
                 nameError: [],
                 mailError: [],
-                countries: [],
+                countries: getCountries(),
                 loading: false,
                 upgrade: false,
                 showUpgradeConfirmation: false,
@@ -289,7 +289,8 @@ module.exports = new Promise(async (resolve, reject) => {
     });
 });
 
-const countries = [
+function getCountries(){
+return  [
     "Afghanistan",
     "Albania",
     "Algeria",
@@ -487,3 +488,4 @@ const countries = [
     "Zambia",
     "Zimbabwe"
 ]
+}
