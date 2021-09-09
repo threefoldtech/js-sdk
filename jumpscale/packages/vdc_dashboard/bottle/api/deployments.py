@@ -202,6 +202,7 @@ def list_all_admins() -> str:
 @app.route("/api/admins/add", method="POST")
 @package_authorized("vdc_dashboard")
 def add_admin() -> str:
+    suffix = ".3bot"
     data = j.data.serializers.json.loads(request.body.read())
     name = data.get("name")
     threebot = j.servers.threebot.get("default")
@@ -210,6 +211,9 @@ def add_admin() -> str:
         raise j.exceptions.Value(f"Admin name shouldn't be empty")
     if name in package.admins:
         raise j.exceptions.Value(f"Admin {name} already exists")
+    # Validating the admin name ends with 3bot suffix
+    if not name.endswith(suffix):
+        name += suffix
     package.admins.append(name)
     threebot.packages.save()
 
