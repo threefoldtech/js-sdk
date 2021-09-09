@@ -135,9 +135,7 @@ module.exports = {
       this.$api.wallets
         .walletQRCodeImage(this.wallet.address, this.price, 3)
         .then((result) => {
-          console.log(this.qrcode);
           this.qrcode = result.data.data;
-          console.log(this.qrcode);
         })
         .catch((err) => {
           console.log(err);
