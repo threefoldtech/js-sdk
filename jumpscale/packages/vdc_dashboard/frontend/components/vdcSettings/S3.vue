@@ -256,6 +256,7 @@ module.exports = {
         params: { topic: topic },
       });
     },
+    // Switched to method way as it updating whenever component updated
     zdbs() {
       if (this.vdc) {
         this.S3URL = this.vdc.s3.domain;
@@ -263,14 +264,6 @@ module.exports = {
       }
     },
   },
-  // computed: {
-  //   zdbs() {
-  //     if (this.vdc) {
-  //       this.S3URL = this.vdc.s3.domain;
-  //       return this.vdc.s3.zdbs;
-  //     }
-  //   },
-  // },
 };
 </script>
 
