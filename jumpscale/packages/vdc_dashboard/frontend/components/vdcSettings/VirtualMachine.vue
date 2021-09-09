@@ -14,7 +14,7 @@
 
     <v-data-table
       :headers="headers"
-      :items="vmachines"
+      :items="getVms()"
       :loading="loading || tableloading"
       class="elevation-1"
     >
@@ -89,14 +89,14 @@
 <script>
 module.exports = {
   props: {
-    vmachines: {
-      type: Array,
-      default: () => [],
-    },
-    tableloading: {
-      type: Boolean,
-      default: false,
-    },
+    // vmachines: {
+    //   type: Array,
+    //   default: () => [],
+    // },
+    // tableloading: {
+    //   type: Boolean,
+    //   default: false,
+    // },
   },
   mixins: [dialog],
   components: {
@@ -105,6 +105,7 @@ module.exports = {
   },
   data() {
     return {
+      tableloading: true,
       selected: null,
       selectedvm: null,
       headers: [
@@ -142,6 +143,20 @@ module.exports = {
         params: { topic: topic },
       });
     },
+    getVms(){
+      vmachines = null;
+      this.tableloading = true;
+      this.$api.vdc
+        .getVdcInfo()
+        .then((response) => {
+          vdc = response.data;
+          vmachines = vdc.vmachines
+        })
+        .finally(() => {
+          this.tableloading = false;
+        });
+      return vmachines
+    }
   },
 };
 </script>
