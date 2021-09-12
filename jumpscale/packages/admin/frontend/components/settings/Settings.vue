@@ -323,6 +323,7 @@ module.exports = {
     "identity-info": httpVueLoader("./IdentityInfo.vue"),
     "add-identity": httpVueLoader("./AddIdentity.vue"),
     "config-view": httpVueLoader("./ConfigurationsInfo.vue"),
+    // "admin-confirmation": httpVueLoader("./AdminConfirmation.vue")
   },
   data() {
     return {
@@ -345,6 +346,7 @@ module.exports = {
         escalationEmail: false,
         emailServerConfig: false,
         configurations: false,
+        // adminConfirmation: false
       },
       admins: [],
       sshkeys: [],
