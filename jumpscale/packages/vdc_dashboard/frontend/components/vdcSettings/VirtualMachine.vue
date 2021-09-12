@@ -81,7 +81,7 @@
       title="Delete VM"
       :messages="deletionMessages"
       :wid="selectedvm"
-      @reload-vdcinfo="getVMSinfo"
+      @reload-vdcinfo="getVms"
     ></cancel-workload>
   </div>
 </template>
