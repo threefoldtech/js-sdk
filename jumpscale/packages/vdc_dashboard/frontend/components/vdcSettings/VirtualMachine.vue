@@ -88,16 +88,6 @@
 
 <script>
 module.exports = {
-  props: {
-    // vmachines: {
-    //   type: Array,
-    //   default: () => [],
-    // },
-    // tableloading: {
-    //   type: Boolean,
-    //   default: false,
-    // },
-  },
   mixins: [dialog],
   components: {
     "solution-info": httpVueLoader("../base/Info.vue"),
