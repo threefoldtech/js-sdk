@@ -39,6 +39,20 @@
                 ></v-text-field>
               </td>
             </tr>
+            <tr>
+              <td>admins</td>
+              <td>
+                <v-chip
+                  class="ma-2"
+                  color="primary"
+                  outlined
+                  v-for="admin in identity.admins"
+                  :key="admin"
+                >
+                  {{ admin }}
+                </v-chip>
+              </td>
+            </tr>
           </tbody>
         </template>
       </v-simple-table>

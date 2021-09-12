@@ -82,6 +82,7 @@ class Admin(BaseActor):
                         "tid": identity.tid,
                         "explorer_url": identity.explorer_url,
                         "words": identity.words,
+                        "admins": identity.admins,
                     }
                 }
             )
