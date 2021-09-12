@@ -127,7 +127,13 @@ class Admin(BaseActor):
         return j.data.serializers.json.dumps({"data": False})
 
     @actor_method
-    def add_identity(self, display_name: str, tname: str, email: str, words: str, explorer_type: str) -> str:
+    def add_identity(self, display_name: str, tname: str, email: str, words: str, explorer_type: str, admins: list) -> str:
+        checked_admins = []
+        for admin in admins:
+            if type(admin) is str and not admin.endswith(".3bot"):
+                admin = admin + ".3bot"
+            checked_admins.append(admin)
+
         if not display_name.isidentifier() or not display_name.islower():
             raise j.exceptions.Value(
                 "The display name must be a lowercase valid python identitifier (English letters, underscores, and numbers not starting with a number)."
@@ -138,7 +144,7 @@ class Admin(BaseActor):
             raise j.exceptions.Value("Identity with the same name already exists")
         try:
             new_identity = j.core.identity.new(
-                name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url
+                name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url, admins=checked_admins
             )
             new_identity.register()
             new_identity.save()
