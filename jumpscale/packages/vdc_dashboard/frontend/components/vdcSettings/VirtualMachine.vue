@@ -14,7 +14,7 @@
 
     <v-data-table
       :headers="headers"
-      :items="getVms()"
+      :items="[]"
       :loading="loading || tableloading"
       class="elevation-1"
     >
@@ -158,6 +158,12 @@ module.exports = {
       return vmachines
     }
   },
+  created(){
+    console.log("Created event")
+  },
+  updated(){
+    console.log("Updated event")
+  }
 };
 </script>
 
