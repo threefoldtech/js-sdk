@@ -14,7 +14,7 @@
 
     <v-data-table
       :headers="headers"
-      :items="[]"
+      :items="vmachines"
       :loading="loading || tableloading"
       class="elevation-1"
     >
@@ -106,6 +106,7 @@ module.exports = {
   data() {
     return {
       tableloading: true,
+      vmachines : [],
       selected: null,
       selectedvm: null,
       headers: [
@@ -144,26 +145,22 @@ module.exports = {
       });
     },
     getVms(){
-      vmachines = null;
       this.tableloading = true;
       this.$api.vdc
         .getVdcInfo()
         .then((response) => {
           vdc = response.data;
-          vmachines = vdc.vmachines
+          this.vmachines = vdc.vmachines
         })
         .finally(() => {
           this.tableloading = false;
         });
-      return vmachines
     }
   },
   created(){
-    console.log("Created event")
+    this.getVms()
   },
-  updated(){
-    console.log("Updated event")
-  }
+
 };
 </script>
 
