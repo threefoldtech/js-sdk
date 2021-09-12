@@ -14,6 +14,30 @@
         </v-text-field>
         <v-text-field v-model="form.tname" label="3Bot name" @blur="checkTNameExists(form.tname)" dense></v-text-field>
         <v-text-field v-model="form.email" label="Email" dense></v-text-field>
+        <!-- Start Admins -->
+        <v-combobox
+          v-model="selectedAdmins"
+          :items="[]"
+          chips
+          clearable
+          label="Add admins"
+          multiple
+          solo
+        >
+          <template v-slot:selection="{ attrs, item, select, selected }">
+            <v-chip
+              v-bind="attrs"
+              :input-value="selected"
+              close
+              @click="select"
+              @click:close="removeFromAdmins(item)"
+              color="primary"
+            >
+              <span>{{ item }}</span>
+            </v-chip>
+          </template>
+        </v-combobox>
+        <!-- End Admins -->
         <v-text-field v-model="words" label="Words" dense>
           <template v-slot:append>
               <v-btn
@@ -52,6 +76,7 @@ module.exports = {
       display_name:"",
       words: "",
       allowCreatMnemonics: false,
+      selectedAdmins: [],
     }
   },
   computed: {
@@ -66,13 +91,37 @@ module.exports = {
     submit () {
         this.loading = true
         this.error = null
-        this.$api.identities.add(this.form.display_name, this.form.tname, this.form.email, this.words, this.explorers[this.selected_explorer].type).then((response) => {
-            this.done("New Identity added", "success")
-        }).catch((error) => {
+        this.$api.admins.getCurrentUser()
+          .then(({ data }) => {
+            if (data.username) {
+              if (this.selectedAdmins.indexOf(data.username) === -1) {
+                this.selectedAdmins.push(data.username);
+              }
+              
+              return this.$api
+                         .identities
+                         .add(
+                           this.form.display_name, 
+                           this.form.tname, 
+                           this.form.email, 
+                           this.words, 
+                           this.explorers[this.selected_explorer].type, 
+                           this.selectedAdmins);
+            }
+            this.error = "Couldn't load current username.";
+            return null;
+          })
+          .then((res) => {
+            if (res) {
+              this.done("New Identity added", "success")
+            }
+          })
+          .catch(error => {
             this.error = error.response.data.error
-        }).finally(() => {
-            this.loading = false
-        })
+          })
+          .finally(() => {
+              this.loading = false
+          })
     },
     getMnemonics(){
       this.$api.identities.generateMnemonic().then((response) => {
@@ -117,7 +166,10 @@ module.exports = {
       this.close()
       // clear dialog
       this.display_name = this.tname = this.email = this.words = "";
-    }
+    },
+    removeFromAdmins(admin) {
+      this.selectedAdmins = this.selectedAdmins.filter(a => a !== admin);
+    },
   }
 }
 </script>
