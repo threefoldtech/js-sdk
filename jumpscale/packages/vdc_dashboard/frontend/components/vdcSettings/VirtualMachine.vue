@@ -81,7 +81,7 @@
       title="Delete VM"
       :messages="deletionMessages"
       :wid="selectedvm"
-      @reload-vdcinfo="getVms"
+      @reload-vdcinfo="UpdateVms"
     ></cancel-workload>
   </div>
 </template>
@@ -145,6 +145,12 @@ module.exports = {
         .finally(() => {
           this.tableloading = false;
         });
+    },
+    UpdateVms(){
+      if(this.vmachines){
+        this.vmachines = this.vmachines.filter( vm => vm.wid != this.selectedvm)
+      }
+
     }
   },
   created(){
