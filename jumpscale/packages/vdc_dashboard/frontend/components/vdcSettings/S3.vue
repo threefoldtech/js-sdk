@@ -258,7 +258,6 @@ module.exports = {
     },
     // Switched to method way as it updating whenever component updated
     zdbs() {
-      console.log("zdbs called")
       if (this.vdc) {
         this.S3URL = this.vdc.s3.domain;
         return this.vdc.s3.zdbs;
