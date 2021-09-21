@@ -105,7 +105,6 @@ module.exports = {
   },
   data() {
     return {
-      tableloading: true,
       selected: null,
       selectedvm: null,
       headers: [
@@ -150,10 +149,10 @@ module.exports = {
     }
   },
   created() {
-    console.log(this.deletedVms);
+    console.log('created', this.deletedVms);
   },
-  destory() {
-    console.log(this.deletedVms);
+  destroyed() {
+    console.log('destroyed', this.deletedVms);
   }
 };
 </script>
