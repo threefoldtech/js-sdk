@@ -81,7 +81,7 @@
       title="Delete VM"
       :messages="deletionMessages"
       :wid="selectedvm"
-      @reload-vdcinfo="$emit('vm-deleted', selectedvm)"
+      @reload-vdcinfo="removeVm()"
     ></cancel-workload>
   </div>
 </template>
@@ -136,7 +136,6 @@ module.exports = {
     deleteVm(wid) {
       this.selectedvm = wid;
       this.dialogs.cancelWorkload = true;
-      this.deletedVms.push(wid);
     },
     openChatflow(topic) {
       this.$router.push({
@@ -144,15 +143,12 @@ module.exports = {
         params: { topic: topic },
       });
     },
+    removeVm() {
+      this.deletedVms.push(this.selectedvm);
+    },
     getVms() {
       return this.vmachines.filter(({wid}) => !(this.deletedVms.includes(wid)))
     }
-  },
-  created() {
-    console.log('created', this.deletedVms);
-  },
-  destroyed() {
-    console.log('destroyed', this.deletedVms);
   }
 };
 </script>
