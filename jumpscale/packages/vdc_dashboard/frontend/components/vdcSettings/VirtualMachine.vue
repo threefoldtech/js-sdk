@@ -14,7 +14,7 @@
 
     <v-data-table
       :headers="headers"
-      :items="vmachines"
+      :items="getVms()"
       :loading="loading || tableloading"
       class="elevation-1"
     >
@@ -81,13 +81,23 @@
       title="Delete VM"
       :messages="deletionMessages"
       :wid="selectedvm"
-      @reload-vdcinfo="UpdateVms"
+      @reload-vdcinfo="$emit('vm-deleted', selectedvm)"
     ></cancel-workload>
   </div>
 </template>
 
 <script>
 module.exports = {
+  props: {
+    vmachines: {
+      type: Array,
+      default: () => [],
+    },
+    tableloading: {
+      type: Boolean,
+      default: false,
+    },
+  },
   mixins: [dialog],
   components: {
     "solution-info": httpVueLoader("../base/Info.vue"),
@@ -96,7 +106,6 @@ module.exports = {
   data() {
     return {
       tableloading: true,
-      vmachines : [],
       selected: null,
       selectedvm: null,
       headers: [
@@ -117,6 +126,7 @@ module.exports = {
           "Are you sure you want to delete this virtual machine?",
         successMsg: "Virtual machine deleted successfully",
       },
+      deletedVms: []
     };
   },
   methods: {
@@ -127,6 +137,7 @@ module.exports = {
     deleteVm(wid) {
       this.selectedvm = wid;
       this.dialogs.cancelWorkload = true;
+      this.deletedVms.push(wid);
     },
     openChatflow(topic) {
       this.$router.push({
@@ -134,29 +145,16 @@ module.exports = {
         params: { topic: topic },
       });
     },
-    getVms(){
-      this.tableloading = true;
-      this.$api.vdc
-        .getVdcInfo()
-        .then((response) => {
-          vdc = response.data;
-          this.vmachines = vdc.vmachines
-        })
-        .finally(() => {
-          this.tableloading = false;
-        });
-    },
-    UpdateVms(){
-      if(this.vmachines){
-        this.vmachines = this.vmachines.filter( vm => vm.wid != this.selectedvm)
-      }
-
+    getVms() {
+      return this.vmachines.filter(({wid}) => !(this.deletedVms.includes(wid)))
     }
   },
-  created(){
-    this.getVms()
+  created() {
+    console.log(this.deletedVms);
   },
-
+  destory() {
+    console.log(this.deletedVms);
+  }
 };
 </script>
 
