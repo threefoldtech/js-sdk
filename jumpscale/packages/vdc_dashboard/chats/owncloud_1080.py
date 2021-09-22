@@ -3,7 +3,7 @@ from jumpscale.packages.vdc_dashboard.sals.solutions_chatflow import SolutionsCh
 
 
 class OwncloudDeploy(SolutionsChatflowDeploy):
-    SOLUTION_TYPE = "owncloud-1080"
+    SOLUTION_TYPE = "owncloud_1080"
     title = "Owncloud 10.8.0"
     HELM_REPO_NAME = "marketplace"
     steps = [

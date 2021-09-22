@@ -117,7 +117,7 @@ const DECENTRALIZED_WE = {
         },
         owncloud_1080: {
             name: "Owncloud 10.8.0",
-            type: "owncloud-1080",
+            type: "owncloud_1080",
             image: "./assets/owncloud.png",
             disable: false,
             helpLink: "https://doc.owncloud.com/server/10.8/",
