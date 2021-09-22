@@ -115,9 +115,9 @@ const DECENTRALIZED_WE = {
             helpLink: "https://doc.owncloud.com/server/10.6/",
             description: "ownCloud is a suite of client-server software for creating and using file hosting services. ownCloud functionally has similarities to the widely used Dropbox."
         },
-        owncloud_1080: {
+        "owncloud-1080": {
             name: "Owncloud 10.8.0",
-            type: "owncloud_1080",
+            type: "owncloud-1080",
             image: "./assets/owncloud.png",
             disable: false,
             helpLink: "https://doc.owncloud.com/server/10.8/",
