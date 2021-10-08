@@ -506,7 +506,7 @@ class Stellar(Client):
         sign: bool = True,
     ):
         issuer = None
-        j.logger.info(f"Sending {amount} {asset} to {destination_address}")
+        j.logger.info(f"Sending {amount} {asset} from {self.address} to {destination_address}")
         if asset != "XLM":
             assetStr = asset.split(":")
             if len(assetStr) != 2:
