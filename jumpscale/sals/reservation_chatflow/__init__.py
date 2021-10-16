@@ -11,7 +11,9 @@ from jumpscale.core.exceptions import Input
 import gevent
 
 
-def wait_http_test(url: str, timeout: int = 60, verify: bool = True, status_code=200) -> bool:
+def wait_http_test(
+    url: str, timeout: int = 60, verify: bool = True, status_code=200
+) -> bool:
     """Will wait until url is reachable
 
     Args:
@@ -26,7 +28,9 @@ def wait_http_test(url: str, timeout: int = 60, verify: bool = True, status_code
     start = time()
     while time() - start < timeout:
         try:
-            if check_url_reachable(url, timeout=1, verify=verify, status_code=status_code):
+            if check_url_reachable(
+                url, timeout=1, verify=verify, status_code=status_code
+            ):
                 return True
         except:
             pass
@@ -55,5 +59,13 @@ def check_url_reachable(url: str, timeout=5, verify=True, status_code=200):
         return code == status_code
     except jumpscale.tools.http.exceptions.MissingSchema:
         raise Input("Please specify correct url with correct scheme")
-    except jumpscale.tools.http.exceptions.ConnectionError:
+    except (
+        jumpscale.tools.http.exceptions.ConnectionError,
+        jumpscale.tools.http.exceptions.Timeout,
+        jumpscale.tools.http.exceptions.ReadTimeout,
+        jumpscale.tools.http.exceptions.RequestException,
+        jumpscale.tools.http.exceptions.TooManyRedirects,
+        jumpscale.tools.http.exceptions.ConnectTimeout,
+        jumpscale.tools.http.exceptions.HTTPError,
+    ):
         return False
