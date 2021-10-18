@@ -20,7 +20,10 @@ class UpgradeTraefik(BackgroundService):
             j.logger.info(f"Upgrade Traefik Service:: Traefik using latest version {current_ver}")
 
     def get_traefik_version(self):
-        _, out, _ = j.sals.kubernetes.Manager()._execute("helm list -A -o json")
+        rc, out, err = j.sals.kubernetes.Manager()._execute("helm list -A -o json")
+        if rc:
+            raise j.exceptions.Timeout(f"Upgrade Traefik Service::{err}")
+
         results = j.data.serializers.json.loads(out)
         for release in results:
             if release["name"] == "traefik":
