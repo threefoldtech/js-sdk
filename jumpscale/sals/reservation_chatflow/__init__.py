@@ -59,13 +59,5 @@ def check_url_reachable(url: str, timeout=5, verify=True, status_code=200):
         return code == status_code
     except jumpscale.tools.http.exceptions.MissingSchema:
         raise Input("Please specify correct url with correct scheme")
-    except (
-        jumpscale.tools.http.exceptions.ConnectionError,
-        jumpscale.tools.http.exceptions.Timeout,
-        jumpscale.tools.http.exceptions.ReadTimeout,
-        jumpscale.tools.http.exceptions.RequestException,
-        jumpscale.tools.http.exceptions.TooManyRedirects,
-        jumpscale.tools.http.exceptions.ConnectTimeout,
-        jumpscale.tools.http.exceptions.HTTPError,
-    ):
+    except Exception:
         return False
