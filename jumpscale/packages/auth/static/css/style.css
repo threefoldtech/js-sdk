@@ -66,9 +66,8 @@ body {
 .bot:before {
     content: url("/auth/static/img/3botlogin.png");
 }
-.installlink:before{
-    color: white;
-}
+a.installlink, a.installlink:hover, a.installlink:active, a.installlink:visited { color: white; }
+
 .card {
     background-color: transparent;
 }
