@@ -52,7 +52,6 @@ body {
 }
 
 .intro-text img {
-  height: 300px;
   display: block;
   margin: 0 auto;
 }
@@ -73,4 +72,14 @@ body {
   opacity: 0.5;
   pointer-events: none;
   cursor: default;
+}
+
+.downloads {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.downloads > *:first-child {
+  margin-right: 15px;
 }
