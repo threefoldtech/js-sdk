@@ -6,7 +6,7 @@
 <br />
 
 
-<p>Accessing this page requires <a href="https://library.threefold.me/info/threefold#/tokens/threefold__threefold_connect">Threefold Connect.</a><br />
+<p>Accessing this page requires <a target="_blank" href="https://library.threefold.me/info/threefold#/tokens/threefold__threefold_connect">Threefold Connect.</a><br />
 Threefold Connect is a wallet to hold your digital currencies, an authenticator to authenticate you on Threefold Grid, and it has the latest news about Threefold.
 </p>
 <br />
@@ -19,9 +19,15 @@ Threefold Connect is a wallet to hold your digital currencies, an authenticator 
         </a>
         {% endfor %}
         <div>
-        <a class="installlink" href="https://apps.apple.com/us/app/3bot-login/id1459845885"><i class="fab fa-apple"></i>Install on iOS</a>
-        <a class="installlink" href="https://play.google.com/store/apps/details?id=org.jimber.threebotlogin&hl=en_US"><i class="fab fa-google-play"></i>Install on Android</a>
-        <a class="btn btn-block btn-social btn-vk text-center"
+        <div class="downloads">
+            <a target="_blank" href="https://apps.apple.com/us/app/3bot-login/id1459845885">
+                <img src="/auth/static/img/app_store.png" alt="app store" height="60"/>
+            </a>
+            <a target="_blank" href="https://play.google.com/store/apps/details?id=org.jimber.threebotlogin&hl=en_US">
+                <img src="/auth/static/img/google_play.png" alt="google play" height="89"/>
+            </a>
+        </div>
+        <a style="margin-top: 15px;" class="btn btn-block btn-social btn-vk text-center"
             href="/auth/login?provider=3bot&{% if next_url %}next_url={{next_url}}{% endif %}">
             <span class="bot"></span>Login via ThreeFold Connect
         </a>
