@@ -45,7 +45,7 @@ def login():
         params = {
             "state": state,
             "appid": app_id,
-            "scope": j.data.serializers.json.dumps({"user": True, "email": True}),
+            "scope": j.data.serializers.json.dumps({"user": True, "email": True, "walletAddress": True}),
             "redirecturl": CALLBACK_URL,
             "publickey": j.core.identity.me.nacl.public_key.encode(encoder=nacl.encoding.Base64Encoder),
         }
@@ -142,6 +142,8 @@ def callback():
     session["email"] = email
     session["authorized"] = True
     session["signedAttempt"] = signedData
+    if result.get("walletAddressData"):
+        session["walletAddress"] = result.get("walletAddressData").get("address")
     try:
         tid = j.sals.reservation_chatflow.reservation_chatflow.validate_user({"username": username, "email": email}).id
         session["tid"] = tid
@@ -194,6 +196,7 @@ def auto_login():
         session["username"] = j.core.identity.me.tname
         session["email"] = j.core.identity.me.email
         session["authorized"] = True
+        session["walletAddress"] = ""
 
     return redirect("/admin")
 
@@ -221,9 +224,10 @@ def get_user_info():
     temail = session.get("email", "")
     tid = session.get("tid", 0)
     explorer_url = session.get("explorer", "")
+    wallet_address = session.get("walletAddress", "")
+
     # update tid in session when the identity changes
     devmode = not j.core.identity.is_configured
-
     if not devmode and not _valid(tname, temail, explorer_url):
         session["tid"] = None
         session["explorer"] = j.core.identity.me.explorer_url
@@ -243,6 +247,7 @@ def get_user_info():
             "email": temail.lower(),
             "tid": tid,
             "devmode": not j.core.config.get_config().get("threebot_connect", True),
+            "walletAddress": wallet_address,
         }
     )
 
