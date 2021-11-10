@@ -56,7 +56,7 @@
     <v-data-table
       :headers="headers"
       :loading="loading || tableloading"
-      :items="zdbs"
+      :items="zdbs()"
       class="elevation-1"
     >
       <template slot="no-data">No VDC instance available</template>
@@ -92,7 +92,8 @@
     >
       <template #default>
         <p v-if="downloadType === 'zdbs'">
-          WARNING: Please keep the storage containers Information safe and secure.
+          WARNING: Please keep the storage containers Information safe and
+          secure.
         </p>
         <p v-else-if="downloadType === 'zstor'">
           WARNING: You should update the TOML file with your custom
@@ -122,7 +123,6 @@
     ></cancel-zdb>
   </div>
 </template>
-
 
 <script>
 module.exports = {
@@ -256,8 +256,7 @@ module.exports = {
         params: { topic: topic },
       });
     },
-  },
-  computed: {
+    // Switched to method way as it updating whenever component updated
     zdbs() {
       if (this.vdc) {
         this.S3URL = this.vdc.s3.domain;

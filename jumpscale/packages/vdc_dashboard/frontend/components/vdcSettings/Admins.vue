@@ -18,11 +18,11 @@
         min-width="50"
         v-for="admin in admins"
         :key="admin"
-        @click:close="removeAdmin(admin)"
+        @click:close="isLastAdmin() ? undefined : removeAdmin(admin)"
         outlined
         label
-        close
-        close-icon="mdi-close-circle-outline"
+        :close="!isLastAdmin()"
+        :close-icon="isLastAdmin() ? undefined : 'mdi-close-circle-outline'"
         >{{ admin }}</v-chip
       >
     </base-section>
@@ -66,6 +66,9 @@ module.exports = {
     removeAdmin(name) {
       this.selectedAdmin = name;
       this.dialogs.removeAdmin = true;
+    },
+    isLastAdmin() {
+      return this.admins.length === 1;
     },
   },
   mounted() {

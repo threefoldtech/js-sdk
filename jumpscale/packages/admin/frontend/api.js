@@ -277,12 +277,12 @@ const apiClient = {
                 url: `${baseURL}/admin/list_identities`
             })
         },
-        add: (display_name, tname, email, words, explorer_type) => {
+        add: (display_name, tname, email, words, explorer_type, admins) => {
             return axios({
                 url: `${baseURL}/admin/add_identity`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { display_name: display_name, tname: tname, email: email, words: words, explorer_type: explorer_type }
+                data: { display_name, tname, email, words, explorer_type, admins }
             })
         },
         generateMnemonic: () => {

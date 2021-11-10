@@ -142,8 +142,15 @@ module.exports = {
         });
     },
   },
-  updated() {
-    if (this.wallet && !this.qrcode && !this.qrcodeLoading) this.getQRCode();
+  // Using Watchers should allow to update qrcode only when we have a wallet
+  // and re-update it if the price or wallet value changes
+  watch: {
+    wallet(w) {
+      w && this.getQRCode();
+    },
+    price() {
+      this.wallet && this.getQRCode();
+    },
   },
 };
 </script>

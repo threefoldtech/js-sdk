@@ -75,7 +75,7 @@
         <v-btn
           depressed
           color="primary"
-          href="https://support.grid.tf/"
+          href="https://threefold.io/support"
           target="_blank"
           >Support</v-btn
         >

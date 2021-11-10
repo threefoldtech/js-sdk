@@ -303,15 +303,6 @@
       :name="selectedAdmin"
       @done="listAdmins"
     ></remove-admin>
-    <identity-info
-      v-model="dialogs.identityInfo"
-      :name="selectedIdentity"
-      @done="listIdentities"
-    ></identity-info>
-    <add-identity
-      v-model="dialogs.addIdentity"
-      @done="listIdentities"
-    ></add-identity>
     <config-view
       v-if="configurations"
       v-model="dialogs.configurations"

@@ -1,60 +1,84 @@
 <template>
-  <base-dialog title="Identity details" v-model="dialog" :loading="loading">
-    <template #default>
-      <v-simple-table v-if="identity">
-        <template v-slot:default>
-          <tbody>
-            <tr>
-              <td>Instance Name</td>
-              <td>{{ name }}</td>
-            </tr>
-            <tr>
-              <td>3Bot ID</td>
-              <td>{{ identity.tid }}</td>
-            </tr>
-            <tr>
-              <td>3Bot Name</td>
-              <td>{{ identity.name }}</td>
-            </tr>
-            <tr>
-              <td>Email</td>
-              <td>{{ identity.email }}</td>
-            </tr>
-            <tr>
-              <td>Explorer URL</td>
-              <td>{{ identity.explorer_url }}</td>
-            </tr>
-            <tr>
-              <td>Words</td>
-              <td>
-                <v-text-field
-                  hide-details
-                  :value="identity.words"
-                  readonly
-                  solo
-                  flat
-                  :append-icon="showWords ? 'mdi-eye' : 'mdi-eye-off'"
-                  :type="showWords ? 'text' : 'password'"
-                  @click:append="showWords = !showWords"
-                ></v-text-field>
-              </td>
-            </tr>
-          </tbody>
-        </template>
-      </v-simple-table>
-    </template>
-    <template #actions>
-      <v-btn icon @click.stop="deleteIdentity">
-        <v-icon color="primary" left>mdi-delete</v-icon>
-      </v-btn>
-      <v-btn text color="primary" :disabled="name == currentIdentity" @click.stop="setDefault">Set Default</v-btn>
-      <v-btn text class="text--lighten-1" color="red" @click.done="close">Close</v-btn>
-    </template>
-  </base-dialog>
+  <div>
+    <base-dialog title="Identity details" v-model="dialog" :loading="loading">
+      <template #default>
+        <v-simple-table v-if="identity">
+          <template v-slot:default>
+            <tbody>
+              <tr>
+                <td>Instance Name</td>
+                <td>{{ name }}</td>
+              </tr>
+              <tr>
+                <td>3Bot ID</td>
+                <td>{{ identity.tid }}</td>
+              </tr>
+              <tr>
+                <td>3Bot Name</td>
+                <td>{{ identity.name }}</td>
+              </tr>
+              <tr>
+                <td>Email</td>
+                <td>{{ identity.email }}</td>
+              </tr>
+              <tr>
+                <td>Explorer URL</td>
+                <td>{{ identity.explorer_url }}</td>
+              </tr>
+              <tr>
+                <td>Words</td>
+                <td>
+                  <v-text-field
+                    hide-details
+                    :value="identity.words"
+                    readonly
+                    solo
+                    flat
+                    :append-icon="showWords ? 'mdi-eye' : 'mdi-eye-off'"
+                    :type="showWords ? 'text' : 'password'"
+                    @click:append="showWords = !showWords"
+                  ></v-text-field>
+                </td>
+              </tr>
+              <tr>
+                <td>admins</td>
+                <td>
+                  <v-chip
+                    class="ma-2"
+                    color="primary"
+                    outlined
+                    v-for="admin in identity.admins"
+                    :key="admin"
+                  >
+                    {{ admin }}
+                  </v-chip>
+                </td>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+      </template>
+      <template #actions>
+        <v-btn icon @click.stop="deleteIdentity">
+          <v-icon color="primary" left>mdi-delete</v-icon>
+        </v-btn>
+        <v-btn text color="primary" :disabled="name == currentIdentity" @click.stop="shouldOpenConfirmation">Set Default</v-btn>
+        <v-btn text class="text--lighten-1" color="red" @click.done="close">Close</v-btn>
+      </template>
+    </base-dialog>
+
+    <admin-confirmation
+      v-model="openConfirmation"
+      @admin-confirm="setDefault"
+      />
+    </div>
 </template>
 
 <script>
 module.exports = {
+  components: {
+    "admin-confirmation": httpVueLoader("./AdminConfirmation.vue"),
+  },
   props: { name: String },
   mixins: [dialog],
   data() {
@@ -62,6 +86,7 @@ module.exports = {
       identity: null,
       showWords: false,
       currentIdentity: null,
+      openConfirmation: false
     };
   },
   watch: {
@@ -96,7 +121,14 @@ module.exports = {
           this.loading.identities = false;
         });
     },
+    shouldOpenConfirmation() {
+      if (this.identity.admins.length === 0) {
+        return this.openConfirmation = true
+      }
+      this.setDefault();
+    },
     setDefault() {
+      this.openConfirmation = false;
       this.$api.identities
         .setIdentity(this.name)
         .then((response) => {

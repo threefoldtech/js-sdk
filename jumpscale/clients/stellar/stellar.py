@@ -6,7 +6,7 @@ import decimal
 from urllib import parse
 from urllib.parse import urlparse
 from typing import Union
-
+import gevent
 import stellar_sdk
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
@@ -486,6 +486,7 @@ class Stellar(Client):
                 )
             except Exception as e:
                 nretries += 1
+                gevent.sleep(1)
                 j.logger.warning(str(e))
 
         raise j.exceptions.Runtime(f"Failed to make transaction for {retries} times, Please try again later")
@@ -505,7 +506,7 @@ class Stellar(Client):
         sign: bool = True,
     ):
         issuer = None
-        j.logger.info(f"Sending {amount} {asset} to {destination_address}")
+        j.logger.info(f"Sending {amount} {asset} from {self.address} to {destination_address}")
         if asset != "XLM":
             assetStr = asset.split(":")
             if len(assetStr) != 2:

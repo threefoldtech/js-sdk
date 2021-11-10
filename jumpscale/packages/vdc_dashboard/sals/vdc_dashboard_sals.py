@@ -140,6 +140,8 @@ def get_all_vdc_deployments(vdc_name, solution_types=None):
             continue
         deployment_info = _filter_data(deployment_info)
         release_name = deployment_info["Release"]
+        if release_name in deployment_names:
+            continue
         helm_chart_supplied_values = "{}"
         try:
             helm_chart_supplied_values = k8s_client.get_helm_chart_user_values(release=release_name)

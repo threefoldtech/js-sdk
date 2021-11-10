@@ -22,7 +22,7 @@ Parameters:
 
 - explorer_url: The explorer url for the explorer you want to use:
   - Testnet: `https://explorer.testnet.grid.tf/api/v1/`
-  - Mainnet: `https://explorer.grid.tf/explorer/`
+  - Mainnet: `https://explorer.grid.tf/api/v1/`
   - Devnet: `https://explorer.devnet.grid.tf/api/v1/`
 
 It's really recommended to use tname, email, words from ThreeFold Connect application .
