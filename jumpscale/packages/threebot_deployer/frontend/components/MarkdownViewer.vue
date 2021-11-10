@@ -1,7 +1,12 @@
 <template>
   <v-container>
-    <v-row v-if="loading" style="height:100%" align="center" justify="center">
-      <v-progress-circular size="100" width="5" color="primary" indeterminate></v-progress-circular>
+    <v-row v-if="loading" style="height: 100%" align="center" justify="center">
+      <v-progress-circular
+        size="100"
+        width="5"
+        color="primary"
+        indeterminate
+      ></v-progress-circular>
     </v-row>
     <!-- <vue-simple-markdown v-else :source="source" :emoji="false"></vue-simple-markdown> -->
     <div v-html="source"></div>
@@ -28,7 +33,7 @@ module.exports = {
       if (this.baseUrl) {
         options.baseUrl = this.baseUrl;
       }
-      this.source = marked(res.data, options);
+      this.source = marked.parse(res.data, options);
       this.loading = false;
     });
   },
