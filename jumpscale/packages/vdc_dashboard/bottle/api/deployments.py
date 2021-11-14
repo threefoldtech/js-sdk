@@ -424,7 +424,7 @@ def update():
     if ref_param:
         ref = ref_param
     else:
-        ref = _get_latest_remote_tag
+        ref = _get_latest_remote_tag()
     sdk_path = "/sandbox/code/github/threefoldtech/js-sdk"
     cmd = f"bash jumpscale/packages/vdc_dashboard/scripts/update.sh {ref}"
     rc, out, err = j.sals.process.execute(cmd, cwd=sdk_path, showout=True, timeout=1200)
