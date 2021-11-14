@@ -420,13 +420,13 @@ def accept():
 @app.route("/api/update", method="GET")
 @package_authorized("vdc_dashboard")
 def update():
-    branch_param = request.params.get("branch")
-    if branch_param:
-        ref = branch_param
+    ref_param = request.params.get("ref")
+    if ref_param:
+        ref = ref_param
     else:
-        ref = _get_latest_remote_tag
+        ref = _get_latest_remote_tag()
     sdk_path = "/sandbox/code/github/threefoldtech/js-sdk"
-    cmd = f"bash jumpscale/packages/vdc_dashboard/scripts/update.sh {branch}"
+    cmd = f"bash jumpscale/packages/vdc_dashboard/scripts/update.sh {ref}"
     rc, out, err = j.sals.process.execute(cmd, cwd=sdk_path, showout=True, timeout=1200)
     if rc:
         return HTTPResponse(
