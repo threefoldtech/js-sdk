@@ -78,6 +78,8 @@ else:
 VDC_INSTANCE_NAME = vdc.instance_name
 os.environ.putenv("VDC_INSTANCE_NAME", VDC_INSTANCE_NAME)
 
+sdk_path = j.tools.git.find_git_path(j.packages.admin.__file__)
+latest_release = j.tools.git.get_latest_remote_tag(sdk_path)
 VDC_VARS = {
     "VDC_PASSWORD_HASH": VDC_PASSWORD_HASH,
     "EXPLORER_URL": EXPLORER_URL,
@@ -94,7 +96,7 @@ VDC_VARS = {
     "PROVISIONING_WALLET_SECRET": os.environ.get("PROVISIONING_WALLET_SECRET"),
     "PREPAID_WALLET_SECRET": os.environ.get("PREPAID_WALLET_SECRET"),
     "VDC_INSTANCE_NAME": VDC_INSTANCE_NAME,
-    "SDK_VERSION": os.environ.get("SDK_VERSION", "development"),
+    "SDK_VERSION": latest_release,
     "BACKUP_CONFIG": BACKUP_CONFIG,
     "THREEBOT_PRIVATE_KEY": THREEBOT_PRIVATE_KEY,
     "S3_URL": S3_URL,

@@ -45,6 +45,7 @@ class ThreebotCertificate(Base):
 class VDCThreebotDeployer(VDCBaseComponent):
     def __init__(self, *args, **kwargs):
         self._branch = None
+        self._release = None
         super().__init__(*args, **kwargs)
         self.acme_server_url = j.core.config.get("VDC_ACME_SERVER_URL", "https://ca1.grid.tf")
         self.acme_server_api_key = j.core.config.get("VDC_ACME_SERVER_API_KEY", "")
@@ -65,6 +66,14 @@ class VDCThreebotDeployer(VDCBaseComponent):
                 )
                 self._branch = "development"
         return self._branch
+
+    @property
+    def release(self):
+        if not self._release:
+            # get latest remote tag
+            sdk_path = j.tools.git.find_git_path(j.packages.admin.__file__)
+            self._release = j.tools.git.get_latest_remote_tag(sdk_path)
+        return self._release
 
     def get_subdomain(self):
         # TODO: parent domain should be always the same
@@ -135,7 +144,7 @@ class VDCThreebotDeployer(VDCBaseComponent):
             "NETWORK_FARMS": ",".join(NETWORK_FARMS.get()),
             "COMPUTE_FARMS": ",".join(COMPUTE_FARMS.get()),
             # "VDC_MINIO_ADDRESS": minio_ip_address,
-            "SDK_VERSION": self.branch,
+            "SDK_VERSION": self._branch or self.release,
             "SSHKEY": self.vdc_deployer.ssh_key.public_key.strip(),
             "MINIMAL": "true",
             "TEST_CERT": "true" if j.core.config.get("TEST_CERT") else "false",
