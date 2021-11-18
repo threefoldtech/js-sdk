@@ -59,6 +59,8 @@ def build_solution_info(workloads, threebot):
                 continue
             if not workload_result:
                 continue
+            sdk_path = j.tools.git.find_git_path(j.packages.admin.__file__)
+            release = j.tools.git.get_latest_remote_tag(sdk_path)
             solution_info.update(
                 {
                     "ipv4": workload_result["ipv4"],
@@ -70,7 +72,7 @@ def build_solution_info(workloads, threebot):
                     "node": workload.info.node_id,
                     "compute_pool": workload.info.pool_id,
                     "network": workload.network_connection[0].network_id,
-                    "branch": workload.environment.get("SDK_VERSION"),
+                    "release": release,
                     "public_key": workload.environment.get("SSHKEY"),
                 }
             )
@@ -428,7 +430,7 @@ def redeploy_threebot_solution(
                     j.logger.debug(f"backup token {backup_token} created for tname {backup_model.tname}")
 
                     environment_vars = {
-                        "SDK_VERSION": new_solution_info["branch"],
+                        "SDK_VERSION": new_solution_info["release"],
                         "INSTANCE_NAME": new_solution_info["name"],
                         "THREEBOT_NAME": owner,
                         "DOMAIN": domain,

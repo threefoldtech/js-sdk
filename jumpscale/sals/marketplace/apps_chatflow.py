@@ -25,6 +25,7 @@ RESOURCE_VALUE_KEYS = {"cru": "CPU {}", "mru": "Memory {} GB", "sru": "Disk {} G
 class MarketPlaceAppsChatflow(MarketPlaceChatflow):
     def __init__(self, *args, **kwargs):
         self._branch = None
+        self._release = None
         super().__init__(*args, **kwargs)
 
     def _init_solution(self):
@@ -61,6 +62,14 @@ class MarketPlaceAppsChatflow(MarketPlaceChatflow):
                 )
                 self._branch = "development"
         return self._branch
+
+    @property
+    def release(self):
+        if not self._release:
+            # get latest remote tag
+            sdk_path = j.tools.git.find_git_path(j.packages.admin.__file__)
+            self._release = j.tools.git.get_latest_remote_tag(sdk_path)
+        return self._release
 
     def _choose_flavor(self, flavors=None):
         flavors = flavors or FLAVORS
