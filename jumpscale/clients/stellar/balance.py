@@ -15,6 +15,8 @@ class Balance:
         if response_balance["asset_type"] == "native":
             asset_code = "XLM"
             asset_issuer = None
+        elif response_balance["asset_type"]=="liquidity_pool_shares":
+            return None
         else:
             asset_code = response_balance["asset_code"]
             asset_issuer = response_balance["asset_issuer"]
