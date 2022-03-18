@@ -91,7 +91,7 @@ class Stellar(Client):
         balances = AccountBalances(address)
         response = self._get_horizon_server().accounts().account_id(address).call()
         for response_balance in response["balances"]:
-            balance=Balance.from_horizon_response(response_balance)
+            balance = Balance.from_horizon_response(response_balance)
             if balance is not None:
                 balances.add_balance(balance)
         return balances
