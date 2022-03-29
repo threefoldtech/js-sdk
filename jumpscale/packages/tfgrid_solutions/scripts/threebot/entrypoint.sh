@@ -17,13 +17,13 @@ cd ${SDK_PATH}
 git fetch --all
 
 poetry_install=false
-if ! git diff --quiet `git branch --show-current` origin/$SDK_VERSION -- poetry.lock; then
+if ! git diff --quiet `git describe --tags --abbrev=0` $SDK_VERSION -- poetry.lock; then
   # They are differnet
   poetry_install=true
 fi
 
 
-git reset --hard origin/${SDK_VERSION}
+git reset --hard $SDK_VERSION
 git checkout $SDK_VERSION
 
 if $poetry_install; then

@@ -1,14 +1,14 @@
 [tool.poetry]
 name = "js-sdk"
 packages = [{ include = "jumpscale" }]
-version = "11.5b9"
+version = "11.5b13"
 description = "SDK for threefold grid"
 authors = ["xmonader <xmonader@gmail.com>"]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 cryptography = "3.3.2"
-js-ng = "11.0b13"
+js-ng = "11.0b14"
 python = "^3.6"
 cryptocompare = "^0.6.4"
 certifi = "^2019.6"

@@ -404,13 +404,13 @@ def accept():
 @app.route("/api/update", method="GET")
 @package_authorized("vdc_dashboard")
 def update():
-    branch_param = request.params.get("branch")
-    if branch_param:
-        branch = branch_param
+    ref_param = request.params.get("ref")
+    sdk_path = j.tools.git.find_git_path(j.packages.admin.__file__)
+    if ref_param:
+        ref = ref_param
     else:
-        branch = os.environ.get("SDK_VERSION", "development")
-    sdk_path = "/sandbox/code/github/threefoldtech/js-sdk"
-    cmd = f"bash jumpscale/packages/vdc_dashboard/scripts/update.sh {branch}"
+        ref = j.tools.git.get_latest_remote_tag(sdk_path)
+    cmd = f"bash jumpscale/packages/vdc_dashboard/scripts/update.sh {ref}"
     rc, out, err = j.sals.process.execute(cmd, cwd=sdk_path, showout=True, timeout=1200)
     if rc:
         return HTTPResponse(
@@ -431,15 +431,10 @@ def update():
 @app.route("/api/check_update", method="GET")
 @package_authorized("vdc_dashboard")
 def check_update():
-    vdc_dashboard_path = j.packages.vdc_dashboard.__file__
-    sdk_repo_path = j.tools.git.find_git_path(vdc_dashboard_path)
-    try:
-        _, out, _ = j.sals.process.execute("git ls-remote --tag | tail -n 1", cwd=sdk_repo_path)
-        latest_remote_tag = out.split("/tags/")[-1].rstrip("\n")
-    except Exception as e:
-        raise j.exceptions.Runtime(f"Failed to fetch remote releases. {str(e)}")
+    sdk_path = j.tools.git.find_git_path(j.packages.admin.__file__)
+    latest_remote_tag = j.tools.git.get_latest_remote_tag(sdk_path)
+    _, latest_local_tag, _ = j.sals.process.execute("git describe --tags --abbrev=0", cwd=sdk_path)
 
-    _, latest_local_tag, _ = j.sals.process.execute("git describe --tags --abbrev=0", cwd=sdk_repo_path)
     if latest_remote_tag != latest_local_tag.rstrip("\n"):
         return HTTPResponse(
             j.data.serializers.json.dumps({"new_release": latest_remote_tag}),

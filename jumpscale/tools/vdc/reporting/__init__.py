@@ -61,8 +61,12 @@ def report_vdc_status(vdc_name: str):
     master_ip_state = "Down"
     threebot_domain_state = "Down"
 
+    master_ip = ""
     if vdc.has_minimal_components():
-        master_ip = [n for n in vdc.kubernetes if n.role == KubernetesRole.MASTER][-1].public_ip
+        for n in vdc.kubernetes:
+            if n.role == KubernetesRole.MASTER:
+                master_ip = n.public_ip
+
         threebot_ip = vdc.threebot.ip_address
         master_ip_state = "Up" if j.sals.nettools.tcp_connection_test(master_ip, 6443, 10) else "Down"
         threebot_domain = f"https://{vdc.threebot.domain}"

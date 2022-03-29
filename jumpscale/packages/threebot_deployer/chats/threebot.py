@@ -369,7 +369,7 @@ class ThreebotDeploy(MarketPlaceAppsChatflow):
         else:
             default_identity = "main"
         environment_vars = {
-            "SDK_VERSION": self.branch,
+            "SDK_VERSION": self._branch or self.release,
             "INSTANCE_NAME": self.solution_name,
             "THREEBOT_NAME": self.threebot_name,
             "DOMAIN": self.domain,

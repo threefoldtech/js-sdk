@@ -4,7 +4,7 @@
       <v-card-text>
         <markdown-view
           base-url="https://legal.threefold.io/#/"
-          url="https://raw.githubusercontent.com/threefoldfoundation/legal/master/src/terms_conditions_all.md"
+          url="https://raw.githubusercontent.com/threefoldfoundation/info_legal/development/wiki/terms_conditions_all.md"
         ></markdown-view>
       </v-card-text>
       <v-divider></v-divider>
