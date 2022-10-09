@@ -100,16 +100,6 @@ class Identity(Base):
             raise Input("Words are mandotory for an indentity")
         if self._tid != -1:
             self.register()
-            # resp = requests.get(f"{self.explorer_url}/users/{self._tid}")
-            # resp.raise_for_status()
-            # user = User.from_dict(resp.json())
-            # if self.tname and self.tname != user.name:
-            #     raise Input("Name of user does not match name in explorer")
-            # self.tname = user.name
-            # if self.nacl.get_verify_key_hex() != user.pubkey:
-            #     raise Input(
-            #         "The verify key on your local system does not correspond with verify key on the TFGrid explorer"
-            #     )
         else:
             for key in ["email", "tname"]:
                 if not getattr(self, key):
