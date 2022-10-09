@@ -9,7 +9,7 @@ from jumpscale.core.config import get_config, update_config
 from jumpscale.core.exceptions import Input, NotFound, Value
 from jumpscale.data.encryption import mnemonic, generate_mnemonic
 from jumpscale.data.nacl import NACL
-from jumpscale.sals.nettools import get_default_ip_config
+from jumpscale.data.idgenerator import random_int
 
 DEFAULT_EXPLORER_URLS = {
     "mainnet": "https://explorer.grid.tf/api/v1",
@@ -99,16 +99,17 @@ class Identity(Base):
         if not self.words:
             raise Input("Words are mandotory for an indentity")
         if self._tid != -1:
-            resp = requests.get(f"{self.explorer_url}/users/{self._tid}")
-            resp.raise_for_status()
-            user = User.from_dict(resp.json())
-            if self.tname and self.tname != user.name:
-                raise Input("Name of user does not match name in explorer")
-            self.tname = user.name
-            if self.nacl.get_verify_key_hex() != user.pubkey:
-                raise Input(
-                    "The verify key on your local system does not correspond with verify key on the TFGrid explorer"
-                )
+            self.register()
+            # resp = requests.get(f"{self.explorer_url}/users/{self._tid}")
+            # resp.raise_for_status()
+            # user = User.from_dict(resp.json())
+            # if self.tname and self.tname != user.name:
+            #     raise Input("Name of user does not match name in explorer")
+            # self.tname = user.name
+            # if self.nacl.get_verify_key_hex() != user.pubkey:
+            #     raise Input(
+            #         "The verify key on your local system does not correspond with verify key on the TFGrid explorer"
+            #     )
         else:
             for key in ["email", "tname"]:
                 if not getattr(self, key):
@@ -144,53 +145,10 @@ class Identity(Base):
         return self._tid
 
     def register(self, host=None):
-        self.verify_configuration()
-
-        # check if we are not already registered with the configured identity
-        resp = requests.get(f"{self.explorer_url}/users?name={self.tname}")
-        if resp.status_code == 404:
-            user = None
-        elif resp.status_code != 200:
-            resp.raise_for_status()
-
-        users = resp.json()
-        if not users:
-            user = None
-        else:
-            user = User.from_dict(users[0])
-
-        tid = None
-        if not user:
-            if not host:
-                try:
-                    _, host = get_default_ip_config()
-                except Exception:
-                    host = "localhost"
-            user = User()
-            user.name = self.tname
-            user.host = host
-            user.email = self.email
-            user.description = ""
-            user.pubkey = self.nacl.get_verify_key_hex()
-
-            resp = requests.post(f"{self.explorer_url}/users", json=user.to_dict())
-            if resp.status_code == 409:  # conflict
-                raise Input("A user with same name or email exists on TFGrid phonebook.")
-            if resp.status_code != 201:
-                resp.raise_for_status()
-
-            tid = resp.json()["id"]
-        else:
-            if self.nacl.get_verify_key_hex() != user.pubkey:
-                raise Input(
-                    "The verify key on your local system does not correspond with verify key on the TFGrid explorer"
-                )
-            tid = user.id
-        self._tid = tid
+        #self.verify_configuration()
         if self.tname not in self.admins:
             self.admins.append(self.tname)
-        self.save()
-        return tid
+        self._tid = random_int(1, 100000000)
 
     def set_default(self):
         from jumpscale.loader import j

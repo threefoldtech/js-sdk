@@ -39,15 +39,8 @@
                     <wikis></wikis>
                   </v-col>
                 </v-row>
-                <v-row>
-                  <v-col>
-                    <pools></pools>
-                  </v-col>
-                </v-row>
               </v-col>
-              <v-col cols="6">
-                <solutions></solutions>
-              </v-col>
+
             </v-row>
           </v-col>
 
@@ -84,8 +77,6 @@
       'disk-usage': httpVueLoader("./DiskUsage.vue"),
       'health-checks': httpVueLoader("./HealthChecks.vue"),
       'processes': httpVueLoader("./Processes.vue"),
-      'solutions': httpVueLoader("./Solutions.vue"),
-      'pools': httpVueLoader("./Pools.vue"),
       'wikis': httpVueLoader("./Wikis.vue"),
       'system': httpVueLoader("./System.vue")
     },
