@@ -12,7 +12,6 @@ from gevent.pywsgi import WSGIServer
 from jumpscale.core.base import Base, fields
 from jumpscale import packages as pkgnamespace
 from jumpscale.sals.nginx.nginx import LocationType, PORTS
-from jumpscale.packages.tfgrid_solutions.scripts.threebot.monitoring_alert_handler import send_alert
 from jumpscale.sals.nginx.nginx import LocationType, PORTS, AcmeServer
 from jumpscale.servers.appserver import StripPathMiddleware, apply_main_middlewares
 
@@ -29,7 +28,6 @@ DEFAULT_PACKAGES = {
     "chatflows": {"path": os.path.dirname(j.packages.chatflows.__file__), "giturl": ""},
     "admin": {"path": os.path.dirname(j.packages.admin.__file__), "giturl": ""},
     "weblibs": {"path": os.path.dirname(j.packages.weblibs.__file__), "giturl": ""},
-    "tfgrid_solutions": {"path": os.path.dirname(j.packages.tfgrid_solutions.__file__), "giturl": ""},
     "backup": {"path": os.path.dirname(j.packages.backup.__file__), "giturl": ""},
 }
 DOWNLOADED_PACKAGES_PATH = j.sals.fs.join_paths(j.core.dirs.VARDIR, "downloaded_packages")
@@ -864,9 +862,6 @@ class ThreebotServer(Base):
 
         self.rack.start()
         j.logger.register(f"threebot_{self.instance_name}")
-        if j.config.get("SEND_REMOTE_ALERTS", False):
-            j.tools.alerthandler.register_handler(send_alert)
-
         # add default packages
         for package_name in DEFAULT_PACKAGES:
             j.logger.info(f"Configuring package {package_name}")
