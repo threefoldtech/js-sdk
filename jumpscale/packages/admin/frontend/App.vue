@@ -382,7 +382,6 @@ module.exports = {
     this.getAnnouncementStatus();
     this.setTimeLocal();
     this.getSDKVersion();
-    this.isFarmManagementInstalled();
     this.clockInterval = setInterval(() => {
       this.setTimeLocal();
     }, 1000);
