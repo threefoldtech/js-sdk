@@ -129,15 +129,9 @@ class IdentityFactory(StoredFactory):
         words=None,
         tid=-1,
         admins=None,
+        **kwargs,
     ):
-        instance = super().new(
-            name,
-            tname=tname,
-            email=email,
-            words=words,
-            _tid=tid,
-            admins=admins,
-        )
+        instance = super().new(name, tname=tname, email=email, words=words, _tid=tid, admins=admins, **kwargs)
         instance.save()
         return instance
 
