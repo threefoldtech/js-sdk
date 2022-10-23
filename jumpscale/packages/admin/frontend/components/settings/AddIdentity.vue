@@ -50,7 +50,6 @@
               </v-btn>
           </template>
         </v-text-field>
-        <v-select v-model="selected_explorer" label="Explorer type" @change="checkTNameExists(form.tname)" :items="Object.keys(explorers)" dense></v-select>
       </v-form>
     </template>
     <template #actions>
@@ -66,13 +65,6 @@ module.exports = {
   mixins: [dialog],
   data () {
     return {
-      explorers: {
-        "Main Network": {url: "https://explorer.grid.tf", type: "main"},
-        "Test Network": {url: "https://explorer.testnet.grid.tf", type: "testnet"},
-        "Dev Network": {url: "https://explorer.devnet.grid.tf", type: "devnet"},
-
-      },
-      selected_explorer: "Main Network",
       display_name:"",
       words: "",
       allowCreatMnemonics: false,
@@ -81,7 +73,7 @@ module.exports = {
   },
   computed: {
     disable() {
-      if(!this.form.display_name || !this.form.tname || !this.form.email || !this.words || !this.selected_explorer || this.error !== ""){
+      if(!this.form.display_name || !this.form.tname || !this.form.email || !this.words || this.error !== ""){
         return true;
       }
       return false;
@@ -105,7 +97,6 @@ module.exports = {
                            this.form.tname, 
                            this.form.email, 
                            this.words, 
-                           this.explorers[this.selected_explorer].type, 
                            this.selectedAdmins);
             }
             this.error = "Couldn't load current username.";
@@ -132,12 +123,12 @@ module.exports = {
     },
     checkTNameExists(tname){
       if(tname){
-        this.$api.identities.checkTNameExists(tname, this.explorers[this.selected_explorer].type).then((response) => {
+        this.$api.identities.checkTNameExists(tname).then((response) => {
           res = JSON.parse(response.data).data
           if(res){
               this.allowCreatMnemonics = false;
               this.words = "";
-              this.info = "This 3Bot name existed in the explorer, you have to enter the right words";
+              this.info = "This 3Bot name existed in threefold connect, you have to enter the right words";
           }
           else{
             this.info = "";

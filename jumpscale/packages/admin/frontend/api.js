@@ -178,12 +178,12 @@ const apiClient = {
                 url: `${baseURL}/admin/get_developer_options`
             })
         },
-        setDeveloperOptions: (testCert, overProvision, explorerLogs, escalationEmails, autoExtendPools, sortNodesBySRU) => {
+        setDeveloperOptions: (testCert, overProvision, escalationEmails, autoExtendPools, sortNodesBySRU) => {
             return axios({
                 url: `${baseURL}/admin/set_developer_options`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs, sort_nodes_by_sru: sortNodesBySRU, escalation_emails: escalationEmails, auto_extend_pools: autoExtendPools }
+                data: { test_cert: testCert, over_provision: overProvision, sort_nodes_by_sru: sortNodesBySRU, escalation_emails: escalationEmails, auto_extend_pools: autoExtendPools }
             })
         },
         clearBlockedNodes: () => {
@@ -192,12 +192,12 @@ const apiClient = {
             })
         },
         getThreebotState: () => {
-          return axios({
-            url: `/admin/api/export`,
-            headers: { 'Content-Type': 'application/json' },
-            responseType: 'arraybuffer',
-            method: "get"
-          })
+            return axios({
+                url: `/admin/api/export`,
+                headers: { 'Content-Type': 'application/json' },
+                responseType: 'arraybuffer',
+                method: "get"
+            })
         },
         clearBlockedManagedDomains: () => {
             return axios({
@@ -259,30 +259,18 @@ const apiClient = {
         }
 
     },
-    explorers: {
-        get: () => {
-            return axios({
-                url: `${baseURL}/admin/get_explorer`
-            })
-        },
-        list: () => {
-            return axios({
-                url: `${baseURL}/admin/list_explorers`
-            })
-        },
-    },
     identities: {
         list: () => {
             return axios({
                 url: `${baseURL}/admin/list_identities`
             })
         },
-        add: (display_name, tname, email, words, explorer_type, admins) => {
+        add: (display_name, tname, email, words, admins) => {
             return axios({
                 url: `${baseURL}/admin/add_identity`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { display_name, tname, email, words, explorer_type, admins }
+                data: { display_name, tname, email, words, admins }
             })
         },
         generateMnemonic: () => {
@@ -290,12 +278,12 @@ const apiClient = {
                 url: `${baseURL}/admin/generate_mnemonic`
             })
         },
-        checkTNameExists: (tname, explorerType) => {
+        checkTNameExists: (tname) => {
             return axios({
                 url: `${baseURL}/admin/check_tname_exists`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { tname: tname, explorer_type: explorerType }
+                data: { tname: tname }
             })
         },
         checkInstanceName: (name) => {
@@ -479,12 +467,12 @@ const apiClient = {
                 url: `${baseURL}/identity/list_identities`
             })
         },
-        set: (label, tname, email, words, explorer_url, backup_password) => {
+        set: (label, tname, email, words, backup_password) => {
             return axios({
                 url: `${baseURL}/identity/set_identity`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { label: label, tname: tname, email: email, words: words, explorer_url: explorer_url, backup_password: backup_password }
+                data: { label: label, tname: tname, email: email, words: words, backup_password: backup_password }
             })
         }
     },

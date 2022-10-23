@@ -7,7 +7,6 @@ from io import StringIO
 import urllib.parse
 
 VDC_NAME = os.environ.get("VDC_NAME", "")
-EXPLORER_URL = os.environ.get("EXPLORER_URL", "")
 MONITORING_SERVER_URL = os.environ.get("MONITORING_SERVER_URL")
 
 
@@ -23,7 +22,6 @@ class HeartBeatService(BackgroundService):
         keys = [
             "tid",
             "tname",
-            "explorer_url",
             "vdc_name",
         ]
         b = StringIO()
@@ -40,7 +38,6 @@ class HeartBeatService(BackgroundService):
             data = {
                 "tid": tid,
                 "vdc_name": VDC_NAME,
-                "explorer_url": EXPLORER_URL,
                 "tname": os.environ.get("VDC_OWNER_TNAME"),
             }
             encoded_data = self._encode_data(data)
@@ -49,9 +46,13 @@ class HeartBeatService(BackgroundService):
             data["signature"] = binascii.hexlify(signature).decode()
             url = urllib.parse.urljoin(MONITORING_SERVER_URL, "heartbeat")
             try:
-                requests.post(url, json=data, headers={"Content-type": "application/json"})
+                requests.post(
+                    url, json=data, headers={"Content-type": "application/json"}
+                )
             except Exception as e:
-                j.logger.error(f"Failed to send heartbeat, URL:{url}, exception: {str(e)}")
+                j.logger.error(
+                    f"Failed to send heartbeat, URL:{url}, exception: {str(e)}"
+                )
 
 
 service = HeartBeatService()

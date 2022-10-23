@@ -1,38 +1,25 @@
-from urllib.parse import urlparse
-
 import requests
 
-from jumpscale.clients.explorer.models import User
-from jumpscale.core import config as js_config
+from collections import namedtuple
+from nacl.exceptions import CryptoError
+
+from jumpscale.core import exceptions
 from jumpscale.core.base import Base, StoredFactory, fields
 from jumpscale.core.config import get_config, update_config
-from jumpscale.core.exceptions import Input, NotFound, Value
+from jumpscale.core.exceptions import Input, Value
+from jumpscale.data import serializers
 from jumpscale.data.encryption import mnemonic, generate_mnemonic
 from jumpscale.data.nacl import NACL
 from jumpscale.data.idgenerator import random_int
-
-DEFAULT_EXPLORER_URLS = {
-    "mainnet": "https://explorer.grid.tf/api/v1",
-    "testnet": "https://explorer.testnet.grid.tf/api/v1",
-    "devnet": "https://explorer.devnet.grid.tf/api/v1",
-}
-
-EXPLORER_URLS = js_config.set_default("explorer_api_urls", DEFAULT_EXPLORER_URLS)
+from jumpscale.data.types import Email
+from jumpscale.tools.console import ask_choice, ask_string
 
 
 class Identity(Base):
-    def _explorer_url_update(self, value):
-        if hasattr(self, "_explorer"):
-            if self._explorer and self._explorer.url != value:
-                self._explorer = None
-        else:
-            self._explorer = None
-
     _tid = fields.Integer(default=-1)
     words = fields.Secret()
     email = fields.String()
     tname = fields.String()
-    explorer_url = fields.String(on_update=_explorer_url_update)
     admins = fields.List(fields.String())
 
     def __init__(
@@ -40,10 +27,8 @@ class Identity(Base):
         tname=None,
         email=None,
         words=None,
-        explorer_url=None,
         _tid=-1,
         admins=None,
-        network=None,
         *args,
         **kwargs,
     ):
@@ -56,29 +41,24 @@ class Identity(Base):
             tname (str, optional): Name eg. example.3bot
             email (str, optional): Email of identity
             words (str): Words used to secure identity
-            explorer_url (str, optional): Url for the explorer to
-            network (str, optional): network name (mainnet, testnet, devnet)
-            tid (int, optional): When tid is passed tname, email will be verified against it
+            admins (list of str, optional): Admins
 
-        Raises: NotFound incase tid is passed but does not exists on the explorer
+        Raises: NotFound incase tid is passed but does not exists
         Raises: Input: when params are missing
         """
-        self._explorer = None
         if not words:
             words = generate_mnemonic()
-        if network is None and explorer_url is None:
-            raise ValueError("network (mainnet, testnet, devnet) or explorer_url is required")
 
-        if explorer_url is None:
-            if network not in ["testnet", "mainnet", "devnet"]:
-                raise ValueError("network should be one of (mainnet, testnet, devnet)")
-            else:
-                explorer_url = DEFAULT_EXPLORER_URLS[network]
-
-        explorer_url = explorer_url.rstrip("/")
         super().__init__(
-            tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=_tid, admins=admins, *args, **kwargs,
+            tname=tname,
+            email=email,
+            words=words,
+            _tid=_tid,
+            admins=admins,
+            *args,
+            **kwargs,
         )
+
         self._nacl = None
         self.verify_configuration()
 
@@ -93,7 +73,7 @@ class Identity(Base):
         """
         Verifies passed arguments to constructor
 
-        Raises: NotFound incase tid is passed but does not exists on the explorer
+        Raises: NotFound incase tid is passed but does not exists
         Raises: Input: when params are missing
         """
         if not self.words:
@@ -106,36 +86,13 @@ class Identity(Base):
                     raise Value(f"Threebot {key} not configured")
 
     @property
-    def explorer(self):
-        if self._explorer is None:
-            from jumpscale.clients.explorer import export_module_as  # Import here to avoid circular imports
-
-            ex_factory = export_module_as()
-
-            # Backward compitablity (Update mainnet url)
-            # Create new config has_migrated = True after mainnet update
-            if not js_config.get("has_migrated_explorer_url", False):
-                if urlparse(self.explorer_url).hostname == urlparse(EXPLORER_URLS["mainnet"]).hostname:
-                    self.explorer_url = EXPLORER_URLS["mainnet"]
-                    self.save()
-                    js_config.set("has_migrated_explorer_url", True)
-
-            if self.explorer_url:
-                self.explorer_url = self.explorer_url.rstrip("/")
-                self._explorer = ex_factory.get_by_url_and_identity(self.explorer_url, identity_name=self.instance_name)
-            else:
-                self._explorer = ex_factory.get_default()
-                self.explorer_url = self._explorer.url
-        return self._explorer
-
-    @property
     def tid(self):
         if self._tid == -1:
             self.register()
         return self._tid
 
     def register(self, host=None):
-        #self.verify_configuration()
+        # self.verify_configuration()
         if self.tname not in self.admins:
             self.admins.append(self.tname)
         self._tid = random_int(1, 100000000)
@@ -150,21 +107,36 @@ def get_identity():
     return IdentityFactory(Identity).me
 
 
+RESTART_CHOICE = "Restart from the begining"
+REENTER_CHOICE = "Re-Enter your value"
+CHOICES = [RESTART_CHOICE, REENTER_CHOICE]
+
+IdentityInfo = namedtuple("IdentityInfo", ["identity", "email", "words"])
+
+
+class Restart(Exception):
+    pass
+
+
 class IdentityFactory(StoredFactory):
     _me = None
 
     def new(
-        self, name, tname=None, email=None, words=None, explorer_url=None, tid=-1, admins=None, network=None,
+        self,
+        name,
+        tname=None,
+        email=None,
+        words=None,
+        tid=-1,
+        admins=None,
     ):
         instance = super().new(
             name,
             tname=tname,
             email=email,
             words=words,
-            explorer_url=explorer_url,
             _tid=tid,
             admins=admins,
-            network=network,
         )
         instance.save()
         return instance
@@ -193,6 +165,76 @@ class IdentityFactory(StoredFactory):
         config["threebot"]["default"] = name
         update_config(config)
         self.__class__._me = None
+
+    def get_user(self, tname):
+        response = requests.get(f"https://login.threefold.me/api/users/{tname}")
+        if response.status_code == 404:
+            raise exceptions.NotFound(
+                "\nThis identity does not exist in 3bot mobile app connect, Please create an idenity first using 3Bot Connect mobile Application\n"
+            )
+        return response.json()
+
+    def ask(self):
+        """get identity information interactively"""
+
+        def check_email(email):
+            # TODO: a way to check/verify email (threefold connect or openkyc?)
+            return Email().check(email)
+
+        def with_error(e):
+            """used in a loop to re-enter the value or break by raising `Restart` exception"""
+            response = ask_choice(f"{e}, What would you like to do? ", CHOICES)
+            if response == RESTART_CHOICE:
+                raise Restart
+
+        def get_identity_info():
+            def fill_words():
+                return ask_string("Copy the phrase from your 3bot Connect app here: ")
+
+            def fill_identity():
+                identity = ask_string("what is your threebot name (identity)? ")
+                if "." not in identity:
+                    identity += ".3bot"
+                return identity
+
+            user = None
+            while not user:
+                identity = fill_identity()
+                try:
+                    user = self.get_user(identity)
+                except exceptions.NotFound as e:
+                    with_error(e)
+
+            while True:
+                email = ask_string("What is the email address associated with your identity? ")
+                if check_email(email):
+                    break
+                else:
+                    with_error("This Email address is not valid")
+
+            print("Configured email for this identity is {}".format(email))
+
+            # time to do validation of words
+            while True:
+                words = fill_words()
+                try:
+                    seed = mnemonic.mnemonic_to_key(words.strip())
+                    key = NACL(seed).get_verification_key()
+                    if user and key != serializers.base64.decode(user["publicKey"]):
+                        raise exceptions.Input
+                    break
+                except (exceptions.NotFound, exceptions.Input, CryptoError):
+                    with_error("Seems one or more more words entered is invalid")
+
+            return IdentityInfo(identity, email, words)
+
+        while True:
+            try:
+                return get_identity_info()
+            except Restart:
+                continue
+            except KeyboardInterrupt:
+                break
 
 
 def export_module_as():
