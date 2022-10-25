@@ -46,13 +46,9 @@ class HeartBeatService(BackgroundService):
             data["signature"] = binascii.hexlify(signature).decode()
             url = urllib.parse.urljoin(MONITORING_SERVER_URL, "heartbeat")
             try:
-                requests.post(
-                    url, json=data, headers={"Content-type": "application/json"}
-                )
+                requests.post(url, json=data, headers={"Content-type": "application/json"})
             except Exception as e:
-                j.logger.error(
-                    f"Failed to send heartbeat, URL:{url}, exception: {str(e)}"
-                )
+                j.logger.error(f"Failed to send heartbeat, URL:{url}, exception: {str(e)}")
 
 
 service = HeartBeatService()
