@@ -10,7 +10,6 @@ class Test3BotServer(BaseTests):
     tname = environ.get("TNAME")
     email = environ.get("EMAIL")
     words = environ.get("WORDS")
-    explorer_url = "https://explorer.testnet.grid.tf/api/v1"
     MYID_NAME = "identity_{}".format(randint(1, 1000))
 
     @classmethod
@@ -20,9 +19,7 @@ class Test3BotServer(BaseTests):
         cls.me = None
         if j.core.identity.list_all() and hasattr(j.core.identity, "me"):
             cls.me = j.core.identity.me
-        myid = j.core.identity.new(
-            cls.MYID_NAME, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url
-        )
+        myid = j.core.identity.new(cls.MYID_NAME, tname=cls.tname, email=cls.email, words=cls.words)
         myid.register()
         myid.set_default()
         myid.save()
@@ -149,7 +146,7 @@ class Test3BotServer(BaseTests):
         j.servers.threebot.start_default()
 
         self.info("Check the package list that should be started by default with threebot server")
-        default_packages_list = ["auth", "chatflows", "admin", "weblibs", "tfgrid_solutions", "backup"]
+        default_packages_list = ["auth", "chatflows", "admin", "weblibs", "backup"]
         packages_list = j.servers.threebot.default.packages.list_all()
         self.assertTrue(set(default_packages_list).issubset(packages_list), "not all default packages exist")
 
