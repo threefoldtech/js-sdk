@@ -2,10 +2,6 @@ import os
 from urllib.parse import urlparse
 from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.packages.backup.actors.marketplace import Backup
-
-
-BACKUP_ACTOR = Backup()
 
 
 class Identity(BaseActor):
@@ -21,13 +17,10 @@ class Identity(BaseActor):
         return j.data.serializers.json.dumps(data)
 
     @actor_method
-    def set_identity(self, label: str, tname: str, email: str, words: str, backup_password: str = None):
+    def set_identity(self, label: str, tname: str, email: str, words: str):
         j.core.identity.get(label, tname=tname, email=email, words=words)
         j.core.identity.set_default(label)
         j.core.config.set("threebot_connect", True)
-        if backup_password:
-            BACKUP_ACTOR.init(backup_password, False)
-            BACKUP_ACTOR.restore()
 
     @actor_method
     def list_identities(self) -> str:

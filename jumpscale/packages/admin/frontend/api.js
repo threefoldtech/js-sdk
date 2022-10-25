@@ -178,12 +178,12 @@ const apiClient = {
                 url: `${baseURL}/admin/get_developer_options`
             })
         },
-        setDeveloperOptions: (testCert, overProvision, escalationEmails, autoExtendPools, sortNodesBySRU) => {
+        setDeveloperOptions: (testCert, overProvision, escalationEmails, sortNodesBySRU) => {
             return axios({
                 url: `${baseURL}/admin/set_developer_options`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { test_cert: testCert, over_provision: overProvision, sort_nodes_by_sru: sortNodesBySRU, escalation_emails: escalationEmails, auto_extend_pools: autoExtendPools }
+                data: { test_cert: testCert, over_provision: overProvision, sort_nodes_by_sru: sortNodesBySRU, escalation_emails: escalationEmails }
             })
         },
         clearBlockedNodes: () => {
@@ -467,12 +467,12 @@ const apiClient = {
                 url: `${baseURL}/identity/list_identities`
             })
         },
-        set: (label, tname, email, words, backup_password) => {
+        set: (label, tname, email, words) => {
             return axios({
                 url: `${baseURL}/identity/set_identity`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { label: label, tname: tname, email: email, words: words, backup_password: backup_password }
+                data: { label: label, tname: tname, email: email, words: words }
             })
         }
     },
