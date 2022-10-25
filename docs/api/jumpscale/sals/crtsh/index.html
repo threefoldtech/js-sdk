@@ -25,6 +25,7 @@
 <pre><code class="python">import requests
 from jumpscale.data import time as jstime
 
+
 BASE_URL = &#34;https://crt.sh/?q={}&amp;output=json&#34;
 RATE_LIMIT = 50
 
@@ -69,6 +70,9 @@ def count_domain_certs_since(domain, days=7):
     for cert in all_certs:
         # rate limit is 50 certs every week. so we check how many certs were issued within the last 7 days
         # we will check using date only. entry_timestamp example &#34;2020-08-23T12:15:27.833&#34;
+        # check only for letsencrypt
+        if &#34;Let&#39;s Encrypt&#34; not in cert[&#34;issuer_name&#34;]:
+            continue
         t = jstime.Arrow.strptime(cert[&#34;entry_timestamp&#34;].split(&#34;T&#34;)[0], &#34;%Y-%m-%d&#34;).to(&#34;utc&#34;)
         subdomain = cert[&#34;name_value&#34;].split(&#34;.&#34;)[0]
         if t &gt;= start_date:
@@ -164,6 +168,9 @@ def has_certificate(domain):
     for cert in all_certs:
         # rate limit is 50 certs every week. so we check how many certs were issued within the last 7 days
         # we will check using date only. entry_timestamp example &#34;2020-08-23T12:15:27.833&#34;
+        # check only for letsencrypt
+        if &#34;Let&#39;s Encrypt&#34; not in cert[&#34;issuer_name&#34;]:
+            continue
         t = jstime.Arrow.strptime(cert[&#34;entry_timestamp&#34;].split(&#34;T&#34;)[0], &#34;%Y-%m-%d&#34;).to(&#34;utc&#34;)
         subdomain = cert[&#34;name_value&#34;].split(&#34;.&#34;)[0]
         if t &gt;= start_date:

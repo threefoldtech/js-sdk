@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.sals.backupjob.backupjob API documentation</title>
+<meta name="description" content="THE BACKUPJOB SAL
+This sal can be used to create and manage multiple backup jobs with multiple and configured paths …" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.sals.backupjob.backupjob</code></h1>
+</header>
+<section id="section-intro">
+<hr>
+<h1 id="the-backupjob-sal">THE BACKUPJOB SAL</h1>
+<hr>
+<p>This sal can be used to create and manage multiple backup jobs with multiple and configured paths.</p>
+<p>Examples:
+1. create new backup job
+- every package could create its backup job when installed with one or multiple paths</p>
+<pre><code class="language-python">JS-NG&gt; nginxbackup = j.sals.backupjob.new(&quot;nginxbackup&quot;, clients = [&quot;restic_client_1&quot;, &quot;restic_client_2&quot;], paths=[&quot;~/sandbox/cfg/nginx/main/&quot;])
+JS-NG&gt; nginxbackup.save()
+</code></pre>
+<ol>
+<li>
+<p>create another backup job
+JS-NG&gt; vdcbackup = j.sals.backupjob.new("vdcbackup", clients = ["restic_client_3", "restic_client_4"], paths=["~/.config/jumpscale/secureconfig/jumpscale/sals/vdc/"])
+JS-NG&gt; vdcbackup.save()</p>
+</li>
+<li>
+<p>list backup jobs</p>
+</li>
+</ol>
+<pre><code class="language-python">JS-NG&gt; j.sals.backupjob.list_all()
+</code></pre>
+<ol>
+<li>get and execute a backup job<ul>
+<li>get the backup job
+<code>python
+JS-NG&gt; nginxbackup_job = j.sals.backupjob.get('nginxbackup')
+JS-NG&gt; nginxbackup_job.execute()</code></li>
+</ul>
+</li>
+</ol>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">&#34;&#34;&#34;
+----------------------------------------------------------------------
+# THE BACKUPJOB SAL
+----------------------------------------------------------------------
+This sal can be used to create and manage multiple backup jobs with multiple and configured paths.
+
+Examples:
+1. create new backup job
+    - every package could create its backup job when installed with one or multiple paths
+
+```python
+JS-NG&gt; nginxbackup = j.sals.backupjob.new(&#34;nginxbackup&#34;, clients = [&#34;restic_client_1&#34;, &#34;restic_client_2&#34;], paths=[&#34;~/sandbox/cfg/nginx/main/&#34;])
+JS-NG&gt; nginxbackup.save()
+```
+
+2. create another backup job
+JS-NG&gt; vdcbackup = j.sals.backupjob.new(&#34;vdcbackup&#34;, clients = [&#34;restic_client_3&#34;, &#34;restic_client_4&#34;], paths=[&#34;~/.config/jumpscale/secureconfig/jumpscale/sals/vdc/&#34;])
+JS-NG&gt; vdcbackup.save()
+
+3. list backup jobs
+
+```python
+JS-NG&gt; j.sals.backupjob.list_all()
+```
+
+4. get and execute a backup job
+    - get the backup job
+    ```python
+    JS-NG&gt; nginxbackup_job = j.sals.backupjob.get(&#39;nginxbackup&#39;)
+    JS-NG&gt; nginxbackup_job.execute()
+    ```
+&#34;&#34;&#34;
+from gevent.greenlet import Greenlet
+from jumpscale.loader import j
+from jumpscale.core.base import Base, fields
+from jumpscale.sals import fs
+import gevent
+
+
+def _path_validator(path):
+    &#34;&#34;&#34;Raises a ValidationError if a path Neither an absolute path nor begin with a tilde.
+
+    Args:
+        path (str): a path represent a directory/file.
+
+    Raises:
+        j.core.base.fields.ValidationError: If a path Neither an absolute path nor begin with a tilde.
+    &#34;&#34;&#34;
+    if not fs.is_absolute(fs.os.path.expanduser(path)):
+        raise j.core.base.fields.ValidationError(f&#34;The path {path} should be absolute path or begin with a tilde&#34;)
+
+
+def _client_validator(restic_client_name):
+    &#34;&#34;&#34;Raises a ValidationError if a restic client instance with given name can not be found.
+
+    Args:
+        restic_client_name (str): a restic client instance name.
+
+    Raises:
+        j.core.base.fields.ValidationError: If a restic client instance with given name can not be found.
+    &#34;&#34;&#34;
+    if restic_client_name not in j.tools.restic.list_all():
+        raise j.core.base.fields.ValidationError(f&#34;The restic client: {restic_client_name} not found!&#34;)
+
+
+class BackupJob(Base):
+    paths = fields.List(fields.String(validators=[_path_validator]))
+    paths_to_exclude = fields.List(fields.String())
+    clients = fields.List(fields.String(validators=[_client_validator]))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @staticmethod
+    def _get_client(restic_client_name):
+        &#34;&#34;&#34;Gets a ResticRepo object with a given instance name.
+
+        Args:
+            restic_client_name (str): Restic instance name.
+
+        Raises:
+            j.exceptions.Runtime: If restic instance not found.
+
+        Returns:
+            ResticRepo: jumpscale.tools.restic.restic.ResticRepo instance.
+        &#34;&#34;&#34;
+        if restic_client_name in j.tools.restic.list_all():
+            return j.tools.restic.get(restic_client_name)
+        raise j.exceptions.Runtime(f&#34;The restic client: {restic_client_name} not found!&#34;)
+
+    def _on_exception(self, g: Greenlet):
+        client_name = self.clients[self._greenlets.index(g)]
+        j.logger.exception(
+            f&#34;BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client_name}&#34;,
+            exception=g.exception,
+        )
+        j.tools.alerthandler.alert_raise(
+            app_name=&#34;BackupJob&#34;,
+            category=&#34;exception&#34;,
+            message=f&#34;BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client_name}&#34;,
+            alert_type=&#34;exception&#34;,
+            traceback=g.exception.__traceback__,
+        )
+
+    def _on_success(self, g: Greenlet):
+        client_name = self.clients[self._greenlets.index(g)]
+        j.logger.info(f&#34;BackupJob name: {self.instance_name} - ResticRepo: {client_name} snapshot successfully saved.&#34;)
+
+    def execute(self, block=False):
+        &#34;&#34;&#34;Backups the preconfigured paths with the preconfigured restic clients.
+        All snapshots created with a Backupjob will be tagged with the BackupJob instance name for easy referencing, manageing, cleaning and restoring.
+
+        Args:
+            block (bool, optional): Wait for the backup to finish. if False, will start the backup and return immediately. Defaults to False.
+
+        Raises:
+            j.exceptions.Runtime: If there are no restic instances defined for this backup job.
+
+        Returns:
+            bool: whether the backup created successfully on all the preconfigured repos.
+            if block is False, then it returns False immediately.
+        &#34;&#34;&#34;
+
+        def _excute(client_name, paths, tags, exclude):
+            client = self._get_client(client_name)
+            client.backup(paths, tags=tags, exclude=exclude)
+
+        paths = [fs.os.path.expanduser(path) for path in self.paths]
+        paths_to_exclude = [fs.os.path.expanduser(path) for path in self.paths_to_exclude]
+        self._greenlets = []
+        if not self.clients:
+            raise j.exceptions.Runtime(&#34;Can&#39;t execute backup job no restic instances defined.&#34;)
+        for restic_client_name in self.clients:
+            self._greenlets.append(
+                gevent.spawn(_excute, restic_client_name, paths, tags=[self.instance_name], exclude=paths_to_exclude)
+            )
+            self._greenlets[-1].link_exception(self._on_exception)
+            self._greenlets[-1].link_value(self._on_success)
+
+        if block:
+            gevent.joinall(self._greenlets)
+        return all([greenlet.successful() for greenlet in self._greenlets])
+
+    def list_all_snapshots(self, last=False, path=None):
+        &#34;&#34;&#34;Returns a dictionary of restic snapshots lists that are related to to this BackupJob instance,
+        where the keys are the ResticRepo instance name.
+
+        Args:
+            last (bool, optional): If True will get last snapshot only while respecting the other filters. Defaults to False.
+            path (str, optional): Path to filter on. Defaults to None.
+
+        Returns:
+            Dict of lists: a dictionary of restic snapshots lists
+        &#34;&#34;&#34;
+        snapshots = {}
+        for restic_client_name in self.clients:
+            snapshots[restic_client_name] = self.list_snapshots(restic_client_name, last=last, path=path)
+        return snapshots
+
+    def list_snapshots(self, restic_client_name, last=False, path=None):
+        &#34;&#34;&#34;Returns a list of restic snapshots that are related to to this BackupJob instance from a ResticRepo with a given instance name
+
+        Args:
+            restic_client_name (str): Restic instance name.
+            last (bool, optional): If True will get last snapshot only while respecting the other filters. Defaults to False.
+            path (str, optional): Path to filter on. Defaults to None.
+
+        Returns:
+            list of dictionaries: list of restic snapshots.
+                Example: [{&#39;time&#39;: &#39;2021-06-27T19:18:00.203093762+02:00&#39;, &#39;parent&#39;: &#39;ded571a29dfa8f3db1c455ee5714acf5b248a90f9b5103235a682737eba583b3&#39;,
+                &#39;tree&#39;: &#39;dae692c71558aa6f1f632dc805dd614a8d35ecb8c5053bc32665506d7a4a066c&#39;, &#39;paths&#39;: [&#39;/home/ayoub/play.txt&#39;],
+                &#39;hostname&#39;: &#39;ayoub&#39;, &#39;username&#39;: &#39;ayoub&#39;, &#39;uid&#39;: 1000, &#39;gid&#39;: 1000, &#39;tags&#39;: [&#39;admin_sameh&#39;],
+                &#39;id&#39;: &#39;e3d5d9dd2e252d0cf55ff66aabe839af312c4fdc6119e08a72984086664ef3b0&#39;, &#39;short_id&#39;: &#39;e3d5d9dd&#39;}]
+        &#34;&#34;&#34;
+        client = self._get_client(restic_client_name)
+        return client.list_snapshots(tags=[self.instance_name], last=last, path=path) or []
+
+    def restore(self, restic_client_name, target_path=&#34;/&#34;, snapshot_id=None, host=None):
+        &#34;&#34;&#34;Restore a specifc or latest snapshot for this BackupJob from a ResticRepo with a given instance name.
+
+        Args:
+            restic_client_name (str): Restic instance name.
+            target_path (str, optional): path to restore to. Defaults to &#34;/&#34;.
+            snapshot_id (str, optional):  id or short_id of the snapshot.
+                if not specified will use tha latest snapshot/s taken for this BackupJob instead. Defaults to None.
+            host (str, optional): Filter on the hostname when using latest. Defaults to None.
+
+        Raises:
+            j.exceptions.Value: if the specified snapshot id is not found for this BackupJob.
+            j.exceptions.Runtime: if no previous snapshots found for this BackupJob.
+        &#34;&#34;&#34;
+        client = self._get_client(restic_client_name)
+        if snapshot_id:
+            if len(snapshot_id) &lt; 8:
+                raise j.exceptions.Value(f&#34;The length of snapshot id ({snapshot_id}) should be at least 8 characters.&#34;)
+            snapshots = self.list_snapshots(restic_client_name)
+            if not snapshots:
+                raise j.exceptions.Runtime(f&#34;no previous snapshots found for this backup job {self.instance_name}.&#34;)
+            snapshots_ids = [snapshot[&#34;id&#34;] for snapshot in snapshots if snapshot[&#34;id&#34;].startswith(snapshot_id)]
+            if not snapshots_ids:
+                raise j.exceptions.Value(
+                    f&#34;This snapshot id {snapshot_id:.8} is not found for this backup job {self.instance_name}.&#34;
+                )
+
+        client.restore(target_path, snapshot_id=snapshot_id, tags=[self.instance_name], host=host)
+
+    def clean_snapshots(self, restic_client_name, keep_last=0, prune=True):
+        &#34;&#34;&#34;Deletes the snapshots data if `prune` is True otherwise remove the)reference to the data (snapshots) in a ResticRepo with a given instance name.
+
+        Args:
+            restic_client_name (str): Restic instance name.
+            keep_last (int, optional): How many snapshots to keep. Passing 0 will remove all snapshots for this BackupJob instance. Defaults to 0.
+            prune (bool, optional):  Whether to delete the data or not. Defaults to True.
+        &#34;&#34;&#34;
+        client = self._get_client(restic_client_name)
+        if not keep_last:
+            # first forget all snapshots but last as restic will not allow values less than 1.
+            client.forget(keep_last=1, tags=[self.instance_name], prune=prune)
+            # then get snapshots ids of last snapshots and forget them
+            last_snapshots = self.list_snapshots(restic_client_name, last=True)
+            last_snapshots_ids = [snapshot[&#34;id&#34;] for snapshot in last_snapshots]
+            return client.forget(keep_last=0, tags=[self.instance_name], prune=prune, snapshots=last_snapshots_ids)
+        client.forget(keep_last=keep_last, tags=[self.instance_name], prune=prune)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.sals.backupjob.backupjob.BackupJob"><code class="flex name class">
+<span>class <span class="ident">BackupJob</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="language-python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class BackupJob(Base):
+    paths = fields.List(fields.String(validators=[_path_validator]))
+    paths_to_exclude = fields.List(fields.String())
+    clients = fields.List(fields.String(validators=[_client_validator]))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @staticmethod
+    def _get_client(restic_client_name):
+        &#34;&#34;&#34;Gets a ResticRepo object with a given instance name.
+
+        Args:
+            restic_client_name (str): Restic instance name.
+
+        Raises:
+            j.exceptions.Runtime: If restic instance not found.
+
+        Returns:
+            ResticRepo: jumpscale.tools.restic.restic.ResticRepo instance.
+        &#34;&#34;&#34;
+        if restic_client_name in j.tools.restic.list_all():
+            return j.tools.restic.get(restic_client_name)
+        raise j.exceptions.Runtime(f&#34;The restic client: {restic_client_name} not found!&#34;)
+
+    def _on_exception(self, g: Greenlet):
+        client_name = self.clients[self._greenlets.index(g)]
+        j.logger.exception(
+            f&#34;BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client_name}&#34;,
+            exception=g.exception,
+        )
+        j.tools.alerthandler.alert_raise(
+            app_name=&#34;BackupJob&#34;,
+            category=&#34;exception&#34;,
+            message=f&#34;BackupJob name: {self.instance_name} - Error happened during Backing up using this ResticRepo: {client_name}&#34;,
+            alert_type=&#34;exception&#34;,
+            traceback=g.exception.__traceback__,
+        )
+
+    def _on_success(self, g: Greenlet):
+        client_name = self.clients[self._greenlets.index(g)]
+        j.logger.info(f&#34;BackupJob name: {self.instance_name} - ResticRepo: {client_name} snapshot successfully saved.&#34;)
+
+    def execute(self, block=False):
+        &#34;&#34;&#34;Backups the preconfigured paths with the preconfigured restic clients.
+        All snapshots created with a Backupjob will be tagged with the BackupJob instance name for easy referencing, manageing, cleaning and restoring.
+
+        Args:
+            block (bool, optional): Wait for the backup to finish. if False, will start the backup and return immediately. Defaults to False.
+
+        Raises:
+            j.exceptions.Runtime: If there are no restic instances defined for this backup job.
+
+        Returns:
+            bool: whether the backup created successfully on all the preconfigured repos.
+            if block is False, then it returns False immediately.
+        &#34;&#34;&#34;
+
+        def _excute(client_name, paths, tags, exclude):
+            client = self._get_client(client_name)
+            client.backup(paths, tags=tags, exclude=exclude)
+
+        paths = [fs.os.path.expanduser(path) for path in self.paths]
+        paths_to_exclude = [fs.os.path.expanduser(path) for path in self.paths_to_exclude]
+        self._greenlets = []
+        if not self.clients:
+            raise j.exceptions.Runtime(&#34;Can&#39;t execute backup job no restic instances defined.&#34;)
+        for restic_client_name in self.clients:
+            self._greenlets.append(
+                gevent.spawn(_excute, restic_client_name, paths, tags=[self.instance_name], exclude=paths_to_exclude)
+            )
+            self._greenlets[-1].link_exception(self._on_exception)
+            self._greenlets[-1].link_value(self._on_success)
+
+        if block:
+            gevent.joinall(self._greenlets)
+        return all([greenlet.successful() for greenlet in self._greenlets])
+
+    def list_all_snapshots(self, last=False, path=None):
+        &#34;&#34;&#34;Returns a dictionary of restic snapshots lists that are related to to this BackupJob instance,
+        where the keys are the ResticRepo instance name.
+
+        Args:
+            last (bool, optional): If True will get last snapshot only while respecting the other filters. Defaults to False.
+            path (str, optional): Path to filter on. Defaults to None.
+
+        Returns:
+            Dict of lists: a dictionary of restic snapshots lists
+        &#34;&#34;&#34;
+        snapshots = {}
+        for restic_client_name in self.clients:
+            snapshots[restic_client_name] = self.list_snapshots(restic_client_name, last=last, path=path)
+        return snapshots
+
+    def list_snapshots(self, restic_client_name, last=False, path=None):
+        &#34;&#34;&#34;Returns a list of restic snapshots that are related to to this BackupJob instance from a ResticRepo with a given instance name
+
+        Args:
+            restic_client_name (str): Restic instance name.
+            last (bool, optional): If True will get last snapshot only while respecting the other filters. Defaults to False.
+            path (str, optional): Path to filter on. Defaults to None.
+
+        Returns:
+            list of dictionaries: list of restic snapshots.
+                Example: [{&#39;time&#39;: &#39;2021-06-27T19:18:00.203093762+02:00&#39;, &#39;parent&#39;: &#39;ded571a29dfa8f3db1c455ee5714acf5b248a90f9b5103235a682737eba583b3&#39;,
+                &#39;tree&#39;: &#39;dae692c71558aa6f1f632dc805dd614a8d35ecb8c5053bc32665506d7a4a066c&#39;, &#39;paths&#39;: [&#39;/home/ayoub/play.txt&#39;],
+                &#39;hostname&#39;: &#39;ayoub&#39;, &#39;username&#39;: &#39;ayoub&#39;, &#39;uid&#39;: 1000, &#39;gid&#39;: 1000, &#39;tags&#39;: [&#39;admin_sameh&#39;],
+                &#39;id&#39;: &#39;e3d5d9dd2e252d0cf55ff66aabe839af312c4fdc6119e08a72984086664ef3b0&#39;, &#39;short_id&#39;: &#39;e3d5d9dd&#39;}]
+        &#34;&#34;&#34;
+        client = self._get_client(restic_client_name)
+        return client.list_snapshots(tags=[self.instance_name], last=last, path=path) or []
+
+    def restore(self, restic_client_name, target_path=&#34;/&#34;, snapshot_id=None, host=None):
+        &#34;&#34;&#34;Restore a specifc or latest snapshot for this BackupJob from a ResticRepo with a given instance name.
+
+        Args:
+            restic_client_name (str): Restic instance name.
+            target_path (str, optional): path to restore to. Defaults to &#34;/&#34;.
+            snapshot_id (str, optional):  id or short_id of the snapshot.
+                if not specified will use tha latest snapshot/s taken for this BackupJob instead. Defaults to None.
+            host (str, optional): Filter on the hostname when using latest. Defaults to None.
+
+        Raises:
+            j.exceptions.Value: if the specified snapshot id is not found for this BackupJob.
+            j.exceptions.Runtime: if no previous snapshots found for this BackupJob.
+        &#34;&#34;&#34;
+        client = self._get_client(restic_client_name)
+        if snapshot_id:
+            if len(snapshot_id) &lt; 8:
+                raise j.exceptions.Value(f&#34;The length of snapshot id ({snapshot_id}) should be at least 8 characters.&#34;)
+            snapshots = self.list_snapshots(restic_client_name)
+            if not snapshots:
+                raise j.exceptions.Runtime(f&#34;no previous snapshots found for this backup job {self.instance_name}.&#34;)
+            snapshots_ids = [snapshot[&#34;id&#34;] for snapshot in snapshots if snapshot[&#34;id&#34;].startswith(snapshot_id)]
+            if not snapshots_ids:
+                raise j.exceptions.Value(
+                    f&#34;This snapshot id {snapshot_id:.8} is not found for this backup job {self.instance_name}.&#34;
+                )
+
+        client.restore(target_path, snapshot_id=snapshot_id, tags=[self.instance_name], host=host)
+
+    def clean_snapshots(self, restic_client_name, keep_last=0, prune=True):
+        &#34;&#34;&#34;Deletes the snapshots data if `prune` is True otherwise remove the)reference to the data (snapshots) in a ResticRepo with a given instance name.
+
+        Args:
+            restic_client_name (str): Restic instance name.
+            keep_last (int, optional): How many snapshots to keep. Passing 0 will remove all snapshots for this BackupJob instance. Defaults to 0.
+            prune (bool, optional):  Whether to delete the data or not. Defaults to True.
+        &#34;&#34;&#34;
+        client = self._get_client(restic_client_name)
+        if not keep_last:
+            # first forget all snapshots but last as restic will not allow values less than 1.
+            client.forget(keep_last=1, tags=[self.instance_name], prune=prune)
+            # then get snapshots ids of last snapshots and forget them
+            last_snapshots = self.list_snapshots(restic_client_name, last=True)
+            last_snapshots_ids = [snapshot[&#34;id&#34;] for snapshot in last_snapshots]
+            return client.forget(keep_last=0, tags=[self.instance_name], prune=prune, snapshots=last_snapshots_ids)
+        client.forget(keep_last=keep_last, tags=[self.instance_name], prune=prune)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.sals.backupjob.backupjob.BackupJob.clients"><code class="name">var <span class="ident">clients</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.backupjob.backupjob.BackupJob.paths"><code class="name">var <span class="ident">paths</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.backupjob.backupjob.BackupJob.paths_to_exclude"><code class="name">var <span class="ident">paths_to_exclude</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.sals.backupjob.backupjob.BackupJob.clean_snapshots"><code class="name flex">
+<span>def <span class="ident">clean_snapshots</span></span>(<span>self, restic_client_name, keep_last=0, prune=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Deletes the snapshots data if <code>prune</code> is True otherwise remove the)reference to the data (snapshots) in a ResticRepo with a given instance name.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>restic_client_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Restic instance name.</dd>
+<dt><strong><code>keep_last</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>How many snapshots to keep. Passing 0 will remove all snapshots for this BackupJob instance. Defaults to 0.</dd>
+<dt><strong><code>prune</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether to delete the data or not. Defaults to True.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def clean_snapshots(self, restic_client_name, keep_last=0, prune=True):
+    &#34;&#34;&#34;Deletes the snapshots data if `prune` is True otherwise remove the)reference to the data (snapshots) in a ResticRepo with a given instance name.
+
+    Args:
+        restic_client_name (str): Restic instance name.
+        keep_last (int, optional): How many snapshots to keep. Passing 0 will remove all snapshots for this BackupJob instance. Defaults to 0.
+        prune (bool, optional):  Whether to delete the data or not. Defaults to True.
+    &#34;&#34;&#34;
+    client = self._get_client(restic_client_name)
+    if not keep_last:
+        # first forget all snapshots but last as restic will not allow values less than 1.
+        client.forget(keep_last=1, tags=[self.instance_name], prune=prune)
+        # then get snapshots ids of last snapshots and forget them
+        last_snapshots = self.list_snapshots(restic_client_name, last=True)
+        last_snapshots_ids = [snapshot[&#34;id&#34;] for snapshot in last_snapshots]
+        return client.forget(keep_last=0, tags=[self.instance_name], prune=prune, snapshots=last_snapshots_ids)
+    client.forget(keep_last=keep_last, tags=[self.instance_name], prune=prune)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.backupjob.backupjob.BackupJob.execute"><code class="name flex">
+<span>def <span class="ident">execute</span></span>(<span>self, block=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Backups the preconfigured paths with the preconfigured restic clients.
+All snapshots created with a Backupjob will be tagged with the BackupJob instance name for easy referencing, manageing, cleaning and restoring.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>block</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Wait for the backup to finish. if False, will start the backup and return immediately. Defaults to False.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<p>j.exceptions.Runtime: If there are no restic instances defined for this backup job.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>whether the backup created successfully on all the preconfigured repos.</dd>
+</dl>
+<p>if block is False, then it returns False immediately.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def execute(self, block=False):
+    &#34;&#34;&#34;Backups the preconfigured paths with the preconfigured restic clients.
+    All snapshots created with a Backupjob will be tagged with the BackupJob instance name for easy referencing, manageing, cleaning and restoring.
+
+    Args:
+        block (bool, optional): Wait for the backup to finish. if False, will start the backup and return immediately. Defaults to False.
+
+    Raises:
+        j.exceptions.Runtime: If there are no restic instances defined for this backup job.
+
+    Returns:
+        bool: whether the backup created successfully on all the preconfigured repos.
+        if block is False, then it returns False immediately.
+    &#34;&#34;&#34;
+
+    def _excute(client_name, paths, tags, exclude):
+        client = self._get_client(client_name)
+        client.backup(paths, tags=tags, exclude=exclude)
+
+    paths = [fs.os.path.expanduser(path) for path in self.paths]
+    paths_to_exclude = [fs.os.path.expanduser(path) for path in self.paths_to_exclude]
+    self._greenlets = []
+    if not self.clients:
+        raise j.exceptions.Runtime(&#34;Can&#39;t execute backup job no restic instances defined.&#34;)
+    for restic_client_name in self.clients:
+        self._greenlets.append(
+            gevent.spawn(_excute, restic_client_name, paths, tags=[self.instance_name], exclude=paths_to_exclude)
+        )
+        self._greenlets[-1].link_exception(self._on_exception)
+        self._greenlets[-1].link_value(self._on_success)
+
+    if block:
+        gevent.joinall(self._greenlets)
+    return all([greenlet.successful() for greenlet in self._greenlets])</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.backupjob.backupjob.BackupJob.list_all_snapshots"><code class="name flex">
+<span>def <span class="ident">list_all_snapshots</span></span>(<span>self, last=False, path=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Returns a dictionary of restic snapshots lists that are related to to this BackupJob instance,
+where the keys are the ResticRepo instance name.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>last</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>If True will get last snapshot only while respecting the other filters. Defaults to False.</dd>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Path to filter on. Defaults to None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Dict</code> of <code>lists</code>: <code>a</code> <code>dictionary</code> of <code>restic</code> <code>snapshots</code> <code>lists</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_all_snapshots(self, last=False, path=None):
+    &#34;&#34;&#34;Returns a dictionary of restic snapshots lists that are related to to this BackupJob instance,
+    where the keys are the ResticRepo instance name.
+
+    Args:
+        last (bool, optional): If True will get last snapshot only while respecting the other filters. Defaults to False.
+        path (str, optional): Path to filter on. Defaults to None.
+
+    Returns:
+        Dict of lists: a dictionary of restic snapshots lists
+    &#34;&#34;&#34;
+    snapshots = {}
+    for restic_client_name in self.clients:
+        snapshots[restic_client_name] = self.list_snapshots(restic_client_name, last=last, path=path)
+    return snapshots</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.backupjob.backupjob.BackupJob.list_snapshots"><code class="name flex">
+<span>def <span class="ident">list_snapshots</span></span>(<span>self, restic_client_name, last=False, path=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Returns a list of restic snapshots that are related to to this BackupJob instance from a ResticRepo with a given instance name</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>restic_client_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Restic instance name.</dd>
+<dt><strong><code>last</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>If True will get last snapshot only while respecting the other filters. Defaults to False.</dd>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Path to filter on. Defaults to None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>list of dictionaries: list of restic snapshots.
+Example: [{'time': '2021-06-27T19:18:00.203093762+02:00', 'parent': 'ded571a29dfa8f3db1c455ee5714acf5b248a90f9b5103235a682737eba583b3',
+'tree': 'dae692c71558aa6f1f632dc805dd614a8d35ecb8c5053bc32665506d7a4a066c', 'paths': ['/home/ayoub/play.txt'],
+'hostname': 'ayoub', 'username': 'ayoub', 'uid': 1000, 'gid': 1000, 'tags': ['admin_sameh'],
+'id': 'e3d5d9dd2e252d0cf55ff66aabe839af312c4fdc6119e08a72984086664ef3b0', 'short_id': 'e3d5d9dd'}]</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_snapshots(self, restic_client_name, last=False, path=None):
+    &#34;&#34;&#34;Returns a list of restic snapshots that are related to to this BackupJob instance from a ResticRepo with a given instance name
+
+    Args:
+        restic_client_name (str): Restic instance name.
+        last (bool, optional): If True will get last snapshot only while respecting the other filters. Defaults to False.
+        path (str, optional): Path to filter on. Defaults to None.
+
+    Returns:
+        list of dictionaries: list of restic snapshots.
+            Example: [{&#39;time&#39;: &#39;2021-06-27T19:18:00.203093762+02:00&#39;, &#39;parent&#39;: &#39;ded571a29dfa8f3db1c455ee5714acf5b248a90f9b5103235a682737eba583b3&#39;,
+            &#39;tree&#39;: &#39;dae692c71558aa6f1f632dc805dd614a8d35ecb8c5053bc32665506d7a4a066c&#39;, &#39;paths&#39;: [&#39;/home/ayoub/play.txt&#39;],
+            &#39;hostname&#39;: &#39;ayoub&#39;, &#39;username&#39;: &#39;ayoub&#39;, &#39;uid&#39;: 1000, &#39;gid&#39;: 1000, &#39;tags&#39;: [&#39;admin_sameh&#39;],
+            &#39;id&#39;: &#39;e3d5d9dd2e252d0cf55ff66aabe839af312c4fdc6119e08a72984086664ef3b0&#39;, &#39;short_id&#39;: &#39;e3d5d9dd&#39;}]
+    &#34;&#34;&#34;
+    client = self._get_client(restic_client_name)
+    return client.list_snapshots(tags=[self.instance_name], last=last, path=path) or []</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.backupjob.backupjob.BackupJob.restore"><code class="name flex">
+<span>def <span class="ident">restore</span></span>(<span>self, restic_client_name, target_path=&#39;/&#39;, snapshot_id=None, host=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Restore a specifc or latest snapshot for this BackupJob from a ResticRepo with a given instance name.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>restic_client_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Restic instance name.</dd>
+<dt><strong><code>target_path</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>path to restore to. Defaults to "/".</dd>
+<dt><strong><code>snapshot_id</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>id or short_id of the snapshot.
+if not specified will use tha latest snapshot/s taken for this BackupJob instead. Defaults to None.</dd>
+<dt><strong><code>host</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Filter on the hostname when using latest. Defaults to None.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<p>j.exceptions.Value: if the specified snapshot id is not found for this BackupJob.
+j.exceptions.Runtime: if no previous snapshots found for this BackupJob.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def restore(self, restic_client_name, target_path=&#34;/&#34;, snapshot_id=None, host=None):
+    &#34;&#34;&#34;Restore a specifc or latest snapshot for this BackupJob from a ResticRepo with a given instance name.
+
+    Args:
+        restic_client_name (str): Restic instance name.
+        target_path (str, optional): path to restore to. Defaults to &#34;/&#34;.
+        snapshot_id (str, optional):  id or short_id of the snapshot.
+            if not specified will use tha latest snapshot/s taken for this BackupJob instead. Defaults to None.
+        host (str, optional): Filter on the hostname when using latest. Defaults to None.
+
+    Raises:
+        j.exceptions.Value: if the specified snapshot id is not found for this BackupJob.
+        j.exceptions.Runtime: if no previous snapshots found for this BackupJob.
+    &#34;&#34;&#34;
+    client = self._get_client(restic_client_name)
+    if snapshot_id:
+        if len(snapshot_id) &lt; 8:
+            raise j.exceptions.Value(f&#34;The length of snapshot id ({snapshot_id}) should be at least 8 characters.&#34;)
+        snapshots = self.list_snapshots(restic_client_name)
+        if not snapshots:
+            raise j.exceptions.Runtime(f&#34;no previous snapshots found for this backup job {self.instance_name}.&#34;)
+        snapshots_ids = [snapshot[&#34;id&#34;] for snapshot in snapshots if snapshot[&#34;id&#34;].startswith(snapshot_id)]
+        if not snapshots_ids:
+            raise j.exceptions.Value(
+                f&#34;This snapshot id {snapshot_id:.8} is not found for this backup job {self.instance_name}.&#34;
+            )
+
+    client.restore(target_path, snapshot_id=snapshot_id, tags=[self.instance_name], host=host)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.core.base.meta.Base.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.core.base.meta.Base.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.core.base.meta.Base.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#the-backupjob-sal">THE BACKUPJOB SAL</a></li>
+</ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.sals.backupjob" href="index.html">jumpscale.sals.backupjob</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.sals.backupjob.backupjob.BackupJob" href="#jumpscale.sals.backupjob.backupjob.BackupJob">BackupJob</a></code></h4>
+<ul class="two-column">
+<li><code><a title="jumpscale.sals.backupjob.backupjob.BackupJob.clean_snapshots" href="#jumpscale.sals.backupjob.backupjob.BackupJob.clean_snapshots">clean_snapshots</a></code></li>
+<li><code><a title="jumpscale.sals.backupjob.backupjob.BackupJob.clients" href="#jumpscale.sals.backupjob.backupjob.BackupJob.clients">clients</a></code></li>
+<li><code><a title="jumpscale.sals.backupjob.backupjob.BackupJob.execute" href="#jumpscale.sals.backupjob.backupjob.BackupJob.execute">execute</a></code></li>
+<li><code><a title="jumpscale.sals.backupjob.backupjob.BackupJob.list_all_snapshots" href="#jumpscale.sals.backupjob.backupjob.BackupJob.list_all_snapshots">list_all_snapshots</a></code></li>
+<li><code><a title="jumpscale.sals.backupjob.backupjob.BackupJob.list_snapshots" href="#jumpscale.sals.backupjob.backupjob.BackupJob.list_snapshots">list_snapshots</a></code></li>
+<li><code><a title="jumpscale.sals.backupjob.backupjob.BackupJob.paths" href="#jumpscale.sals.backupjob.backupjob.BackupJob.paths">paths</a></code></li>
+<li><code><a title="jumpscale.sals.backupjob.backupjob.BackupJob.paths_to_exclude" href="#jumpscale.sals.backupjob.backupjob.BackupJob.paths_to_exclude">paths_to_exclude</a></code></li>
+<li><code><a title="jumpscale.sals.backupjob.backupjob.BackupJob.restore" href="#jumpscale.sals.backupjob.backupjob.BackupJob.restore">restore</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

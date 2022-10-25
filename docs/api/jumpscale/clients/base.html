@@ -47,7 +47,7 @@ class Client(Base):
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -75,29 +75,30 @@ print(p.name, p.age)
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="jumpscale.clients.docker.docker.DockerClient" href="docker/docker.html#jumpscale.clients.docker.docker.DockerClient">DockerClient</a></li>
-<li><a title="jumpscale.clients.gedis.gedis.GedisClient" href="gedis/gedis.html#jumpscale.clients.gedis.gedis.GedisClient">GedisClient</a></li>
-<li><a title="jumpscale.clients.git.git.GitClient" href="git/git.html#jumpscale.clients.git.git.GitClient">GitClient</a></li>
+<li><a title="jumpscale.clients.stellar.stellar.Stellar" href="stellar/stellar.html#jumpscale.clients.stellar.stellar.Stellar">Stellar</a></li>
 <li><a title="jumpscale.clients.redis.redis.RedisClient" href="redis/redis.html#jumpscale.clients.redis.redis.RedisClient">RedisClient</a></li>
 <li><a title="jumpscale.clients.sshclient.sshclient.SSHClient" href="sshclient/sshclient.html#jumpscale.clients.sshclient.sshclient.SSHClient">SSHClient</a></li>
-<li><a title="jumpscale.clients.sshkey.sshkey.SSHKeyClient" href="sshkey/sshkey.html#jumpscale.clients.sshkey.sshkey.SSHKeyClient">SSHKeyClient</a></li>
+<li><a title="jumpscale.clients.git.git.GitClient" href="git/git.html#jumpscale.clients.git.git.GitClient">GitClient</a></li>
+<li><a title="jumpscale.clients.docker.docker.DockerClient" href="docker/docker.html#jumpscale.clients.docker.docker.DockerClient">DockerClient</a></li>
 <li><a title="jumpscale.clients.zdb.client.ZDBClient" href="zdb/client.html#jumpscale.clients.zdb.client.ZDBClient">ZDBClient</a></li>
+<li><a title="jumpscale.clients.sshkey.sshkey.SSHKeyClient" href="sshkey/sshkey.html#jumpscale.clients.sshkey.sshkey.SSHKeyClient">SSHKeyClient</a></li>
+<li><a title="jumpscale.clients.s3.s3.S3Client" href="s3/s3.html#jumpscale.clients.s3.s3.S3Client">S3Client</a></li>
+<li><a title="jumpscale.clients.name.name.NameClient" href="name/name.html#jumpscale.clients.name.name.NameClient">NameClient</a></li>
+<li><a title="jumpscale.clients.syncthing.syncthing.SyncthingClient" href="syncthing/syncthing.html#jumpscale.clients.syncthing.syncthing.SyncthingClient">SyncthingClient</a></li>
+<li><a title="jumpscale.clients.kraken.kraken.KrakenClient" href="kraken/kraken.html#jumpscale.clients.kraken.kraken.KrakenClient">KrakenClient</a></li>
+<li><a title="jumpscale.clients.liquid.liquid.LiquidClient" href="liquid/liquid.html#jumpscale.clients.liquid.liquid.LiquidClient">LiquidClient</a></li>
 <li><a title="jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient" href="currencylayer/currencylayer.html#jumpscale.clients.currencylayer.currencylayer.CurrencyLayerClient">CurrencyLayerClient</a></li>
+<li><a title="jumpscale.clients.github.github.GithubClient" href="github/github.html#jumpscale.clients.github.github.GithubClient">GithubClient</a></li>
+<li><a title="jumpscale.clients.gogs.gogs.Gogs" href="gogs/gogs.html#jumpscale.clients.gogs.gogs.Gogs">Gogs</a></li>
+<li><a title="jumpscale.clients.taiga.taiga.TaigaClient" href="taiga/taiga.html#jumpscale.clients.taiga.taiga.TaigaClient">TaigaClient</a></li>
+<li><a title="jumpscale.clients.btc_alpha.btc_alpha.BTCAlpha" href="btc_alpha/btc_alpha.html#jumpscale.clients.btc_alpha.btc_alpha.BTCAlpha">BTCAlpha</a></li>
+<li><a title="jumpscale.clients.gedis.gedis.GedisClient" href="gedis/gedis.html#jumpscale.clients.gedis.gedis.GedisClient">GedisClient</a></li>
+<li><a title="jumpscale.clients.zerotier.zerotier.ZerotierClient" href="zerotier/zerotier.html#jumpscale.clients.zerotier.zerotier.ZerotierClient">ZerotierClient</a></li>
 <li><a title="jumpscale.clients.digitalocean.digitalocean.Project" href="digitalocean/digitalocean.html#jumpscale.clients.digitalocean.digitalocean.Project">Project</a></li>
 <li><a title="jumpscale.clients.digitalocean.digitalocean.Droplet" href="digitalocean/digitalocean.html#jumpscale.clients.digitalocean.digitalocean.Droplet">Droplet</a></li>
 <li><a title="jumpscale.clients.digitalocean.digitalocean.DigitalOcean" href="digitalocean/digitalocean.html#jumpscale.clients.digitalocean.digitalocean.DigitalOcean">DigitalOcean</a></li>
-<li><a title="jumpscale.clients.github.github.GithubClient" href="github/github.html#jumpscale.clients.github.github.GithubClient">GithubClient</a></li>
 <li><a title="jumpscale.clients.mail.mail.MailClient" href="mail/mail.html#jumpscale.clients.mail.mail.MailClient">MailClient</a></li>
-<li><a title="jumpscale.clients.s3.s3.S3Client" href="s3/s3.html#jumpscale.clients.s3.s3.S3Client">S3Client</a></li>
 <li><a title="jumpscale.clients.sendgrid.sendgrid.SendGridClient" href="sendgrid/sendgrid.html#jumpscale.clients.sendgrid.sendgrid.SendGridClient">SendGridClient</a></li>
-<li><a title="jumpscale.clients.syncthing.syncthing.SyncthingClient" href="syncthing/syncthing.html#jumpscale.clients.syncthing.syncthing.SyncthingClient">SyncthingClient</a></li>
-<li><a title="jumpscale.clients.taiga.taiga.TaigaClient" href="taiga/taiga.html#jumpscale.clients.taiga.taiga.TaigaClient">TaigaClient</a></li>
-<li><a title="jumpscale.clients.zerotier.zerotier.ZerotierClient" href="zerotier/zerotier.html#jumpscale.clients.zerotier.zerotier.ZerotierClient">ZerotierClient</a></li>
-<li><a title="jumpscale.clients.gogs.gogs.Gogs" href="gogs/gogs.html#jumpscale.clients.gogs.gogs.Gogs">Gogs</a></li>
-<li><a title="jumpscale.clients.explorer.explorer.Explorer" href="explorer/explorer.html#jumpscale.clients.explorer.explorer.Explorer">Explorer</a></li>
-<li><a title="jumpscale.clients.kraken.kraken.KrakenClient" href="kraken/kraken.html#jumpscale.clients.kraken.kraken.KrakenClient">KrakenClient</a></li>
-<li><a title="jumpscale.clients.liquid.liquid.LiquidClient" href="liquid/liquid.html#jumpscale.clients.liquid.liquid.LiquidClient">LiquidClient</a></li>
-<li><a title="jumpscale.clients.stellar.stellar.Stellar" href="stellar/stellar.html#jumpscale.clients.stellar.stellar.Stellar">Stellar</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">

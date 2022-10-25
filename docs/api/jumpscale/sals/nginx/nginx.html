@@ -108,6 +108,7 @@ website.configure()
 from enum import Enum
 
 from jumpscale.core.base import Base, fields
+from jumpscale.core.exceptions import Input
 from jumpscale.loader import j
 
 from .utils import DIR_PATH, render_config_template
@@ -161,6 +162,8 @@ class Location(Base):
     location_type = fields.Enum(LocationType)
     is_auth = fields.Boolean(default=False)
     is_admin = fields.Boolean(default=False)
+    package_name = fields.String()
+    is_package_authorized = fields.Boolean(default=False)
     custom_config = fields.String(default=None)
     proxy_buffering = fields.Enum(ProxyBuffering)
     proxy_buffers = fields.String()
@@ -180,7 +183,7 @@ class Location(Base):
             base_dir=j.core.dirs.BASEDIR,
             location=self,
             threebot_connect=j.core.config.get_config().get(&#34;threebot_connect&#34;, True),
-            https_port=PORTS.HTTPS
+            https_port=PORTS.HTTPS,
         )
 
     def configure(self):
@@ -188,14 +191,161 @@ class Location(Base):
         j.sals.fs.write_file(self.cfg_file, self.get_config())
 
 
+class AcmeServer(Enum):
+    LETSENCRYPT = &#34;letsencrypt&#34;
+    ZEROSSL = &#34;zerossl&#34;
+    CUSTOM = &#34;custom&#34;
+
+
+class Certbot(Base):
+    DEFAULT_NAME = &#34;certbot&#34;
+    DEFAULT_LOGS_DIR = j.sals.fs.join_paths(j.core.dirs.LOGDIR, DEFAULT_NAME)
+    DEFAULT_CONFIG_DIR = j.sals.fs.join_paths(j.core.dirs.CFGDIR, DEFAULT_NAME)
+    DEFAULT_WORK_DIR = j.sals.fs.join_paths(j.core.dirs.VARDIR, DEFAULT_NAME)
+
+    # the following options match the certbot command arguments
+    domain = fields.String(required=True)
+    non_interactive = fields.Boolean(default=True)
+    agree_tos = fields.Boolean(default=True)
+    logs_dir = fields.String(default=DEFAULT_LOGS_DIR)
+    config_dir = fields.String(default=DEFAULT_CONFIG_DIR)
+    work_dir = fields.String(default=DEFAULT_WORK_DIR)
+
+    email = fields.Email()
+    server = fields.URL()
+    eab_kid = fields.String()
+    eab_hmac_key = fields.String()
+
+    # for existing certificates
+    key_path = fields.String()
+    cert_path = fields.String()
+    fullchain_path = fields.String()
+
+    @property
+    def run_cmd(self):
+        args = [self.DEFAULT_NAME]
+
+        for name, value in self.to_dict().items():
+            if name.endswith(&#34;_&#34;):
+                continue
+
+            if value:
+                # append only if the field has a value
+                name = name.replace(&#34;_&#34;, &#34;-&#34;)
+                args.append(f&#34;--{name}&#34;)
+
+                # append the value itself only if it&#39;s a boolean value
+                # boolean options are set by adding name only
+                if not isinstance(value, bool):
+                    args.append(value)
+
+        return args
+
+    @property
+    def install_cmd(self):
+        # replace &#34;certbot&#34; with &#34;certbot install&#34;
+        cmd = self.run_cmd
+        cmd.insert(1, &#34;install&#34;)
+        return cmd
+
+    @property
+    def renew_cmd(self):
+        # replace &#34;certbot&#34; with &#34;certbot install&#34;
+        renew_certbot = Certbot(work_dir=self.work_dir, config_dir=self.config_dir, logs_dir=self.logs_dir, domain=&#34;&#34;)
+        cmd = renew_certbot.run_cmd
+        cmd.insert(1, &#34;renew&#34;)
+        return cmd
+
+
+class NginxCertbot(Certbot):
+    nginx_server_root = fields.String(required=True)
+    nginx = fields.Boolean(default=True)
+
+
+class LetsencryptCertbot(NginxCertbot):
+    &#34;&#34;&#34;
+    default installation is for let&#39;s encrypt (manual plugin), no need for other options
+
+    currently, we support only email
+    &#34;&#34;&#34;
+
+    # change required value to True here
+    email = fields.Email(required=True)
+
+
+class ZerosslCertbot(NginxCertbot):
+    SERVER_URL = &#34;https://acme.zerossl.com/v2/DV90&#34;
+    KEY_CREDENTIALS_URL = &#34;https://api.zerossl.com/acme/eab-credentials&#34;
+    EMAIL_CREDENTIALS_URL = &#34;https://api.zerossl.com/acme/eab-credentials-email&#34;
+
+    api_key_ = fields.Secret()
+    server = fields.URL(default=SERVER_URL)
+
+    @property
+    def run_cmd(self):
+        # get eab_kid and eab_hmac_key based on email or api_key_
+        if not self.email and not self.api_key_:
+            raise Input(&#34;email or api_key_ must be provided&#34;)
+
+        # set them to get the full run-cmd with correct arguments
+        if self.api_key_:
+            resp = j.tools.http.post(self.KEY_CREDENTIALS_URL, params={&#34;access_key&#34;: self.api_key_})
+        else:
+            resp = j.tools.http.post(self.EMAIL_CREDENTIALS_URL, data={&#34;email&#34;: self.email})
+
+        resp.raise_for_status()
+        data = resp.json()
+
+        self.eab_kid = data[&#34;eab_kid&#34;]
+        self.eab_hmac_key = data[&#34;eab_hmac_key&#34;]
+
+        return super().run_cmd
+
+
+class CustomCertbot(NginxCertbot):
+    # change email and server required value to True here
+    email = fields.Email(required=True)
+    server = fields.URL(required=True)
+
+
 class Website(Base):
     domain = fields.String()
     ssl = fields.Boolean()
     port = fields.Integer(default=PORTS.HTTP)
-    locations = fields.Factory(Location)
+    locations = fields.Factory(Location, stored=False)
     includes = fields.List(fields.String())
-    letsencryptemail = fields.String()
+
     selfsigned = fields.Boolean(default=True)
+
+    # keep it as letsencryptemail for compatibility
+    letsencryptemail = fields.String()
+    acme_server_type = fields.Enum(AcmeServer)
+    acme_server_url = fields.URL()
+    # in case of using existing key/certificate
+    key_path = fields.String()
+    cert_path = fields.String()
+    fullchain_path = fields.String()
+
+    @property
+    def certbot(self):
+        kwargs = dict(
+            domain=self.domain,
+            email=self.letsencryptemail,
+            server=self.acme_server_url,
+            nginx_server_root=self.parent.cfg_dir,
+            key_path=self.key_path,
+            cert_path=self.cert_path,
+            fullchain_path=self.fullchain_path,
+        )
+
+        if self.acme_server_type == AcmeServer.LETSENCRYPT:
+            certbot_type = LetsencryptCertbot
+        elif self.acme_server_type == AcmeServer.ZEROSSL:
+            certbot_type = ZerosslCertbot
+        else:
+            certbot_type = CustomCertbot
+
+        return certbot_type(**kwargs)
 
     @property
     def cfg_dir(self):
@@ -240,18 +390,43 @@ class Website(Base):
     def get_config(self):
         return render_config_template(&#34;website&#34;, base_dir=j.core.dirs.BASEDIR, website=self)
 
-    def generate_certificates(self):
+    def generate_certificates(self, retries=6):
         if self.domain:
-            rc, out, err = j.sals.process.execute(
-                f&#34;certbot --nginx -d {self.domain} &#34;
-                f&#34;--non-interactive --agree-tos -m {self.letsencryptemail} &#34;
-                f&#34;--nginx-server-root {self.parent.cfg_dir} &#34;
-                f&#34;--logs-dir {j.core.dirs.LOGDIR}/certbot &#34;
-                f&#34;--config-dir {j.core.dirs.CFGDIR}/certbot &#34;
-                f&#34;--work-dir {j.core.dirs.VARDIR}/certbot &#34;
-            )
+            if self.key_path and self.cert_path and self.fullchain_path:
+                # only use install command if an existing key and certificate were set
+                self.install_certifcate()
+            else:
+                self.obtain_and_install_certifcate(retries=retries)
+
+    def install_certifcate(self):
+        &#34;&#34;&#34;Construct and Execute install certificate command
+        Alternative to certbot install
+
+        &#34;&#34;&#34;
+        cmd = self.certbot.install_cmd
+        j.logger.debug(f&#34;Execute: {&#39; &#39;.join(cmd)}&#34;)
+        rc, out, err = j.sals.process.execute(cmd)
+        if rc &gt; 0:
+            j.logger.error(f&#34;Installing certificate failed {out}\n{err}&#34;)
+        else:
+            j.logger.info(f&#34;Certificate installed successfully {out}&#34;)
+
+    def obtain_and_install_certifcate(self, retries=6):
+        &#34;&#34;&#34;Construct and Execute run certificate command,This will issue a new certificate managed by Certbot
+        Alternative to certbot run
+
+        Args:
+            retries (int, optional): Number of retries Certbot will try to install the certificate if failed. Defaults to 6.
+        &#34;&#34;&#34;
+        cmd = self.certbot.run_cmd
+        j.logger.debug(f&#34;Execute: {&#39; &#39;.join(cmd)}&#34;)
+        for _ in range(retries):
+            rc, out, err = j.sals.process.execute(cmd)
             if rc &gt; 0:
                 j.logger.error(f&#34;Generating certificate failed {out}\n{err}&#34;)
+            else:
+                j.logger.error(f&#34;Certificate Generated successfully {out}&#34;)
+                break
 
     def generate_self_signed_certificates(self):
         keypempath = f&#34;{self.parent.cfg_dir}/key.pem&#34;
@@ -281,9 +456,9 @@ class Website(Base):
             location.configure()
 
         j.sals.fs.write_file(self.cfg_file, self.get_config())
-
-        if generate_certificates and self.ssl:
+        if self.ssl:
             self.generate_self_signed_certificates()
+        if generate_certificates and self.ssl:
             self.generate_certificates()
 
     def clean(self):
@@ -291,7 +466,8 @@ class Website(Base):
 
 
 class NginxConfig(Base):
-    websites = fields.Factory(Website)
+    websites = fields.Factory(Website, stored=False)
+    cert = fields.Boolean(default=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -319,8 +495,7 @@ class NginxConfig(Base):
         return self._logs_dir
 
     def configure(self):
-        &#34;&#34;&#34;configures main nginx conf
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;configures main nginx conf&#34;&#34;&#34;
         self.clean()
         j.sals.fs.mkdir(self.cfg_dir)
         user = j.sals.unix.get_current_pwd()
@@ -364,6 +539,680 @@ class NginxConfig(Base):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="jumpscale.sals.nginx.nginx.AcmeServer"><code class="flex name class">
+<span>class <span class="ident">AcmeServer</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class AcmeServer(Enum):
+    LETSENCRYPT = &#34;letsencrypt&#34;
+    ZEROSSL = &#34;zerossl&#34;
+    CUSTOM = &#34;custom&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="jumpscale.sals.nginx.nginx.AcmeServer.CUSTOM"><code class="name">var <span class="ident">CUSTOM</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.AcmeServer.LETSENCRYPT"><code class="name">var <span class="ident">LETSENCRYPT</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.AcmeServer.ZEROSSL"><code class="name">var <span class="ident">ZEROSSL</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot"><code class="flex name class">
+<span>class <span class="ident">Certbot</span></span>
+<span>(</span><span>parent_=None, instance_name_=None, **values)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="language-python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Certbot(Base):
+    DEFAULT_NAME = &#34;certbot&#34;
+    DEFAULT_LOGS_DIR = j.sals.fs.join_paths(j.core.dirs.LOGDIR, DEFAULT_NAME)
+    DEFAULT_CONFIG_DIR = j.sals.fs.join_paths(j.core.dirs.CFGDIR, DEFAULT_NAME)
+    DEFAULT_WORK_DIR = j.sals.fs.join_paths(j.core.dirs.VARDIR, DEFAULT_NAME)
+
+    # the following options match the certbot command arguments
+    domain = fields.String(required=True)
+    non_interactive = fields.Boolean(default=True)
+    agree_tos = fields.Boolean(default=True)
+    logs_dir = fields.String(default=DEFAULT_LOGS_DIR)
+    config_dir = fields.String(default=DEFAULT_CONFIG_DIR)
+    work_dir = fields.String(default=DEFAULT_WORK_DIR)
+
+    email = fields.Email()
+    server = fields.URL()
+    eab_kid = fields.String()
+    eab_hmac_key = fields.String()
+
+    # for existing certificates
+    key_path = fields.String()
+    cert_path = fields.String()
+    fullchain_path = fields.String()
+
+    @property
+    def run_cmd(self):
+        args = [self.DEFAULT_NAME]
+
+        for name, value in self.to_dict().items():
+            if name.endswith(&#34;_&#34;):
+                continue
+
+            if value:
+                # append only if the field has a value
+                name = name.replace(&#34;_&#34;, &#34;-&#34;)
+                args.append(f&#34;--{name}&#34;)
+
+                # append the value itself only if it&#39;s a boolean value
+                # boolean options are set by adding name only
+                if not isinstance(value, bool):
+                    args.append(value)
+
+        return args
+
+    @property
+    def install_cmd(self):
+        # replace &#34;certbot&#34; with &#34;certbot install&#34;
+        cmd = self.run_cmd
+        cmd.insert(1, &#34;install&#34;)
+        return cmd
+
+    @property
+    def renew_cmd(self):
+        # replace &#34;certbot&#34; with &#34;certbot install&#34;
+        renew_certbot = Certbot(work_dir=self.work_dir, config_dir=self.config_dir, logs_dir=self.logs_dir, domain=&#34;&#34;)
+        cmd = renew_certbot.run_cmd
+        cmd.insert(1, &#34;renew&#34;)
+        return cmd</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_CONFIG_DIR"><code class="name">var <span class="ident">DEFAULT_CONFIG_DIR</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_LOGS_DIR"><code class="name">var <span class="ident">DEFAULT_LOGS_DIR</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_NAME"><code class="name">var <span class="ident">DEFAULT_NAME</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_WORK_DIR"><code class="name">var <span class="ident">DEFAULT_WORK_DIR</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.agree_tos"><code class="name">var <span class="ident">agree_tos</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.cert_path"><code class="name">var <span class="ident">cert_path</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.config_dir"><code class="name">var <span class="ident">config_dir</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.domain"><code class="name">var <span class="ident">domain</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key"><code class="name">var <span class="ident">eab_hmac_key</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.eab_kid"><code class="name">var <span class="ident">eab_kid</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.email"><code class="name">var <span class="ident">email</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.fullchain_path"><code class="name">var <span class="ident">fullchain_path</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.install_cmd"><code class="name">var <span class="ident">install_cmd</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def install_cmd(self):
+    # replace &#34;certbot&#34; with &#34;certbot install&#34;
+    cmd = self.run_cmd
+    cmd.insert(1, &#34;install&#34;)
+    return cmd</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.key_path"><code class="name">var <span class="ident">key_path</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.logs_dir"><code class="name">var <span class="ident">logs_dir</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.non_interactive"><code class="name">var <span class="ident">non_interactive</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.renew_cmd"><code class="name">var <span class="ident">renew_cmd</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def renew_cmd(self):
+    # replace &#34;certbot&#34; with &#34;certbot install&#34;
+    renew_certbot = Certbot(work_dir=self.work_dir, config_dir=self.config_dir, logs_dir=self.logs_dir, domain=&#34;&#34;)
+    cmd = renew_certbot.run_cmd
+    cmd.insert(1, &#34;renew&#34;)
+    return cmd</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.run_cmd"><code class="name">var <span class="ident">run_cmd</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def run_cmd(self):
+    args = [self.DEFAULT_NAME]
+
+    for name, value in self.to_dict().items():
+        if name.endswith(&#34;_&#34;):
+            continue
+
+        if value:
+            # append only if the field has a value
+            name = name.replace(&#34;_&#34;, &#34;-&#34;)
+            args.append(f&#34;--{name}&#34;)
+
+            # append the value itself only if it&#39;s a boolean value
+            # boolean options are set by adding name only
+            if not isinstance(value, bool):
+                args.append(value)
+
+    return args</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.server"><code class="name">var <span class="ident">server</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.work_dir"><code class="name">var <span class="ident">work_dir</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.core.base.meta.Base.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.core.base.meta.Base.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.core.base.meta.Base.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.CustomCertbot"><code class="flex name class">
+<span>class <span class="ident">CustomCertbot</span></span>
+<span>(</span><span>parent_=None, instance_name_=None, **values)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="language-python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class CustomCertbot(NginxCertbot):
+    # change email and server required value to True here
+    email = fields.Email(required=True)
+    server = fields.URL(required=True)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></li>
+<li><a title="jumpscale.sals.nginx.nginx.Certbot" href="#jumpscale.sals.nginx.nginx.Certbot">Certbot</a></li>
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.agree_tos" href="#jumpscale.sals.nginx.nginx.Certbot.agree_tos">agree_tos</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.cert_path" href="#jumpscale.sals.nginx.nginx.Certbot.cert_path">cert_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.config_dir" href="#jumpscale.sals.nginx.nginx.Certbot.config_dir">config_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.domain" href="#jumpscale.sals.nginx.nginx.Certbot.domain">domain</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.eab_hmac_key" href="#jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key">eab_hmac_key</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.eab_kid" href="#jumpscale.sals.nginx.nginx.Certbot.eab_kid">eab_kid</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.email" href="#jumpscale.sals.nginx.nginx.Certbot.email">email</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.fullchain_path" href="#jumpscale.sals.nginx.nginx.Certbot.fullchain_path">fullchain_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.key_path" href="#jumpscale.sals.nginx.nginx.Certbot.key_path">key_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.logs_dir" href="#jumpscale.sals.nginx.nginx.Certbot.logs_dir">logs_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx">nginx</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root">nginx_server_root</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.non_interactive" href="#jumpscale.sals.nginx.nginx.Certbot.non_interactive">non_interactive</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.server" href="#jumpscale.sals.nginx.nginx.Certbot.server">server</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.work_dir" href="#jumpscale.sals.nginx.nginx.Certbot.work_dir">work_dir</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.LetsencryptCertbot"><code class="flex name class">
+<span>class <span class="ident">LetsencryptCertbot</span></span>
+<span>(</span><span>parent_=None, instance_name_=None, **values)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>default installation is for let's encrypt (manual plugin), no need for other options</p>
+<p>currently, we support only email</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="language-python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class LetsencryptCertbot(NginxCertbot):
+    &#34;&#34;&#34;
+    default installation is for let&#39;s encrypt (manual plugin), no need for other options
+
+    currently, we support only email
+    &#34;&#34;&#34;
+
+    # change required value to True here
+    email = fields.Email(required=True)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></li>
+<li><a title="jumpscale.sals.nginx.nginx.Certbot" href="#jumpscale.sals.nginx.nginx.Certbot">Certbot</a></li>
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.agree_tos" href="#jumpscale.sals.nginx.nginx.Certbot.agree_tos">agree_tos</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.cert_path" href="#jumpscale.sals.nginx.nginx.Certbot.cert_path">cert_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.config_dir" href="#jumpscale.sals.nginx.nginx.Certbot.config_dir">config_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.domain" href="#jumpscale.sals.nginx.nginx.Certbot.domain">domain</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.eab_hmac_key" href="#jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key">eab_hmac_key</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.eab_kid" href="#jumpscale.sals.nginx.nginx.Certbot.eab_kid">eab_kid</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.email" href="#jumpscale.sals.nginx.nginx.Certbot.email">email</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.fullchain_path" href="#jumpscale.sals.nginx.nginx.Certbot.fullchain_path">fullchain_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.key_path" href="#jumpscale.sals.nginx.nginx.Certbot.key_path">key_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.logs_dir" href="#jumpscale.sals.nginx.nginx.Certbot.logs_dir">logs_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx">nginx</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root">nginx_server_root</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.non_interactive" href="#jumpscale.sals.nginx.nginx.Certbot.non_interactive">non_interactive</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.server" href="#jumpscale.sals.nginx.nginx.Certbot.server">server</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.work_dir" href="#jumpscale.sals.nginx.nginx.Certbot.work_dir">work_dir</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="jumpscale.sals.nginx.nginx.Location"><code class="flex name class">
 <span>class <span class="ident">Location</span></span>
 <span>(</span><span>parent_=None, instance_name_=None, **values)</span>
@@ -373,7 +1222,7 @@ class NginxConfig(Base):
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -406,6 +1255,8 @@ print(p.name, p.age)
     location_type = fields.Enum(LocationType)
     is_auth = fields.Boolean(default=False)
     is_admin = fields.Boolean(default=False)
+    package_name = fields.String()
+    is_package_authorized = fields.Boolean(default=False)
     custom_config = fields.String(default=None)
     proxy_buffering = fields.Enum(ProxyBuffering)
     proxy_buffers = fields.String()
@@ -425,7 +1276,7 @@ print(p.name, p.age)
             base_dir=j.core.dirs.BASEDIR,
             location=self,
             threebot_connect=j.core.config.get_config().get(&#34;threebot_connect&#34;, True),
-            https_port=PORTS.HTTPS
+            https_port=PORTS.HTTPS,
         )
 
     def configure(self):
@@ -609,7 +1460,57 @@ and will get the default value if not</p>
     return self._get_value(name, field)</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.sals.nginx.nginx.Location.is_package_authorized"><code class="name">var <span class="ident">is_package_authorized</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.location_type"><code class="name">var <span class="ident">location_type</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Location.package_name"><code class="name">var <span class="ident">package_name</span></code></dt>
 <dd>
 <section class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
@@ -912,7 +1813,7 @@ and will get the default value if not</p>
         base_dir=j.core.dirs.BASEDIR,
         location=self,
         threebot_connect=j.core.config.get_config().get(&#34;threebot_connect&#34;, True),
-        https_port=PORTS.HTTPS
+        https_port=PORTS.HTTPS,
     )</code></pre>
 </details>
 </dd>
@@ -961,6 +1862,126 @@ and will get the default value if not</p>
 </dd>
 </dl>
 </dd>
+<dt id="jumpscale.sals.nginx.nginx.NginxCertbot"><code class="flex name class">
+<span>class <span class="ident">NginxCertbot</span></span>
+<span>(</span><span>parent_=None, instance_name_=None, **values)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="language-python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class NginxCertbot(Certbot):
+    nginx_server_root = fields.String(required=True)
+    nginx = fields.Boolean(default=True)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.nginx.nginx.Certbot" href="#jumpscale.sals.nginx.nginx.Certbot">Certbot</a></li>
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.nginx.nginx.LetsencryptCertbot" href="#jumpscale.sals.nginx.nginx.LetsencryptCertbot">LetsencryptCertbot</a></li>
+<li><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot">ZerosslCertbot</a></li>
+<li><a title="jumpscale.sals.nginx.nginx.CustomCertbot" href="#jumpscale.sals.nginx.nginx.CustomCertbot">CustomCertbot</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.sals.nginx.nginx.NginxCertbot.nginx"><code class="name">var <span class="ident">nginx</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root"><code class="name">var <span class="ident">nginx_server_root</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.sals.nginx.nginx.Certbot" href="#jumpscale.sals.nginx.nginx.Certbot">Certbot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.agree_tos" href="#jumpscale.sals.nginx.nginx.Certbot.agree_tos">agree_tos</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.cert_path" href="#jumpscale.sals.nginx.nginx.Certbot.cert_path">cert_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.config_dir" href="#jumpscale.sals.nginx.nginx.Certbot.config_dir">config_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.domain" href="#jumpscale.sals.nginx.nginx.Certbot.domain">domain</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key" href="#jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key">eab_hmac_key</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.eab_kid" href="#jumpscale.sals.nginx.nginx.Certbot.eab_kid">eab_kid</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.email" href="#jumpscale.sals.nginx.nginx.Certbot.email">email</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.fullchain_path" href="#jumpscale.sals.nginx.nginx.Certbot.fullchain_path">fullchain_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.key_path" href="#jumpscale.sals.nginx.nginx.Certbot.key_path">key_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.logs_dir" href="#jumpscale.sals.nginx.nginx.Certbot.logs_dir">logs_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.non_interactive" href="#jumpscale.sals.nginx.nginx.Certbot.non_interactive">non_interactive</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.server" href="#jumpscale.sals.nginx.nginx.Certbot.server">server</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.work_dir" href="#jumpscale.sals.nginx.nginx.Certbot.work_dir">work_dir</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="jumpscale.sals.nginx.nginx.NginxConfig"><code class="flex name class">
 <span>class <span class="ident">NginxConfig</span></span>
 <span>(</span><span>*args, **kwargs)</span>
@@ -970,7 +1991,7 @@ and will get the default value if not</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -989,7 +2010,8 @@ print(p.name, p.age)
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class NginxConfig(Base):
-    websites = fields.Factory(Website)
+    websites = fields.Factory(Website, stored=False)
+    cert = fields.Boolean(default=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1017,8 +2039,7 @@ print(p.name, p.age)
         return self._logs_dir
 
     def configure(self):
-        &#34;&#34;&#34;configures main nginx conf
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;configures main nginx conf&#34;&#34;&#34;
         self.clean()
         j.sals.fs.mkdir(self.cfg_dir)
         user = j.sals.unix.get_current_pwd()
@@ -1059,6 +2080,31 @@ print(p.name, p.age)
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="jumpscale.sals.nginx.nginx.NginxConfig.cert"><code class="name">var <span class="ident">cert</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.sals.nginx.nginx.NginxConfig.cfg_dir"><code class="name">var <span class="ident">cfg_dir</span></code></dt>
 <dd>
 <section class="desc"></section>
@@ -1142,8 +2188,7 @@ and will get the default value if not</p>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def configure(self):
-    &#34;&#34;&#34;configures main nginx conf
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;configures main nginx conf&#34;&#34;&#34;
     self.clean()
     j.sals.fs.mkdir(self.cfg_dir)
     user = j.sals.unix.get_current_pwd()
@@ -1304,7 +2349,7 @@ def init_default_ports(cls, local=False):
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -1326,10 +2371,40 @@ print(p.name, p.age)
     domain = fields.String()
     ssl = fields.Boolean()
     port = fields.Integer(default=PORTS.HTTP)
-    locations = fields.Factory(Location)
+    locations = fields.Factory(Location, stored=False)
     includes = fields.List(fields.String())
-    letsencryptemail = fields.String()
+
     selfsigned = fields.Boolean(default=True)
+
+    # keep it as letsencryptemail for compatibility
+    letsencryptemail = fields.String()
+    acme_server_type = fields.Enum(AcmeServer)
+    acme_server_url = fields.URL()
+    # in case of using existing key/certificate
+    key_path = fields.String()
+    cert_path = fields.String()
+    fullchain_path = fields.String()
+
+    @property
+    def certbot(self):
+        kwargs = dict(
+            domain=self.domain,
+            email=self.letsencryptemail,
+            server=self.acme_server_url,
+            nginx_server_root=self.parent.cfg_dir,
+            key_path=self.key_path,
+            cert_path=self.cert_path,
+            fullchain_path=self.fullchain_path,
+        )
+
+        if self.acme_server_type == AcmeServer.LETSENCRYPT:
+            certbot_type = LetsencryptCertbot
+        elif self.acme_server_type == AcmeServer.ZEROSSL:
+            certbot_type = ZerosslCertbot
+        else:
+            certbot_type = CustomCertbot
+
+        return certbot_type(**kwargs)
 
     @property
     def cfg_dir(self):
@@ -1374,18 +2449,43 @@ print(p.name, p.age)
     def get_config(self):
         return render_config_template(&#34;website&#34;, base_dir=j.core.dirs.BASEDIR, website=self)
 
-    def generate_certificates(self):
+    def generate_certificates(self, retries=6):
         if self.domain:
-            rc, out, err = j.sals.process.execute(
-                f&#34;certbot --nginx -d {self.domain} &#34;
-                f&#34;--non-interactive --agree-tos -m {self.letsencryptemail} &#34;
-                f&#34;--nginx-server-root {self.parent.cfg_dir} &#34;
-                f&#34;--logs-dir {j.core.dirs.LOGDIR}/certbot &#34;
-                f&#34;--config-dir {j.core.dirs.CFGDIR}/certbot &#34;
-                f&#34;--work-dir {j.core.dirs.VARDIR}/certbot &#34;
-            )
+            if self.key_path and self.cert_path and self.fullchain_path:
+                # only use install command if an existing key and certificate were set
+                self.install_certifcate()
+            else:
+                self.obtain_and_install_certifcate(retries=retries)
+
+    def install_certifcate(self):
+        &#34;&#34;&#34;Construct and Execute install certificate command
+        Alternative to certbot install
+
+        &#34;&#34;&#34;
+        cmd = self.certbot.install_cmd
+        j.logger.debug(f&#34;Execute: {&#39; &#39;.join(cmd)}&#34;)
+        rc, out, err = j.sals.process.execute(cmd)
+        if rc &gt; 0:
+            j.logger.error(f&#34;Installing certificate failed {out}\n{err}&#34;)
+        else:
+            j.logger.info(f&#34;Certificate installed successfully {out}&#34;)
+
+    def obtain_and_install_certifcate(self, retries=6):
+        &#34;&#34;&#34;Construct and Execute run certificate command,This will issue a new certificate managed by Certbot
+        Alternative to certbot run
+
+        Args:
+            retries (int, optional): Number of retries Certbot will try to install the certificate if failed. Defaults to 6.
+        &#34;&#34;&#34;
+        cmd = self.certbot.run_cmd
+        j.logger.debug(f&#34;Execute: {&#39; &#39;.join(cmd)}&#34;)
+        for _ in range(retries):
+            rc, out, err = j.sals.process.execute(cmd)
             if rc &gt; 0:
                 j.logger.error(f&#34;Generating certificate failed {out}\n{err}&#34;)
+            else:
+                j.logger.error(f&#34;Certificate Generated successfully {out}&#34;)
+                break
 
     def generate_self_signed_certificates(self):
         keypempath = f&#34;{self.parent.cfg_dir}/key.pem&#34;
@@ -1415,9 +2515,9 @@ print(p.name, p.age)
             location.configure()
 
         j.sals.fs.write_file(self.cfg_file, self.get_config())
-
-        if generate_certificates and self.ssl:
+        if self.ssl:
             self.generate_self_signed_certificates()
+        if generate_certificates and self.ssl:
             self.generate_certificates()
 
     def clean(self):
@@ -1430,6 +2530,108 @@ print(p.name, p.age)
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="jumpscale.sals.nginx.nginx.Website.acme_server_type"><code class="name">var <span class="ident">acme_server_type</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.acme_server_url"><code class="name">var <span class="ident">acme_server_url</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.cert_path"><code class="name">var <span class="ident">cert_path</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.certbot"><code class="name">var <span class="ident">certbot</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def certbot(self):
+    kwargs = dict(
+        domain=self.domain,
+        email=self.letsencryptemail,
+        server=self.acme_server_url,
+        nginx_server_root=self.parent.cfg_dir,
+        key_path=self.key_path,
+        cert_path=self.cert_path,
+        fullchain_path=self.fullchain_path,
+    )
+
+    if self.acme_server_type == AcmeServer.LETSENCRYPT:
+        certbot_type = LetsencryptCertbot
+    elif self.acme_server_type == AcmeServer.ZEROSSL:
+        certbot_type = ZerosslCertbot
+    else:
+        certbot_type = CustomCertbot
+
+    return certbot_type(**kwargs)</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.cfg_dir"><code class="name">var <span class="ident">cfg_dir</span></code></dt>
 <dd>
 <section class="desc"></section>
@@ -1475,6 +2677,31 @@ and will get the default value if not</p>
     return self._get_value(name, field)</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.fullchain_path"><code class="name">var <span class="ident">fullchain_path</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.include_paths"><code class="name">var <span class="ident">include_paths</span></code></dt>
 <dd>
 <section class="desc"></section>
@@ -1495,6 +2722,31 @@ def include_paths(self):
 </details>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.includes"><code class="name">var <span class="ident">includes</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.key_path"><code class="name">var <span class="ident">key_path</span></code></dt>
 <dd>
 <section class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
@@ -1674,31 +2926,26 @@ and will get the default value if not</p>
         location.configure()
 
     j.sals.fs.write_file(self.cfg_file, self.get_config())
-
-    if generate_certificates and self.ssl:
+    if self.ssl:
         self.generate_self_signed_certificates()
+    if generate_certificates and self.ssl:
         self.generate_certificates()</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.generate_certificates"><code class="name flex">
-<span>def <span class="ident">generate_certificates</span></span>(<span>self)</span>
+<span>def <span class="ident">generate_certificates</span></span>(<span>self, retries=6)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def generate_certificates(self):
+<pre><code class="python">def generate_certificates(self, retries=6):
     if self.domain:
-        rc, out, err = j.sals.process.execute(
-            f&#34;certbot --nginx -d {self.domain} &#34;
-            f&#34;--non-interactive --agree-tos -m {self.letsencryptemail} &#34;
-            f&#34;--nginx-server-root {self.parent.cfg_dir} &#34;
-            f&#34;--logs-dir {j.core.dirs.LOGDIR}/certbot &#34;
-            f&#34;--config-dir {j.core.dirs.CFGDIR}/certbot &#34;
-            f&#34;--work-dir {j.core.dirs.VARDIR}/certbot &#34;
-        )
-        if rc &gt; 0:
-            j.logger.error(f&#34;Generating certificate failed {out}\n{err}&#34;)</code></pre>
+        if self.key_path and self.cert_path and self.fullchain_path:
+            # only use install command if an existing key and certificate were set
+            self.install_certifcate()
+        else:
+            self.obtain_and_install_certifcate(retries=retries)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.generate_self_signed_certificates"><code class="name flex">
@@ -1790,6 +3037,59 @@ and will get the default value if not</p>
     return location</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.install_certifcate"><code class="name flex">
+<span>def <span class="ident">install_certifcate</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Construct and Execute install certificate command
+Alternative to certbot install</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def install_certifcate(self):
+    &#34;&#34;&#34;Construct and Execute install certificate command
+    Alternative to certbot install
+
+    &#34;&#34;&#34;
+    cmd = self.certbot.install_cmd
+    j.logger.debug(f&#34;Execute: {&#39; &#39;.join(cmd)}&#34;)
+    rc, out, err = j.sals.process.execute(cmd)
+    if rc &gt; 0:
+        j.logger.error(f&#34;Installing certificate failed {out}\n{err}&#34;)
+    else:
+        j.logger.info(f&#34;Certificate installed successfully {out}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.obtain_and_install_certifcate"><code class="name flex">
+<span>def <span class="ident">obtain_and_install_certifcate</span></span>(<span>self, retries=6)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Construct and Execute run certificate command,This will issue a new certificate managed by Certbot
+Alternative to certbot run</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>retries</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Number of retries Certbot will try to install the certificate if failed. Defaults to 6.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def obtain_and_install_certifcate(self, retries=6):
+    &#34;&#34;&#34;Construct and Execute run certificate command,This will issue a new certificate managed by Certbot
+    Alternative to certbot run
+
+    Args:
+        retries (int, optional): Number of retries Certbot will try to install the certificate if failed. Defaults to 6.
+    &#34;&#34;&#34;
+    cmd = self.certbot.run_cmd
+    j.logger.debug(f&#34;Execute: {&#39; &#39;.join(cmd)}&#34;)
+    for _ in range(retries):
+        rc, out, err = j.sals.process.execute(cmd)
+        if rc &gt; 0:
+            j.logger.error(f&#34;Generating certificate failed {out}\n{err}&#34;)
+        else:
+            j.logger.error(f&#34;Certificate Generated successfully {out}&#34;)
+            break</code></pre>
+</details>
+</dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -1798,6 +3098,163 @@ and will get the default value if not</p>
 <li><code><a title="jumpscale.core.base.meta.Base.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
 <li><code><a title="jumpscale.core.base.meta.Base.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
 <li><code><a title="jumpscale.core.base.meta.Base.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.ZerosslCertbot"><code class="flex name class">
+<span>class <span class="ident">ZerosslCertbot</span></span>
+<span>(</span><span>parent_=None, instance_name_=None, **values)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="language-python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class ZerosslCertbot(NginxCertbot):
+    SERVER_URL = &#34;https://acme.zerossl.com/v2/DV90&#34;
+    KEY_CREDENTIALS_URL = &#34;https://api.zerossl.com/acme/eab-credentials&#34;
+    EMAIL_CREDENTIALS_URL = &#34;https://api.zerossl.com/acme/eab-credentials-email&#34;
+
+    api_key_ = fields.Secret()
+    server = fields.URL(default=SERVER_URL)
+
+    @property
+    def run_cmd(self):
+        # get eab_kid and eab_hmac_key based on email or api_key_
+        if not self.email and not self.api_key_:
+            raise Input(&#34;email or api_key_ must be provided&#34;)
+
+        # set them to get the full run-cmd with correct arguments
+        if self.api_key_:
+            resp = j.tools.http.post(self.KEY_CREDENTIALS_URL, params={&#34;access_key&#34;: self.api_key_})
+        else:
+            resp = j.tools.http.post(self.EMAIL_CREDENTIALS_URL, data={&#34;email&#34;: self.email})
+
+        resp.raise_for_status()
+        data = resp.json()
+
+        self.eab_kid = data[&#34;eab_kid&#34;]
+        self.eab_hmac_key = data[&#34;eab_hmac_key&#34;]
+
+        return super().run_cmd</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></li>
+<li><a title="jumpscale.sals.nginx.nginx.Certbot" href="#jumpscale.sals.nginx.nginx.Certbot">Certbot</a></li>
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="jumpscale.sals.nginx.nginx.ZerosslCertbot.EMAIL_CREDENTIALS_URL"><code class="name">var <span class="ident">EMAIL_CREDENTIALS_URL</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.ZerosslCertbot.KEY_CREDENTIALS_URL"><code class="name">var <span class="ident">KEY_CREDENTIALS_URL</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.ZerosslCertbot.SERVER_URL"><code class="name">var <span class="ident">SERVER_URL</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.sals.nginx.nginx.ZerosslCertbot.api_key_"><code class="name">var <span class="ident">api_key_</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.ZerosslCertbot.run_cmd"><code class="name">var <span class="ident">run_cmd</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def run_cmd(self):
+    # get eab_kid and eab_hmac_key based on email or api_key_
+    if not self.email and not self.api_key_:
+        raise Input(&#34;email or api_key_ must be provided&#34;)
+
+    # set them to get the full run-cmd with correct arguments
+    if self.api_key_:
+        resp = j.tools.http.post(self.KEY_CREDENTIALS_URL, params={&#34;access_key&#34;: self.api_key_})
+    else:
+        resp = j.tools.http.post(self.EMAIL_CREDENTIALS_URL, data={&#34;email&#34;: self.email})
+
+    resp.raise_for_status()
+    data = resp.json()
+
+    self.eab_kid = data[&#34;eab_kid&#34;]
+    self.eab_hmac_key = data[&#34;eab_hmac_key&#34;]
+
+    return super().run_cmd</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.agree_tos" href="#jumpscale.sals.nginx.nginx.Certbot.agree_tos">agree_tos</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.cert_path" href="#jumpscale.sals.nginx.nginx.Certbot.cert_path">cert_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.config_dir" href="#jumpscale.sals.nginx.nginx.Certbot.config_dir">config_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.domain" href="#jumpscale.sals.nginx.nginx.Certbot.domain">domain</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.eab_hmac_key" href="#jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key">eab_hmac_key</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.eab_kid" href="#jumpscale.sals.nginx.nginx.Certbot.eab_kid">eab_kid</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.email" href="#jumpscale.sals.nginx.nginx.Certbot.email">email</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.fullchain_path" href="#jumpscale.sals.nginx.nginx.Certbot.fullchain_path">fullchain_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.key_path" href="#jumpscale.sals.nginx.nginx.Certbot.key_path">key_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.logs_dir" href="#jumpscale.sals.nginx.nginx.Certbot.logs_dir">logs_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx">nginx</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root">nginx_server_root</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.non_interactive" href="#jumpscale.sals.nginx.nginx.Certbot.non_interactive">non_interactive</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.server" href="#jumpscale.sals.nginx.nginx.Certbot.server">server</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.work_dir" href="#jumpscale.sals.nginx.nginx.Certbot.work_dir">work_dir</a></code></li>
 </ul>
 </li>
 </ul>
@@ -1825,8 +3282,47 @@ and will get the default value if not</p>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="jumpscale.sals.nginx.nginx.Location" href="#jumpscale.sals.nginx.nginx.Location">Location</a></code></h4>
+<h4><code><a title="jumpscale.sals.nginx.nginx.AcmeServer" href="#jumpscale.sals.nginx.nginx.AcmeServer">AcmeServer</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.sals.nginx.nginx.AcmeServer.CUSTOM" href="#jumpscale.sals.nginx.nginx.AcmeServer.CUSTOM">CUSTOM</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.AcmeServer.LETSENCRYPT" href="#jumpscale.sals.nginx.nginx.AcmeServer.LETSENCRYPT">LETSENCRYPT</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.AcmeServer.ZEROSSL" href="#jumpscale.sals.nginx.nginx.AcmeServer.ZEROSSL">ZEROSSL</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.nginx.nginx.Certbot" href="#jumpscale.sals.nginx.nginx.Certbot">Certbot</a></code></h4>
 <ul class="two-column">
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_CONFIG_DIR" href="#jumpscale.sals.nginx.nginx.Certbot.DEFAULT_CONFIG_DIR">DEFAULT_CONFIG_DIR</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_LOGS_DIR" href="#jumpscale.sals.nginx.nginx.Certbot.DEFAULT_LOGS_DIR">DEFAULT_LOGS_DIR</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_NAME" href="#jumpscale.sals.nginx.nginx.Certbot.DEFAULT_NAME">DEFAULT_NAME</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_WORK_DIR" href="#jumpscale.sals.nginx.nginx.Certbot.DEFAULT_WORK_DIR">DEFAULT_WORK_DIR</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.agree_tos" href="#jumpscale.sals.nginx.nginx.Certbot.agree_tos">agree_tos</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.cert_path" href="#jumpscale.sals.nginx.nginx.Certbot.cert_path">cert_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.config_dir" href="#jumpscale.sals.nginx.nginx.Certbot.config_dir">config_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.domain" href="#jumpscale.sals.nginx.nginx.Certbot.domain">domain</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key" href="#jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key">eab_hmac_key</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.eab_kid" href="#jumpscale.sals.nginx.nginx.Certbot.eab_kid">eab_kid</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.email" href="#jumpscale.sals.nginx.nginx.Certbot.email">email</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.fullchain_path" href="#jumpscale.sals.nginx.nginx.Certbot.fullchain_path">fullchain_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.install_cmd" href="#jumpscale.sals.nginx.nginx.Certbot.install_cmd">install_cmd</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.key_path" href="#jumpscale.sals.nginx.nginx.Certbot.key_path">key_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.logs_dir" href="#jumpscale.sals.nginx.nginx.Certbot.logs_dir">logs_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.non_interactive" href="#jumpscale.sals.nginx.nginx.Certbot.non_interactive">non_interactive</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.renew_cmd" href="#jumpscale.sals.nginx.nginx.Certbot.renew_cmd">renew_cmd</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.run_cmd" href="#jumpscale.sals.nginx.nginx.Certbot.run_cmd">run_cmd</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.server" href="#jumpscale.sals.nginx.nginx.Certbot.server">server</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.work_dir" href="#jumpscale.sals.nginx.nginx.Certbot.work_dir">work_dir</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.nginx.nginx.CustomCertbot" href="#jumpscale.sals.nginx.nginx.CustomCertbot">CustomCertbot</a></code></h4>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.nginx.nginx.LetsencryptCertbot" href="#jumpscale.sals.nginx.nginx.LetsencryptCertbot">LetsencryptCertbot</a></code></h4>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.nginx.nginx.Location" href="#jumpscale.sals.nginx.nginx.Location">Location</a></code></h4>
+<ul class="">
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.cfg_dir" href="#jumpscale.sals.nginx.nginx.Location.cfg_dir">cfg_dir</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.cfg_file" href="#jumpscale.sals.nginx.nginx.Location.cfg_file">cfg_file</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.configure" href="#jumpscale.sals.nginx.nginx.Location.configure">configure</a></code></li>
@@ -1837,7 +3333,9 @@ and will get the default value if not</p>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.index" href="#jumpscale.sals.nginx.nginx.Location.index">index</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.is_admin" href="#jumpscale.sals.nginx.nginx.Location.is_admin">is_admin</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.is_auth" href="#jumpscale.sals.nginx.nginx.Location.is_auth">is_auth</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Location.is_package_authorized" href="#jumpscale.sals.nginx.nginx.Location.is_package_authorized">is_package_authorized</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.location_type" href="#jumpscale.sals.nginx.nginx.Location.location_type">location_type</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Location.package_name" href="#jumpscale.sals.nginx.nginx.Location.package_name">package_name</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.path_dest" href="#jumpscale.sals.nginx.nginx.Location.path_dest">path_dest</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.path_location" href="#jumpscale.sals.nginx.nginx.Location.path_location">path_location</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.path_url" href="#jumpscale.sals.nginx.nginx.Location.path_url">path_url</a></code></li>
@@ -1859,8 +3357,16 @@ and will get the default value if not</p>
 </ul>
 </li>
 <li>
+<h4><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx">nginx</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root">nginx_server_root</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="jumpscale.sals.nginx.nginx.NginxConfig" href="#jumpscale.sals.nginx.nginx.NginxConfig">NginxConfig</a></code></h4>
 <ul class="two-column">
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxConfig.cert" href="#jumpscale.sals.nginx.nginx.NginxConfig.cert">cert</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.NginxConfig.cfg_dir" href="#jumpscale.sals.nginx.nginx.NginxConfig.cfg_dir">cfg_dir</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.NginxConfig.cfg_file" href="#jumpscale.sals.nginx.nginx.NginxConfig.cfg_file">cfg_file</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.NginxConfig.clean" href="#jumpscale.sals.nginx.nginx.NginxConfig.clean">clean</a></code></li>
@@ -1889,11 +3395,16 @@ and will get the default value if not</p>
 <li>
 <h4><code><a title="jumpscale.sals.nginx.nginx.Website" href="#jumpscale.sals.nginx.nginx.Website">Website</a></code></h4>
 <ul class="">
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.acme_server_type" href="#jumpscale.sals.nginx.nginx.Website.acme_server_type">acme_server_type</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.acme_server_url" href="#jumpscale.sals.nginx.nginx.Website.acme_server_url">acme_server_url</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.cert_path" href="#jumpscale.sals.nginx.nginx.Website.cert_path">cert_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.certbot" href="#jumpscale.sals.nginx.nginx.Website.certbot">certbot</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.cfg_dir" href="#jumpscale.sals.nginx.nginx.Website.cfg_dir">cfg_dir</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.cfg_file" href="#jumpscale.sals.nginx.nginx.Website.cfg_file">cfg_file</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.clean" href="#jumpscale.sals.nginx.nginx.Website.clean">clean</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.configure" href="#jumpscale.sals.nginx.nginx.Website.configure">configure</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.domain" href="#jumpscale.sals.nginx.nginx.Website.domain">domain</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.fullchain_path" href="#jumpscale.sals.nginx.nginx.Website.fullchain_path">fullchain_path</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.generate_certificates" href="#jumpscale.sals.nginx.nginx.Website.generate_certificates">generate_certificates</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.generate_self_signed_certificates" href="#jumpscale.sals.nginx.nginx.Website.generate_self_signed_certificates">generate_self_signed_certificates</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.get_config" href="#jumpscale.sals.nginx.nginx.Website.get_config">get_config</a></code></li>
@@ -1903,11 +3414,24 @@ and will get the default value if not</p>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.get_static_location" href="#jumpscale.sals.nginx.nginx.Website.get_static_location">get_static_location</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.include_paths" href="#jumpscale.sals.nginx.nginx.Website.include_paths">include_paths</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.includes" href="#jumpscale.sals.nginx.nginx.Website.includes">includes</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.install_certifcate" href="#jumpscale.sals.nginx.nginx.Website.install_certifcate">install_certifcate</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.key_path" href="#jumpscale.sals.nginx.nginx.Website.key_path">key_path</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.letsencryptemail" href="#jumpscale.sals.nginx.nginx.Website.letsencryptemail">letsencryptemail</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.locations" href="#jumpscale.sals.nginx.nginx.Website.locations">locations</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.obtain_and_install_certifcate" href="#jumpscale.sals.nginx.nginx.Website.obtain_and_install_certifcate">obtain_and_install_certifcate</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.port" href="#jumpscale.sals.nginx.nginx.Website.port">port</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.selfsigned" href="#jumpscale.sals.nginx.nginx.Website.selfsigned">selfsigned</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.ssl" href="#jumpscale.sals.nginx.nginx.Website.ssl">ssl</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot">ZerosslCertbot</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot.EMAIL_CREDENTIALS_URL" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot.EMAIL_CREDENTIALS_URL">EMAIL_CREDENTIALS_URL</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot.KEY_CREDENTIALS_URL" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot.KEY_CREDENTIALS_URL">KEY_CREDENTIALS_URL</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot.SERVER_URL" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot.SERVER_URL">SERVER_URL</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot.api_key_" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot.api_key_">api_key_</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot.run_cmd" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot.run_cmd">run_cmd</a></code></li>
 </ul>
 </li>
 </ul>

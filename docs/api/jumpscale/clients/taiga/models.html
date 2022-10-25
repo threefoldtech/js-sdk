@@ -1,0 +1,2991 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.6.4" />
+<title>jumpscale.clients.taiga.models API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>jumpscale.clients.taiga.models</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">from functools import lru_cache
+from textwrap import dedent
+
+from jumpscale.loader import j
+import yaml
+
+
+class CircleResource:
+    def __init__(self, taigaclient, original_object):
+        self._original_object = original_object
+        self._client = taigaclient
+        self._api = self._client.api
+
+    def check_by_name(self, list_obj, name_to_find):
+        &#34;&#34;&#34;Check if list contains name, used to check priorities, severities, statuses, types and etc
+            and return the equivalent id.
+
+        Args:
+            list_obj (list): list of objects that we need to search into
+            name_to_find (str): word to search for in the list
+
+        Returns:
+            int: Id of the matched object if found, or id of the first object in the list.
+        &#34;&#34;&#34;
+        for obj in list_obj:
+            if obj.name == name_to_find:
+                return obj.id
+
+        return list_obj[0].id
+
+
+class CircleIssue(CircleResource):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        return getattr(self._original_object, attr)
+
+    def __str__(self):
+        return f&#34;&lt;Issue {self._original_object}&gt;&#34;
+
+    @property
+    def url(self):
+        # https://circles.threefold.me/project/despiegk-tftech-software/issue/55
+        return f&#34;{self._client.host}/project/{self.project_extra_info.get(&#39;slug&#39;)}/issue/{self.ref}&#34;
+
+    @property
+    def as_md(self):
+        TEMPLATE = dedent(
+            &#34;&#34;&#34;
+            - **Subject:** [{{issue.subject}}]({{issue.url}})
+            - **Created Date:** {{issue.created_date or &#39;unknown&#39; }}
+            - **Due Date:** {{issue.due_date or &#39;unknown&#39; }}
+            - **Owner Name:** {{issue.owner_extra_info.get(&#39;username&#39;, &#39;unknown&#39;)}}
+            - **Owner Email:** {{issue.owner_extra_info.get(&#39;email&#39;, &#39;unknown&#39;)}}
+            - **Project:** {{issue.project_extra_info.get(&#39;name&#39;, &#39;unknown&#39;)}}
+            &#34;&#34;&#34;
+        )
+        return j.tools.jinja2.render_template(template_text=TEMPLATE, issue=self)
+
+    @property
+    def as_yaml(self):
+        obj = {}
+        if self.assigned_to_extra_info is not None:
+            obj[&#34;assigned_to&#34;] = {
+                &#34;username&#34;: self.assigned_to_extra_info.get(&#34;username&#34;),
+                &#34;id&#34;: self.assigned_to,
+                &#34;email&#34;: self.assigned_to_extra_info.get(&#34;email&#34;),
+            }
+        obj[&#34;basic_info&#34;] = {
+            &#34;subject&#34;: self.subject,
+            &#34;id&#34;: self.id,
+            &#34;description&#34;: self.description if hasattr(self, &#34;description&#34;) else &#34;&#34;,
+            &#34;tags&#34;: self.tags,
+            &#34;version&#34;: self.version,
+            &#34;url&#34;: self.url,
+        }
+        obj[&#34;project&#34;] = {
+            &#34;name&#34;: self.project_extra_info.get(&#34;name&#34;),
+            &#34;id&#34;: self.project,
+        }
+        obj[&#34;status&#34;] = {
+            &#34;name&#34;: self.status_extra_info.get(&#34;name&#34;),
+            &#34;id&#34;: self.status,
+        }
+        obj[&#34;severity&#34;] = {
+            &#34;name&#34;: self._client.api.severities.get(self.severity).name,
+            &#34;id&#34;: self.severity,
+        }
+        obj[&#34;priority&#34;] = {
+            &#34;name&#34;: self._client.api.priorities.get(self.priority).name,
+            &#34;id&#34;: self.priority,
+        }
+        obj[&#34;type&#34;] = {
+            &#34;name&#34;: self._client.api.issue_types.get(self.type).name,
+            &#34;id&#34;: self.type,
+        }
+        obj[&#34;date&#34;] = {
+            &#34;created_date&#34;: self.created_date,
+            &#34;modified_date&#34;: self.modified_date,
+            &#34;due_date&#34;: self.due_date,
+            &#34;due_date_reason&#34;: self.due_date_reason,
+            &#34;due_date_status&#34;: self.due_date_status,
+            &#34;finished_date&#34;: self.finished_date,
+        }
+        owner = {
+            &#34;username&#34;: self.owner_extra_info[&#34;username&#34;],
+            &#34;id&#34;: self.owner,
+            &#34;email&#34;: self.owner_extra_info[&#34;email&#34;],
+        }
+        watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
+        watchers = [f&#34;({watcher.id}) {watcher.username}&#34; for watcher in watchers_objects]
+        obj[&#34;membership&#34;] = {&#34;owner&#34;: owner, &#34;watchers&#34;: watchers}
+
+        obj[&#34;statistics&#34;] = {
+            &#34;total_voters&#34;: self.total_voters,
+            &#34;total_watchers&#34;: self.total_watchers,
+        }
+        obj[&#34;custom_fields&#34;] = self._client.get_issue_custom_fields(self.id)
+        obj[&#34;additional_info&#34;] = {
+            &#34;is_blocked&#34;: self.is_blocked,
+            &#34;is_closed&#34;: self.is_closed,
+            &#34;is_voter&#34;: self.is_voter,
+            &#34;is_watcher&#34;: self.is_watcher,
+            &#34;blocked_note&#34;: self.blocked_note,
+        }
+        return yaml.dump(obj)
+
+    def __dir__(self):
+        return dir(self._original_object) + [&#34;as_yaml&#34;, &#34;url&#34;, &#34;as_md&#34;]
+
+
+class CircleStory(CircleResource):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        return getattr(self._original_object, attr)
+
+    def __str__(self):
+        return f&#34;&lt;Story {self._original_object}&gt;&#34;
+
+    @property
+    def url(self):
+        # https://circles.threefold.me/project/despiegk-tftech-software/us/4
+        return f&#34;{self._client.host}/project/{self.project_extra_info.get(&#39;slug&#39;)}/us/{self.ref}&#34;
+
+    @property
+    def circle_tasks(self):
+        return [CircleTask(self._client, task) for task in self.list_tasks()]
+
+    @property
+    def as_md(self):
+        TEMPLATE = dedent(
+            &#34;&#34;&#34;
+            - **Subject:** [{{story.subject}}]({{story.url}})
+            - **Assigned to:** {{story.assigned_to_extra_info and story.assigned_to_extra_info.get(&#39;username&#39;, &#39;not assigned&#39;) or &#39;not assigned&#39; }}
+            - **Watchers:** {{story.watchers or &#39;no watchers&#39;}}
+            {% if story.tasks %}
+            - **Tasks**:
+                {% for task in story.circle_tasks %}
+                - [**{{task.subject}}**]({{task.url}})
+                {% endfor %}
+            {% endif %}
+            &#34;&#34;&#34;
+        )
+        return j.tools.jinja2.render_template(template_text=TEMPLATE, story=self)
+
+    @property
+    def as_yaml(self):
+        obj = {}
+        if self.assigned_to_extra_info is not None:
+            obj[&#34;assigned_to&#34;] = {
+                &#34;username&#34;: self.assigned_to_extra_info.get(&#34;username&#34;) or None,
+                &#34;id&#34;: self.assigned_to,
+                &#34;email&#34;: self.assigned_to_extra_info.get(&#34;email&#34;),
+            }
+
+        obj[&#34;basic_info&#34;] = {
+            &#34;subject&#34;: self.subject,
+            &#34;id&#34;: self.id,
+            &#34;description&#34;: self.description if hasattr(self, &#34;description&#34;) else &#34;&#34;,
+            &#34;tags&#34;: self.tags,
+            &#34;version&#34;: self.version,
+            &#34;url&#34;: self.url,
+        }
+        obj[&#34;project&#34;] = {
+            &#34;name&#34;: self.project_extra_info.get(&#34;name&#34;),
+            &#34;id&#34;: self.project,
+        }
+        obj[&#34;status&#34;] = {
+            &#34;name&#34;: self.status_extra_info.get(&#34;name&#34;),
+            &#34;id&#34;: self.status,
+        }
+
+        obj[&#34;date&#34;] = {
+            &#34;created_date&#34;: self.created_date,
+            &#34;modified_date&#34;: self.modified_date,
+            &#34;due_date&#34;: self.due_date,
+            &#34;due_date_reason&#34;: self.due_date_reason,
+            &#34;due_date_status&#34;: self.due_date_status,
+            &#34;finish_date&#34;: self.finish_date,
+        }
+        owner = {
+            &#34;username&#34;: self.owner_extra_info[&#34;username&#34;],
+            &#34;id&#34;: self.owner,
+            &#34;email&#34;: self.owner_extra_info[&#34;email&#34;],
+        }
+        watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
+        watchers = [f&#34;({watcher.id}) {watcher.username}&#34; for watcher in watchers_objects]
+        obj[&#34;membership&#34;] = {&#34;owner&#34;: owner, &#34;watchers&#34;: watchers}
+        obj[&#34;requirements&#34;] = {
+            &#34;client_requirement&#34;: self.client_requirement,
+            &#34;team_requirement&#34;: self.team_requirement,
+        }
+        obj[&#34;statistics&#34;] = {
+            &#34;total_attachments&#34;: self.total_attachments,
+            &#34;total_comments&#34;: self.total_comments,
+            &#34;total_voters&#34;: self.total_voters,
+            &#34;total_watchers&#34;: self.total_watchers,
+        }
+        obj[&#34;custom_fields&#34;] = self._client.get_story_custom_fields(self.id)
+        obj[&#34;tasks&#34;] = [task.id for task in self.tasks]
+        obj[&#34;additional_info&#34;] = {
+            &#34;is_blocked&#34;: self.is_blocked,
+            &#34;is_closed&#34;: self.is_closed,
+            &#34;is_voter&#34;: self.is_voter,
+            &#34;is_watcher&#34;: self.is_watcher,
+            &#34;blocked_note&#34;: self.blocked_note,
+            &#34;generated_from_issue&#34;: self.generated_from_issue,
+            &#34;generated_from_task&#34;: self.generated_from_task,
+        }
+        return yaml.dump(obj)
+
+    @property
+    def tasks(self):
+        return self.list_tasks()
+
+    def __dir__(self):
+        return dir(self._original_object) + [&#34;as_yaml&#34;, &#34;circle_tasks&#34;, &#34;url&#34;, &#34;as_md&#34;]
+
+
+class CircleTask(CircleResource):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        return getattr(self._original_object, attr)
+
+    def __str__(self):
+        return f&#34;&lt;Task {self._original_object}&gt;&#34;
+
+    @property
+    def url(self):
+        # https://circles.threefold.me/project/despiegk-tftech-software/task/2
+        return f&#34;{self._client.host}/project/{self.project_extra_info.get(&#39;slug&#39;)}/task/{self.ref}&#34;
+
+    @property
+    def as_md(self):
+        TEMPLATE = dedent(
+            &#34;&#34;&#34;
+            - **Subject:** [{{task.subject}}]({{task.url}})
+            - **Created Date:** {{task.created_date or &#39;unknown&#39; }}
+            - **Due Date:** {{task.due_date or &#39;unknown&#39; }}
+            - **Owner Name:** {{task.owner_extra_info.get(&#39;username&#39;, &#39;unknown&#39;)}}
+            - **Owner Email:** {{task.owner_extra_info.get(&#39;email&#39;, &#39;unknown&#39;)}}
+            - **Project:** {{task.project_extra_info.get(&#39;name&#39;, &#39;unknown&#39;)}}
+            &#34;&#34;&#34;
+        )
+        return j.tools.jinja2.render_template(template_text=TEMPLATE, task=self)
+
+    @property
+    def as_yaml(self):
+        obj = {}
+        if self.assigned_to_extra_info is not None:
+            obj[&#34;assigned_to&#34;] = {
+                &#34;username&#34;: self.assigned_to_extra_info.get(&#34;username&#34;) or None,
+                &#34;id&#34;: self.assigned_to,
+                &#34;email&#34;: self.assigned_to_extra_info.get(&#34;email&#34;),
+            }
+
+        obj[&#34;basic_info&#34;] = {
+            &#34;subject&#34;: self.subject,
+            &#34;id&#34;: self.id,
+            &#34;description&#34;: self.description if hasattr(self, &#34;description&#34;) else &#34;&#34;,
+            &#34;tags&#34;: self.tags,
+            &#34;version&#34;: self.version,
+            &#34;url&#34;: self.url,
+        }
+        obj[&#34;project&#34;] = {
+            &#34;name&#34;: self.project_extra_info.get(&#34;name&#34;),
+            &#34;id&#34;: self.project,
+        }
+        obj[&#34;status&#34;] = {
+            &#34;name&#34;: self.status_extra_info.get(&#34;name&#34;),
+            &#34;id&#34;: self.status,
+        }
+        obj[&#34;user_story&#34;] = {
+            &#34;subject&#34;: self.user_story_extra_info.get(&#34;subject&#34;),
+            &#34;id&#34;: self.user_story,
+        }
+        obj[&#34;date&#34;] = {
+            &#34;created_date&#34;: self.created_date,
+            &#34;modified_date&#34;: self.modified_date,
+            &#34;due_date&#34;: self.due_date,
+            &#34;due_date_reason&#34;: self.due_date_reason,
+            &#34;due_date_status&#34;: self.due_date_status,
+            &#34;finished_date&#34;: self.finished_date,
+        }
+        owner = {
+            &#34;username&#34;: self.owner_extra_info[&#34;username&#34;],
+            &#34;id&#34;: self.owner,
+            &#34;email&#34;: self.owner_extra_info[&#34;email&#34;],
+        }
+        watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
+        watchers = [f&#34;({watcher.id}) {watcher.username}&#34; for watcher in watchers_objects]
+        obj[&#34;membership&#34;] = {&#34;owner&#34;: owner, &#34;watchers&#34;: watchers}
+        obj[&#34;statistics&#34;] = {
+            &#34;total_comments&#34;: self.total_comments,
+            &#34;total_voters&#34;: self.total_voters,
+            &#34;total_watchers&#34;: self.total_watchers,
+        }
+        obj[&#34;additional_info&#34;] = {
+            &#34;is_blocked&#34;: self.is_blocked,
+            &#34;is_closed&#34;: self.is_closed,
+            &#34;is_voter&#34;: self.is_voter,
+            &#34;is_watcher&#34;: self.is_watcher,
+            &#34;blocked_note&#34;: self.blocked_note,
+        }
+        return yaml.dump(obj)
+
+    def __dir__(self):
+        return dir(self._original_object) + [&#34;as_yaml&#34;, &#34;url&#34;, &#34;as_md&#34;]
+
+
+class CircleUser(CircleResource):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        return getattr(self._original_object, attr)
+
+    def __str__(self):
+        return f&#34;&lt;User {self._original_object}&gt;&#34;
+
+    @property
+    def url(self):
+        # https://circles.threefold.me/profile/ahartl
+        return f&#34;{self._client.host}/profile/{self.username}&#34;
+
+    @property
+    def clean_name(self):
+        return self.username.lower()
+
+    def get_stories(self):
+        return self._client.list_all_user_stories(self._original_object.username)
+
+    def get_issues(self):
+        return self._client.list_all_issues(self._original_object.username)
+
+    def get_circles(self):
+        circles = []
+        all_circles = self._client.get_user_circles(self._original_object.username)
+        for c in all_circles:
+            cname = c.name.lower()
+            if cname.startswith(&#34;team&#34;):
+                circles.append(TeamCircle(self._client, c))
+            elif cname.startswith(&#34;funnel&#34;):
+                circles.append(FunnelCircle(self._client, c))
+            elif cname.startswith(&#34;project&#34;):
+                circles.append(ProjectCircle(self._client, c))
+            elif cname.startswith(&#34;archive&#34;):
+                pass  # to not included in as_md property
+            else:
+                circles.append(Circle(self._client, c))
+        return circles
+
+    def get_tasks(self):
+        return self._client.list_all_tasks(self._original_object.username)
+
+    @property
+    def stories(self):
+        res = []
+        for s in self.get_stories():
+            res.append(CircleStory(self._client, s))
+
+        return res
+
+    @property
+    def issues(self):
+        res = []
+        for s in self.get_issues():
+            res.append(CircleIssue(self._client, s))
+
+        return res
+
+    @property
+    def circles(self):
+        return self.get_circles()
+
+    @property
+    def tasks(self):
+        return self.get_tasks()
+
+    @property
+    def as_md(self):
+
+        TEMPLATE = dedent(
+            &#34;&#34;&#34;
+            # {{user.username}}
+
+            User profile is at: [{{user.url}}]({{user.url}})
+
+            {% if user.circles %}
+            ## Circles
+
+            {% for c in user.circles %}
+
+            &#39;[{{c.name}}]({{c.clean_name}}.md) [{{c.url}}]({{c.url}})
+            {% endfor %}
+
+            {% endif %}
+
+            {% if user.stories %}
+            ## User stories
+            {% for story in user.stories %}
+
+            ### {{story.subject}}
+
+            {{story.as_md}}
+
+            {% endfor %}
+
+            {% endif %}
+
+
+            {% if user.issues %}
+            ## Issues
+
+            {% for issue in user.issues %}
+            ### {{issue.subject}}
+
+            {{issue.as_md}}
+
+            {% endfor %}
+            {% endif %}
+
+            {% if user.tasks %}
+            ## Tasks
+
+            {% for task in user.tasks %}
+            ### {{task.subject}}
+
+            {{task.as_md}}
+
+            {% endfor %}
+            {% endif %}
+
+            &#34;&#34;&#34;
+        )
+        return j.tools.jinja2.render_template(template_text=TEMPLATE, user=self)
+
+    @property
+    def as_yaml(self):
+        obj = {}
+        obj[&#34;basic_info&#34;] = {
+            &#34;username&#34;: self.username,
+            &#34;email&#34;: self.email,
+            &#34;id&#34;: self.id,
+            &#34;full_name&#34;: self.full_name,
+            &#34;bio&#34;: self.bio,
+            &#34;lang&#34;: self.lang,
+            &#34;public_key&#34;: self.public_key,
+            &#34;photo&#34;: self.photo,
+            &#34;url&#34;: self.url,
+        }
+        obj[&#34;date&#34;] = {&#34;date_joined&#34;: self.date_joined, &#34;timezone&#34;: self.timezone}
+        obj[&#34;statistics&#34;] = {
+            &#34;total_private_projects&#34;: self.total_private_projects,
+            &#34;total_public_projects&#34;: self.total_public_projects,
+        }
+        obj[&#34;roles&#34;] = self.roles
+        obj[&#34;limits&#34;] = {
+            &#34;max_memberships_private_projects&#34;: self.max_memberships_private_projects,
+            &#34;max_memberships_public_projects&#34;: self.max_memberships_public_projects,
+            &#34;max_private_projects&#34;: self.max_private_projects,
+            &#34;max_public_projects&#34;: self.max_memberships_public_projects,
+        }
+        obj[&#34;terms&#34;] = {
+            &#34;accepted_terms&#34;: self.accepted_terms,
+            &#34;read_new_terms&#34;: self.read_new_terms,
+        }
+        return yaml.dump(obj)
+
+    def __dir__(self):
+        return dir(self._original_object) + [
+            &#34;as_yaml&#34;,
+            &#34;as_md&#34;,
+            &#34;issues&#34;,
+            &#34;stories&#34;,
+            &#34;tasks&#34;,
+            &#34;get_circles&#34;,
+            &#34;get_issues&#34;,
+            &#34;get_stories&#34;,
+            &#34;get_tasks&#34;,
+            &#34;url&#34;,
+            &#34;clean_name&#34;,
+        ]
+
+
+class Circle(CircleResource):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    @property
+    def clean_name(self):
+        return self.slug.lower().replace(&#34;-&#34;, &#34;_&#34;)
+
+    @property
+    def url(self):
+        # https://circles.threefold.me/project/despiegk-tftech-software
+        return f&#34;{self._client.host}/project/{self.slug}&#34;
+
+    @lru_cache(maxsize=128)
+    def get_project_info(self):
+
+        prios = list(map(lambda x: (str(x), x.id), self._original_object.list_priorities()))
+        severities = list(map(lambda x: (str(x), x.id), self._original_object.list_severities()))
+        statuses = list(map(lambda x: (str(x), x.id), self._original_object.list_issue_statuses()))
+        issues_types = list(map(lambda x: (str(x), x.id), self._original_object.list_issue_types()))
+
+        return f&#34;prios: {prios}, severities: {severities}, issues_types: {issues_types}, statuses: {statuses}&#34;
+
+    def create_issue(self, subject, prio=None, status=None, issue_type=None, severity=None):
+        prio = prio or self._original_object.list_priorities()[0].id
+        status = status or self._original_object.list_issue_statuses()[0].id
+        severity = severity or self._original_object.list_severities()[0].id
+        issue_type = issue_type or self._original_object.list_issue_types()[0].id
+
+        return self._original_object.add_issue(subject, prio, status, issue_type, severity)
+
+    def copy_issue(self, issue, project):
+        &#34;&#34;&#34;Copy issue to specific project
+
+        Args:
+            issue (int , CircleIssue): issue or issue id to be copied
+            to_project (int, Circle, FunnelCircle, ProjectCircle, TeamCircle):  circle or circle id to copy issue into
+
+        Returns:
+            Issue: created issue object
+        &#34;&#34;&#34;
+        issue_id = issue
+        issue_obj = issue
+        project_id = project
+        project_obj = project
+        if not isinstance(issue, int):
+            issue_id = issue.id
+            issue_obj = issue
+        else:
+            issue_obj = self._client.api.issues.get(issue_id)
+
+        if not isinstance(project, int):
+            project_id = project.id
+            project_obj = project
+        else:
+            project_obj = Circle(self._client, self._client.api.projects.get(project_id))
+
+        issue_priority = self.check_by_name(
+            project_obj.priorities, self._client.api.priorities.get(issue_obj.priority).name
+        )
+        issue_type = self.check_by_name(
+            project_obj.list_issue_types(), self._client.api.issue_types.get(issue_obj.type).name
+        )
+        issue_severity = self.check_by_name(
+            project_obj.list_severities(), self._client.api.severities.get(issue_obj.severity).name
+        )
+        issue_status = self.check_by_name(project_obj.list_issue_statuses(), issue_obj.status_extra_info[&#34;name&#34;])
+        issue_custom_field = self._client.get_issue_custom_fields(issue_id)
+
+        created = project_obj.add_issue(
+            issue_obj.subject,
+            issue_priority,
+            issue_status,
+            issue_type,
+            issue_severity,
+            description=issue_obj.description,
+            watchers=issue_obj.watchers,
+            assigned_to=issue_obj.assigned_to,
+        )
+
+        for field in issue_custom_field:
+            is_found = False
+            new_attr = None
+            for attr in project_obj.list_issue_attributes():
+                if attr.name == field[&#34;name&#34;] and not is_found:
+                    created.set_attribute(attr.id, field[&#34;value&#34;])
+                    is_found = True
+
+            if not is_found:
+                new_attr = project_obj.add_issue_attribute(field[&#34;name&#34;])
+                created.set_attribute(new_attr.id, field[&#34;value&#34;])
+
+        return created
+
+    def move_issue(self, issue, project):
+        &#34;&#34;&#34;Move issue to specific project
+        HINT: Move will delete the issue from original circle
+
+        Args:
+            issue (int , CircleIssue): issue or issue id to be movied
+            to_project (int, Circle, FunnelCircle, ProjectCircle, TeamCircle):  circle or circle id to move issue into
+
+        Returns:
+            Issue: created issue object
+        &#34;&#34;&#34;
+        issue_id = issue
+        issue_obj = issue
+        project_id = project
+        project_obj = project
+        if not isinstance(issue, int):
+            issue_id = issue.id
+            issue_obj = issue
+        else:
+            issue_obj = self._client.api.issues.get(issue_id)
+
+        if not isinstance(project, int):
+            project_id = project.id
+            project_obj = project
+        else:
+            project_obj = Circle(self._client, self._client.api.projects.get(project_id))
+
+        created = self.copy_issue(issue_obj, project_obj)
+
+        if created:
+            issue_obj.delete()
+        return created
+
+    def create_story(self, subject=&#34;&#34;, **attrs):
+        return self._original_object.add_user_story(subject, **attrs)
+
+    @property
+    def stories(self):
+        res = []
+        for s in self._original_object.list_user_stories():
+            res.append(CircleStory(self._client, s))
+
+        return res
+
+    @property
+    def issues(self):
+        res = []
+        for s in self._original_object.list_issues():
+            res.append(CircleIssue(self._client, s))
+        return res
+
+    @property
+    def circle_users(self):
+        return self._original_object.members_objects()
+
+    def __dir__(self):
+        return dir(self._original_object) + [
+            &#34;create_issue&#34;,
+            &#34;create_story&#34;,
+            &#34;move_issue&#34;,
+            &#34;get_project_info&#34;,
+            &#34;as_md&#34;,
+            &#34;issues&#34;,
+            &#34;stories&#34;,
+            &#34;circle_users&#34;,
+            &#34;as_yaml&#34;,
+        ]
+
+    def __getattr__(self, attr):
+        return getattr(self._original_object, attr)
+
+    def __str__(self):
+        return f&#34;&lt;Circle {self._original_object}&gt;&#34;
+
+    @property
+    def as_md(self):
+
+        TEMPLATE = dedent(
+            &#34;&#34;&#34;
+            # Circle {{project.name}}
+
+            - Homepage: {{project.url}}
+            - Modified Date: {{project.modified_date}}
+
+            {% if project.stories %}
+            ## Stories
+
+            {% for story in project.stories %}
+
+            ### {{story.subject}}
+            {{story.as_md}}
+
+            {% endfor %}
+
+            {% endif %}
+
+
+            {% if project.issues %}
+            ## Issues
+
+            {% for issue in project.issues %}
+
+            ### {{issue.subject}}
+
+            {{issue.as_md}}
+
+            {% endfor %}
+
+            {% endif %}
+
+            &#34;&#34;&#34;
+        )
+        return j.tools.jinja2.render_template(template_text=TEMPLATE, project=self)
+
+    @property
+    def as_yaml(self):
+        obj = {}
+        obj[&#34;basic_info&#34;] = {
+            &#34;name&#34;: self.name,
+            &#34;slug&#34;: self.slug,
+            &#34;id&#34;: self.id,
+            &#34;description&#34;: self.description if hasattr(self, &#34;description&#34;) else &#34;&#34;,
+            &#34;tags&#34;: self.tags,
+            &#34;is_private&#34;: self.is_private,
+            &#34;looking_for_people_note&#34;: self.looking_for_people_note,
+            &#34;url&#34;: self.url,
+        }
+        obj[&#34;date&#34;] = {
+            &#34;created_date&#34;: self.created_date,
+            &#34;modified_date&#34;: self.modified_date,
+        }
+        obj[&#34;modules&#34;] = {
+            &#34;is_backlog_activated&#34;: self.is_backlog_activated,
+            &#34;is_issues_activated&#34;: self.is_issues_activated,
+            &#34;is_kanban_activated&#34;: self.is_kanban_activated,
+            &#34;is_wiki_activated&#34;: self.is_wiki_activated,
+            &#34;videoconferences&#34;: self.videoconferences,
+        }
+        owner = {
+            &#34;username&#34;: self.owner[&#34;username&#34;],
+            &#34;id&#34;: self.owner[&#34;id&#34;],
+            &#34;email&#34;: self.owner[&#34;email&#34;],
+        }
+        members = [
+            {&#34;name&#34;: member.full_name, &#34;id&#34;: member.id, &#34;role&#34;: member.role_name,} for member in self.list_memberships()
+        ]
+        other_membership = {
+            &#34;i_am_owner&#34;: self.i_am_owner,
+            &#34;i_am_admin&#34;: self.i_am_admin,
+            &#34;i_am_member&#34;: self.i_am_member,
+        }
+        obj[&#34;membership&#34;] = {
+            &#34;owner&#34;: owner,
+            &#34;members&#34;: members,
+            &#34;others&#34;: other_membership,
+        }
+        obj[&#34;statistics&#34;] = {
+            &#34;total_activity&#34;: self.total_activity,
+            &#34;total_fans&#34;: self.total_fans,
+            &#34;total_watchers&#34;: self.total_watchers,
+        }
+        obj[&#34;stories&#34;] = [story.id for story in self.stories]
+        obj[&#34;stories_attributes&#34;] = [st_attr.name for st_attr in self.list_user_story_attributes()]
+        obj[&#34;issues&#34;] = [issue.id for issue in self.issues]
+        obj[&#34;issues_attributes&#34;] = [issue_attr.name for issue_attr in self.list_issue_attributes()]
+        return yaml.dump(obj)
+
+
+class TeamCircle(Circle):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self._original_object, attr)
+        except Exception as e:
+            if hasattr(self._original_object, &#34;_original_object&#34;):
+                return getattr(self._original_object._original_object, attr)
+            else:
+                raise j.exceptions.Runtime(f&#34;{attr} not found in {self} and not in {self._original_object}&#34;)
+
+    def __str__(self):
+        return f&#34;&lt;TeamCircle {self._original_object}&gt;&#34;
+
+
+class FunnelCircle(Circle):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self._original_object, attr)
+        except Exception as e:
+            if hasattr(self._original_object, &#34;_original_object&#34;):
+                return getattr(self._original_object._original_object, attr)
+            else:
+                raise j.exceptions.Runtime(f&#34;{attr} not found in {self} and not in {self._original_object}&#34;)
+
+    def __str__(self):
+        return f&#34;&lt;FunnelCircle {self._original_object}&gt;&#34;
+
+
+class ProjectCircle(Circle):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self._original_object, attr)
+        except Exception as e:
+            if hasattr(self._original_object, &#34;_original_object&#34;):
+                return getattr(self._original_object._original_object, attr)
+            else:
+                raise j.exceptions.Runtime(f&#34;{attr} not found in {self} and not in {self._original_object}&#34;)
+
+    def __str__(self):
+        return f&#34;&lt;ProjectCircle {self._original_object}&gt;&#34;
+
+
+class ArchiveCircle(Circle):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self._original_object, attr)
+        except Exception as e:
+            if hasattr(self._original_object, &#34;_original_object&#34;):
+                return getattr(self._original_object._original_object, attr)
+            else:
+                raise j.exceptions.Runtime(f&#34;{attr} not found in {self} and not in {self._original_object}&#34;)
+
+    def __str__(self):
+        return f&#34;&lt;ArchiveCircle {self._original_object}&gt;&#34;</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="jumpscale.clients.taiga.models.ArchiveCircle"><code class="flex name class">
+<span>class <span class="ident">ArchiveCircle</span></span>
+<span>(</span><span>taigaclient, original_object)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class ArchiveCircle(Circle):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self._original_object, attr)
+        except Exception as e:
+            if hasattr(self._original_object, &#34;_original_object&#34;):
+                return getattr(self._original_object._original_object, attr)
+            else:
+                raise j.exceptions.Runtime(f&#34;{attr} not found in {self} and not in {self._original_object}&#34;)
+
+    def __str__(self):
+        return f&#34;&lt;ArchiveCircle {self._original_object}&gt;&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a></li>
+<li><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.clients.taiga.models.Circle.check_by_name" href="#jumpscale.clients.taiga.models.CircleResource.check_by_name">check_by_name</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.copy_issue" href="#jumpscale.clients.taiga.models.Circle.copy_issue">copy_issue</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.move_issue" href="#jumpscale.clients.taiga.models.Circle.move_issue">move_issue</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.clients.taiga.models.Circle"><code class="flex name class">
+<span>class <span class="ident">Circle</span></span>
+<span>(</span><span>taigaclient, original_object)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Circle(CircleResource):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    @property
+    def clean_name(self):
+        return self.slug.lower().replace(&#34;-&#34;, &#34;_&#34;)
+
+    @property
+    def url(self):
+        # https://circles.threefold.me/project/despiegk-tftech-software
+        return f&#34;{self._client.host}/project/{self.slug}&#34;
+
+    @lru_cache(maxsize=128)
+    def get_project_info(self):
+
+        prios = list(map(lambda x: (str(x), x.id), self._original_object.list_priorities()))
+        severities = list(map(lambda x: (str(x), x.id), self._original_object.list_severities()))
+        statuses = list(map(lambda x: (str(x), x.id), self._original_object.list_issue_statuses()))
+        issues_types = list(map(lambda x: (str(x), x.id), self._original_object.list_issue_types()))
+
+        return f&#34;prios: {prios}, severities: {severities}, issues_types: {issues_types}, statuses: {statuses}&#34;
+
+    def create_issue(self, subject, prio=None, status=None, issue_type=None, severity=None):
+        prio = prio or self._original_object.list_priorities()[0].id
+        status = status or self._original_object.list_issue_statuses()[0].id
+        severity = severity or self._original_object.list_severities()[0].id
+        issue_type = issue_type or self._original_object.list_issue_types()[0].id
+
+        return self._original_object.add_issue(subject, prio, status, issue_type, severity)
+
+    def copy_issue(self, issue, project):
+        &#34;&#34;&#34;Copy issue to specific project
+
+        Args:
+            issue (int , CircleIssue): issue or issue id to be copied
+            to_project (int, Circle, FunnelCircle, ProjectCircle, TeamCircle):  circle or circle id to copy issue into
+
+        Returns:
+            Issue: created issue object
+        &#34;&#34;&#34;
+        issue_id = issue
+        issue_obj = issue
+        project_id = project
+        project_obj = project
+        if not isinstance(issue, int):
+            issue_id = issue.id
+            issue_obj = issue
+        else:
+            issue_obj = self._client.api.issues.get(issue_id)
+
+        if not isinstance(project, int):
+            project_id = project.id
+            project_obj = project
+        else:
+            project_obj = Circle(self._client, self._client.api.projects.get(project_id))
+
+        issue_priority = self.check_by_name(
+            project_obj.priorities, self._client.api.priorities.get(issue_obj.priority).name
+        )
+        issue_type = self.check_by_name(
+            project_obj.list_issue_types(), self._client.api.issue_types.get(issue_obj.type).name
+        )
+        issue_severity = self.check_by_name(
+            project_obj.list_severities(), self._client.api.severities.get(issue_obj.severity).name
+        )
+        issue_status = self.check_by_name(project_obj.list_issue_statuses(), issue_obj.status_extra_info[&#34;name&#34;])
+        issue_custom_field = self._client.get_issue_custom_fields(issue_id)
+
+        created = project_obj.add_issue(
+            issue_obj.subject,
+            issue_priority,
+            issue_status,
+            issue_type,
+            issue_severity,
+            description=issue_obj.description,
+            watchers=issue_obj.watchers,
+            assigned_to=issue_obj.assigned_to,
+        )
+
+        for field in issue_custom_field:
+            is_found = False
+            new_attr = None
+            for attr in project_obj.list_issue_attributes():
+                if attr.name == field[&#34;name&#34;] and not is_found:
+                    created.set_attribute(attr.id, field[&#34;value&#34;])
+                    is_found = True
+
+            if not is_found:
+                new_attr = project_obj.add_issue_attribute(field[&#34;name&#34;])
+                created.set_attribute(new_attr.id, field[&#34;value&#34;])
+
+        return created
+
+    def move_issue(self, issue, project):
+        &#34;&#34;&#34;Move issue to specific project
+        HINT: Move will delete the issue from original circle
+
+        Args:
+            issue (int , CircleIssue): issue or issue id to be movied
+            to_project (int, Circle, FunnelCircle, ProjectCircle, TeamCircle):  circle or circle id to move issue into
+
+        Returns:
+            Issue: created issue object
+        &#34;&#34;&#34;
+        issue_id = issue
+        issue_obj = issue
+        project_id = project
+        project_obj = project
+        if not isinstance(issue, int):
+            issue_id = issue.id
+            issue_obj = issue
+        else:
+            issue_obj = self._client.api.issues.get(issue_id)
+
+        if not isinstance(project, int):
+            project_id = project.id
+            project_obj = project
+        else:
+            project_obj = Circle(self._client, self._client.api.projects.get(project_id))
+
+        created = self.copy_issue(issue_obj, project_obj)
+
+        if created:
+            issue_obj.delete()
+        return created
+
+    def create_story(self, subject=&#34;&#34;, **attrs):
+        return self._original_object.add_user_story(subject, **attrs)
+
+    @property
+    def stories(self):
+        res = []
+        for s in self._original_object.list_user_stories():
+            res.append(CircleStory(self._client, s))
+
+        return res
+
+    @property
+    def issues(self):
+        res = []
+        for s in self._original_object.list_issues():
+            res.append(CircleIssue(self._client, s))
+        return res
+
+    @property
+    def circle_users(self):
+        return self._original_object.members_objects()
+
+    def __dir__(self):
+        return dir(self._original_object) + [
+            &#34;create_issue&#34;,
+            &#34;create_story&#34;,
+            &#34;move_issue&#34;,
+            &#34;get_project_info&#34;,
+            &#34;as_md&#34;,
+            &#34;issues&#34;,
+            &#34;stories&#34;,
+            &#34;circle_users&#34;,
+            &#34;as_yaml&#34;,
+        ]
+
+    def __getattr__(self, attr):
+        return getattr(self._original_object, attr)
+
+    def __str__(self):
+        return f&#34;&lt;Circle {self._original_object}&gt;&#34;
+
+    @property
+    def as_md(self):
+
+        TEMPLATE = dedent(
+            &#34;&#34;&#34;
+            # Circle {{project.name}}
+
+            - Homepage: {{project.url}}
+            - Modified Date: {{project.modified_date}}
+
+            {% if project.stories %}
+            ## Stories
+
+            {% for story in project.stories %}
+
+            ### {{story.subject}}
+            {{story.as_md}}
+
+            {% endfor %}
+
+            {% endif %}
+
+
+            {% if project.issues %}
+            ## Issues
+
+            {% for issue in project.issues %}
+
+            ### {{issue.subject}}
+
+            {{issue.as_md}}
+
+            {% endfor %}
+
+            {% endif %}
+
+            &#34;&#34;&#34;
+        )
+        return j.tools.jinja2.render_template(template_text=TEMPLATE, project=self)
+
+    @property
+    def as_yaml(self):
+        obj = {}
+        obj[&#34;basic_info&#34;] = {
+            &#34;name&#34;: self.name,
+            &#34;slug&#34;: self.slug,
+            &#34;id&#34;: self.id,
+            &#34;description&#34;: self.description if hasattr(self, &#34;description&#34;) else &#34;&#34;,
+            &#34;tags&#34;: self.tags,
+            &#34;is_private&#34;: self.is_private,
+            &#34;looking_for_people_note&#34;: self.looking_for_people_note,
+            &#34;url&#34;: self.url,
+        }
+        obj[&#34;date&#34;] = {
+            &#34;created_date&#34;: self.created_date,
+            &#34;modified_date&#34;: self.modified_date,
+        }
+        obj[&#34;modules&#34;] = {
+            &#34;is_backlog_activated&#34;: self.is_backlog_activated,
+            &#34;is_issues_activated&#34;: self.is_issues_activated,
+            &#34;is_kanban_activated&#34;: self.is_kanban_activated,
+            &#34;is_wiki_activated&#34;: self.is_wiki_activated,
+            &#34;videoconferences&#34;: self.videoconferences,
+        }
+        owner = {
+            &#34;username&#34;: self.owner[&#34;username&#34;],
+            &#34;id&#34;: self.owner[&#34;id&#34;],
+            &#34;email&#34;: self.owner[&#34;email&#34;],
+        }
+        members = [
+            {&#34;name&#34;: member.full_name, &#34;id&#34;: member.id, &#34;role&#34;: member.role_name,} for member in self.list_memberships()
+        ]
+        other_membership = {
+            &#34;i_am_owner&#34;: self.i_am_owner,
+            &#34;i_am_admin&#34;: self.i_am_admin,
+            &#34;i_am_member&#34;: self.i_am_member,
+        }
+        obj[&#34;membership&#34;] = {
+            &#34;owner&#34;: owner,
+            &#34;members&#34;: members,
+            &#34;others&#34;: other_membership,
+        }
+        obj[&#34;statistics&#34;] = {
+            &#34;total_activity&#34;: self.total_activity,
+            &#34;total_fans&#34;: self.total_fans,
+            &#34;total_watchers&#34;: self.total_watchers,
+        }
+        obj[&#34;stories&#34;] = [story.id for story in self.stories]
+        obj[&#34;stories_attributes&#34;] = [st_attr.name for st_attr in self.list_user_story_attributes()]
+        obj[&#34;issues&#34;] = [issue.id for issue in self.issues]
+        obj[&#34;issues_attributes&#34;] = [issue_attr.name for issue_attr in self.list_issue_attributes()]
+        return yaml.dump(obj)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.taiga.models.TeamCircle" href="#jumpscale.clients.taiga.models.TeamCircle">TeamCircle</a></li>
+<li><a title="jumpscale.clients.taiga.models.FunnelCircle" href="#jumpscale.clients.taiga.models.FunnelCircle">FunnelCircle</a></li>
+<li><a title="jumpscale.clients.taiga.models.ProjectCircle" href="#jumpscale.clients.taiga.models.ProjectCircle">ProjectCircle</a></li>
+<li><a title="jumpscale.clients.taiga.models.ArchiveCircle" href="#jumpscale.clients.taiga.models.ArchiveCircle">ArchiveCircle</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.clients.taiga.models.Circle.as_md"><code class="name">var <span class="ident">as_md</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def as_md(self):
+
+    TEMPLATE = dedent(
+        &#34;&#34;&#34;
+        # Circle {{project.name}}
+
+        - Homepage: {{project.url}}
+        - Modified Date: {{project.modified_date}}
+
+        {% if project.stories %}
+        ## Stories
+
+        {% for story in project.stories %}
+
+        ### {{story.subject}}
+        {{story.as_md}}
+
+        {% endfor %}
+
+        {% endif %}
+
+
+        {% if project.issues %}
+        ## Issues
+
+        {% for issue in project.issues %}
+
+        ### {{issue.subject}}
+
+        {{issue.as_md}}
+
+        {% endfor %}
+
+        {% endif %}
+
+        &#34;&#34;&#34;
+    )
+    return j.tools.jinja2.render_template(template_text=TEMPLATE, project=self)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.Circle.as_yaml"><code class="name">var <span class="ident">as_yaml</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def as_yaml(self):
+    obj = {}
+    obj[&#34;basic_info&#34;] = {
+        &#34;name&#34;: self.name,
+        &#34;slug&#34;: self.slug,
+        &#34;id&#34;: self.id,
+        &#34;description&#34;: self.description if hasattr(self, &#34;description&#34;) else &#34;&#34;,
+        &#34;tags&#34;: self.tags,
+        &#34;is_private&#34;: self.is_private,
+        &#34;looking_for_people_note&#34;: self.looking_for_people_note,
+        &#34;url&#34;: self.url,
+    }
+    obj[&#34;date&#34;] = {
+        &#34;created_date&#34;: self.created_date,
+        &#34;modified_date&#34;: self.modified_date,
+    }
+    obj[&#34;modules&#34;] = {
+        &#34;is_backlog_activated&#34;: self.is_backlog_activated,
+        &#34;is_issues_activated&#34;: self.is_issues_activated,
+        &#34;is_kanban_activated&#34;: self.is_kanban_activated,
+        &#34;is_wiki_activated&#34;: self.is_wiki_activated,
+        &#34;videoconferences&#34;: self.videoconferences,
+    }
+    owner = {
+        &#34;username&#34;: self.owner[&#34;username&#34;],
+        &#34;id&#34;: self.owner[&#34;id&#34;],
+        &#34;email&#34;: self.owner[&#34;email&#34;],
+    }
+    members = [
+        {&#34;name&#34;: member.full_name, &#34;id&#34;: member.id, &#34;role&#34;: member.role_name,} for member in self.list_memberships()
+    ]
+    other_membership = {
+        &#34;i_am_owner&#34;: self.i_am_owner,
+        &#34;i_am_admin&#34;: self.i_am_admin,
+        &#34;i_am_member&#34;: self.i_am_member,
+    }
+    obj[&#34;membership&#34;] = {
+        &#34;owner&#34;: owner,
+        &#34;members&#34;: members,
+        &#34;others&#34;: other_membership,
+    }
+    obj[&#34;statistics&#34;] = {
+        &#34;total_activity&#34;: self.total_activity,
+        &#34;total_fans&#34;: self.total_fans,
+        &#34;total_watchers&#34;: self.total_watchers,
+    }
+    obj[&#34;stories&#34;] = [story.id for story in self.stories]
+    obj[&#34;stories_attributes&#34;] = [st_attr.name for st_attr in self.list_user_story_attributes()]
+    obj[&#34;issues&#34;] = [issue.id for issue in self.issues]
+    obj[&#34;issues_attributes&#34;] = [issue_attr.name for issue_attr in self.list_issue_attributes()]
+    return yaml.dump(obj)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.Circle.circle_users"><code class="name">var <span class="ident">circle_users</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def circle_users(self):
+    return self._original_object.members_objects()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.Circle.clean_name"><code class="name">var <span class="ident">clean_name</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def clean_name(self):
+    return self.slug.lower().replace(&#34;-&#34;, &#34;_&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.Circle.issues"><code class="name">var <span class="ident">issues</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def issues(self):
+    res = []
+    for s in self._original_object.list_issues():
+        res.append(CircleIssue(self._client, s))
+    return res</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.Circle.stories"><code class="name">var <span class="ident">stories</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def stories(self):
+    res = []
+    for s in self._original_object.list_user_stories():
+        res.append(CircleStory(self._client, s))
+
+    return res</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.Circle.url"><code class="name">var <span class="ident">url</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def url(self):
+    # https://circles.threefold.me/project/despiegk-tftech-software
+    return f&#34;{self._client.host}/project/{self.slug}&#34;</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.clients.taiga.models.Circle.copy_issue"><code class="name flex">
+<span>def <span class="ident">copy_issue</span></span>(<span>self, issue, project)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Copy issue to specific project</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>issue</code></strong> :&ensp;<code>int</code> , <a title="jumpscale.clients.taiga.models.CircleIssue" href="#jumpscale.clients.taiga.models.CircleIssue"><code>CircleIssue</code></a></dt>
+<dd>issue or issue id to be copied</dd>
+<dt><strong><code>to_project</code></strong> :&ensp;<code>int</code>, <a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle"><code>Circle</code></a>, <a title="jumpscale.clients.taiga.models.FunnelCircle" href="#jumpscale.clients.taiga.models.FunnelCircle"><code>FunnelCircle</code></a>, <a title="jumpscale.clients.taiga.models.ProjectCircle" href="#jumpscale.clients.taiga.models.ProjectCircle"><code>ProjectCircle</code></a>, <a title="jumpscale.clients.taiga.models.TeamCircle" href="#jumpscale.clients.taiga.models.TeamCircle"><code>TeamCircle</code></a></dt>
+<dd>circle or circle id to copy issue into</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Issue</code></strong></dt>
+<dd>created issue object</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def copy_issue(self, issue, project):
+    &#34;&#34;&#34;Copy issue to specific project
+
+    Args:
+        issue (int , CircleIssue): issue or issue id to be copied
+        to_project (int, Circle, FunnelCircle, ProjectCircle, TeamCircle):  circle or circle id to copy issue into
+
+    Returns:
+        Issue: created issue object
+    &#34;&#34;&#34;
+    issue_id = issue
+    issue_obj = issue
+    project_id = project
+    project_obj = project
+    if not isinstance(issue, int):
+        issue_id = issue.id
+        issue_obj = issue
+    else:
+        issue_obj = self._client.api.issues.get(issue_id)
+
+    if not isinstance(project, int):
+        project_id = project.id
+        project_obj = project
+    else:
+        project_obj = Circle(self._client, self._client.api.projects.get(project_id))
+
+    issue_priority = self.check_by_name(
+        project_obj.priorities, self._client.api.priorities.get(issue_obj.priority).name
+    )
+    issue_type = self.check_by_name(
+        project_obj.list_issue_types(), self._client.api.issue_types.get(issue_obj.type).name
+    )
+    issue_severity = self.check_by_name(
+        project_obj.list_severities(), self._client.api.severities.get(issue_obj.severity).name
+    )
+    issue_status = self.check_by_name(project_obj.list_issue_statuses(), issue_obj.status_extra_info[&#34;name&#34;])
+    issue_custom_field = self._client.get_issue_custom_fields(issue_id)
+
+    created = project_obj.add_issue(
+        issue_obj.subject,
+        issue_priority,
+        issue_status,
+        issue_type,
+        issue_severity,
+        description=issue_obj.description,
+        watchers=issue_obj.watchers,
+        assigned_to=issue_obj.assigned_to,
+    )
+
+    for field in issue_custom_field:
+        is_found = False
+        new_attr = None
+        for attr in project_obj.list_issue_attributes():
+            if attr.name == field[&#34;name&#34;] and not is_found:
+                created.set_attribute(attr.id, field[&#34;value&#34;])
+                is_found = True
+
+        if not is_found:
+            new_attr = project_obj.add_issue_attribute(field[&#34;name&#34;])
+            created.set_attribute(new_attr.id, field[&#34;value&#34;])
+
+    return created</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.Circle.create_issue"><code class="name flex">
+<span>def <span class="ident">create_issue</span></span>(<span>self, subject, prio=None, status=None, issue_type=None, severity=None)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def create_issue(self, subject, prio=None, status=None, issue_type=None, severity=None):
+    prio = prio or self._original_object.list_priorities()[0].id
+    status = status or self._original_object.list_issue_statuses()[0].id
+    severity = severity or self._original_object.list_severities()[0].id
+    issue_type = issue_type or self._original_object.list_issue_types()[0].id
+
+    return self._original_object.add_issue(subject, prio, status, issue_type, severity)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.Circle.create_story"><code class="name flex">
+<span>def <span class="ident">create_story</span></span>(<span>self, subject=&#39;&#39;, **attrs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def create_story(self, subject=&#34;&#34;, **attrs):
+    return self._original_object.add_user_story(subject, **attrs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.Circle.get_project_info"><code class="name flex">
+<span>def <span class="ident">get_project_info</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@lru_cache(maxsize=128)
+def get_project_info(self):
+
+    prios = list(map(lambda x: (str(x), x.id), self._original_object.list_priorities()))
+    severities = list(map(lambda x: (str(x), x.id), self._original_object.list_severities()))
+    statuses = list(map(lambda x: (str(x), x.id), self._original_object.list_issue_statuses()))
+    issues_types = list(map(lambda x: (str(x), x.id), self._original_object.list_issue_types()))
+
+    return f&#34;prios: {prios}, severities: {severities}, issues_types: {issues_types}, statuses: {statuses}&#34;</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.Circle.move_issue"><code class="name flex">
+<span>def <span class="ident">move_issue</span></span>(<span>self, issue, project)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Move issue to specific project
+HINT: Move will delete the issue from original circle</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>issue</code></strong> :&ensp;<code>int</code> , <a title="jumpscale.clients.taiga.models.CircleIssue" href="#jumpscale.clients.taiga.models.CircleIssue"><code>CircleIssue</code></a></dt>
+<dd>issue or issue id to be movied</dd>
+<dt><strong><code>to_project</code></strong> :&ensp;<code>int</code>, <a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle"><code>Circle</code></a>, <a title="jumpscale.clients.taiga.models.FunnelCircle" href="#jumpscale.clients.taiga.models.FunnelCircle"><code>FunnelCircle</code></a>, <a title="jumpscale.clients.taiga.models.ProjectCircle" href="#jumpscale.clients.taiga.models.ProjectCircle"><code>ProjectCircle</code></a>, <a title="jumpscale.clients.taiga.models.TeamCircle" href="#jumpscale.clients.taiga.models.TeamCircle"><code>TeamCircle</code></a></dt>
+<dd>circle or circle id to move issue into</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>Issue</code></strong></dt>
+<dd>created issue object</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def move_issue(self, issue, project):
+    &#34;&#34;&#34;Move issue to specific project
+    HINT: Move will delete the issue from original circle
+
+    Args:
+        issue (int , CircleIssue): issue or issue id to be movied
+        to_project (int, Circle, FunnelCircle, ProjectCircle, TeamCircle):  circle or circle id to move issue into
+
+    Returns:
+        Issue: created issue object
+    &#34;&#34;&#34;
+    issue_id = issue
+    issue_obj = issue
+    project_id = project
+    project_obj = project
+    if not isinstance(issue, int):
+        issue_id = issue.id
+        issue_obj = issue
+    else:
+        issue_obj = self._client.api.issues.get(issue_id)
+
+    if not isinstance(project, int):
+        project_id = project.id
+        project_obj = project
+    else:
+        project_obj = Circle(self._client, self._client.api.projects.get(project_id))
+
+    created = self.copy_issue(issue_obj, project_obj)
+
+    if created:
+        issue_obj.delete()
+    return created</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.clients.taiga.models.CircleResource.check_by_name" href="#jumpscale.clients.taiga.models.CircleResource.check_by_name">check_by_name</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleIssue"><code class="flex name class">
+<span>class <span class="ident">CircleIssue</span></span>
+<span>(</span><span>taigaclient, original_object)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class CircleIssue(CircleResource):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        return getattr(self._original_object, attr)
+
+    def __str__(self):
+        return f&#34;&lt;Issue {self._original_object}&gt;&#34;
+
+    @property
+    def url(self):
+        # https://circles.threefold.me/project/despiegk-tftech-software/issue/55
+        return f&#34;{self._client.host}/project/{self.project_extra_info.get(&#39;slug&#39;)}/issue/{self.ref}&#34;
+
+    @property
+    def as_md(self):
+        TEMPLATE = dedent(
+            &#34;&#34;&#34;
+            - **Subject:** [{{issue.subject}}]({{issue.url}})
+            - **Created Date:** {{issue.created_date or &#39;unknown&#39; }}
+            - **Due Date:** {{issue.due_date or &#39;unknown&#39; }}
+            - **Owner Name:** {{issue.owner_extra_info.get(&#39;username&#39;, &#39;unknown&#39;)}}
+            - **Owner Email:** {{issue.owner_extra_info.get(&#39;email&#39;, &#39;unknown&#39;)}}
+            - **Project:** {{issue.project_extra_info.get(&#39;name&#39;, &#39;unknown&#39;)}}
+            &#34;&#34;&#34;
+        )
+        return j.tools.jinja2.render_template(template_text=TEMPLATE, issue=self)
+
+    @property
+    def as_yaml(self):
+        obj = {}
+        if self.assigned_to_extra_info is not None:
+            obj[&#34;assigned_to&#34;] = {
+                &#34;username&#34;: self.assigned_to_extra_info.get(&#34;username&#34;),
+                &#34;id&#34;: self.assigned_to,
+                &#34;email&#34;: self.assigned_to_extra_info.get(&#34;email&#34;),
+            }
+        obj[&#34;basic_info&#34;] = {
+            &#34;subject&#34;: self.subject,
+            &#34;id&#34;: self.id,
+            &#34;description&#34;: self.description if hasattr(self, &#34;description&#34;) else &#34;&#34;,
+            &#34;tags&#34;: self.tags,
+            &#34;version&#34;: self.version,
+            &#34;url&#34;: self.url,
+        }
+        obj[&#34;project&#34;] = {
+            &#34;name&#34;: self.project_extra_info.get(&#34;name&#34;),
+            &#34;id&#34;: self.project,
+        }
+        obj[&#34;status&#34;] = {
+            &#34;name&#34;: self.status_extra_info.get(&#34;name&#34;),
+            &#34;id&#34;: self.status,
+        }
+        obj[&#34;severity&#34;] = {
+            &#34;name&#34;: self._client.api.severities.get(self.severity).name,
+            &#34;id&#34;: self.severity,
+        }
+        obj[&#34;priority&#34;] = {
+            &#34;name&#34;: self._client.api.priorities.get(self.priority).name,
+            &#34;id&#34;: self.priority,
+        }
+        obj[&#34;type&#34;] = {
+            &#34;name&#34;: self._client.api.issue_types.get(self.type).name,
+            &#34;id&#34;: self.type,
+        }
+        obj[&#34;date&#34;] = {
+            &#34;created_date&#34;: self.created_date,
+            &#34;modified_date&#34;: self.modified_date,
+            &#34;due_date&#34;: self.due_date,
+            &#34;due_date_reason&#34;: self.due_date_reason,
+            &#34;due_date_status&#34;: self.due_date_status,
+            &#34;finished_date&#34;: self.finished_date,
+        }
+        owner = {
+            &#34;username&#34;: self.owner_extra_info[&#34;username&#34;],
+            &#34;id&#34;: self.owner,
+            &#34;email&#34;: self.owner_extra_info[&#34;email&#34;],
+        }
+        watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
+        watchers = [f&#34;({watcher.id}) {watcher.username}&#34; for watcher in watchers_objects]
+        obj[&#34;membership&#34;] = {&#34;owner&#34;: owner, &#34;watchers&#34;: watchers}
+
+        obj[&#34;statistics&#34;] = {
+            &#34;total_voters&#34;: self.total_voters,
+            &#34;total_watchers&#34;: self.total_watchers,
+        }
+        obj[&#34;custom_fields&#34;] = self._client.get_issue_custom_fields(self.id)
+        obj[&#34;additional_info&#34;] = {
+            &#34;is_blocked&#34;: self.is_blocked,
+            &#34;is_closed&#34;: self.is_closed,
+            &#34;is_voter&#34;: self.is_voter,
+            &#34;is_watcher&#34;: self.is_watcher,
+            &#34;blocked_note&#34;: self.blocked_note,
+        }
+        return yaml.dump(obj)
+
+    def __dir__(self):
+        return dir(self._original_object) + [&#34;as_yaml&#34;, &#34;url&#34;, &#34;as_md&#34;]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.clients.taiga.models.CircleIssue.as_md"><code class="name">var <span class="ident">as_md</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def as_md(self):
+    TEMPLATE = dedent(
+        &#34;&#34;&#34;
+        - **Subject:** [{{issue.subject}}]({{issue.url}})
+        - **Created Date:** {{issue.created_date or &#39;unknown&#39; }}
+        - **Due Date:** {{issue.due_date or &#39;unknown&#39; }}
+        - **Owner Name:** {{issue.owner_extra_info.get(&#39;username&#39;, &#39;unknown&#39;)}}
+        - **Owner Email:** {{issue.owner_extra_info.get(&#39;email&#39;, &#39;unknown&#39;)}}
+        - **Project:** {{issue.project_extra_info.get(&#39;name&#39;, &#39;unknown&#39;)}}
+        &#34;&#34;&#34;
+    )
+    return j.tools.jinja2.render_template(template_text=TEMPLATE, issue=self)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleIssue.as_yaml"><code class="name">var <span class="ident">as_yaml</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def as_yaml(self):
+    obj = {}
+    if self.assigned_to_extra_info is not None:
+        obj[&#34;assigned_to&#34;] = {
+            &#34;username&#34;: self.assigned_to_extra_info.get(&#34;username&#34;),
+            &#34;id&#34;: self.assigned_to,
+            &#34;email&#34;: self.assigned_to_extra_info.get(&#34;email&#34;),
+        }
+    obj[&#34;basic_info&#34;] = {
+        &#34;subject&#34;: self.subject,
+        &#34;id&#34;: self.id,
+        &#34;description&#34;: self.description if hasattr(self, &#34;description&#34;) else &#34;&#34;,
+        &#34;tags&#34;: self.tags,
+        &#34;version&#34;: self.version,
+        &#34;url&#34;: self.url,
+    }
+    obj[&#34;project&#34;] = {
+        &#34;name&#34;: self.project_extra_info.get(&#34;name&#34;),
+        &#34;id&#34;: self.project,
+    }
+    obj[&#34;status&#34;] = {
+        &#34;name&#34;: self.status_extra_info.get(&#34;name&#34;),
+        &#34;id&#34;: self.status,
+    }
+    obj[&#34;severity&#34;] = {
+        &#34;name&#34;: self._client.api.severities.get(self.severity).name,
+        &#34;id&#34;: self.severity,
+    }
+    obj[&#34;priority&#34;] = {
+        &#34;name&#34;: self._client.api.priorities.get(self.priority).name,
+        &#34;id&#34;: self.priority,
+    }
+    obj[&#34;type&#34;] = {
+        &#34;name&#34;: self._client.api.issue_types.get(self.type).name,
+        &#34;id&#34;: self.type,
+    }
+    obj[&#34;date&#34;] = {
+        &#34;created_date&#34;: self.created_date,
+        &#34;modified_date&#34;: self.modified_date,
+        &#34;due_date&#34;: self.due_date,
+        &#34;due_date_reason&#34;: self.due_date_reason,
+        &#34;due_date_status&#34;: self.due_date_status,
+        &#34;finished_date&#34;: self.finished_date,
+    }
+    owner = {
+        &#34;username&#34;: self.owner_extra_info[&#34;username&#34;],
+        &#34;id&#34;: self.owner,
+        &#34;email&#34;: self.owner_extra_info[&#34;email&#34;],
+    }
+    watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
+    watchers = [f&#34;({watcher.id}) {watcher.username}&#34; for watcher in watchers_objects]
+    obj[&#34;membership&#34;] = {&#34;owner&#34;: owner, &#34;watchers&#34;: watchers}
+
+    obj[&#34;statistics&#34;] = {
+        &#34;total_voters&#34;: self.total_voters,
+        &#34;total_watchers&#34;: self.total_watchers,
+    }
+    obj[&#34;custom_fields&#34;] = self._client.get_issue_custom_fields(self.id)
+    obj[&#34;additional_info&#34;] = {
+        &#34;is_blocked&#34;: self.is_blocked,
+        &#34;is_closed&#34;: self.is_closed,
+        &#34;is_voter&#34;: self.is_voter,
+        &#34;is_watcher&#34;: self.is_watcher,
+        &#34;blocked_note&#34;: self.blocked_note,
+    }
+    return yaml.dump(obj)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleIssue.url"><code class="name">var <span class="ident">url</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def url(self):
+    # https://circles.threefold.me/project/despiegk-tftech-software/issue/55
+    return f&#34;{self._client.host}/project/{self.project_extra_info.get(&#39;slug&#39;)}/issue/{self.ref}&#34;</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.clients.taiga.models.CircleResource.check_by_name" href="#jumpscale.clients.taiga.models.CircleResource.check_by_name">check_by_name</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleResource"><code class="flex name class">
+<span>class <span class="ident">CircleResource</span></span>
+<span>(</span><span>taigaclient, original_object)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class CircleResource:
+    def __init__(self, taigaclient, original_object):
+        self._original_object = original_object
+        self._client = taigaclient
+        self._api = self._client.api
+
+    def check_by_name(self, list_obj, name_to_find):
+        &#34;&#34;&#34;Check if list contains name, used to check priorities, severities, statuses, types and etc
+            and return the equivalent id.
+
+        Args:
+            list_obj (list): list of objects that we need to search into
+            name_to_find (str): word to search for in the list
+
+        Returns:
+            int: Id of the matched object if found, or id of the first object in the list.
+        &#34;&#34;&#34;
+        for obj in list_obj:
+            if obj.name == name_to_find:
+                return obj.id
+
+        return list_obj[0].id</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.taiga.models.CircleIssue" href="#jumpscale.clients.taiga.models.CircleIssue">CircleIssue</a></li>
+<li><a title="jumpscale.clients.taiga.models.CircleStory" href="#jumpscale.clients.taiga.models.CircleStory">CircleStory</a></li>
+<li><a title="jumpscale.clients.taiga.models.CircleTask" href="#jumpscale.clients.taiga.models.CircleTask">CircleTask</a></li>
+<li><a title="jumpscale.clients.taiga.models.CircleUser" href="#jumpscale.clients.taiga.models.CircleUser">CircleUser</a></li>
+<li><a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.clients.taiga.models.CircleResource.check_by_name"><code class="name flex">
+<span>def <span class="ident">check_by_name</span></span>(<span>self, list_obj, name_to_find)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Check if list contains name, used to check priorities, severities, statuses, types and etc
+and return the equivalent id.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>list_obj</code></strong> :&ensp;<code>list</code></dt>
+<dd>list of objects that we need to search into</dd>
+<dt><strong><code>name_to_find</code></strong> :&ensp;<code>str</code></dt>
+<dd>word to search for in the list</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>int</code></strong></dt>
+<dd>Id of the matched object if found, or id of the first object in the list.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def check_by_name(self, list_obj, name_to_find):
+    &#34;&#34;&#34;Check if list contains name, used to check priorities, severities, statuses, types and etc
+        and return the equivalent id.
+
+    Args:
+        list_obj (list): list of objects that we need to search into
+        name_to_find (str): word to search for in the list
+
+    Returns:
+        int: Id of the matched object if found, or id of the first object in the list.
+    &#34;&#34;&#34;
+    for obj in list_obj:
+        if obj.name == name_to_find:
+            return obj.id
+
+    return list_obj[0].id</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleStory"><code class="flex name class">
+<span>class <span class="ident">CircleStory</span></span>
+<span>(</span><span>taigaclient, original_object)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class CircleStory(CircleResource):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        return getattr(self._original_object, attr)
+
+    def __str__(self):
+        return f&#34;&lt;Story {self._original_object}&gt;&#34;
+
+    @property
+    def url(self):
+        # https://circles.threefold.me/project/despiegk-tftech-software/us/4
+        return f&#34;{self._client.host}/project/{self.project_extra_info.get(&#39;slug&#39;)}/us/{self.ref}&#34;
+
+    @property
+    def circle_tasks(self):
+        return [CircleTask(self._client, task) for task in self.list_tasks()]
+
+    @property
+    def as_md(self):
+        TEMPLATE = dedent(
+            &#34;&#34;&#34;
+            - **Subject:** [{{story.subject}}]({{story.url}})
+            - **Assigned to:** {{story.assigned_to_extra_info and story.assigned_to_extra_info.get(&#39;username&#39;, &#39;not assigned&#39;) or &#39;not assigned&#39; }}
+            - **Watchers:** {{story.watchers or &#39;no watchers&#39;}}
+            {% if story.tasks %}
+            - **Tasks**:
+                {% for task in story.circle_tasks %}
+                - [**{{task.subject}}**]({{task.url}})
+                {% endfor %}
+            {% endif %}
+            &#34;&#34;&#34;
+        )
+        return j.tools.jinja2.render_template(template_text=TEMPLATE, story=self)
+
+    @property
+    def as_yaml(self):
+        obj = {}
+        if self.assigned_to_extra_info is not None:
+            obj[&#34;assigned_to&#34;] = {
+                &#34;username&#34;: self.assigned_to_extra_info.get(&#34;username&#34;) or None,
+                &#34;id&#34;: self.assigned_to,
+                &#34;email&#34;: self.assigned_to_extra_info.get(&#34;email&#34;),
+            }
+
+        obj[&#34;basic_info&#34;] = {
+            &#34;subject&#34;: self.subject,
+            &#34;id&#34;: self.id,
+            &#34;description&#34;: self.description if hasattr(self, &#34;description&#34;) else &#34;&#34;,
+            &#34;tags&#34;: self.tags,
+            &#34;version&#34;: self.version,
+            &#34;url&#34;: self.url,
+        }
+        obj[&#34;project&#34;] = {
+            &#34;name&#34;: self.project_extra_info.get(&#34;name&#34;),
+            &#34;id&#34;: self.project,
+        }
+        obj[&#34;status&#34;] = {
+            &#34;name&#34;: self.status_extra_info.get(&#34;name&#34;),
+            &#34;id&#34;: self.status,
+        }
+
+        obj[&#34;date&#34;] = {
+            &#34;created_date&#34;: self.created_date,
+            &#34;modified_date&#34;: self.modified_date,
+            &#34;due_date&#34;: self.due_date,
+            &#34;due_date_reason&#34;: self.due_date_reason,
+            &#34;due_date_status&#34;: self.due_date_status,
+            &#34;finish_date&#34;: self.finish_date,
+        }
+        owner = {
+            &#34;username&#34;: self.owner_extra_info[&#34;username&#34;],
+            &#34;id&#34;: self.owner,
+            &#34;email&#34;: self.owner_extra_info[&#34;email&#34;],
+        }
+        watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
+        watchers = [f&#34;({watcher.id}) {watcher.username}&#34; for watcher in watchers_objects]
+        obj[&#34;membership&#34;] = {&#34;owner&#34;: owner, &#34;watchers&#34;: watchers}
+        obj[&#34;requirements&#34;] = {
+            &#34;client_requirement&#34;: self.client_requirement,
+            &#34;team_requirement&#34;: self.team_requirement,
+        }
+        obj[&#34;statistics&#34;] = {
+            &#34;total_attachments&#34;: self.total_attachments,
+            &#34;total_comments&#34;: self.total_comments,
+            &#34;total_voters&#34;: self.total_voters,
+            &#34;total_watchers&#34;: self.total_watchers,
+        }
+        obj[&#34;custom_fields&#34;] = self._client.get_story_custom_fields(self.id)
+        obj[&#34;tasks&#34;] = [task.id for task in self.tasks]
+        obj[&#34;additional_info&#34;] = {
+            &#34;is_blocked&#34;: self.is_blocked,
+            &#34;is_closed&#34;: self.is_closed,
+            &#34;is_voter&#34;: self.is_voter,
+            &#34;is_watcher&#34;: self.is_watcher,
+            &#34;blocked_note&#34;: self.blocked_note,
+            &#34;generated_from_issue&#34;: self.generated_from_issue,
+            &#34;generated_from_task&#34;: self.generated_from_task,
+        }
+        return yaml.dump(obj)
+
+    @property
+    def tasks(self):
+        return self.list_tasks()
+
+    def __dir__(self):
+        return dir(self._original_object) + [&#34;as_yaml&#34;, &#34;circle_tasks&#34;, &#34;url&#34;, &#34;as_md&#34;]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.clients.taiga.models.CircleStory.as_md"><code class="name">var <span class="ident">as_md</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def as_md(self):
+    TEMPLATE = dedent(
+        &#34;&#34;&#34;
+        - **Subject:** [{{story.subject}}]({{story.url}})
+        - **Assigned to:** {{story.assigned_to_extra_info and story.assigned_to_extra_info.get(&#39;username&#39;, &#39;not assigned&#39;) or &#39;not assigned&#39; }}
+        - **Watchers:** {{story.watchers or &#39;no watchers&#39;}}
+        {% if story.tasks %}
+        - **Tasks**:
+            {% for task in story.circle_tasks %}
+            - [**{{task.subject}}**]({{task.url}})
+            {% endfor %}
+        {% endif %}
+        &#34;&#34;&#34;
+    )
+    return j.tools.jinja2.render_template(template_text=TEMPLATE, story=self)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleStory.as_yaml"><code class="name">var <span class="ident">as_yaml</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def as_yaml(self):
+    obj = {}
+    if self.assigned_to_extra_info is not None:
+        obj[&#34;assigned_to&#34;] = {
+            &#34;username&#34;: self.assigned_to_extra_info.get(&#34;username&#34;) or None,
+            &#34;id&#34;: self.assigned_to,
+            &#34;email&#34;: self.assigned_to_extra_info.get(&#34;email&#34;),
+        }
+
+    obj[&#34;basic_info&#34;] = {
+        &#34;subject&#34;: self.subject,
+        &#34;id&#34;: self.id,
+        &#34;description&#34;: self.description if hasattr(self, &#34;description&#34;) else &#34;&#34;,
+        &#34;tags&#34;: self.tags,
+        &#34;version&#34;: self.version,
+        &#34;url&#34;: self.url,
+    }
+    obj[&#34;project&#34;] = {
+        &#34;name&#34;: self.project_extra_info.get(&#34;name&#34;),
+        &#34;id&#34;: self.project,
+    }
+    obj[&#34;status&#34;] = {
+        &#34;name&#34;: self.status_extra_info.get(&#34;name&#34;),
+        &#34;id&#34;: self.status,
+    }
+
+    obj[&#34;date&#34;] = {
+        &#34;created_date&#34;: self.created_date,
+        &#34;modified_date&#34;: self.modified_date,
+        &#34;due_date&#34;: self.due_date,
+        &#34;due_date_reason&#34;: self.due_date_reason,
+        &#34;due_date_status&#34;: self.due_date_status,
+        &#34;finish_date&#34;: self.finish_date,
+    }
+    owner = {
+        &#34;username&#34;: self.owner_extra_info[&#34;username&#34;],
+        &#34;id&#34;: self.owner,
+        &#34;email&#34;: self.owner_extra_info[&#34;email&#34;],
+    }
+    watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
+    watchers = [f&#34;({watcher.id}) {watcher.username}&#34; for watcher in watchers_objects]
+    obj[&#34;membership&#34;] = {&#34;owner&#34;: owner, &#34;watchers&#34;: watchers}
+    obj[&#34;requirements&#34;] = {
+        &#34;client_requirement&#34;: self.client_requirement,
+        &#34;team_requirement&#34;: self.team_requirement,
+    }
+    obj[&#34;statistics&#34;] = {
+        &#34;total_attachments&#34;: self.total_attachments,
+        &#34;total_comments&#34;: self.total_comments,
+        &#34;total_voters&#34;: self.total_voters,
+        &#34;total_watchers&#34;: self.total_watchers,
+    }
+    obj[&#34;custom_fields&#34;] = self._client.get_story_custom_fields(self.id)
+    obj[&#34;tasks&#34;] = [task.id for task in self.tasks]
+    obj[&#34;additional_info&#34;] = {
+        &#34;is_blocked&#34;: self.is_blocked,
+        &#34;is_closed&#34;: self.is_closed,
+        &#34;is_voter&#34;: self.is_voter,
+        &#34;is_watcher&#34;: self.is_watcher,
+        &#34;blocked_note&#34;: self.blocked_note,
+        &#34;generated_from_issue&#34;: self.generated_from_issue,
+        &#34;generated_from_task&#34;: self.generated_from_task,
+    }
+    return yaml.dump(obj)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleStory.circle_tasks"><code class="name">var <span class="ident">circle_tasks</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def circle_tasks(self):
+    return [CircleTask(self._client, task) for task in self.list_tasks()]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleStory.tasks"><code class="name">var <span class="ident">tasks</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def tasks(self):
+    return self.list_tasks()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleStory.url"><code class="name">var <span class="ident">url</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def url(self):
+    # https://circles.threefold.me/project/despiegk-tftech-software/us/4
+    return f&#34;{self._client.host}/project/{self.project_extra_info.get(&#39;slug&#39;)}/us/{self.ref}&#34;</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.clients.taiga.models.CircleResource.check_by_name" href="#jumpscale.clients.taiga.models.CircleResource.check_by_name">check_by_name</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleTask"><code class="flex name class">
+<span>class <span class="ident">CircleTask</span></span>
+<span>(</span><span>taigaclient, original_object)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class CircleTask(CircleResource):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        return getattr(self._original_object, attr)
+
+    def __str__(self):
+        return f&#34;&lt;Task {self._original_object}&gt;&#34;
+
+    @property
+    def url(self):
+        # https://circles.threefold.me/project/despiegk-tftech-software/task/2
+        return f&#34;{self._client.host}/project/{self.project_extra_info.get(&#39;slug&#39;)}/task/{self.ref}&#34;
+
+    @property
+    def as_md(self):
+        TEMPLATE = dedent(
+            &#34;&#34;&#34;
+            - **Subject:** [{{task.subject}}]({{task.url}})
+            - **Created Date:** {{task.created_date or &#39;unknown&#39; }}
+            - **Due Date:** {{task.due_date or &#39;unknown&#39; }}
+            - **Owner Name:** {{task.owner_extra_info.get(&#39;username&#39;, &#39;unknown&#39;)}}
+            - **Owner Email:** {{task.owner_extra_info.get(&#39;email&#39;, &#39;unknown&#39;)}}
+            - **Project:** {{task.project_extra_info.get(&#39;name&#39;, &#39;unknown&#39;)}}
+            &#34;&#34;&#34;
+        )
+        return j.tools.jinja2.render_template(template_text=TEMPLATE, task=self)
+
+    @property
+    def as_yaml(self):
+        obj = {}
+        if self.assigned_to_extra_info is not None:
+            obj[&#34;assigned_to&#34;] = {
+                &#34;username&#34;: self.assigned_to_extra_info.get(&#34;username&#34;) or None,
+                &#34;id&#34;: self.assigned_to,
+                &#34;email&#34;: self.assigned_to_extra_info.get(&#34;email&#34;),
+            }
+
+        obj[&#34;basic_info&#34;] = {
+            &#34;subject&#34;: self.subject,
+            &#34;id&#34;: self.id,
+            &#34;description&#34;: self.description if hasattr(self, &#34;description&#34;) else &#34;&#34;,
+            &#34;tags&#34;: self.tags,
+            &#34;version&#34;: self.version,
+            &#34;url&#34;: self.url,
+        }
+        obj[&#34;project&#34;] = {
+            &#34;name&#34;: self.project_extra_info.get(&#34;name&#34;),
+            &#34;id&#34;: self.project,
+        }
+        obj[&#34;status&#34;] = {
+            &#34;name&#34;: self.status_extra_info.get(&#34;name&#34;),
+            &#34;id&#34;: self.status,
+        }
+        obj[&#34;user_story&#34;] = {
+            &#34;subject&#34;: self.user_story_extra_info.get(&#34;subject&#34;),
+            &#34;id&#34;: self.user_story,
+        }
+        obj[&#34;date&#34;] = {
+            &#34;created_date&#34;: self.created_date,
+            &#34;modified_date&#34;: self.modified_date,
+            &#34;due_date&#34;: self.due_date,
+            &#34;due_date_reason&#34;: self.due_date_reason,
+            &#34;due_date_status&#34;: self.due_date_status,
+            &#34;finished_date&#34;: self.finished_date,
+        }
+        owner = {
+            &#34;username&#34;: self.owner_extra_info[&#34;username&#34;],
+            &#34;id&#34;: self.owner,
+            &#34;email&#34;: self.owner_extra_info[&#34;email&#34;],
+        }
+        watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
+        watchers = [f&#34;({watcher.id}) {watcher.username}&#34; for watcher in watchers_objects]
+        obj[&#34;membership&#34;] = {&#34;owner&#34;: owner, &#34;watchers&#34;: watchers}
+        obj[&#34;statistics&#34;] = {
+            &#34;total_comments&#34;: self.total_comments,
+            &#34;total_voters&#34;: self.total_voters,
+            &#34;total_watchers&#34;: self.total_watchers,
+        }
+        obj[&#34;additional_info&#34;] = {
+            &#34;is_blocked&#34;: self.is_blocked,
+            &#34;is_closed&#34;: self.is_closed,
+            &#34;is_voter&#34;: self.is_voter,
+            &#34;is_watcher&#34;: self.is_watcher,
+            &#34;blocked_note&#34;: self.blocked_note,
+        }
+        return yaml.dump(obj)
+
+    def __dir__(self):
+        return dir(self._original_object) + [&#34;as_yaml&#34;, &#34;url&#34;, &#34;as_md&#34;]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.clients.taiga.models.CircleTask.as_md"><code class="name">var <span class="ident">as_md</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def as_md(self):
+    TEMPLATE = dedent(
+        &#34;&#34;&#34;
+        - **Subject:** [{{task.subject}}]({{task.url}})
+        - **Created Date:** {{task.created_date or &#39;unknown&#39; }}
+        - **Due Date:** {{task.due_date or &#39;unknown&#39; }}
+        - **Owner Name:** {{task.owner_extra_info.get(&#39;username&#39;, &#39;unknown&#39;)}}
+        - **Owner Email:** {{task.owner_extra_info.get(&#39;email&#39;, &#39;unknown&#39;)}}
+        - **Project:** {{task.project_extra_info.get(&#39;name&#39;, &#39;unknown&#39;)}}
+        &#34;&#34;&#34;
+    )
+    return j.tools.jinja2.render_template(template_text=TEMPLATE, task=self)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleTask.as_yaml"><code class="name">var <span class="ident">as_yaml</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def as_yaml(self):
+    obj = {}
+    if self.assigned_to_extra_info is not None:
+        obj[&#34;assigned_to&#34;] = {
+            &#34;username&#34;: self.assigned_to_extra_info.get(&#34;username&#34;) or None,
+            &#34;id&#34;: self.assigned_to,
+            &#34;email&#34;: self.assigned_to_extra_info.get(&#34;email&#34;),
+        }
+
+    obj[&#34;basic_info&#34;] = {
+        &#34;subject&#34;: self.subject,
+        &#34;id&#34;: self.id,
+        &#34;description&#34;: self.description if hasattr(self, &#34;description&#34;) else &#34;&#34;,
+        &#34;tags&#34;: self.tags,
+        &#34;version&#34;: self.version,
+        &#34;url&#34;: self.url,
+    }
+    obj[&#34;project&#34;] = {
+        &#34;name&#34;: self.project_extra_info.get(&#34;name&#34;),
+        &#34;id&#34;: self.project,
+    }
+    obj[&#34;status&#34;] = {
+        &#34;name&#34;: self.status_extra_info.get(&#34;name&#34;),
+        &#34;id&#34;: self.status,
+    }
+    obj[&#34;user_story&#34;] = {
+        &#34;subject&#34;: self.user_story_extra_info.get(&#34;subject&#34;),
+        &#34;id&#34;: self.user_story,
+    }
+    obj[&#34;date&#34;] = {
+        &#34;created_date&#34;: self.created_date,
+        &#34;modified_date&#34;: self.modified_date,
+        &#34;due_date&#34;: self.due_date,
+        &#34;due_date_reason&#34;: self.due_date_reason,
+        &#34;due_date_status&#34;: self.due_date_status,
+        &#34;finished_date&#34;: self.finished_date,
+    }
+    owner = {
+        &#34;username&#34;: self.owner_extra_info[&#34;username&#34;],
+        &#34;id&#34;: self.owner,
+        &#34;email&#34;: self.owner_extra_info[&#34;email&#34;],
+    }
+    watchers_objects = [self._client.api.users.get(id) for id in self.watchers]
+    watchers = [f&#34;({watcher.id}) {watcher.username}&#34; for watcher in watchers_objects]
+    obj[&#34;membership&#34;] = {&#34;owner&#34;: owner, &#34;watchers&#34;: watchers}
+    obj[&#34;statistics&#34;] = {
+        &#34;total_comments&#34;: self.total_comments,
+        &#34;total_voters&#34;: self.total_voters,
+        &#34;total_watchers&#34;: self.total_watchers,
+    }
+    obj[&#34;additional_info&#34;] = {
+        &#34;is_blocked&#34;: self.is_blocked,
+        &#34;is_closed&#34;: self.is_closed,
+        &#34;is_voter&#34;: self.is_voter,
+        &#34;is_watcher&#34;: self.is_watcher,
+        &#34;blocked_note&#34;: self.blocked_note,
+    }
+    return yaml.dump(obj)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleTask.url"><code class="name">var <span class="ident">url</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def url(self):
+    # https://circles.threefold.me/project/despiegk-tftech-software/task/2
+    return f&#34;{self._client.host}/project/{self.project_extra_info.get(&#39;slug&#39;)}/task/{self.ref}&#34;</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.clients.taiga.models.CircleResource.check_by_name" href="#jumpscale.clients.taiga.models.CircleResource.check_by_name">check_by_name</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleUser"><code class="flex name class">
+<span>class <span class="ident">CircleUser</span></span>
+<span>(</span><span>taigaclient, original_object)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class CircleUser(CircleResource):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        return getattr(self._original_object, attr)
+
+    def __str__(self):
+        return f&#34;&lt;User {self._original_object}&gt;&#34;
+
+    @property
+    def url(self):
+        # https://circles.threefold.me/profile/ahartl
+        return f&#34;{self._client.host}/profile/{self.username}&#34;
+
+    @property
+    def clean_name(self):
+        return self.username.lower()
+
+    def get_stories(self):
+        return self._client.list_all_user_stories(self._original_object.username)
+
+    def get_issues(self):
+        return self._client.list_all_issues(self._original_object.username)
+
+    def get_circles(self):
+        circles = []
+        all_circles = self._client.get_user_circles(self._original_object.username)
+        for c in all_circles:
+            cname = c.name.lower()
+            if cname.startswith(&#34;team&#34;):
+                circles.append(TeamCircle(self._client, c))
+            elif cname.startswith(&#34;funnel&#34;):
+                circles.append(FunnelCircle(self._client, c))
+            elif cname.startswith(&#34;project&#34;):
+                circles.append(ProjectCircle(self._client, c))
+            elif cname.startswith(&#34;archive&#34;):
+                pass  # to not included in as_md property
+            else:
+                circles.append(Circle(self._client, c))
+        return circles
+
+    def get_tasks(self):
+        return self._client.list_all_tasks(self._original_object.username)
+
+    @property
+    def stories(self):
+        res = []
+        for s in self.get_stories():
+            res.append(CircleStory(self._client, s))
+
+        return res
+
+    @property
+    def issues(self):
+        res = []
+        for s in self.get_issues():
+            res.append(CircleIssue(self._client, s))
+
+        return res
+
+    @property
+    def circles(self):
+        return self.get_circles()
+
+    @property
+    def tasks(self):
+        return self.get_tasks()
+
+    @property
+    def as_md(self):
+
+        TEMPLATE = dedent(
+            &#34;&#34;&#34;
+            # {{user.username}}
+
+            User profile is at: [{{user.url}}]({{user.url}})
+
+            {% if user.circles %}
+            ## Circles
+
+            {% for c in user.circles %}
+
+            &#39;[{{c.name}}]({{c.clean_name}}.md) [{{c.url}}]({{c.url}})
+            {% endfor %}
+
+            {% endif %}
+
+            {% if user.stories %}
+            ## User stories
+            {% for story in user.stories %}
+
+            ### {{story.subject}}
+
+            {{story.as_md}}
+
+            {% endfor %}
+
+            {% endif %}
+
+
+            {% if user.issues %}
+            ## Issues
+
+            {% for issue in user.issues %}
+            ### {{issue.subject}}
+
+            {{issue.as_md}}
+
+            {% endfor %}
+            {% endif %}
+
+            {% if user.tasks %}
+            ## Tasks
+
+            {% for task in user.tasks %}
+            ### {{task.subject}}
+
+            {{task.as_md}}
+
+            {% endfor %}
+            {% endif %}
+
+            &#34;&#34;&#34;
+        )
+        return j.tools.jinja2.render_template(template_text=TEMPLATE, user=self)
+
+    @property
+    def as_yaml(self):
+        obj = {}
+        obj[&#34;basic_info&#34;] = {
+            &#34;username&#34;: self.username,
+            &#34;email&#34;: self.email,
+            &#34;id&#34;: self.id,
+            &#34;full_name&#34;: self.full_name,
+            &#34;bio&#34;: self.bio,
+            &#34;lang&#34;: self.lang,
+            &#34;public_key&#34;: self.public_key,
+            &#34;photo&#34;: self.photo,
+            &#34;url&#34;: self.url,
+        }
+        obj[&#34;date&#34;] = {&#34;date_joined&#34;: self.date_joined, &#34;timezone&#34;: self.timezone}
+        obj[&#34;statistics&#34;] = {
+            &#34;total_private_projects&#34;: self.total_private_projects,
+            &#34;total_public_projects&#34;: self.total_public_projects,
+        }
+        obj[&#34;roles&#34;] = self.roles
+        obj[&#34;limits&#34;] = {
+            &#34;max_memberships_private_projects&#34;: self.max_memberships_private_projects,
+            &#34;max_memberships_public_projects&#34;: self.max_memberships_public_projects,
+            &#34;max_private_projects&#34;: self.max_private_projects,
+            &#34;max_public_projects&#34;: self.max_memberships_public_projects,
+        }
+        obj[&#34;terms&#34;] = {
+            &#34;accepted_terms&#34;: self.accepted_terms,
+            &#34;read_new_terms&#34;: self.read_new_terms,
+        }
+        return yaml.dump(obj)
+
+    def __dir__(self):
+        return dir(self._original_object) + [
+            &#34;as_yaml&#34;,
+            &#34;as_md&#34;,
+            &#34;issues&#34;,
+            &#34;stories&#34;,
+            &#34;tasks&#34;,
+            &#34;get_circles&#34;,
+            &#34;get_issues&#34;,
+            &#34;get_stories&#34;,
+            &#34;get_tasks&#34;,
+            &#34;url&#34;,
+            &#34;clean_name&#34;,
+        ]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.clients.taiga.models.CircleUser.as_md"><code class="name">var <span class="ident">as_md</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def as_md(self):
+
+    TEMPLATE = dedent(
+        &#34;&#34;&#34;
+        # {{user.username}}
+
+        User profile is at: [{{user.url}}]({{user.url}})
+
+        {% if user.circles %}
+        ## Circles
+
+        {% for c in user.circles %}
+
+        &#39;[{{c.name}}]({{c.clean_name}}.md) [{{c.url}}]({{c.url}})
+        {% endfor %}
+
+        {% endif %}
+
+        {% if user.stories %}
+        ## User stories
+        {% for story in user.stories %}
+
+        ### {{story.subject}}
+
+        {{story.as_md}}
+
+        {% endfor %}
+
+        {% endif %}
+
+
+        {% if user.issues %}
+        ## Issues
+
+        {% for issue in user.issues %}
+        ### {{issue.subject}}
+
+        {{issue.as_md}}
+
+        {% endfor %}
+        {% endif %}
+
+        {% if user.tasks %}
+        ## Tasks
+
+        {% for task in user.tasks %}
+        ### {{task.subject}}
+
+        {{task.as_md}}
+
+        {% endfor %}
+        {% endif %}
+
+        &#34;&#34;&#34;
+    )
+    return j.tools.jinja2.render_template(template_text=TEMPLATE, user=self)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleUser.as_yaml"><code class="name">var <span class="ident">as_yaml</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def as_yaml(self):
+    obj = {}
+    obj[&#34;basic_info&#34;] = {
+        &#34;username&#34;: self.username,
+        &#34;email&#34;: self.email,
+        &#34;id&#34;: self.id,
+        &#34;full_name&#34;: self.full_name,
+        &#34;bio&#34;: self.bio,
+        &#34;lang&#34;: self.lang,
+        &#34;public_key&#34;: self.public_key,
+        &#34;photo&#34;: self.photo,
+        &#34;url&#34;: self.url,
+    }
+    obj[&#34;date&#34;] = {&#34;date_joined&#34;: self.date_joined, &#34;timezone&#34;: self.timezone}
+    obj[&#34;statistics&#34;] = {
+        &#34;total_private_projects&#34;: self.total_private_projects,
+        &#34;total_public_projects&#34;: self.total_public_projects,
+    }
+    obj[&#34;roles&#34;] = self.roles
+    obj[&#34;limits&#34;] = {
+        &#34;max_memberships_private_projects&#34;: self.max_memberships_private_projects,
+        &#34;max_memberships_public_projects&#34;: self.max_memberships_public_projects,
+        &#34;max_private_projects&#34;: self.max_private_projects,
+        &#34;max_public_projects&#34;: self.max_memberships_public_projects,
+    }
+    obj[&#34;terms&#34;] = {
+        &#34;accepted_terms&#34;: self.accepted_terms,
+        &#34;read_new_terms&#34;: self.read_new_terms,
+    }
+    return yaml.dump(obj)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleUser.circles"><code class="name">var <span class="ident">circles</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def circles(self):
+    return self.get_circles()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleUser.clean_name"><code class="name">var <span class="ident">clean_name</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def clean_name(self):
+    return self.username.lower()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleUser.issues"><code class="name">var <span class="ident">issues</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def issues(self):
+    res = []
+    for s in self.get_issues():
+        res.append(CircleIssue(self._client, s))
+
+    return res</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleUser.stories"><code class="name">var <span class="ident">stories</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def stories(self):
+    res = []
+    for s in self.get_stories():
+        res.append(CircleStory(self._client, s))
+
+    return res</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleUser.tasks"><code class="name">var <span class="ident">tasks</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def tasks(self):
+    return self.get_tasks()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleUser.url"><code class="name">var <span class="ident">url</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def url(self):
+    # https://circles.threefold.me/profile/ahartl
+    return f&#34;{self._client.host}/profile/{self.username}&#34;</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.clients.taiga.models.CircleUser.get_circles"><code class="name flex">
+<span>def <span class="ident">get_circles</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_circles(self):
+    circles = []
+    all_circles = self._client.get_user_circles(self._original_object.username)
+    for c in all_circles:
+        cname = c.name.lower()
+        if cname.startswith(&#34;team&#34;):
+            circles.append(TeamCircle(self._client, c))
+        elif cname.startswith(&#34;funnel&#34;):
+            circles.append(FunnelCircle(self._client, c))
+        elif cname.startswith(&#34;project&#34;):
+            circles.append(ProjectCircle(self._client, c))
+        elif cname.startswith(&#34;archive&#34;):
+            pass  # to not included in as_md property
+        else:
+            circles.append(Circle(self._client, c))
+    return circles</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleUser.get_issues"><code class="name flex">
+<span>def <span class="ident">get_issues</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_issues(self):
+    return self._client.list_all_issues(self._original_object.username)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleUser.get_stories"><code class="name flex">
+<span>def <span class="ident">get_stories</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_stories(self):
+    return self._client.list_all_user_stories(self._original_object.username)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.models.CircleUser.get_tasks"><code class="name flex">
+<span>def <span class="ident">get_tasks</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_tasks(self):
+    return self._client.list_all_tasks(self._original_object.username)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.clients.taiga.models.CircleResource.check_by_name" href="#jumpscale.clients.taiga.models.CircleResource.check_by_name">check_by_name</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.clients.taiga.models.FunnelCircle"><code class="flex name class">
+<span>class <span class="ident">FunnelCircle</span></span>
+<span>(</span><span>taigaclient, original_object)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class FunnelCircle(Circle):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self._original_object, attr)
+        except Exception as e:
+            if hasattr(self._original_object, &#34;_original_object&#34;):
+                return getattr(self._original_object._original_object, attr)
+            else:
+                raise j.exceptions.Runtime(f&#34;{attr} not found in {self} and not in {self._original_object}&#34;)
+
+    def __str__(self):
+        return f&#34;&lt;FunnelCircle {self._original_object}&gt;&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a></li>
+<li><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.clients.taiga.models.Circle.check_by_name" href="#jumpscale.clients.taiga.models.CircleResource.check_by_name">check_by_name</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.copy_issue" href="#jumpscale.clients.taiga.models.Circle.copy_issue">copy_issue</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.move_issue" href="#jumpscale.clients.taiga.models.Circle.move_issue">move_issue</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.clients.taiga.models.ProjectCircle"><code class="flex name class">
+<span>class <span class="ident">ProjectCircle</span></span>
+<span>(</span><span>taigaclient, original_object)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class ProjectCircle(Circle):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self._original_object, attr)
+        except Exception as e:
+            if hasattr(self._original_object, &#34;_original_object&#34;):
+                return getattr(self._original_object._original_object, attr)
+            else:
+                raise j.exceptions.Runtime(f&#34;{attr} not found in {self} and not in {self._original_object}&#34;)
+
+    def __str__(self):
+        return f&#34;&lt;ProjectCircle {self._original_object}&gt;&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a></li>
+<li><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.clients.taiga.models.Circle.check_by_name" href="#jumpscale.clients.taiga.models.CircleResource.check_by_name">check_by_name</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.copy_issue" href="#jumpscale.clients.taiga.models.Circle.copy_issue">copy_issue</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.move_issue" href="#jumpscale.clients.taiga.models.Circle.move_issue">move_issue</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.clients.taiga.models.TeamCircle"><code class="flex name class">
+<span>class <span class="ident">TeamCircle</span></span>
+<span>(</span><span>taigaclient, original_object)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class TeamCircle(Circle):
+    def __init__(self, taigaclient, original_object):
+        super().__init__(taigaclient, original_object)
+
+    def __getattr__(self, attr):
+        try:
+            return getattr(self._original_object, attr)
+        except Exception as e:
+            if hasattr(self._original_object, &#34;_original_object&#34;):
+                return getattr(self._original_object._original_object, attr)
+            else:
+                raise j.exceptions.Runtime(f&#34;{attr} not found in {self} and not in {self._original_object}&#34;)
+
+    def __str__(self):
+        return f&#34;&lt;TeamCircle {self._original_object}&gt;&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a></li>
+<li><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.clients.taiga.models.Circle.check_by_name" href="#jumpscale.clients.taiga.models.CircleResource.check_by_name">check_by_name</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.copy_issue" href="#jumpscale.clients.taiga.models.Circle.copy_issue">copy_issue</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.move_issue" href="#jumpscale.clients.taiga.models.Circle.move_issue">move_issue</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="jumpscale.clients.taiga" href="index.html">jumpscale.clients.taiga</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="jumpscale.clients.taiga.models.ArchiveCircle" href="#jumpscale.clients.taiga.models.ArchiveCircle">ArchiveCircle</a></code></h4>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a></code></h4>
+<ul class="two-column">
+<li><code><a title="jumpscale.clients.taiga.models.Circle.as_md" href="#jumpscale.clients.taiga.models.Circle.as_md">as_md</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.as_yaml" href="#jumpscale.clients.taiga.models.Circle.as_yaml">as_yaml</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.circle_users" href="#jumpscale.clients.taiga.models.Circle.circle_users">circle_users</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.clean_name" href="#jumpscale.clients.taiga.models.Circle.clean_name">clean_name</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.copy_issue" href="#jumpscale.clients.taiga.models.Circle.copy_issue">copy_issue</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.create_issue" href="#jumpscale.clients.taiga.models.Circle.create_issue">create_issue</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.create_story" href="#jumpscale.clients.taiga.models.Circle.create_story">create_story</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.get_project_info" href="#jumpscale.clients.taiga.models.Circle.get_project_info">get_project_info</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.issues" href="#jumpscale.clients.taiga.models.Circle.issues">issues</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.move_issue" href="#jumpscale.clients.taiga.models.Circle.move_issue">move_issue</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.stories" href="#jumpscale.clients.taiga.models.Circle.stories">stories</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.Circle.url" href="#jumpscale.clients.taiga.models.Circle.url">url</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.taiga.models.CircleIssue" href="#jumpscale.clients.taiga.models.CircleIssue">CircleIssue</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.clients.taiga.models.CircleIssue.as_md" href="#jumpscale.clients.taiga.models.CircleIssue.as_md">as_md</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleIssue.as_yaml" href="#jumpscale.clients.taiga.models.CircleIssue.as_yaml">as_yaml</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleIssue.url" href="#jumpscale.clients.taiga.models.CircleIssue.url">url</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.taiga.models.CircleResource" href="#jumpscale.clients.taiga.models.CircleResource">CircleResource</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.clients.taiga.models.CircleResource.check_by_name" href="#jumpscale.clients.taiga.models.CircleResource.check_by_name">check_by_name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.taiga.models.CircleStory" href="#jumpscale.clients.taiga.models.CircleStory">CircleStory</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.clients.taiga.models.CircleStory.as_md" href="#jumpscale.clients.taiga.models.CircleStory.as_md">as_md</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleStory.as_yaml" href="#jumpscale.clients.taiga.models.CircleStory.as_yaml">as_yaml</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleStory.circle_tasks" href="#jumpscale.clients.taiga.models.CircleStory.circle_tasks">circle_tasks</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleStory.tasks" href="#jumpscale.clients.taiga.models.CircleStory.tasks">tasks</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleStory.url" href="#jumpscale.clients.taiga.models.CircleStory.url">url</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.taiga.models.CircleTask" href="#jumpscale.clients.taiga.models.CircleTask">CircleTask</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.clients.taiga.models.CircleTask.as_md" href="#jumpscale.clients.taiga.models.CircleTask.as_md">as_md</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleTask.as_yaml" href="#jumpscale.clients.taiga.models.CircleTask.as_yaml">as_yaml</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleTask.url" href="#jumpscale.clients.taiga.models.CircleTask.url">url</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.taiga.models.CircleUser" href="#jumpscale.clients.taiga.models.CircleUser">CircleUser</a></code></h4>
+<ul class="two-column">
+<li><code><a title="jumpscale.clients.taiga.models.CircleUser.as_md" href="#jumpscale.clients.taiga.models.CircleUser.as_md">as_md</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleUser.as_yaml" href="#jumpscale.clients.taiga.models.CircleUser.as_yaml">as_yaml</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleUser.circles" href="#jumpscale.clients.taiga.models.CircleUser.circles">circles</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleUser.clean_name" href="#jumpscale.clients.taiga.models.CircleUser.clean_name">clean_name</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleUser.get_circles" href="#jumpscale.clients.taiga.models.CircleUser.get_circles">get_circles</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleUser.get_issues" href="#jumpscale.clients.taiga.models.CircleUser.get_issues">get_issues</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleUser.get_stories" href="#jumpscale.clients.taiga.models.CircleUser.get_stories">get_stories</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleUser.get_tasks" href="#jumpscale.clients.taiga.models.CircleUser.get_tasks">get_tasks</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleUser.issues" href="#jumpscale.clients.taiga.models.CircleUser.issues">issues</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleUser.stories" href="#jumpscale.clients.taiga.models.CircleUser.stories">stories</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleUser.tasks" href="#jumpscale.clients.taiga.models.CircleUser.tasks">tasks</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.models.CircleUser.url" href="#jumpscale.clients.taiga.models.CircleUser.url">url</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.taiga.models.FunnelCircle" href="#jumpscale.clients.taiga.models.FunnelCircle">FunnelCircle</a></code></h4>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.taiga.models.ProjectCircle" href="#jumpscale.clients.taiga.models.ProjectCircle">ProjectCircle</a></code></h4>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.taiga.models.TeamCircle" href="#jumpscale.clients.taiga.models.TeamCircle">TeamCircle</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

@@ -546,20 +546,33 @@ def is_empty_dir(path: str) -&gt; bool:
 is_binary_file = lambda path: not is_ascii_file(path)
 
 
-def is_broken_link(path: str, clean=False) -&gt; bool:
+def is_broken_link(path: str) -&gt; bool:
     &#34;&#34;&#34;Checks if path is a broken symlink
 
     Args:
         path (str): path to check
-        clean (bool, optional): remove symlink if broken. Defaults to False.
-
-    Raises:
-        NotImplementedError: [description]
 
     Returns:
-        bool: True if path is a broken symlink
+        bool:   True if path is a broken symlink
+                False if path not found or symlink is not broken
     &#34;&#34;&#34;
-    raise NotImplementedError()
+    return os.path.islink(path) and not exists(path)
+
+
+def rm_broken_link(path: str) -&gt; bool:
+    &#34;&#34;&#34;Remove broken symlink
+
+    Args:
+        path (str): path to remove
+
+    Returns:
+        bool: True if broken symlink removed
+    &#34;&#34;&#34;
+    if is_broken_link(path):
+        unlink(path)
+        return True
+    else:
+        return False
 
 
 def stem(path: str) -&gt; str:
@@ -607,6 +620,9 @@ def mkdirs(path: str, exist_ok=True):
     return os.makedirs(path, exist_ok=exist_ok)
 
 
+makedirs = mkdirs
+
+
 def make_path(path):
     &#34;&#34;&#34;
     to ensure the given path, create it if it does not exist
@@ -617,7 +633,6 @@ def make_path(path):
     if not os.path.exists(path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         return pathlib.Path(path).touch()
-
 
 
 def parent(path: str) -&gt; str:
@@ -708,6 +723,19 @@ def expanduser(path: str) -&gt; str:
     return str(pathlib.Path(path).expanduser())
 
 
+def absolute(path: str) -&gt; str:
+    &#34;&#34;&#34;[summary]
+    e.g
+        j.sals.fs.absolute(&#34;.&#34;) -&gt; &#39;/home/xmonader/js-ng&#39;
+    Args:
+        path (str): relative path `.`
+
+    Returns:
+        str: the absolute path for relative path.
+    &#34;&#34;&#34;
+    return str(pathlib.Path(path).absolute())
+
+
 def unlink(path: str):
     &#34;&#34;&#34;unlink path
     e.g
@@ -752,7 +780,7 @@ def read_bytes(path: str) -&gt; bytes:
 read_binary = read_file_binary = read_bytes
 
 
-def write_text(path: str, data: str, encoding=None):
+def write_text(path: str, data: str, encoding=None, append=False):
     &#34;&#34;&#34;write text `data` to path `path` with encoding
     e.g
         j.sals.fs.write_text(path=&#34;/home/rafy/testing_text.txt&#34;,data=&#34;hello world&#34;)  -&gt; 11
@@ -761,30 +789,40 @@ def write_text(path: str, data: str, encoding=None):
         path (str): path to write to
         data (str): ascii content
         encoding ([type], optional): encoding. Defaults to None.
+        append (bool, optional): indicate whether to open the file in append mode or not.
 
     Returns:
-        int: Return the decoded contents of the pointed-to file as a string
+        int: returning the number of characters written.
 
     &#34;&#34;&#34;
-    return pathlib.Path(path).write_text(data, encoding)
+    p = pathlib.Path(path)
+    mode = &#34;at&#34; if append else &#34;wt&#34;
+    with p.open(mode=mode, encoding=encoding) as f:
+        return f.write(data)
 
 
 write_ascii = write_file = write_text
 
 
-def write_bytes(path: str, data: bytes):
+def write_bytes(path: str, data: bytes, append=False):
     &#34;&#34;&#34;write binary `data` to path `path`
+
+    If file does not exist, it creates a new file. If file exists it truncates the file unless append arg is True
     e.g
         j.sals.fs.write_bytes(path=&#34;/home/rafy/testing_text.txt&#34;,data=b&#34;hello world&#34;)  -&gt; 11
 
     Args:
         path (str): path to write to
         data (bytes): binary content
+        append (bool, optional): indicate whether to open the file in append mode or not.
 
     Returns:
-        int: Return the binary contents of the pointed-to file as a bytes object
+        int:  returning the number of characters written.
     &#34;&#34;&#34;
-    return pathlib.Path(path).write_bytes(data)
+    p = pathlib.Path(path)
+    mode = &#34;ab&#34; if append else &#34;wb&#34;
+    with p.open(mode=mode) as f:
+        return f.write(data)
 
 
 write_binary = write_file_binary = write_bytes
@@ -840,7 +878,7 @@ def get_temp_dirname(suffix=None, prefix=None, dir=None) -&gt; str:
 
 
 NamedTemporaryFile = tempfile.NamedTemporaryFile
-TempraryDirectory = tempfile.TemporaryDirectory
+TemporaryDirectory = tempfile.TemporaryDirectory
 mkdtemp = tempfile.mkdtemp
 mkstemp = tempfile.mkstemp
 get_temp_dir = tempfile.gettempdir
@@ -1264,6 +1302,38 @@ def fs_check(**arguments):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="jumpscale.sals.fs.absolute"><code class="name flex">
+<span>def <span class="ident">absolute</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>[summary]
+e.g
+j.sals.fs.absolute(".") -&gt; '/home/xmonader/js-ng'</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>relative path <code>.</code></dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>the absolute path for relative path.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def absolute(path: str) -&gt; str:
+    &#34;&#34;&#34;[summary]
+    e.g
+        j.sals.fs.absolute(&#34;.&#34;) -&gt; &#39;/home/xmonader/js-ng&#39;
+    Args:
+        path (str): relative path `.`
+
+    Returns:
+        str: the absolute path for relative path.
+    &#34;&#34;&#34;
+    return str(pathlib.Path(path).absolute())</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.sals.fs.change_dir"><code class="name flex">
 <span>def <span class="ident">change_dir</span></span>(<span>path)</span>
 </code></dt>
@@ -1933,7 +2003,7 @@ j.sals.fs.is_ascii_file(path="/home/rafy/testfile")
 </details>
 </dd>
 <dt id="jumpscale.sals.fs.is_broken_link"><code class="name flex">
-<span>def <span class="ident">is_broken_link</span></span>(<span>path, clean=False)</span>
+<span>def <span class="ident">is_broken_link</span></span>(<span>path)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Checks if path is a broken symlink</p>
@@ -1941,35 +2011,26 @@ j.sals.fs.is_ascii_file(path="/home/rafy/testfile")
 <dl>
 <dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
 <dd>path to check</dd>
-<dt><strong><code>clean</code></strong> :&ensp;<code>bool</code>, optional</dt>
-<dd>remove symlink if broken. Defaults to False.</dd>
-</dl>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><strong><code>NotImplementedError</code></strong></dt>
-<dd>[description]</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>bool</code></strong></dt>
-<dd>True if path is a broken symlink</dd>
+<dd>True if path is a broken symlink
+False if path not found or symlink is not broken</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def is_broken_link(path: str, clean=False) -&gt; bool:
+<pre><code class="python">def is_broken_link(path: str) -&gt; bool:
     &#34;&#34;&#34;Checks if path is a broken symlink
 
     Args:
         path (str): path to check
-        clean (bool, optional): remove symlink if broken. Defaults to False.
-
-    Raises:
-        NotImplementedError: [description]
 
     Returns:
-        bool: True if path is a broken symlink
+        bool:   True if path is a broken symlink
+                False if path not found or symlink is not broken
     &#34;&#34;&#34;
-    raise NotImplementedError()</code></pre>
+    return os.path.islink(path) and not exists(path)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.fs.is_dir"><code class="name flex">
@@ -2277,6 +2338,40 @@ j.sals.fs.lstat("/home/rafy/testing_link")
     if not os.path.exists(path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         return pathlib.Path(path).touch()</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.fs.makedirs"><code class="name flex">
+<span>def <span class="ident">makedirs</span></span>(<span>path, exist_ok=True)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Creates dir as well as all non exisitng parents in the path
+e.g
+j.sals.fs.mkdirs("/home/rafy/testing_make_dir/test1/test2",exist_ok=False)
+j.sals.fs.mkdirs("/home/rafy/testing_make_dir/test1/test2",exist_ok=True)
+j.sals.fs.mkdirs("/home/rafy/testing_make_dir/test1/test2",exist_ok=False)
+-&gt; File exists: '/home/rafy/testing_make_dir/test1/test2'(raise exception as the file exist and
+exist_ok flag is false)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to create dir at</dd>
+<dt><strong><code>exist_ok</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>won't fail if directory exists. Defaults to True.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def mkdirs(path: str, exist_ok=True):
+    &#34;&#34;&#34;Creates dir as well as all non exisitng parents in the path
+    e.g
+        j.sals.fs.mkdirs(&#34;/home/rafy/testing_make_dir/test1/test2&#34;,exist_ok=False)
+        j.sals.fs.mkdirs(&#34;/home/rafy/testing_make_dir/test1/test2&#34;,exist_ok=True)
+        j.sals.fs.mkdirs(&#34;/home/rafy/testing_make_dir/test1/test2&#34;,exist_ok=False)  -&gt; File exists: &#39;/home/rafy/testing_make_dir/test1/test2&#39;(raise exception as the file exist and  exist_ok flag is false)
+
+    Args:
+        path (str): path to create dir at
+        exist_ok (bool, optional): won&#39;t fail if directory exists. Defaults to True.
+    &#34;&#34;&#34;
+    return os.makedirs(path, exist_ok=exist_ok)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.fs.mkdir"><code class="name flex">
@@ -2779,6 +2874,39 @@ j.sals.fs.resolve("./testing_text.txt")
     return str(pathlib.Path(path).resolve())</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.sals.fs.rm_broken_link"><code class="name flex">
+<span>def <span class="ident">rm_broken_link</span></span>(<span>path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Remove broken symlink</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to remove</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if broken symlink removed</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def rm_broken_link(path: str) -&gt; bool:
+    &#34;&#34;&#34;Remove broken symlink
+
+    Args:
+        path (str): path to remove
+
+    Returns:
+        bool: True if broken symlink removed
+    &#34;&#34;&#34;
+    if is_broken_link(path):
+        unlink(path)
+        return True
+    else:
+        return False</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.sals.fs.rm_emptry_dir"><code class="name flex">
 <span>def <span class="ident">rm_emptry_dir</span></span>(<span>path)</span>
 </code></dt>
@@ -3135,7 +3263,7 @@ for el in walk('/tmp', filter= lambda x: len(x)&gt;4 and (j.sals.fs.is_file(x) o
 </details>
 </dd>
 <dt id="jumpscale.sals.fs.write_ascii"><code class="name flex">
-<span>def <span class="ident">write_ascii</span></span>(<span>path, data, encoding=None)</span>
+<span>def <span class="ident">write_ascii</span></span>(<span>path, data, encoding=None, append=False)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>write text <code>data</code> to path <code>path</code> with encoding
@@ -3150,15 +3278,17 @@ j.sals.fs.write_text(path="/home/rafy/testing_text.txt",data="hello world")
 <dd>ascii content</dd>
 <dt><strong><code>encoding</code></strong> :&ensp;[<code>type</code>], optional</dt>
 <dd>encoding. Defaults to None.</dd>
+<dt><strong><code>append</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>indicate whether to open the file in append mode or not.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>int</code></strong></dt>
-<dd>Return the decoded contents of the pointed-to file as a string</dd>
+<dd>returning the number of characters written.</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def write_text(path: str, data: str, encoding=None):
+<pre><code class="python">def write_text(path: str, data: str, encoding=None, append=False):
     &#34;&#34;&#34;write text `data` to path `path` with encoding
     e.g
         j.sals.fs.write_text(path=&#34;/home/rafy/testing_text.txt&#34;,data=&#34;hello world&#34;)  -&gt; 11
@@ -3167,19 +3297,24 @@ j.sals.fs.write_text(path="/home/rafy/testing_text.txt",data="hello world")
         path (str): path to write to
         data (str): ascii content
         encoding ([type], optional): encoding. Defaults to None.
+        append (bool, optional): indicate whether to open the file in append mode or not.
 
     Returns:
-        int: Return the decoded contents of the pointed-to file as a string
+        int: returning the number of characters written.
 
     &#34;&#34;&#34;
-    return pathlib.Path(path).write_text(data, encoding)</code></pre>
+    p = pathlib.Path(path)
+    mode = &#34;at&#34; if append else &#34;wt&#34;
+    with p.open(mode=mode, encoding=encoding) as f:
+        return f.write(data)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.fs.write_binary"><code class="name flex">
-<span>def <span class="ident">write_binary</span></span>(<span>path, data)</span>
+<span>def <span class="ident">write_binary</span></span>(<span>path, data, append=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>write binary <code>data</code> to path <code>path</code>
+<section class="desc"><p>write binary <code>data</code> to path <code>path</code></p>
+<p>If file does not exist, it creates a new file. If file exists it truncates the file unless append arg is True
 e.g
 j.sals.fs.write_bytes(path="/home/rafy/testing_text.txt",data=b"hello world")
 -&gt; 11</p>
@@ -3189,34 +3324,43 @@ j.sals.fs.write_bytes(path="/home/rafy/testing_text.txt",data=b"hello world")
 <dd>path to write to</dd>
 <dt><strong><code>data</code></strong> :&ensp;<code>bytes</code></dt>
 <dd>binary content</dd>
+<dt><strong><code>append</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>indicate whether to open the file in append mode or not.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>int</code></strong></dt>
-<dd>Return the binary contents of the pointed-to file as a bytes object</dd>
+<dd>returning the number of characters written.</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def write_bytes(path: str, data: bytes):
+<pre><code class="python">def write_bytes(path: str, data: bytes, append=False):
     &#34;&#34;&#34;write binary `data` to path `path`
+
+    If file does not exist, it creates a new file. If file exists it truncates the file unless append arg is True
     e.g
         j.sals.fs.write_bytes(path=&#34;/home/rafy/testing_text.txt&#34;,data=b&#34;hello world&#34;)  -&gt; 11
 
     Args:
         path (str): path to write to
         data (bytes): binary content
+        append (bool, optional): indicate whether to open the file in append mode or not.
 
     Returns:
-        int: Return the binary contents of the pointed-to file as a bytes object
+        int:  returning the number of characters written.
     &#34;&#34;&#34;
-    return pathlib.Path(path).write_bytes(data)</code></pre>
+    p = pathlib.Path(path)
+    mode = &#34;ab&#34; if append else &#34;wb&#34;
+    with p.open(mode=mode) as f:
+        return f.write(data)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.fs.write_bytes"><code class="name flex">
-<span>def <span class="ident">write_bytes</span></span>(<span>path, data)</span>
+<span>def <span class="ident">write_bytes</span></span>(<span>path, data, append=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>write binary <code>data</code> to path <code>path</code>
+<section class="desc"><p>write binary <code>data</code> to path <code>path</code></p>
+<p>If file does not exist, it creates a new file. If file exists it truncates the file unless append arg is True
 e.g
 j.sals.fs.write_bytes(path="/home/rafy/testing_text.txt",data=b"hello world")
 -&gt; 11</p>
@@ -3226,31 +3370,39 @@ j.sals.fs.write_bytes(path="/home/rafy/testing_text.txt",data=b"hello world")
 <dd>path to write to</dd>
 <dt><strong><code>data</code></strong> :&ensp;<code>bytes</code></dt>
 <dd>binary content</dd>
+<dt><strong><code>append</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>indicate whether to open the file in append mode or not.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>int</code></strong></dt>
-<dd>Return the binary contents of the pointed-to file as a bytes object</dd>
+<dd>returning the number of characters written.</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def write_bytes(path: str, data: bytes):
+<pre><code class="python">def write_bytes(path: str, data: bytes, append=False):
     &#34;&#34;&#34;write binary `data` to path `path`
+
+    If file does not exist, it creates a new file. If file exists it truncates the file unless append arg is True
     e.g
         j.sals.fs.write_bytes(path=&#34;/home/rafy/testing_text.txt&#34;,data=b&#34;hello world&#34;)  -&gt; 11
 
     Args:
         path (str): path to write to
         data (bytes): binary content
+        append (bool, optional): indicate whether to open the file in append mode or not.
 
     Returns:
-        int: Return the binary contents of the pointed-to file as a bytes object
+        int:  returning the number of characters written.
     &#34;&#34;&#34;
-    return pathlib.Path(path).write_bytes(data)</code></pre>
+    p = pathlib.Path(path)
+    mode = &#34;ab&#34; if append else &#34;wb&#34;
+    with p.open(mode=mode) as f:
+        return f.write(data)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.fs.write_file"><code class="name flex">
-<span>def <span class="ident">write_file</span></span>(<span>path, data, encoding=None)</span>
+<span>def <span class="ident">write_file</span></span>(<span>path, data, encoding=None, append=False)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>write text <code>data</code> to path <code>path</code> with encoding
@@ -3265,15 +3417,17 @@ j.sals.fs.write_text(path="/home/rafy/testing_text.txt",data="hello world")
 <dd>ascii content</dd>
 <dt><strong><code>encoding</code></strong> :&ensp;[<code>type</code>], optional</dt>
 <dd>encoding. Defaults to None.</dd>
+<dt><strong><code>append</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>indicate whether to open the file in append mode or not.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>int</code></strong></dt>
-<dd>Return the decoded contents of the pointed-to file as a string</dd>
+<dd>returning the number of characters written.</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def write_text(path: str, data: str, encoding=None):
+<pre><code class="python">def write_text(path: str, data: str, encoding=None, append=False):
     &#34;&#34;&#34;write text `data` to path `path` with encoding
     e.g
         j.sals.fs.write_text(path=&#34;/home/rafy/testing_text.txt&#34;,data=&#34;hello world&#34;)  -&gt; 11
@@ -3282,19 +3436,24 @@ j.sals.fs.write_text(path="/home/rafy/testing_text.txt",data="hello world")
         path (str): path to write to
         data (str): ascii content
         encoding ([type], optional): encoding. Defaults to None.
+        append (bool, optional): indicate whether to open the file in append mode or not.
 
     Returns:
-        int: Return the decoded contents of the pointed-to file as a string
+        int: returning the number of characters written.
 
     &#34;&#34;&#34;
-    return pathlib.Path(path).write_text(data, encoding)</code></pre>
+    p = pathlib.Path(path)
+    mode = &#34;at&#34; if append else &#34;wt&#34;
+    with p.open(mode=mode, encoding=encoding) as f:
+        return f.write(data)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.fs.write_file_binary"><code class="name flex">
-<span>def <span class="ident">write_file_binary</span></span>(<span>path, data)</span>
+<span>def <span class="ident">write_file_binary</span></span>(<span>path, data, append=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>write binary <code>data</code> to path <code>path</code>
+<section class="desc"><p>write binary <code>data</code> to path <code>path</code></p>
+<p>If file does not exist, it creates a new file. If file exists it truncates the file unless append arg is True
 e.g
 j.sals.fs.write_bytes(path="/home/rafy/testing_text.txt",data=b"hello world")
 -&gt; 11</p>
@@ -3304,31 +3463,39 @@ j.sals.fs.write_bytes(path="/home/rafy/testing_text.txt",data=b"hello world")
 <dd>path to write to</dd>
 <dt><strong><code>data</code></strong> :&ensp;<code>bytes</code></dt>
 <dd>binary content</dd>
+<dt><strong><code>append</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>indicate whether to open the file in append mode or not.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>int</code></strong></dt>
-<dd>Return the binary contents of the pointed-to file as a bytes object</dd>
+<dd>returning the number of characters written.</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def write_bytes(path: str, data: bytes):
+<pre><code class="python">def write_bytes(path: str, data: bytes, append=False):
     &#34;&#34;&#34;write binary `data` to path `path`
+
+    If file does not exist, it creates a new file. If file exists it truncates the file unless append arg is True
     e.g
         j.sals.fs.write_bytes(path=&#34;/home/rafy/testing_text.txt&#34;,data=b&#34;hello world&#34;)  -&gt; 11
 
     Args:
         path (str): path to write to
         data (bytes): binary content
+        append (bool, optional): indicate whether to open the file in append mode or not.
 
     Returns:
-        int: Return the binary contents of the pointed-to file as a bytes object
+        int:  returning the number of characters written.
     &#34;&#34;&#34;
-    return pathlib.Path(path).write_bytes(data)</code></pre>
+    p = pathlib.Path(path)
+    mode = &#34;ab&#34; if append else &#34;wb&#34;
+    with p.open(mode=mode) as f:
+        return f.write(data)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.fs.write_text"><code class="name flex">
-<span>def <span class="ident">write_text</span></span>(<span>path, data, encoding=None)</span>
+<span>def <span class="ident">write_text</span></span>(<span>path, data, encoding=None, append=False)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>write text <code>data</code> to path <code>path</code> with encoding
@@ -3343,15 +3510,17 @@ j.sals.fs.write_text(path="/home/rafy/testing_text.txt",data="hello world")
 <dd>ascii content</dd>
 <dt><strong><code>encoding</code></strong> :&ensp;[<code>type</code>], optional</dt>
 <dd>encoding. Defaults to None.</dd>
+<dt><strong><code>append</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>indicate whether to open the file in append mode or not.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>int</code></strong></dt>
-<dd>Return the decoded contents of the pointed-to file as a string</dd>
+<dd>returning the number of characters written.</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def write_text(path: str, data: str, encoding=None):
+<pre><code class="python">def write_text(path: str, data: str, encoding=None, append=False):
     &#34;&#34;&#34;write text `data` to path `path` with encoding
     e.g
         j.sals.fs.write_text(path=&#34;/home/rafy/testing_text.txt&#34;,data=&#34;hello world&#34;)  -&gt; 11
@@ -3360,12 +3529,16 @@ j.sals.fs.write_text(path="/home/rafy/testing_text.txt",data="hello world")
         path (str): path to write to
         data (str): ascii content
         encoding ([type], optional): encoding. Defaults to None.
+        append (bool, optional): indicate whether to open the file in append mode or not.
 
     Returns:
-        int: Return the decoded contents of the pointed-to file as a string
+        int: returning the number of characters written.
 
     &#34;&#34;&#34;
-    return pathlib.Path(path).write_text(data, encoding)</code></pre>
+    p = pathlib.Path(path)
+    mode = &#34;at&#34; if append else &#34;wt&#34;
+    with p.open(mode=mode, encoding=encoding) as f:
+        return f.write(data)</code></pre>
 </details>
 </dd>
 </dl>
@@ -3421,6 +3594,7 @@ j.sals.fs.write_text(path="/home/rafy/testing_text.txt",data="hello world")
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="jumpscale.sals.fs.absolute" href="#jumpscale.sals.fs.absolute">absolute</a></code></li>
 <li><code><a title="jumpscale.sals.fs.change_dir" href="#jumpscale.sals.fs.change_dir">change_dir</a></code></li>
 <li><code><a title="jumpscale.sals.fs.change_filenames" href="#jumpscale.sals.fs.change_filenames">change_filenames</a></code></li>
 <li><code><a title="jumpscale.sals.fs.chmod" href="#jumpscale.sals.fs.chmod">chmod</a></code></li>
@@ -3450,6 +3624,7 @@ j.sals.fs.write_text(path="/home/rafy/testing_text.txt",data="hello world")
 <li><code><a title="jumpscale.sals.fs.lchmod" href="#jumpscale.sals.fs.lchmod">lchmod</a></code></li>
 <li><code><a title="jumpscale.sals.fs.lstat" href="#jumpscale.sals.fs.lstat">lstat</a></code></li>
 <li><code><a title="jumpscale.sals.fs.make_path" href="#jumpscale.sals.fs.make_path">make_path</a></code></li>
+<li><code><a title="jumpscale.sals.fs.makedirs" href="#jumpscale.sals.fs.makedirs">makedirs</a></code></li>
 <li><code><a title="jumpscale.sals.fs.mkdir" href="#jumpscale.sals.fs.mkdir">mkdir</a></code></li>
 <li><code><a title="jumpscale.sals.fs.mkdirs" href="#jumpscale.sals.fs.mkdirs">mkdirs</a></code></li>
 <li><code><a title="jumpscale.sals.fs.parent" href="#jumpscale.sals.fs.parent">parent</a></code></li>
@@ -3467,6 +3642,7 @@ j.sals.fs.write_text(path="/home/rafy/testing_text.txt",data="hello world")
 <li><code><a title="jumpscale.sals.fs.rename" href="#jumpscale.sals.fs.rename">rename</a></code></li>
 <li><code><a title="jumpscale.sals.fs.replace_words_in_files" href="#jumpscale.sals.fs.replace_words_in_files">replace_words_in_files</a></code></li>
 <li><code><a title="jumpscale.sals.fs.resolve" href="#jumpscale.sals.fs.resolve">resolve</a></code></li>
+<li><code><a title="jumpscale.sals.fs.rm_broken_link" href="#jumpscale.sals.fs.rm_broken_link">rm_broken_link</a></code></li>
 <li><code><a title="jumpscale.sals.fs.rm_emptry_dir" href="#jumpscale.sals.fs.rm_emptry_dir">rm_emptry_dir</a></code></li>
 <li><code><a title="jumpscale.sals.fs.rmtree" href="#jumpscale.sals.fs.rmtree">rmtree</a></code></li>
 <li><code><a title="jumpscale.sals.fs.stat" href="#jumpscale.sals.fs.stat">stat</a></code></li>

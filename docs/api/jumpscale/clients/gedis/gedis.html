@@ -123,16 +123,16 @@ class GedisClient(Client):
             self._redisclient = j.clients.redis.get(name=f&#34;gedis_{self.name}&#34;, hostname=self.hostname, port=self.port)
         return self._redisclient
 
-    def _load_module(self, path):
+    def _load_module(self, path, force_reload=False):
+        load_python_module(path, force_reload=force_reload)
         if path not in self._loaded_modules:
-            load_python_module(path)
             self._loaded_modules.append(path)
 
-    def _load_actors(self):
+    def _load_actors(self, force_reload=False):
         self._loaded_actors = {}
         for actor_name in self.list_actors():
             actor_info = self._get_actor_info(actor_name)
-            self._load_module(actor_info[&#34;path&#34;])
+            self._load_module(actor_info[&#34;path&#34;], force_reload=force_reload)
             self._loaded_actors[actor_name] = ActorProxy(actor_name, actor_info, self)
 
         self.actors = ActorsCollection(self._loaded_actors)
@@ -151,7 +151,7 @@ class GedisClient(Client):
     def reload(self):
         &#34;&#34;&#34;Reload actors
         &#34;&#34;&#34;
-        self._load_actors()
+        self._load_actors(force_reload=True)
 
     def execute(self, actor_name: str, actor_method: str, *args, die: bool = False, **kwargs) -&gt; ActorResult:
         &#34;&#34;&#34;Execute actor&#39;s method
@@ -301,7 +301,7 @@ gedis_client {GedisClient} &ndash; gedis client reference</p></section>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -340,16 +340,16 @@ print(p.name, p.age)
             self._redisclient = j.clients.redis.get(name=f&#34;gedis_{self.name}&#34;, hostname=self.hostname, port=self.port)
         return self._redisclient
 
-    def _load_module(self, path):
+    def _load_module(self, path, force_reload=False):
+        load_python_module(path, force_reload=force_reload)
         if path not in self._loaded_modules:
-            load_python_module(path)
             self._loaded_modules.append(path)
 
-    def _load_actors(self):
+    def _load_actors(self, force_reload=False):
         self._loaded_actors = {}
         for actor_name in self.list_actors():
             actor_info = self._get_actor_info(actor_name)
-            self._load_module(actor_info[&#34;path&#34;])
+            self._load_module(actor_info[&#34;path&#34;], force_reload=force_reload)
             self._loaded_actors[actor_name] = ActorProxy(actor_name, actor_info, self)
 
         self.actors = ActorsCollection(self._loaded_actors)
@@ -368,7 +368,7 @@ print(p.name, p.age)
     def reload(self):
         &#34;&#34;&#34;Reload actors
         &#34;&#34;&#34;
-        self._load_actors()
+        self._load_actors(force_reload=True)
 
     def execute(self, actor_name: str, actor_method: str, *args, die: bool = False, **kwargs) -&gt; ActorResult:
         &#34;&#34;&#34;Execute actor&#39;s method
@@ -633,7 +633,7 @@ flag to raise an error when request fails (default: {False})</p>
 <pre><code class="python">def reload(self):
     &#34;&#34;&#34;Reload actors
     &#34;&#34;&#34;
-    self._load_actors()</code></pre>
+    self._load_actors(force_reload=True)</code></pre>
 </details>
 </dd>
 </dl>

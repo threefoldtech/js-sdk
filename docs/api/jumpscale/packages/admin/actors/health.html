@@ -25,12 +25,7 @@
 <pre><code class="python">from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 
-_THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
-    &#34;TEST&#34;: &#34;https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
-    &#34;STD&#34;: &#34;https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
-}
-
-_HORIZON_NETWORKS = {&#34;TEST&#34;: &#34;https://horizon-testnet.stellar.org&#34;, &#34;STD&#34;: &#34;https://horizon.stellar.org&#34;}
+from jumpscale.clients.stellar import HORIZON_NETWORKS, THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES
 
 
 class Health(BaseActor):
@@ -38,9 +33,9 @@ class Health(BaseActor):
     def get_disk_space(self) -&gt; str:
         res = {}
         disk_obj = j.sals.fs.shutil.disk_usage(&#34;/&#34;)
-        res[&#34;total&#34;] = disk_obj.total // (1024.0 ** 3)
-        res[&#34;used&#34;] = disk_obj.used // (1024.0 ** 3)
-        res[&#34;free&#34;] = disk_obj.free // (1024.0 ** 3)
+        res[&#34;total&#34;] = disk_obj.total // (1024.0**3)
+        res[&#34;used&#34;] = disk_obj.used // (1024.0**3)
+        res[&#34;free&#34;] = disk_obj.free // (1024.0**3)
         res[&#34;percent&#34;] = (res[&#34;used&#34;] / res[&#34;total&#34;]) * 100
         return j.data.serializers.json.dumps({&#34;data&#34;: res})
 
@@ -66,19 +61,15 @@ class Health(BaseActor):
         return j.data.serializers.json.dumps({&#34;data&#34;: j.sals.process.get_processes_info()})
 
     @actor_method
-    def get_health_checks(self) -&gt; str:
+    def get_health_checks(self, network=&#34;STD&#34;) -&gt; str:
         services = {
             &#34;stellar&#34;: {&#34;name&#34;: &#34;Stellar&#34;, &#34;status&#34;: True},
             &#34;token_services&#34;: {&#34;name&#34;: &#34;Token Services&#34;, &#34;status&#34;: True},
         }
 
-        # urls of services according to identity explorer
-        if &#34;testnet&#34; in j.core.identity.me.explorer_url:
-            stellar_url = _HORIZON_NETWORKS[&#34;TEST&#34;]
-            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;TEST&#34;]
-        else:
-            stellar_url = _HORIZON_NETWORKS[&#34;STD&#34;]
-            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;STD&#34;]
+        # urls of services according to network
+        stellar_url = HORIZON_NETWORKS[network]
+        tokenservices_url = THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[network]
 
         # check stellar service
         try:
@@ -119,9 +110,9 @@ Actor = Health</code></pre>
     def get_disk_space(self) -&gt; str:
         res = {}
         disk_obj = j.sals.fs.shutil.disk_usage(&#34;/&#34;)
-        res[&#34;total&#34;] = disk_obj.total // (1024.0 ** 3)
-        res[&#34;used&#34;] = disk_obj.used // (1024.0 ** 3)
-        res[&#34;free&#34;] = disk_obj.free // (1024.0 ** 3)
+        res[&#34;total&#34;] = disk_obj.total // (1024.0**3)
+        res[&#34;used&#34;] = disk_obj.used // (1024.0**3)
+        res[&#34;free&#34;] = disk_obj.free // (1024.0**3)
         res[&#34;percent&#34;] = (res[&#34;used&#34;] / res[&#34;total&#34;]) * 100
         return j.data.serializers.json.dumps({&#34;data&#34;: res})
 
@@ -147,19 +138,15 @@ Actor = Health</code></pre>
         return j.data.serializers.json.dumps({&#34;data&#34;: j.sals.process.get_processes_info()})
 
     @actor_method
-    def get_health_checks(self) -&gt; str:
+    def get_health_checks(self, network=&#34;STD&#34;) -&gt; str:
         services = {
             &#34;stellar&#34;: {&#34;name&#34;: &#34;Stellar&#34;, &#34;status&#34;: True},
             &#34;token_services&#34;: {&#34;name&#34;: &#34;Token Services&#34;, &#34;status&#34;: True},
         }
 
-        # urls of services according to identity explorer
-        if &#34;testnet&#34; in j.core.identity.me.explorer_url:
-            stellar_url = _HORIZON_NETWORKS[&#34;TEST&#34;]
-            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;TEST&#34;]
-        else:
-            stellar_url = _HORIZON_NETWORKS[&#34;STD&#34;]
-            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;STD&#34;]
+        # urls of services according to network
+        stellar_url = HORIZON_NETWORKS[network]
+        tokenservices_url = THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[network]
 
         # check stellar service
         try:
@@ -192,34 +179,30 @@ Actor = Health</code></pre>
 def get_disk_space(self) -&gt; str:
     res = {}
     disk_obj = j.sals.fs.shutil.disk_usage(&#34;/&#34;)
-    res[&#34;total&#34;] = disk_obj.total // (1024.0 ** 3)
-    res[&#34;used&#34;] = disk_obj.used // (1024.0 ** 3)
-    res[&#34;free&#34;] = disk_obj.free // (1024.0 ** 3)
+    res[&#34;total&#34;] = disk_obj.total // (1024.0**3)
+    res[&#34;used&#34;] = disk_obj.used // (1024.0**3)
+    res[&#34;free&#34;] = disk_obj.free // (1024.0**3)
     res[&#34;percent&#34;] = (res[&#34;used&#34;] / res[&#34;total&#34;]) * 100
     return j.data.serializers.json.dumps({&#34;data&#34;: res})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.health.Health.get_health_checks"><code class="name flex">
-<span>def <span class="ident">get_health_checks</span></span>(<span>self)</span>
+<span>def <span class="ident">get_health_checks</span></span>(<span>self, network=&#39;STD&#39;)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
-def get_health_checks(self) -&gt; str:
+def get_health_checks(self, network=&#34;STD&#34;) -&gt; str:
     services = {
         &#34;stellar&#34;: {&#34;name&#34;: &#34;Stellar&#34;, &#34;status&#34;: True},
         &#34;token_services&#34;: {&#34;name&#34;: &#34;Token Services&#34;, &#34;status&#34;: True},
     }
 
-    # urls of services according to identity explorer
-    if &#34;testnet&#34; in j.core.identity.me.explorer_url:
-        stellar_url = _HORIZON_NETWORKS[&#34;TEST&#34;]
-        tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;TEST&#34;]
-    else:
-        stellar_url = _HORIZON_NETWORKS[&#34;STD&#34;]
-        tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;STD&#34;]
+    # urls of services according to network
+    stellar_url = HORIZON_NETWORKS[network]
+    tokenservices_url = THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[network]
 
     # check stellar service
     try:
@@ -311,9 +294,9 @@ def network_info(self) -&gt; str:
     def get_disk_space(self) -&gt; str:
         res = {}
         disk_obj = j.sals.fs.shutil.disk_usage(&#34;/&#34;)
-        res[&#34;total&#34;] = disk_obj.total // (1024.0 ** 3)
-        res[&#34;used&#34;] = disk_obj.used // (1024.0 ** 3)
-        res[&#34;free&#34;] = disk_obj.free // (1024.0 ** 3)
+        res[&#34;total&#34;] = disk_obj.total // (1024.0**3)
+        res[&#34;used&#34;] = disk_obj.used // (1024.0**3)
+        res[&#34;free&#34;] = disk_obj.free // (1024.0**3)
         res[&#34;percent&#34;] = (res[&#34;used&#34;] / res[&#34;total&#34;]) * 100
         return j.data.serializers.json.dumps({&#34;data&#34;: res})
 
@@ -339,19 +322,15 @@ def network_info(self) -&gt; str:
         return j.data.serializers.json.dumps({&#34;data&#34;: j.sals.process.get_processes_info()})
 
     @actor_method
-    def get_health_checks(self) -&gt; str:
+    def get_health_checks(self, network=&#34;STD&#34;) -&gt; str:
         services = {
             &#34;stellar&#34;: {&#34;name&#34;: &#34;Stellar&#34;, &#34;status&#34;: True},
             &#34;token_services&#34;: {&#34;name&#34;: &#34;Token Services&#34;, &#34;status&#34;: True},
         }
 
-        # urls of services according to identity explorer
-        if &#34;testnet&#34; in j.core.identity.me.explorer_url:
-            stellar_url = _HORIZON_NETWORKS[&#34;TEST&#34;]
-            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;TEST&#34;]
-        else:
-            stellar_url = _HORIZON_NETWORKS[&#34;STD&#34;]
-            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;STD&#34;]
+        # urls of services according to network
+        stellar_url = HORIZON_NETWORKS[network]
+        tokenservices_url = THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[network]
 
         # check stellar service
         try:
@@ -384,34 +363,30 @@ def network_info(self) -&gt; str:
 def get_disk_space(self) -&gt; str:
     res = {}
     disk_obj = j.sals.fs.shutil.disk_usage(&#34;/&#34;)
-    res[&#34;total&#34;] = disk_obj.total // (1024.0 ** 3)
-    res[&#34;used&#34;] = disk_obj.used // (1024.0 ** 3)
-    res[&#34;free&#34;] = disk_obj.free // (1024.0 ** 3)
+    res[&#34;total&#34;] = disk_obj.total // (1024.0**3)
+    res[&#34;used&#34;] = disk_obj.used // (1024.0**3)
+    res[&#34;free&#34;] = disk_obj.free // (1024.0**3)
     res[&#34;percent&#34;] = (res[&#34;used&#34;] / res[&#34;total&#34;]) * 100
     return j.data.serializers.json.dumps({&#34;data&#34;: res})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.health.Health.get_health_checks"><code class="name flex">
-<span>def <span class="ident">get_health_checks</span></span>(<span>self)</span>
+<span>def <span class="ident">get_health_checks</span></span>(<span>self, network=&#39;STD&#39;)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
-def get_health_checks(self) -&gt; str:
+def get_health_checks(self, network=&#34;STD&#34;) -&gt; str:
     services = {
         &#34;stellar&#34;: {&#34;name&#34;: &#34;Stellar&#34;, &#34;status&#34;: True},
         &#34;token_services&#34;: {&#34;name&#34;: &#34;Token Services&#34;, &#34;status&#34;: True},
     }
 
-    # urls of services according to identity explorer
-    if &#34;testnet&#34; in j.core.identity.me.explorer_url:
-        stellar_url = _HORIZON_NETWORKS[&#34;TEST&#34;]
-        tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;TEST&#34;]
-    else:
-        stellar_url = _HORIZON_NETWORKS[&#34;STD&#34;]
-        tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;STD&#34;]
+    # urls of services according to network
+    stellar_url = HORIZON_NETWORKS[network]
+    tokenservices_url = THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[network]
 
     # check stellar service
     try:

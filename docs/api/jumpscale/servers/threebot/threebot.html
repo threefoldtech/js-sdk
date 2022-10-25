@@ -36,20 +36,22 @@ from gevent.pywsgi import WSGIServer
 from jumpscale.core.base import Base, fields
 from jumpscale import packages as pkgnamespace
 from jumpscale.sals.nginx.nginx import LocationType, PORTS
+from jumpscale.sals.nginx.nginx import LocationType, PORTS, AcmeServer
+from jumpscale.servers.appserver import StripPathMiddleware, apply_main_middlewares
 
 
 GEDIS = &#34;gedis&#34;
 GEDIS_HTTP = &#34;gedis_http&#34;
 GEDIS_HTTP_HOST = &#34;127.0.0.1&#34;
 GEDIS_HTTP_PORT = 8000
+SERVICE_MANAGER = &#34;service_manager&#34;
 CHATFLOW_SERVER_HOST = &#34;127.0.0.1&#34;
-CHATFLOW_SERVER_PORT = 8552
+CHATFLOW_SERVER_PORT = 31000
 DEFAULT_PACKAGES = {
     &#34;auth&#34;: {&#34;path&#34;: os.path.dirname(j.packages.auth.__file__), &#34;giturl&#34;: &#34;&#34;},
     &#34;chatflows&#34;: {&#34;path&#34;: os.path.dirname(j.packages.chatflows.__file__), &#34;giturl&#34;: &#34;&#34;},
     &#34;admin&#34;: {&#34;path&#34;: os.path.dirname(j.packages.admin.__file__), &#34;giturl&#34;: &#34;&#34;},
     &#34;weblibs&#34;: {&#34;path&#34;: os.path.dirname(j.packages.weblibs.__file__), &#34;giturl&#34;: &#34;&#34;},
-    &#34;tfgrid_solutions&#34;: {&#34;path&#34;: os.path.dirname(j.packages.tfgrid_solutions.__file__), &#34;giturl&#34;: &#34;&#34;},
     &#34;backup&#34;: {&#34;path&#34;: os.path.dirname(j.packages.backup.__file__), &#34;giturl&#34;: &#34;&#34;},
 }
 DOWNLOADED_PACKAGES_PATH = j.sals.fs.join_paths(j.core.dirs.VARDIR, &#34;downloaded_packages&#34;)
@@ -65,50 +67,76 @@ class NginxPackageConfig:
         default_server = {
             &#34;name&#34;: &#34;default&#34;,
             &#34;ports&#34;: self.package.config.get(&#34;ports&#34;),
-            &#34;locations&#34;: [],
+            &#34;locations&#34;: self.package.config.get(&#34;locations&#34;, []),
             &#34;domain&#34;: self.package.default_domain,
             &#34;letsencryptemail&#34;: self.package.default_email,
+            &#34;acme_server_type&#34;: self.package.default_acme_server_type,
+            &#34;acme_server_url&#34;: self.package.default_acme_server_url,
         }
 
         is_auth = self.package.config.get(&#34;is_auth&#34;, True)
         is_admin = self.package.config.get(&#34;is_admin&#34;, True)
+        is_package_authorized = self.package.config.get(&#34;is_package_authorized&#34;, False)
 
         for static_dir in self.package.static_dirs:
+            path_url = j.data.text.removeprefix(static_dir.get(&#34;path_url&#34;), &#34;/&#34;)
             default_server[&#34;locations&#34;].append(
                 {
-                    &#34;is_auth&#34;: is_auth,
-                    &#34;is_admin&#34;: is_admin,
+                    &#34;is_auth&#34;: static_dir.get(&#34;is_auth&#34;, is_auth),
+                    &#34;is_admin&#34;: static_dir.get(&#34;is_admin&#34;, is_admin),
+                    &#34;is_package_authorized&#34;: static_dir.get(&#34;is_package_authorized&#34;, is_package_authorized),
                     &#34;type&#34;: &#34;static&#34;,
                     &#34;name&#34;: static_dir.get(&#34;name&#34;),
                     &#34;spa&#34;: static_dir.get(&#34;spa&#34;),
                     &#34;index&#34;: static_dir.get(&#34;index&#34;),
-                    &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, static_dir.get(&#34;path_url&#34;).lstrip(&#34;/&#34;)),
+                    &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, path_url),
                     &#34;path_location&#34;: self.package.resolve_staticdir_location(static_dir),
                     &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
                 }
             )
 
         for bottle_server in self.package.bottle_servers:
-            default_server[&#34;locations&#34;].append(
-                {
-                    &#34;is_auth&#34;: is_auth,
-                    &#34;is_admin&#34;: is_admin,
-                    &#34;type&#34;: &#34;proxy&#34;,
-                    &#34;name&#34;: bottle_server.get(&#34;name&#34;),
-                    &#34;host&#34;: bottle_server.get(&#34;host&#34;),
-                    &#34;port&#34;: bottle_server.get(&#34;port&#34;),
-                    &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, bottle_server.get(&#34;path_url&#34;).lstrip(&#34;/&#34;)),
-                    &#34;path_dest&#34;: bottle_server.get(&#34;path_dest&#34;),
-                    &#34;websocket&#34;: bottle_server.get(&#34;websocket&#34;),
-                    &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
-                }
-            )
+            path_url = j.data.text.removeprefix(bottle_server.get(&#34;path_url&#34;), &#34;/&#34;)
+            if hasattr(bottle_server, &#34;standalone&#34;) and bottle_server.standalone:
+                default_server[&#34;locations&#34;].append(
+                    {
+                        &#34;is_auth&#34;: bottle_server.get(&#34;is_auth&#34;, is_auth),
+                        &#34;is_admin&#34;: bottle_server.get(&#34;is_admin&#34;, is_admin),
+                        &#34;is_package_authorized&#34;: bottle_server.get(&#34;is_package_authorized&#34;, is_package_authorized),
+                        &#34;type&#34;: &#34;proxy&#34;,
+                        &#34;name&#34;: bottle_server.get(&#34;name&#34;),
+                        &#34;host&#34;: bottle_server.get(&#34;host&#34;),
+                        &#34;port&#34;: bottle_server.get(&#34;port&#34;),
+                        &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url,),
+                        &#34;path_dest&#34;: bottle_server.get(&#34;path_dest&#34;),
+                        &#34;websocket&#34;: bottle_server.get(&#34;websocket&#34;),
+                        &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
+                    }
+                )
+            else:
+                path_url = j.data.text.removeprefix(bottle_server.get(&#34;path_url&#34;), &#34;/&#34;)
+                default_server[&#34;locations&#34;].append(
+                    {
+                        &#34;is_auth&#34;: bottle_server.get(&#34;is_auth&#34;, is_auth),
+                        &#34;is_admin&#34;: bottle_server.get(&#34;is_admin&#34;, is_admin),
+                        &#34;is_package_authorized&#34;: bottle_server.get(&#34;is_package_authorized&#34;, is_package_authorized),
+                        &#34;type&#34;: &#34;proxy&#34;,
+                        &#34;name&#34;: bottle_server.get(&#34;name&#34;),
+                        &#34;host&#34;: &#34;0.0.0.0&#34;,
+                        &#34;port&#34;: 31000,
+                        &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, path_url),
+                        &#34;path_dest&#34;: f&#34;/{self.package.name}{bottle_server.get(&#39;path_dest&#39;)}&#34;,
+                        &#34;websocket&#34;: bottle_server.get(&#34;websocket&#34;),
+                        &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
+                    }
+                )
 
         if self.package.actors_dir:
             default_server[&#34;locations&#34;].append(
                 {
                     &#34;is_auth&#34;: is_auth,
                     &#34;is_admin&#34;: is_admin,
+                    &#34;is_package_authorized&#34;: is_package_authorized,
                     &#34;type&#34;: &#34;proxy&#34;,
                     &#34;name&#34;: &#34;actors&#34;,
                     &#34;host&#34;: GEDIS_HTTP_HOST,
@@ -124,19 +152,20 @@ class NginxPackageConfig:
                 {
                     &#34;is_auth&#34;: is_auth,
                     &#34;is_admin&#34;: is_admin,
+                    &#34;is_package_authorized&#34;: is_package_authorized,
                     &#34;type&#34;: &#34;proxy&#34;,
                     &#34;name&#34;: &#34;chats&#34;,
                     &#34;host&#34;: CHATFLOW_SERVER_HOST,
                     &#34;port&#34;: CHATFLOW_SERVER_PORT,
                     &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, &#34;chats&#34;),
-                    &#34;path_dest&#34;: self.package.base_url + &#34;/chats&#34;,  # TODO: temperoary fix for auth package
+                    &#34;path_dest&#34;: f&#34;/chatflows{self.package.base_url}/chats&#34;,  # TODO: temperoary fix for auth package
                     &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
                 }
             )
 
         return [default_server]
 
-    def apply(self):
+    def apply(self, write_config=True):
         default_ports = [PORTS.HTTP, PORTS.HTTPS]
         servers = self.default_config + self.package.config.get(&#34;servers&#34;, [])
         for server in servers:
@@ -153,6 +182,16 @@ class NginxPackageConfig:
                 website.letsencryptemail = server.get(
                     &#34;letsencryptemail&#34;, self.default_config[0].get(&#34;letsencryptemail&#34;)
                 )
+                website.acme_server_type = server.get(
+                    &#34;acme_server_type&#34;, self.default_config[0].get(&#34;acme_server_type&#34;)
+                )
+                website.acme_server_url = server.get(&#34;acme_server_url&#34;, self.default_config[0].get(&#34;acme_server_url&#34;))
+                if server.get(&#34;key_path&#34;):
+                    website.key_path = server[&#34;key_path&#34;]
+                if server.get(&#34;cert_path&#34;):
+                    website.cert_path = server[&#34;cert_path&#34;]
+                if server.get(&#34;fullchain_path&#34;):
+                    website.fullchain_path = server[&#34;fullchain_path&#34;]
 
                 for location in server.get(&#34;locations&#34;, []):
                     loc = None
@@ -200,27 +239,24 @@ class NginxPackageConfig:
                         loc.force_https = location.get(&#34;force_https&#34;)
                         loc.is_auth = location.get(&#34;is_auth&#34;, False)
                         loc.is_admin = location.get(&#34;is_admin&#34;, False)
-
-                website.save()
-                website.configure()
-                self.nginx.save()
-
-
-class StripPathMiddleware(object):
-    &#34;&#34;&#34;
-    a middle ware for bottle apps to strip slashes
-    &#34;&#34;&#34;
-
-    def __init__(self, app):
-        self.app = app
-
-    def __call__(self, e, h):
-        e[&#34;PATH_INFO&#34;] = e[&#34;PATH_INFO&#34;].rstrip(&#34;/&#34;)
-        return self.app(e, h)
+                        loc.is_package_authorized = location.get(&#34;is_package_authorized&#34;, False)
+                        loc.package_name = self.package.name
+                if write_config:
+                    website.configure(generate_certificates=self.nginx.cert)
 
 
 class Package:
-    def __init__(self, path, default_domain, default_email, giturl=&#34;&#34;):
+    def __init__(
+        self,
+        path,
+        default_domain,
+        default_email,
+        giturl=&#34;&#34;,
+        kwargs=None,
+        admins=None,
+        default_acme_server_type=AcmeServer.LETSENCRYPT,
+        default_acme_server_url=None,
+    ):
         self.path = path
         self.giturl = giturl
         self._config = None
@@ -229,9 +265,28 @@ class Package:
         self._module = None
         self.default_domain = default_domain
         self.default_email = default_email
+        self.default_acme_server_type = default_acme_server_type
+        self.default_acme_server_url = default_acme_server_url
+        self.kwargs = kwargs or {}
+        self.admins = admins or []
+
+    def _load_files(self, dir_path):
+        for file_path in j.sals.fs.walk_files(dir_path, recursive=False):
+            file_name = j.sals.fs.basename(file_path)
+            if file_name.endswith(&#34;.py&#34;):
+                name = f&#34;{self.name}_{file_name[:-3]}&#34;
+                yield dict(name=name, path=file_path)
 
     def load_config(self):
-        return toml.load(j.sals.fs.join_paths(self.path, &#34;package.toml&#34;))
+        return toml.load(self.package_config_path)
+
+    @property
+    def package_config_path(self):
+        return j.sals.fs.join_paths(self.path, &#34;package.toml&#34;)
+
+    @property
+    def package_module_path(self):
+        return j.sals.fs.join_paths(self.path, &#34;package.py&#34;)
 
     @property
     def module(self):
@@ -256,6 +311,10 @@ class Package:
         return self._config
 
     @property
+    def ui_name(self):
+        return self.config.get(&#34;ui_name&#34;, self.name)
+
+    @property
     def actors_dir(self):
         actors_dir = j.sals.fs.join_paths(self.path, self.config.get(&#34;actors_dir&#34;, &#34;actors&#34;))
         if j.sals.fs.exists(actors_dir):
@@ -268,6 +327,12 @@ class Package:
             return chats_dir
 
     @property
+    def services_dir(self):
+        services_dir = j.sals.fs.join_paths(self.path, self.config.get(&#34;services_dir&#34;, &#34;services&#34;))
+        if j.sals.fs.exists(services_dir):
+            return services_dir
+
+    @property
     def static_dirs(self):
         return self.config.get(&#34;static_dirs&#34;, [])
 
@@ -277,11 +342,11 @@ class Package:
 
     @property
     def actors(self):
-        for file_path in j.sals.fs.walk_files(self.actors_dir, recursive=False):
-            file_name = j.sals.fs.basename(file_path)
-            if file_name.endswith(&#34;.py&#34;):
-                actor_name = f&#34;{self.name}_{file_name[:-3]}&#34;
-                yield dict(name=actor_name, path=file_path)
+        return self._load_files(self.actors_dir)
+
+    @property
+    def services(self):
+        return self._load_files(self.services_dir)
 
     def resolve_staticdir_location(self, static_dir):
         &#34;&#34;&#34;Resolves path for static location in case we need it
@@ -306,6 +371,10 @@ class Package:
         module = imp.load_source(file_path[:-3], file_path)
         return WSGIServer((host, port), StripPathMiddleware(module.app))
 
+    def get_package_bottle_app(self, file_path):
+        module = imp.load_source(file_path[:-3], file_path)
+        return module.app
+
     def preinstall(self):
         if self.module and hasattr(self.module, &#34;preinstall&#34;):
             self.module.preinstall()
@@ -320,7 +389,7 @@ class Package:
 
     def start(self):
         if self.module and hasattr(self.module, &#34;start&#34;):
-            self.module.start()
+            self.module.start(**self.kwargs)
 
     def stop(self):
         if self.module and hasattr(self.module, &#34;stop&#34;):
@@ -330,6 +399,16 @@ class Package:
         if self.module:
             self.module.stop()
             self.module.start()
+
+    def exists(self):
+        return j.sals.fs.exists(self.package_config_path)
+
+    def is_valid(self):
+        # more constraints, but for now let&#39;s say it&#39;s not ok if the main files don&#39;t exist
+        return self.exists() and not self.is_excluded()
+
+    def is_excluded(self):
+        return self.config.get(&#34;excluded&#34;, False) == True
 
 
 class PackageManager(Base):
@@ -349,11 +428,18 @@ class PackageManager(Base):
         if package_name in self.packages:
             package_path = self.packages[package_name][&#34;path&#34;]
             package_giturl = self.packages[package_name][&#34;giturl&#34;]
+            package_kwargs = self.packages[package_name].get(&#34;kwargs&#34;, {})
+            package_admins = self.packages[package_name].get(&#34;admins&#34;, [])
+
             return Package(
                 path=package_path,
                 default_domain=self.threebot.domain,
                 default_email=self.threebot.email,
+                default_acme_server_type=self.threebot.acme_server_type,
+                default_acme_server_url=self.threebot.acme_server_url,
                 giturl=package_giturl,
+                kwargs=package_kwargs,
+                admins=package_admins,
             )
 
     def get_packages(self):
@@ -362,21 +448,39 @@ class PackageManager(Base):
         # Add installed packages including outer packages
         for pkg in self.packages:
             package = self.get(pkg)
-            all_packages.append(
-                {
-                    &#34;name&#34;: pkg,
-                    &#34;path&#34;: package.path,
-                    &#34;giturl&#34;: package.giturl,
-                    &#34;system_package&#34;: pkg in DEFAULT_PACKAGES.keys(),
-                    &#34;installed&#34;: True,
-                    &#34;frontend&#34;: package.config.get(&#34;frontend&#34;, False),
-                }
-            )
+
+            if package and package.is_valid():
+                if j.sals.fs.exists(package.path):
+                    chatflows = True if package.chats_dir else False
+                    all_packages.append(
+                        {
+                            &#34;name&#34;: pkg,
+                            &#34;path&#34;: package.path,
+                            &#34;giturl&#34;: package.giturl,
+                            &#34;system_package&#34;: pkg in DEFAULT_PACKAGES.keys(),
+                            &#34;installed&#34;: True,
+                            &#34;frontend&#34;: package.config.get(&#34;frontend&#34;, False),
+                            &#34;chatflows&#34;: chatflows,
+                            &#34;ui_name&#34;: package.ui_name,
+                        }
+                    )
+                else:
+                    j.logger.error(f&#34;path {package.path} for {pkg} doesn&#39;t exist anymore&#34;)
+            else:
+                j.logger.error(&#34;pkg {pkg} is in self.packages but it&#39;s None&#34;)
 
         # Add uninstalled sdk packages under j.packages
         for path in set(pkgnamespace.__path__):
             for pkg in os.listdir(path):
-                if pkg not in self.packages:
+                pkg_path = j.sals.fs.join_paths(path, pkg)
+                pkgtoml_path = j.sals.fs.join_paths(pkg_path, &#34;package.toml&#34;)
+                ui_name = pkg
+                excluded = False
+                with open(pkgtoml_path) as f:
+                    conf = j.data.serializers.toml.loads(f.read())
+                    ui_name = conf.get(&#34;ui_name&#34;, pkg)
+                    excluded = conf.get(&#34;excluded&#34;, False)
+                if pkg not in self.packages and j.sals.fs.exists(pkgtoml_path) and not excluded:
                     all_packages.append(
                         {
                             &#34;name&#34;: pkg,
@@ -384,6 +488,7 @@ class PackageManager(Base):
                             &#34;giturl&#34;: &#34;&#34;,
                             &#34;system_package&#34;: pkg in DEFAULT_PACKAGES.keys(),
                             &#34;installed&#34;: False,
+                            &#34;ui_name&#34;: ui_name,
                         }
                     )
 
@@ -393,27 +498,35 @@ class PackageManager(Base):
         return list(self.packages.keys())
 
     def add(self, path: str = None, giturl: str = None, **kwargs):
+        # first check if public repo
         # TODO: Check if package already exists
         if not any([path, giturl]) or all([path, giturl]):
             raise j.exceptions.Value(&#34;either path or giturl is required&#34;)
-
-        for package_name in self.packages:
-            package = self.get(package_name)
-            ## TODO: why do we care if the path is the same and giturl is the same? adding it 100 times should just add it once?
-            # if path and path == package.path:
-            #     raise j.exceptions.Value(&#34;Package with the same path already exists&#34;)
-            # if giturl and giturl == package.giturl:
-            #     raise j.exceptions.Value(&#34;Package with the same giturl already exists&#34;)
-
+        pkg_name = &#34;&#34;
         if giturl:
             url = urlparse(giturl)
-            url_parts = url.path.lstrip(&#34;/&#34;).split(&#34;/&#34;, 4)
+            url_parts = url.path.lstrip(&#34;/&#34;).split(&#34;/&#34;)
+            if len(url_parts) == 2:
+                pkg_name = url_parts[1].strip(&#34;/&#34;)
+                j.logger.debug(
+                    f&#34;user didn&#39;t pass a URL containing branch {giturl}, try to guess (master, main, development) in order&#34;
+                )
+                if j.tools.http.get(f&#34;{giturl}/tree/master&#34;).status_code == 200:
+                    url_parts.extend([&#34;tree&#34;, &#34;master&#34;])
+                elif j.tools.http.get(f&#34;{giturl}/tree/main&#34;).status_code == 200:
+                    url_parts.extend([&#34;tree&#34;, &#34;main&#34;])
+                elif j.tools.http.get(f&#34;{giturl}/tree/development&#34;).status_code == 200:
+                    url_parts.extend([&#34;tree&#34;, &#34;development&#34;])
+                else:
+                    raise j.exceptions.Value(f&#34;couldn&#39;t guess the branch for {giturl}&#34;)
+            else:
+                pkg_name = url_parts[-1].strip(&#34;/&#34;)
 
-            if len(url_parts) != 5:
-                raise j.exceptions.Value(&#34;invalid path&#34;)
+            if len(url_parts) &lt; 4:
+                raise j.exceptions.Value(f&#34;invalid git URL {giturl}&#34;)
 
-            org, repo, _, branch, package_path = url_parts
-            repo_dir = f&#34;{org}_{repo}_{branch}&#34;
+            org, repo, _, branch = url_parts[:4]
+            repo_dir = f&#34;{org}_{repo}_{pkg_name}_{branch}&#34;
             repo_path = j.sals.fs.join_paths(DOWNLOADED_PACKAGES_PATH, repo_dir)
             repo_url = f&#34;{url.scheme}://{url.hostname}/{org}/{repo}&#34;
 
@@ -421,17 +534,29 @@ class PackageManager(Base):
             j.sals.fs.rmtree(repo_path)
 
             j.tools.git.clone_repo(url=repo_url, dest=repo_path, branch_or_tag=branch)
-            path = j.sals.fs.join_paths(repo_path, repo, package_path)
+            toml_paths = list(
+                j.sals.fs.walk(repo_path, &#34;*&#34;, filter_fun=lambda x: str(x).endswith(f&#34;{pkg_name}/package.toml&#34;))
+            )
+            if not toml_paths:
+                raise j.exceptions.Value(f&#34;couldn&#39;t find {pkg_name}/package.toml in {repo_path}&#34;)
+            path_for_package_toml = toml_paths[0]
+            package_path = j.sals.fs.parent(path_for_package_toml)
+            path = package_path
+
+        admins = kwargs.pop(&#34;admins&#34;, [])
 
         package = Package(
-            path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl
+            path=path,
+            default_domain=self.threebot.domain,
+            default_email=self.threebot.email,
+            giturl=giturl,
+            kwargs=kwargs,
+            admins=admins,
         )
 
         # TODO: adding under the same name if same path and same giturl should be fine, no?
         # if package.name in self.packages:
         #     raise j.exceptions.Value(f&#34;Package with name {package.name} already exists&#34;)
-
-        self.packages[package.name] = {&#34;name&#34;: package.name, &#34;path&#34;: package.path, &#34;giturl&#34;: package.giturl}
 
         # execute package install method
         package.install(**kwargs)
@@ -440,6 +565,15 @@ class PackageManager(Base):
         if self.threebot.started:
             self.install(package)
             self.threebot.nginx.reload()
+        self.packages[package.name] = {
+            &#34;name&#34;: package.name,
+            &#34;path&#34;: package.path,
+            &#34;giturl&#34;: package.giturl,
+            &#34;kwargs&#34;: package.kwargs,
+            &#34;admins&#34;: package.admins,
+            &#34;ui_name&#34;: package.ui_name,
+        }
+
         self.save()
 
         # Return updated package info
@@ -458,6 +592,11 @@ class PackageManager(Base):
             if bottle_server.startswith(f&#34;{package_name}_&#34;):
                 self.threebot.rack.remove(bottle_server)
 
+        # stop background services
+        if package.services_dir:
+            for service in package.services:
+                self.threebot.services.stop_service(service[&#34;name&#34;])
+
         if self.threebot.started:
             # unregister gedis actors
             gedis_actors = list(self.threebot.gedis._loaded_actors.keys())
@@ -470,9 +609,7 @@ class PackageManager(Base):
                 if package.chats_dir:
                     self.threebot.chatbot.unload(package.chats_dir)
             except Exception as e:
-                j.logger.warning(
-                    f&#34;Couldn&#39;t unload the chats of package {package_name}, this is the the exception {str(e)}&#34;
-                )
+                j.logger.warning(f&#34;Couldn&#39;t unload the chats of package {package_name}, this is the exception {str(e)}&#34;)
 
             # reload nginx
             self.threebot.nginx.reload()
@@ -500,31 +637,56 @@ class PackageManager(Base):
                 raise j.exceptions.NotFound(f&#34;Cannot find static dir {path}&#34;)
 
         # add bottle servers
+        # we first merge all apps of a package into a single app
+        # then mount this app on threebot main app
+        # this will work with multiple non-standalone apps
+        package_app = j.servers.appserver.make_main_app()
         for bottle_server in package.bottle_servers:
             path = j.sals.fs.join_paths(package.path, bottle_server[&#34;file_path&#34;])
             if not j.sals.fs.exists(path):
                 raise j.exceptions.NotFound(f&#34;Cannot find bottle server path {path}&#34;)
 
-            bottle_app = package.get_bottle_server(path, bottle_server[&#34;host&#34;], bottle_server[&#34;port&#34;])
-            self.threebot.rack.add(f&#34;{package.name}_{bottle_server[&#39;name&#39;]}&#34;, bottle_app)
+            standalone = bottle_server.get(&#34;standalone&#34;, False)
+            if standalone:
+                bottle_wsgi_server = package.get_bottle_server(path, bottle_server[&#34;host&#34;], bottle_server[&#34;port&#34;])
+                self.threebot.rack.add(f&#34;{package.name}_{bottle_server[&#39;name&#39;]}&#34;, bottle_wsgi_server)
+            else:
+                bottle_app = package.get_package_bottle_app(path)
+                package_app.merge(bottle_app)
+
+        if package_app.routes:
+            j.logger.info(f&#34;registering {package.name} package app&#34;)
+            self.threebot.mainapp.mount(f&#34;/{package.name}&#34;, package_app)
 
         # register gedis actors
         if package.actors_dir:
             for actor in package.actors:
-                self.threebot.gedis._system_actor.register_actor(actor[&#34;name&#34;], actor[&#34;path&#34;])
+                self.threebot.gedis._system_actor.register_actor(actor[&#34;name&#34;], actor[&#34;path&#34;], force_reload=True)
 
         # add chatflows actors
         if package.chats_dir:
             self.threebot.chatbot.load(package.chats_dir)
+
+        # start background services
+        if package.services_dir:
+            for service in package.services:
+                self.threebot.services.add_service(service[&#34;name&#34;], service[&#34;path&#34;])
+
+        j.logger.info(f&#34;starting rack&#34;)
         # start servers
         self.threebot.rack.start()
 
+        j.logger.info(f&#34;applying nginx config&#34;)
         # apply nginx configuration
         package.nginx_config.apply()
 
+        j.logger.info(f&#34;starting package&#34;)
         # execute package start method
         package.start()
+
+        j.logger.info(f&#34;reloading gedis&#34;)
         self.threebot.gedis_http.client.reload()
+        j.logger.info(f&#34;reloading nginx&#34;)
         self.threebot.nginx.reload()
 
     def reload(self, package_name):
@@ -532,6 +694,9 @@ class PackageManager(Base):
             package = self.get(package_name)
             if not package:
                 raise j.exceptions.NotFound(f&#34;{package_name} package not found&#34;)
+            if package.services_dir:
+                for service in package.services:
+                    self.threebot.services.stop_service(service[&#34;name&#34;])
             self.install(package)
             self.threebot.nginx.reload()
             self.save()
@@ -550,13 +715,53 @@ class PackageManager(Base):
         for package in all_packages:
             if package not in DEFAULT_PACKAGES:
                 j.logger.info(f&#34;Configuring package {package}&#34;)
-                self.install(self.get(package))
+                pkg = self.get(package)
+                if not pkg:
+                    j.logger.error(f&#34;can&#39;t get package {package}&#34;)
+                else:
+                    if pkg.path and pkg.is_valid():
+                        self.install(pkg)
+                    else:
+                        j.logger.error(f&#34;package {package} was installed before but {pkg.path} doesn&#39;t exist anymore.&#34;)
+
+    def scan_packages_paths_in_dir(self, path):
+        &#34;&#34;&#34;Scans all packages in a path in any level and returns list of package paths
+
+        Args:
+            path (str): root path that has packages on some levels
+
+        Returns:
+            List[str]: list of all packages available under the path
+        &#34;&#34;&#34;
+        filterfun = lambda x: str(x).endswith(&#34;package.toml&#34;)
+        pkgtoml_paths = j.sals.fs.walk(path, filter_fun=filterfun)
+        pkgs_paths = list(map(lambda x: x.replace(&#34;/package.toml&#34;, &#34;&#34;), pkgtoml_paths))
+        return pkgs_paths
+
+    def scan_packages_in_dir(self, path):
+        &#34;&#34;&#34;Gets a dict from packages names to packages paths existing under a path that may have jumpscale packages at any level.
+
+        Args:
+            path (str): root path that has packages on some levels
+
+        Returns:
+            Dict[package_name, package_path]: dict of all packages available under the path
+        &#34;&#34;&#34;
+        pkgname_to_path = {}
+        for p in self.scan_packages_paths_in_dir(path):
+            basename = j.sals.fs.basename(p).strip()
+            if basename:
+                pkgname_to_path[basename] = p
+
+        return pkgname_to_path
 
 
 class ThreebotServer(Base):
     _package_manager = fields.Factory(PackageManager)
     domain = fields.String()
     email = fields.String()
+    acme_server_type = fields.Enum(AcmeServer)
+    acme_server_url = fields.URL()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -564,16 +769,20 @@ class ThreebotServer(Base):
         self._gedis = None
         self._db = None
         self._gedis_http = None
+        self._services = None
         self._packages = None
         self._started = False
         self._nginx = None
         self._redis = None
         self.rack.add(GEDIS, self.gedis)
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
+        self.rack.add(SERVICE_MANAGER, self.services)
 
     def is_running(self):
         nginx_running = self.nginx.is_running()
-        redis_running = self.redis.cmd.is_running()
+        redis_running = self.redis.cmd.is_running() or j.sals.nettools.wait_connection_test(
+            &#34;127.0.0.1&#34;, 6379, timeout=1
+        )
         gedis_running = j.sals.nettools.wait_connection_test(&#34;127.0.0.1&#34;, 16000, timeout=1)
         return nginx_running and redis_running and gedis_running
 
@@ -618,6 +827,12 @@ class ThreebotServer(Base):
         return self._gedis_http
 
     @property
+    def services(self):
+        if self._services is None:
+            self._services = j.tools.servicemanager.get(&#34;threebot&#34;)
+        return self._services
+
+    @property
     def chatbot(self):
         return self.gedis._loaded_actors.get(&#34;chatflows_chatbot&#34;)
 
@@ -652,11 +867,11 @@ class ThreebotServer(Base):
         if not ret:
             raise j.exceptions.NotFound(f&#34;git is not installed.\n{install_msg}&#34;)
 
-    def start(self, wait: bool = False):
+    def start(self, wait: bool = False, cert: bool = True):
         # start default servers in the rack
         # handle signals
         for signal_type in (signal.SIGTERM, signal.SIGINT, signal.SIGKILL):
-            gevent.signal(signal_type, self.stop)
+            gevent.signal_handler(signal_type, self.stop)
 
         # mark app as started
         if self.is_running():
@@ -666,9 +881,11 @@ class ThreebotServer(Base):
 
         self.redis.start()
         self.nginx.start()
-        self.rack.start()
-        j.application.start(f&#34;threebot_{self.instance_name}&#34;)
+        j.sals.nginx.get(self.nginx.server_name).cert = cert
+        self.mainapp = j.servers.appserver.make_main_app()
 
+        self.rack.start()
+        j.logger.register(f&#34;threebot_{self.instance_name}&#34;)
         # add default packages
         for package_name in DEFAULT_PACKAGES:
             j.logger.info(f&#34;Configuring package {package_name}&#34;)
@@ -682,12 +899,20 @@ class ThreebotServer(Base):
                 ) from e
 
         # install all package
+
+        j.logger.info(&#34;Adding packages&#34;)
         self.packages._install_all()
+        j.logger.info(&#34;jsappserver&#34;)
+        self.jsappserver = WSGIServer((&#34;localhost&#34;, 31000), apply_main_middlewares(self.mainapp))
+        j.logger.info(&#34;rack add&#34;)
+        self.rack.add(f&#34;appserver&#34;, self.jsappserver)
+
         j.logger.info(&#34;Reloading nginx&#34;)
         self.nginx.reload()
 
         # mark server as started
         self._started = True
+        j.logger.info(f&#34;routes: {self.mainapp.routes}&#34;)
         j.logger.info(f&#34;Threebot is running at http://localhost:{PORTS.HTTP} and https://localhost:{PORTS.HTTPS}&#34;)
         self.rack.start(wait=wait)  # to keep the server running
 
@@ -698,9 +923,9 @@ class ThreebotServer(Base):
             package.stop()
         self.nginx.stop()
         # mark app as stopped, do this before stopping redis
-        j.application.stop()
-        self.redis.stop()
+        j.logger.unregister()
         self.rack.stop()
+        self.redis.stop()
         self._started = False</code></pre>
 </details>
 </section>
@@ -731,50 +956,76 @@ class ThreebotServer(Base):
         default_server = {
             &#34;name&#34;: &#34;default&#34;,
             &#34;ports&#34;: self.package.config.get(&#34;ports&#34;),
-            &#34;locations&#34;: [],
+            &#34;locations&#34;: self.package.config.get(&#34;locations&#34;, []),
             &#34;domain&#34;: self.package.default_domain,
             &#34;letsencryptemail&#34;: self.package.default_email,
+            &#34;acme_server_type&#34;: self.package.default_acme_server_type,
+            &#34;acme_server_url&#34;: self.package.default_acme_server_url,
         }
 
         is_auth = self.package.config.get(&#34;is_auth&#34;, True)
         is_admin = self.package.config.get(&#34;is_admin&#34;, True)
+        is_package_authorized = self.package.config.get(&#34;is_package_authorized&#34;, False)
 
         for static_dir in self.package.static_dirs:
+            path_url = j.data.text.removeprefix(static_dir.get(&#34;path_url&#34;), &#34;/&#34;)
             default_server[&#34;locations&#34;].append(
                 {
-                    &#34;is_auth&#34;: is_auth,
-                    &#34;is_admin&#34;: is_admin,
+                    &#34;is_auth&#34;: static_dir.get(&#34;is_auth&#34;, is_auth),
+                    &#34;is_admin&#34;: static_dir.get(&#34;is_admin&#34;, is_admin),
+                    &#34;is_package_authorized&#34;: static_dir.get(&#34;is_package_authorized&#34;, is_package_authorized),
                     &#34;type&#34;: &#34;static&#34;,
                     &#34;name&#34;: static_dir.get(&#34;name&#34;),
                     &#34;spa&#34;: static_dir.get(&#34;spa&#34;),
                     &#34;index&#34;: static_dir.get(&#34;index&#34;),
-                    &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, static_dir.get(&#34;path_url&#34;).lstrip(&#34;/&#34;)),
+                    &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, path_url),
                     &#34;path_location&#34;: self.package.resolve_staticdir_location(static_dir),
                     &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
                 }
             )
 
         for bottle_server in self.package.bottle_servers:
-            default_server[&#34;locations&#34;].append(
-                {
-                    &#34;is_auth&#34;: is_auth,
-                    &#34;is_admin&#34;: is_admin,
-                    &#34;type&#34;: &#34;proxy&#34;,
-                    &#34;name&#34;: bottle_server.get(&#34;name&#34;),
-                    &#34;host&#34;: bottle_server.get(&#34;host&#34;),
-                    &#34;port&#34;: bottle_server.get(&#34;port&#34;),
-                    &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, bottle_server.get(&#34;path_url&#34;).lstrip(&#34;/&#34;)),
-                    &#34;path_dest&#34;: bottle_server.get(&#34;path_dest&#34;),
-                    &#34;websocket&#34;: bottle_server.get(&#34;websocket&#34;),
-                    &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
-                }
-            )
+            path_url = j.data.text.removeprefix(bottle_server.get(&#34;path_url&#34;), &#34;/&#34;)
+            if hasattr(bottle_server, &#34;standalone&#34;) and bottle_server.standalone:
+                default_server[&#34;locations&#34;].append(
+                    {
+                        &#34;is_auth&#34;: bottle_server.get(&#34;is_auth&#34;, is_auth),
+                        &#34;is_admin&#34;: bottle_server.get(&#34;is_admin&#34;, is_admin),
+                        &#34;is_package_authorized&#34;: bottle_server.get(&#34;is_package_authorized&#34;, is_package_authorized),
+                        &#34;type&#34;: &#34;proxy&#34;,
+                        &#34;name&#34;: bottle_server.get(&#34;name&#34;),
+                        &#34;host&#34;: bottle_server.get(&#34;host&#34;),
+                        &#34;port&#34;: bottle_server.get(&#34;port&#34;),
+                        &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url,),
+                        &#34;path_dest&#34;: bottle_server.get(&#34;path_dest&#34;),
+                        &#34;websocket&#34;: bottle_server.get(&#34;websocket&#34;),
+                        &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
+                    }
+                )
+            else:
+                path_url = j.data.text.removeprefix(bottle_server.get(&#34;path_url&#34;), &#34;/&#34;)
+                default_server[&#34;locations&#34;].append(
+                    {
+                        &#34;is_auth&#34;: bottle_server.get(&#34;is_auth&#34;, is_auth),
+                        &#34;is_admin&#34;: bottle_server.get(&#34;is_admin&#34;, is_admin),
+                        &#34;is_package_authorized&#34;: bottle_server.get(&#34;is_package_authorized&#34;, is_package_authorized),
+                        &#34;type&#34;: &#34;proxy&#34;,
+                        &#34;name&#34;: bottle_server.get(&#34;name&#34;),
+                        &#34;host&#34;: &#34;0.0.0.0&#34;,
+                        &#34;port&#34;: 31000,
+                        &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, path_url),
+                        &#34;path_dest&#34;: f&#34;/{self.package.name}{bottle_server.get(&#39;path_dest&#39;)}&#34;,
+                        &#34;websocket&#34;: bottle_server.get(&#34;websocket&#34;),
+                        &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
+                    }
+                )
 
         if self.package.actors_dir:
             default_server[&#34;locations&#34;].append(
                 {
                     &#34;is_auth&#34;: is_auth,
                     &#34;is_admin&#34;: is_admin,
+                    &#34;is_package_authorized&#34;: is_package_authorized,
                     &#34;type&#34;: &#34;proxy&#34;,
                     &#34;name&#34;: &#34;actors&#34;,
                     &#34;host&#34;: GEDIS_HTTP_HOST,
@@ -790,19 +1041,20 @@ class ThreebotServer(Base):
                 {
                     &#34;is_auth&#34;: is_auth,
                     &#34;is_admin&#34;: is_admin,
+                    &#34;is_package_authorized&#34;: is_package_authorized,
                     &#34;type&#34;: &#34;proxy&#34;,
                     &#34;name&#34;: &#34;chats&#34;,
                     &#34;host&#34;: CHATFLOW_SERVER_HOST,
                     &#34;port&#34;: CHATFLOW_SERVER_PORT,
                     &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, &#34;chats&#34;),
-                    &#34;path_dest&#34;: self.package.base_url + &#34;/chats&#34;,  # TODO: temperoary fix for auth package
+                    &#34;path_dest&#34;: f&#34;/chatflows{self.package.base_url}/chats&#34;,  # TODO: temperoary fix for auth package
                     &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
                 }
             )
 
         return [default_server]
 
-    def apply(self):
+    def apply(self, write_config=True):
         default_ports = [PORTS.HTTP, PORTS.HTTPS]
         servers = self.default_config + self.package.config.get(&#34;servers&#34;, [])
         for server in servers:
@@ -819,6 +1071,16 @@ class ThreebotServer(Base):
                 website.letsencryptemail = server.get(
                     &#34;letsencryptemail&#34;, self.default_config[0].get(&#34;letsencryptemail&#34;)
                 )
+                website.acme_server_type = server.get(
+                    &#34;acme_server_type&#34;, self.default_config[0].get(&#34;acme_server_type&#34;)
+                )
+                website.acme_server_url = server.get(&#34;acme_server_url&#34;, self.default_config[0].get(&#34;acme_server_url&#34;))
+                if server.get(&#34;key_path&#34;):
+                    website.key_path = server[&#34;key_path&#34;]
+                if server.get(&#34;cert_path&#34;):
+                    website.cert_path = server[&#34;cert_path&#34;]
+                if server.get(&#34;fullchain_path&#34;):
+                    website.fullchain_path = server[&#34;fullchain_path&#34;]
 
                 for location in server.get(&#34;locations&#34;, []):
                     loc = None
@@ -866,10 +1128,10 @@ class ThreebotServer(Base):
                         loc.force_https = location.get(&#34;force_https&#34;)
                         loc.is_auth = location.get(&#34;is_auth&#34;, False)
                         loc.is_admin = location.get(&#34;is_admin&#34;, False)
-
-                website.save()
-                website.configure()
-                self.nginx.save()</code></pre>
+                        loc.is_package_authorized = location.get(&#34;is_package_authorized&#34;, False)
+                        loc.package_name = self.package.name
+                if write_config:
+                    website.configure(generate_certificates=self.nginx.cert)</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
@@ -883,50 +1145,76 @@ def default_config(self):
     default_server = {
         &#34;name&#34;: &#34;default&#34;,
         &#34;ports&#34;: self.package.config.get(&#34;ports&#34;),
-        &#34;locations&#34;: [],
+        &#34;locations&#34;: self.package.config.get(&#34;locations&#34;, []),
         &#34;domain&#34;: self.package.default_domain,
         &#34;letsencryptemail&#34;: self.package.default_email,
+        &#34;acme_server_type&#34;: self.package.default_acme_server_type,
+        &#34;acme_server_url&#34;: self.package.default_acme_server_url,
     }
 
     is_auth = self.package.config.get(&#34;is_auth&#34;, True)
     is_admin = self.package.config.get(&#34;is_admin&#34;, True)
+    is_package_authorized = self.package.config.get(&#34;is_package_authorized&#34;, False)
 
     for static_dir in self.package.static_dirs:
+        path_url = j.data.text.removeprefix(static_dir.get(&#34;path_url&#34;), &#34;/&#34;)
         default_server[&#34;locations&#34;].append(
             {
-                &#34;is_auth&#34;: is_auth,
-                &#34;is_admin&#34;: is_admin,
+                &#34;is_auth&#34;: static_dir.get(&#34;is_auth&#34;, is_auth),
+                &#34;is_admin&#34;: static_dir.get(&#34;is_admin&#34;, is_admin),
+                &#34;is_package_authorized&#34;: static_dir.get(&#34;is_package_authorized&#34;, is_package_authorized),
                 &#34;type&#34;: &#34;static&#34;,
                 &#34;name&#34;: static_dir.get(&#34;name&#34;),
                 &#34;spa&#34;: static_dir.get(&#34;spa&#34;),
                 &#34;index&#34;: static_dir.get(&#34;index&#34;),
-                &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, static_dir.get(&#34;path_url&#34;).lstrip(&#34;/&#34;)),
+                &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, path_url),
                 &#34;path_location&#34;: self.package.resolve_staticdir_location(static_dir),
                 &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
             }
         )
 
     for bottle_server in self.package.bottle_servers:
-        default_server[&#34;locations&#34;].append(
-            {
-                &#34;is_auth&#34;: is_auth,
-                &#34;is_admin&#34;: is_admin,
-                &#34;type&#34;: &#34;proxy&#34;,
-                &#34;name&#34;: bottle_server.get(&#34;name&#34;),
-                &#34;host&#34;: bottle_server.get(&#34;host&#34;),
-                &#34;port&#34;: bottle_server.get(&#34;port&#34;),
-                &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, bottle_server.get(&#34;path_url&#34;).lstrip(&#34;/&#34;)),
-                &#34;path_dest&#34;: bottle_server.get(&#34;path_dest&#34;),
-                &#34;websocket&#34;: bottle_server.get(&#34;websocket&#34;),
-                &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
-            }
-        )
+        path_url = j.data.text.removeprefix(bottle_server.get(&#34;path_url&#34;), &#34;/&#34;)
+        if hasattr(bottle_server, &#34;standalone&#34;) and bottle_server.standalone:
+            default_server[&#34;locations&#34;].append(
+                {
+                    &#34;is_auth&#34;: bottle_server.get(&#34;is_auth&#34;, is_auth),
+                    &#34;is_admin&#34;: bottle_server.get(&#34;is_admin&#34;, is_admin),
+                    &#34;is_package_authorized&#34;: bottle_server.get(&#34;is_package_authorized&#34;, is_package_authorized),
+                    &#34;type&#34;: &#34;proxy&#34;,
+                    &#34;name&#34;: bottle_server.get(&#34;name&#34;),
+                    &#34;host&#34;: bottle_server.get(&#34;host&#34;),
+                    &#34;port&#34;: bottle_server.get(&#34;port&#34;),
+                    &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url,),
+                    &#34;path_dest&#34;: bottle_server.get(&#34;path_dest&#34;),
+                    &#34;websocket&#34;: bottle_server.get(&#34;websocket&#34;),
+                    &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
+                }
+            )
+        else:
+            path_url = j.data.text.removeprefix(bottle_server.get(&#34;path_url&#34;), &#34;/&#34;)
+            default_server[&#34;locations&#34;].append(
+                {
+                    &#34;is_auth&#34;: bottle_server.get(&#34;is_auth&#34;, is_auth),
+                    &#34;is_admin&#34;: bottle_server.get(&#34;is_admin&#34;, is_admin),
+                    &#34;is_package_authorized&#34;: bottle_server.get(&#34;is_package_authorized&#34;, is_package_authorized),
+                    &#34;type&#34;: &#34;proxy&#34;,
+                    &#34;name&#34;: bottle_server.get(&#34;name&#34;),
+                    &#34;host&#34;: &#34;0.0.0.0&#34;,
+                    &#34;port&#34;: 31000,
+                    &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, path_url),
+                    &#34;path_dest&#34;: f&#34;/{self.package.name}{bottle_server.get(&#39;path_dest&#39;)}&#34;,
+                    &#34;websocket&#34;: bottle_server.get(&#34;websocket&#34;),
+                    &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
+                }
+            )
 
     if self.package.actors_dir:
         default_server[&#34;locations&#34;].append(
             {
                 &#34;is_auth&#34;: is_auth,
                 &#34;is_admin&#34;: is_admin,
+                &#34;is_package_authorized&#34;: is_package_authorized,
                 &#34;type&#34;: &#34;proxy&#34;,
                 &#34;name&#34;: &#34;actors&#34;,
                 &#34;host&#34;: GEDIS_HTTP_HOST,
@@ -942,12 +1230,13 @@ def default_config(self):
             {
                 &#34;is_auth&#34;: is_auth,
                 &#34;is_admin&#34;: is_admin,
+                &#34;is_package_authorized&#34;: is_package_authorized,
                 &#34;type&#34;: &#34;proxy&#34;,
                 &#34;name&#34;: &#34;chats&#34;,
                 &#34;host&#34;: CHATFLOW_SERVER_HOST,
                 &#34;port&#34;: CHATFLOW_SERVER_PORT,
                 &#34;path_url&#34;: j.sals.fs.join_paths(self.package.base_url, &#34;chats&#34;),
-                &#34;path_dest&#34;: self.package.base_url + &#34;/chats&#34;,  # TODO: temperoary fix for auth package
+                &#34;path_dest&#34;: f&#34;/chatflows{self.package.base_url}/chats&#34;,  # TODO: temperoary fix for auth package
                 &#34;force_https&#34;: self.package.config.get(&#34;force_https&#34;, True),
             }
         )
@@ -959,13 +1248,13 @@ def default_config(self):
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.servers.threebot.threebot.NginxPackageConfig.apply"><code class="name flex">
-<span>def <span class="ident">apply</span></span>(<span>self)</span>
+<span>def <span class="ident">apply</span></span>(<span>self, write_config=True)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def apply(self):
+<pre><code class="python">def apply(self, write_config=True):
     default_ports = [PORTS.HTTP, PORTS.HTTPS]
     servers = self.default_config + self.package.config.get(&#34;servers&#34;, [])
     for server in servers:
@@ -982,6 +1271,16 @@ def default_config(self):
             website.letsencryptemail = server.get(
                 &#34;letsencryptemail&#34;, self.default_config[0].get(&#34;letsencryptemail&#34;)
             )
+            website.acme_server_type = server.get(
+                &#34;acme_server_type&#34;, self.default_config[0].get(&#34;acme_server_type&#34;)
+            )
+            website.acme_server_url = server.get(&#34;acme_server_url&#34;, self.default_config[0].get(&#34;acme_server_url&#34;))
+            if server.get(&#34;key_path&#34;):
+                website.key_path = server[&#34;key_path&#34;]
+            if server.get(&#34;cert_path&#34;):
+                website.cert_path = server[&#34;cert_path&#34;]
+            if server.get(&#34;fullchain_path&#34;):
+                website.fullchain_path = server[&#34;fullchain_path&#34;]
 
             for location in server.get(&#34;locations&#34;, []):
                 loc = None
@@ -1029,24 +1328,34 @@ def default_config(self):
                     loc.force_https = location.get(&#34;force_https&#34;)
                     loc.is_auth = location.get(&#34;is_auth&#34;, False)
                     loc.is_admin = location.get(&#34;is_admin&#34;, False)
-
-            website.save()
-            website.configure()
-            self.nginx.save()</code></pre>
+                    loc.is_package_authorized = location.get(&#34;is_package_authorized&#34;, False)
+                    loc.package_name = self.package.name
+            if write_config:
+                website.configure(generate_certificates=self.nginx.cert)</code></pre>
 </details>
 </dd>
 </dl>
 </dd>
 <dt id="jumpscale.servers.threebot.threebot.Package"><code class="flex name class">
 <span>class <span class="ident">Package</span></span>
-<span>(</span><span>path, default_domain, default_email, giturl='')</span>
+<span>(</span><span>path, default_domain, default_email, giturl='', kwargs=None, admins=None, default_acme_server_type=<AcmeServer.LETSENCRYPT: 'letsencrypt'>, default_acme_server_url=None)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class Package:
-    def __init__(self, path, default_domain, default_email, giturl=&#34;&#34;):
+    def __init__(
+        self,
+        path,
+        default_domain,
+        default_email,
+        giturl=&#34;&#34;,
+        kwargs=None,
+        admins=None,
+        default_acme_server_type=AcmeServer.LETSENCRYPT,
+        default_acme_server_url=None,
+    ):
         self.path = path
         self.giturl = giturl
         self._config = None
@@ -1055,9 +1364,28 @@ def default_config(self):
         self._module = None
         self.default_domain = default_domain
         self.default_email = default_email
+        self.default_acme_server_type = default_acme_server_type
+        self.default_acme_server_url = default_acme_server_url
+        self.kwargs = kwargs or {}
+        self.admins = admins or []
+
+    def _load_files(self, dir_path):
+        for file_path in j.sals.fs.walk_files(dir_path, recursive=False):
+            file_name = j.sals.fs.basename(file_path)
+            if file_name.endswith(&#34;.py&#34;):
+                name = f&#34;{self.name}_{file_name[:-3]}&#34;
+                yield dict(name=name, path=file_path)
 
     def load_config(self):
-        return toml.load(j.sals.fs.join_paths(self.path, &#34;package.toml&#34;))
+        return toml.load(self.package_config_path)
+
+    @property
+    def package_config_path(self):
+        return j.sals.fs.join_paths(self.path, &#34;package.toml&#34;)
+
+    @property
+    def package_module_path(self):
+        return j.sals.fs.join_paths(self.path, &#34;package.py&#34;)
 
     @property
     def module(self):
@@ -1082,6 +1410,10 @@ def default_config(self):
         return self._config
 
     @property
+    def ui_name(self):
+        return self.config.get(&#34;ui_name&#34;, self.name)
+
+    @property
     def actors_dir(self):
         actors_dir = j.sals.fs.join_paths(self.path, self.config.get(&#34;actors_dir&#34;, &#34;actors&#34;))
         if j.sals.fs.exists(actors_dir):
@@ -1094,6 +1426,12 @@ def default_config(self):
             return chats_dir
 
     @property
+    def services_dir(self):
+        services_dir = j.sals.fs.join_paths(self.path, self.config.get(&#34;services_dir&#34;, &#34;services&#34;))
+        if j.sals.fs.exists(services_dir):
+            return services_dir
+
+    @property
     def static_dirs(self):
         return self.config.get(&#34;static_dirs&#34;, [])
 
@@ -1103,11 +1441,11 @@ def default_config(self):
 
     @property
     def actors(self):
-        for file_path in j.sals.fs.walk_files(self.actors_dir, recursive=False):
-            file_name = j.sals.fs.basename(file_path)
-            if file_name.endswith(&#34;.py&#34;):
-                actor_name = f&#34;{self.name}_{file_name[:-3]}&#34;
-                yield dict(name=actor_name, path=file_path)
+        return self._load_files(self.actors_dir)
+
+    @property
+    def services(self):
+        return self._load_files(self.services_dir)
 
     def resolve_staticdir_location(self, static_dir):
         &#34;&#34;&#34;Resolves path for static location in case we need it
@@ -1132,6 +1470,10 @@ def default_config(self):
         module = imp.load_source(file_path[:-3], file_path)
         return WSGIServer((host, port), StripPathMiddleware(module.app))
 
+    def get_package_bottle_app(self, file_path):
+        module = imp.load_source(file_path[:-3], file_path)
+        return module.app
+
     def preinstall(self):
         if self.module and hasattr(self.module, &#34;preinstall&#34;):
             self.module.preinstall()
@@ -1146,7 +1488,7 @@ def default_config(self):
 
     def start(self):
         if self.module and hasattr(self.module, &#34;start&#34;):
-            self.module.start()
+            self.module.start(**self.kwargs)
 
     def stop(self):
         if self.module and hasattr(self.module, &#34;stop&#34;):
@@ -1155,7 +1497,17 @@ def default_config(self):
     def restart(self):
         if self.module:
             self.module.stop()
-            self.module.start()</code></pre>
+            self.module.start()
+
+    def exists(self):
+        return j.sals.fs.exists(self.package_config_path)
+
+    def is_valid(self):
+        # more constraints, but for now let&#39;s say it&#39;s not ok if the main files don&#39;t exist
+        return self.exists() and not self.is_excluded()
+
+    def is_excluded(self):
+        return self.config.get(&#34;excluded&#34;, False) == True</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
@@ -1166,11 +1518,7 @@ def default_config(self):
 <summary>Source code</summary>
 <pre><code class="python">@property
 def actors(self):
-    for file_path in j.sals.fs.walk_files(self.actors_dir, recursive=False):
-        file_name = j.sals.fs.basename(file_path)
-        if file_name.endswith(&#34;.py&#34;):
-            actor_name = f&#34;{self.name}_{file_name[:-3]}&#34;
-            yield dict(name=actor_name, path=file_path)</code></pre>
+    return self._load_files(self.actors_dir)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.servers.threebot.threebot.Package.actors_dir"><code class="name">var <span class="ident">actors_dir</span></code></dt>
@@ -1247,6 +1595,48 @@ def module(self):
     return self._module</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.servers.threebot.threebot.Package.package_config_path"><code class="name">var <span class="ident">package_config_path</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def package_config_path(self):
+    return j.sals.fs.join_paths(self.path, &#34;package.toml&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.threebot.threebot.Package.package_module_path"><code class="name">var <span class="ident">package_module_path</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def package_module_path(self):
+    return j.sals.fs.join_paths(self.path, &#34;package.py&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.threebot.threebot.Package.services"><code class="name">var <span class="ident">services</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def services(self):
+    return self._load_files(self.services_dir)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.threebot.threebot.Package.services_dir"><code class="name">var <span class="ident">services_dir</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def services_dir(self):
+    services_dir = j.sals.fs.join_paths(self.path, self.config.get(&#34;services_dir&#34;, &#34;services&#34;))
+    if j.sals.fs.exists(services_dir):
+        return services_dir</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.servers.threebot.threebot.Package.static_dirs"><code class="name">var <span class="ident">static_dirs</span></code></dt>
 <dd>
 <section class="desc"></section>
@@ -1257,9 +1647,30 @@ def static_dirs(self):
     return self.config.get(&#34;static_dirs&#34;, [])</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.servers.threebot.threebot.Package.ui_name"><code class="name">var <span class="ident">ui_name</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def ui_name(self):
+    return self.config.get(&#34;ui_name&#34;, self.name)</code></pre>
+</details>
+</dd>
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="jumpscale.servers.threebot.threebot.Package.exists"><code class="name flex">
+<span>def <span class="ident">exists</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def exists(self):
+    return j.sals.fs.exists(self.package_config_path)</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.servers.threebot.threebot.Package.get_bottle_server"><code class="name flex">
 <span>def <span class="ident">get_bottle_server</span></span>(<span>self, file_path, host, port)</span>
 </code></dt>
@@ -1270,6 +1681,18 @@ def static_dirs(self):
 <pre><code class="python">def get_bottle_server(self, file_path, host, port):
     module = imp.load_source(file_path[:-3], file_path)
     return WSGIServer((host, port), StripPathMiddleware(module.app))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.threebot.threebot.Package.get_package_bottle_app"><code class="name flex">
+<span>def <span class="ident">get_package_bottle_app</span></span>(<span>self, file_path)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_package_bottle_app(self, file_path):
+    module = imp.load_source(file_path[:-3], file_path)
+    return module.app</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.servers.threebot.threebot.Package.install"><code class="name flex">
@@ -1284,6 +1707,29 @@ def static_dirs(self):
         self.module.install(**kwargs)</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.servers.threebot.threebot.Package.is_excluded"><code class="name flex">
+<span>def <span class="ident">is_excluded</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def is_excluded(self):
+    return self.config.get(&#34;excluded&#34;, False) == True</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.threebot.threebot.Package.is_valid"><code class="name flex">
+<span>def <span class="ident">is_valid</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def is_valid(self):
+    # more constraints, but for now let&#39;s say it&#39;s not ok if the main files don&#39;t exist
+    return self.exists() and not self.is_excluded()</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.servers.threebot.threebot.Package.load_config"><code class="name flex">
 <span>def <span class="ident">load_config</span></span>(<span>self)</span>
 </code></dt>
@@ -1292,7 +1738,7 @@ def static_dirs(self):
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def load_config(self):
-    return toml.load(j.sals.fs.join_paths(self.path, &#34;package.toml&#34;))</code></pre>
+    return toml.load(self.package_config_path)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.servers.threebot.threebot.Package.preinstall"><code class="name flex">
@@ -1369,7 +1815,7 @@ if false will be relative to the path</p>
 <summary>Source code</summary>
 <pre><code class="python">def start(self):
     if self.module and hasattr(self.module, &#34;start&#34;):
-        self.module.start()</code></pre>
+        self.module.start(**self.kwargs)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.servers.threebot.threebot.Package.stop"><code class="name flex">
@@ -1407,7 +1853,7 @@ if false will be relative to the path</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -1442,11 +1888,18 @@ print(p.name, p.age)
         if package_name in self.packages:
             package_path = self.packages[package_name][&#34;path&#34;]
             package_giturl = self.packages[package_name][&#34;giturl&#34;]
+            package_kwargs = self.packages[package_name].get(&#34;kwargs&#34;, {})
+            package_admins = self.packages[package_name].get(&#34;admins&#34;, [])
+
             return Package(
                 path=package_path,
                 default_domain=self.threebot.domain,
                 default_email=self.threebot.email,
+                default_acme_server_type=self.threebot.acme_server_type,
+                default_acme_server_url=self.threebot.acme_server_url,
                 giturl=package_giturl,
+                kwargs=package_kwargs,
+                admins=package_admins,
             )
 
     def get_packages(self):
@@ -1455,21 +1908,39 @@ print(p.name, p.age)
         # Add installed packages including outer packages
         for pkg in self.packages:
             package = self.get(pkg)
-            all_packages.append(
-                {
-                    &#34;name&#34;: pkg,
-                    &#34;path&#34;: package.path,
-                    &#34;giturl&#34;: package.giturl,
-                    &#34;system_package&#34;: pkg in DEFAULT_PACKAGES.keys(),
-                    &#34;installed&#34;: True,
-                    &#34;frontend&#34;: package.config.get(&#34;frontend&#34;, False),
-                }
-            )
+
+            if package and package.is_valid():
+                if j.sals.fs.exists(package.path):
+                    chatflows = True if package.chats_dir else False
+                    all_packages.append(
+                        {
+                            &#34;name&#34;: pkg,
+                            &#34;path&#34;: package.path,
+                            &#34;giturl&#34;: package.giturl,
+                            &#34;system_package&#34;: pkg in DEFAULT_PACKAGES.keys(),
+                            &#34;installed&#34;: True,
+                            &#34;frontend&#34;: package.config.get(&#34;frontend&#34;, False),
+                            &#34;chatflows&#34;: chatflows,
+                            &#34;ui_name&#34;: package.ui_name,
+                        }
+                    )
+                else:
+                    j.logger.error(f&#34;path {package.path} for {pkg} doesn&#39;t exist anymore&#34;)
+            else:
+                j.logger.error(&#34;pkg {pkg} is in self.packages but it&#39;s None&#34;)
 
         # Add uninstalled sdk packages under j.packages
         for path in set(pkgnamespace.__path__):
             for pkg in os.listdir(path):
-                if pkg not in self.packages:
+                pkg_path = j.sals.fs.join_paths(path, pkg)
+                pkgtoml_path = j.sals.fs.join_paths(pkg_path, &#34;package.toml&#34;)
+                ui_name = pkg
+                excluded = False
+                with open(pkgtoml_path) as f:
+                    conf = j.data.serializers.toml.loads(f.read())
+                    ui_name = conf.get(&#34;ui_name&#34;, pkg)
+                    excluded = conf.get(&#34;excluded&#34;, False)
+                if pkg not in self.packages and j.sals.fs.exists(pkgtoml_path) and not excluded:
                     all_packages.append(
                         {
                             &#34;name&#34;: pkg,
@@ -1477,6 +1948,7 @@ print(p.name, p.age)
                             &#34;giturl&#34;: &#34;&#34;,
                             &#34;system_package&#34;: pkg in DEFAULT_PACKAGES.keys(),
                             &#34;installed&#34;: False,
+                            &#34;ui_name&#34;: ui_name,
                         }
                     )
 
@@ -1486,27 +1958,35 @@ print(p.name, p.age)
         return list(self.packages.keys())
 
     def add(self, path: str = None, giturl: str = None, **kwargs):
+        # first check if public repo
         # TODO: Check if package already exists
         if not any([path, giturl]) or all([path, giturl]):
             raise j.exceptions.Value(&#34;either path or giturl is required&#34;)
-
-        for package_name in self.packages:
-            package = self.get(package_name)
-            ## TODO: why do we care if the path is the same and giturl is the same? adding it 100 times should just add it once?
-            # if path and path == package.path:
-            #     raise j.exceptions.Value(&#34;Package with the same path already exists&#34;)
-            # if giturl and giturl == package.giturl:
-            #     raise j.exceptions.Value(&#34;Package with the same giturl already exists&#34;)
-
+        pkg_name = &#34;&#34;
         if giturl:
             url = urlparse(giturl)
-            url_parts = url.path.lstrip(&#34;/&#34;).split(&#34;/&#34;, 4)
+            url_parts = url.path.lstrip(&#34;/&#34;).split(&#34;/&#34;)
+            if len(url_parts) == 2:
+                pkg_name = url_parts[1].strip(&#34;/&#34;)
+                j.logger.debug(
+                    f&#34;user didn&#39;t pass a URL containing branch {giturl}, try to guess (master, main, development) in order&#34;
+                )
+                if j.tools.http.get(f&#34;{giturl}/tree/master&#34;).status_code == 200:
+                    url_parts.extend([&#34;tree&#34;, &#34;master&#34;])
+                elif j.tools.http.get(f&#34;{giturl}/tree/main&#34;).status_code == 200:
+                    url_parts.extend([&#34;tree&#34;, &#34;main&#34;])
+                elif j.tools.http.get(f&#34;{giturl}/tree/development&#34;).status_code == 200:
+                    url_parts.extend([&#34;tree&#34;, &#34;development&#34;])
+                else:
+                    raise j.exceptions.Value(f&#34;couldn&#39;t guess the branch for {giturl}&#34;)
+            else:
+                pkg_name = url_parts[-1].strip(&#34;/&#34;)
 
-            if len(url_parts) != 5:
-                raise j.exceptions.Value(&#34;invalid path&#34;)
+            if len(url_parts) &lt; 4:
+                raise j.exceptions.Value(f&#34;invalid git URL {giturl}&#34;)
 
-            org, repo, _, branch, package_path = url_parts
-            repo_dir = f&#34;{org}_{repo}_{branch}&#34;
+            org, repo, _, branch = url_parts[:4]
+            repo_dir = f&#34;{org}_{repo}_{pkg_name}_{branch}&#34;
             repo_path = j.sals.fs.join_paths(DOWNLOADED_PACKAGES_PATH, repo_dir)
             repo_url = f&#34;{url.scheme}://{url.hostname}/{org}/{repo}&#34;
 
@@ -1514,17 +1994,29 @@ print(p.name, p.age)
             j.sals.fs.rmtree(repo_path)
 
             j.tools.git.clone_repo(url=repo_url, dest=repo_path, branch_or_tag=branch)
-            path = j.sals.fs.join_paths(repo_path, repo, package_path)
+            toml_paths = list(
+                j.sals.fs.walk(repo_path, &#34;*&#34;, filter_fun=lambda x: str(x).endswith(f&#34;{pkg_name}/package.toml&#34;))
+            )
+            if not toml_paths:
+                raise j.exceptions.Value(f&#34;couldn&#39;t find {pkg_name}/package.toml in {repo_path}&#34;)
+            path_for_package_toml = toml_paths[0]
+            package_path = j.sals.fs.parent(path_for_package_toml)
+            path = package_path
+
+        admins = kwargs.pop(&#34;admins&#34;, [])
 
         package = Package(
-            path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl
+            path=path,
+            default_domain=self.threebot.domain,
+            default_email=self.threebot.email,
+            giturl=giturl,
+            kwargs=kwargs,
+            admins=admins,
         )
 
         # TODO: adding under the same name if same path and same giturl should be fine, no?
         # if package.name in self.packages:
         #     raise j.exceptions.Value(f&#34;Package with name {package.name} already exists&#34;)
-
-        self.packages[package.name] = {&#34;name&#34;: package.name, &#34;path&#34;: package.path, &#34;giturl&#34;: package.giturl}
 
         # execute package install method
         package.install(**kwargs)
@@ -1533,6 +2025,15 @@ print(p.name, p.age)
         if self.threebot.started:
             self.install(package)
             self.threebot.nginx.reload()
+        self.packages[package.name] = {
+            &#34;name&#34;: package.name,
+            &#34;path&#34;: package.path,
+            &#34;giturl&#34;: package.giturl,
+            &#34;kwargs&#34;: package.kwargs,
+            &#34;admins&#34;: package.admins,
+            &#34;ui_name&#34;: package.ui_name,
+        }
+
         self.save()
 
         # Return updated package info
@@ -1551,6 +2052,11 @@ print(p.name, p.age)
             if bottle_server.startswith(f&#34;{package_name}_&#34;):
                 self.threebot.rack.remove(bottle_server)
 
+        # stop background services
+        if package.services_dir:
+            for service in package.services:
+                self.threebot.services.stop_service(service[&#34;name&#34;])
+
         if self.threebot.started:
             # unregister gedis actors
             gedis_actors = list(self.threebot.gedis._loaded_actors.keys())
@@ -1563,9 +2069,7 @@ print(p.name, p.age)
                 if package.chats_dir:
                     self.threebot.chatbot.unload(package.chats_dir)
             except Exception as e:
-                j.logger.warning(
-                    f&#34;Couldn&#39;t unload the chats of package {package_name}, this is the the exception {str(e)}&#34;
-                )
+                j.logger.warning(f&#34;Couldn&#39;t unload the chats of package {package_name}, this is the exception {str(e)}&#34;)
 
             # reload nginx
             self.threebot.nginx.reload()
@@ -1593,31 +2097,56 @@ print(p.name, p.age)
                 raise j.exceptions.NotFound(f&#34;Cannot find static dir {path}&#34;)
 
         # add bottle servers
+        # we first merge all apps of a package into a single app
+        # then mount this app on threebot main app
+        # this will work with multiple non-standalone apps
+        package_app = j.servers.appserver.make_main_app()
         for bottle_server in package.bottle_servers:
             path = j.sals.fs.join_paths(package.path, bottle_server[&#34;file_path&#34;])
             if not j.sals.fs.exists(path):
                 raise j.exceptions.NotFound(f&#34;Cannot find bottle server path {path}&#34;)
 
-            bottle_app = package.get_bottle_server(path, bottle_server[&#34;host&#34;], bottle_server[&#34;port&#34;])
-            self.threebot.rack.add(f&#34;{package.name}_{bottle_server[&#39;name&#39;]}&#34;, bottle_app)
+            standalone = bottle_server.get(&#34;standalone&#34;, False)
+            if standalone:
+                bottle_wsgi_server = package.get_bottle_server(path, bottle_server[&#34;host&#34;], bottle_server[&#34;port&#34;])
+                self.threebot.rack.add(f&#34;{package.name}_{bottle_server[&#39;name&#39;]}&#34;, bottle_wsgi_server)
+            else:
+                bottle_app = package.get_package_bottle_app(path)
+                package_app.merge(bottle_app)
+
+        if package_app.routes:
+            j.logger.info(f&#34;registering {package.name} package app&#34;)
+            self.threebot.mainapp.mount(f&#34;/{package.name}&#34;, package_app)
 
         # register gedis actors
         if package.actors_dir:
             for actor in package.actors:
-                self.threebot.gedis._system_actor.register_actor(actor[&#34;name&#34;], actor[&#34;path&#34;])
+                self.threebot.gedis._system_actor.register_actor(actor[&#34;name&#34;], actor[&#34;path&#34;], force_reload=True)
 
         # add chatflows actors
         if package.chats_dir:
             self.threebot.chatbot.load(package.chats_dir)
+
+        # start background services
+        if package.services_dir:
+            for service in package.services:
+                self.threebot.services.add_service(service[&#34;name&#34;], service[&#34;path&#34;])
+
+        j.logger.info(f&#34;starting rack&#34;)
         # start servers
         self.threebot.rack.start()
 
+        j.logger.info(f&#34;applying nginx config&#34;)
         # apply nginx configuration
         package.nginx_config.apply()
 
+        j.logger.info(f&#34;starting package&#34;)
         # execute package start method
         package.start()
+
+        j.logger.info(f&#34;reloading gedis&#34;)
         self.threebot.gedis_http.client.reload()
+        j.logger.info(f&#34;reloading nginx&#34;)
         self.threebot.nginx.reload()
 
     def reload(self, package_name):
@@ -1625,6 +2154,9 @@ print(p.name, p.age)
             package = self.get(package_name)
             if not package:
                 raise j.exceptions.NotFound(f&#34;{package_name} package not found&#34;)
+            if package.services_dir:
+                for service in package.services:
+                    self.threebot.services.stop_service(service[&#34;name&#34;])
             self.install(package)
             self.threebot.nginx.reload()
             self.save()
@@ -1643,7 +2175,45 @@ print(p.name, p.age)
         for package in all_packages:
             if package not in DEFAULT_PACKAGES:
                 j.logger.info(f&#34;Configuring package {package}&#34;)
-                self.install(self.get(package))</code></pre>
+                pkg = self.get(package)
+                if not pkg:
+                    j.logger.error(f&#34;can&#39;t get package {package}&#34;)
+                else:
+                    if pkg.path and pkg.is_valid():
+                        self.install(pkg)
+                    else:
+                        j.logger.error(f&#34;package {package} was installed before but {pkg.path} doesn&#39;t exist anymore.&#34;)
+
+    def scan_packages_paths_in_dir(self, path):
+        &#34;&#34;&#34;Scans all packages in a path in any level and returns list of package paths
+
+        Args:
+            path (str): root path that has packages on some levels
+
+        Returns:
+            List[str]: list of all packages available under the path
+        &#34;&#34;&#34;
+        filterfun = lambda x: str(x).endswith(&#34;package.toml&#34;)
+        pkgtoml_paths = j.sals.fs.walk(path, filter_fun=filterfun)
+        pkgs_paths = list(map(lambda x: x.replace(&#34;/package.toml&#34;, &#34;&#34;), pkgtoml_paths))
+        return pkgs_paths
+
+    def scan_packages_in_dir(self, path):
+        &#34;&#34;&#34;Gets a dict from packages names to packages paths existing under a path that may have jumpscale packages at any level.
+
+        Args:
+            path (str): root path that has packages on some levels
+
+        Returns:
+            Dict[package_name, package_path]: dict of all packages available under the path
+        &#34;&#34;&#34;
+        pkgname_to_path = {}
+        for p in self.scan_packages_paths_in_dir(path):
+            basename = j.sals.fs.basename(p).strip()
+            if basename:
+                pkgname_to_path[basename] = p
+
+        return pkgname_to_path</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1700,27 +2270,35 @@ def threebot(self):
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add(self, path: str = None, giturl: str = None, **kwargs):
+    # first check if public repo
     # TODO: Check if package already exists
     if not any([path, giturl]) or all([path, giturl]):
         raise j.exceptions.Value(&#34;either path or giturl is required&#34;)
-
-    for package_name in self.packages:
-        package = self.get(package_name)
-        ## TODO: why do we care if the path is the same and giturl is the same? adding it 100 times should just add it once?
-        # if path and path == package.path:
-        #     raise j.exceptions.Value(&#34;Package with the same path already exists&#34;)
-        # if giturl and giturl == package.giturl:
-        #     raise j.exceptions.Value(&#34;Package with the same giturl already exists&#34;)
-
+    pkg_name = &#34;&#34;
     if giturl:
         url = urlparse(giturl)
-        url_parts = url.path.lstrip(&#34;/&#34;).split(&#34;/&#34;, 4)
+        url_parts = url.path.lstrip(&#34;/&#34;).split(&#34;/&#34;)
+        if len(url_parts) == 2:
+            pkg_name = url_parts[1].strip(&#34;/&#34;)
+            j.logger.debug(
+                f&#34;user didn&#39;t pass a URL containing branch {giturl}, try to guess (master, main, development) in order&#34;
+            )
+            if j.tools.http.get(f&#34;{giturl}/tree/master&#34;).status_code == 200:
+                url_parts.extend([&#34;tree&#34;, &#34;master&#34;])
+            elif j.tools.http.get(f&#34;{giturl}/tree/main&#34;).status_code == 200:
+                url_parts.extend([&#34;tree&#34;, &#34;main&#34;])
+            elif j.tools.http.get(f&#34;{giturl}/tree/development&#34;).status_code == 200:
+                url_parts.extend([&#34;tree&#34;, &#34;development&#34;])
+            else:
+                raise j.exceptions.Value(f&#34;couldn&#39;t guess the branch for {giturl}&#34;)
+        else:
+            pkg_name = url_parts[-1].strip(&#34;/&#34;)
 
-        if len(url_parts) != 5:
-            raise j.exceptions.Value(&#34;invalid path&#34;)
+        if len(url_parts) &lt; 4:
+            raise j.exceptions.Value(f&#34;invalid git URL {giturl}&#34;)
 
-        org, repo, _, branch, package_path = url_parts
-        repo_dir = f&#34;{org}_{repo}_{branch}&#34;
+        org, repo, _, branch = url_parts[:4]
+        repo_dir = f&#34;{org}_{repo}_{pkg_name}_{branch}&#34;
         repo_path = j.sals.fs.join_paths(DOWNLOADED_PACKAGES_PATH, repo_dir)
         repo_url = f&#34;{url.scheme}://{url.hostname}/{org}/{repo}&#34;
 
@@ -1728,17 +2306,29 @@ def threebot(self):
         j.sals.fs.rmtree(repo_path)
 
         j.tools.git.clone_repo(url=repo_url, dest=repo_path, branch_or_tag=branch)
-        path = j.sals.fs.join_paths(repo_path, repo, package_path)
+        toml_paths = list(
+            j.sals.fs.walk(repo_path, &#34;*&#34;, filter_fun=lambda x: str(x).endswith(f&#34;{pkg_name}/package.toml&#34;))
+        )
+        if not toml_paths:
+            raise j.exceptions.Value(f&#34;couldn&#39;t find {pkg_name}/package.toml in {repo_path}&#34;)
+        path_for_package_toml = toml_paths[0]
+        package_path = j.sals.fs.parent(path_for_package_toml)
+        path = package_path
+
+    admins = kwargs.pop(&#34;admins&#34;, [])
 
     package = Package(
-        path=path, default_domain=self.threebot.domain, default_email=self.threebot.email, giturl=giturl
+        path=path,
+        default_domain=self.threebot.domain,
+        default_email=self.threebot.email,
+        giturl=giturl,
+        kwargs=kwargs,
+        admins=admins,
     )
 
     # TODO: adding under the same name if same path and same giturl should be fine, no?
     # if package.name in self.packages:
     #     raise j.exceptions.Value(f&#34;Package with name {package.name} already exists&#34;)
-
-    self.packages[package.name] = {&#34;name&#34;: package.name, &#34;path&#34;: package.path, &#34;giturl&#34;: package.giturl}
 
     # execute package install method
     package.install(**kwargs)
@@ -1747,6 +2337,15 @@ def threebot(self):
     if self.threebot.started:
         self.install(package)
         self.threebot.nginx.reload()
+    self.packages[package.name] = {
+        &#34;name&#34;: package.name,
+        &#34;path&#34;: package.path,
+        &#34;giturl&#34;: package.giturl,
+        &#34;kwargs&#34;: package.kwargs,
+        &#34;admins&#34;: package.admins,
+        &#34;ui_name&#34;: package.ui_name,
+    }
+
     self.save()
 
     # Return updated package info
@@ -1773,6 +2372,11 @@ def threebot(self):
         if bottle_server.startswith(f&#34;{package_name}_&#34;):
             self.threebot.rack.remove(bottle_server)
 
+    # stop background services
+    if package.services_dir:
+        for service in package.services:
+            self.threebot.services.stop_service(service[&#34;name&#34;])
+
     if self.threebot.started:
         # unregister gedis actors
         gedis_actors = list(self.threebot.gedis._loaded_actors.keys())
@@ -1785,9 +2389,7 @@ def threebot(self):
             if package.chats_dir:
                 self.threebot.chatbot.unload(package.chats_dir)
         except Exception as e:
-            j.logger.warning(
-                f&#34;Couldn&#39;t unload the chats of package {package_name}, this is the the exception {str(e)}&#34;
-            )
+            j.logger.warning(f&#34;Couldn&#39;t unload the chats of package {package_name}, this is the exception {str(e)}&#34;)
 
         # reload nginx
         self.threebot.nginx.reload()
@@ -1810,11 +2412,18 @@ def threebot(self):
     if package_name in self.packages:
         package_path = self.packages[package_name][&#34;path&#34;]
         package_giturl = self.packages[package_name][&#34;giturl&#34;]
+        package_kwargs = self.packages[package_name].get(&#34;kwargs&#34;, {})
+        package_admins = self.packages[package_name].get(&#34;admins&#34;, [])
+
         return Package(
             path=package_path,
             default_domain=self.threebot.domain,
             default_email=self.threebot.email,
+            default_acme_server_type=self.threebot.acme_server_type,
+            default_acme_server_url=self.threebot.acme_server_url,
             giturl=package_giturl,
+            kwargs=package_kwargs,
+            admins=package_admins,
         )</code></pre>
 </details>
 </dd>
@@ -1831,21 +2440,39 @@ def threebot(self):
     # Add installed packages including outer packages
     for pkg in self.packages:
         package = self.get(pkg)
-        all_packages.append(
-            {
-                &#34;name&#34;: pkg,
-                &#34;path&#34;: package.path,
-                &#34;giturl&#34;: package.giturl,
-                &#34;system_package&#34;: pkg in DEFAULT_PACKAGES.keys(),
-                &#34;installed&#34;: True,
-                &#34;frontend&#34;: package.config.get(&#34;frontend&#34;, False),
-            }
-        )
+
+        if package and package.is_valid():
+            if j.sals.fs.exists(package.path):
+                chatflows = True if package.chats_dir else False
+                all_packages.append(
+                    {
+                        &#34;name&#34;: pkg,
+                        &#34;path&#34;: package.path,
+                        &#34;giturl&#34;: package.giturl,
+                        &#34;system_package&#34;: pkg in DEFAULT_PACKAGES.keys(),
+                        &#34;installed&#34;: True,
+                        &#34;frontend&#34;: package.config.get(&#34;frontend&#34;, False),
+                        &#34;chatflows&#34;: chatflows,
+                        &#34;ui_name&#34;: package.ui_name,
+                    }
+                )
+            else:
+                j.logger.error(f&#34;path {package.path} for {pkg} doesn&#39;t exist anymore&#34;)
+        else:
+            j.logger.error(&#34;pkg {pkg} is in self.packages but it&#39;s None&#34;)
 
     # Add uninstalled sdk packages under j.packages
     for path in set(pkgnamespace.__path__):
         for pkg in os.listdir(path):
-            if pkg not in self.packages:
+            pkg_path = j.sals.fs.join_paths(path, pkg)
+            pkgtoml_path = j.sals.fs.join_paths(pkg_path, &#34;package.toml&#34;)
+            ui_name = pkg
+            excluded = False
+            with open(pkgtoml_path) as f:
+                conf = j.data.serializers.toml.loads(f.read())
+                ui_name = conf.get(&#34;ui_name&#34;, pkg)
+                excluded = conf.get(&#34;excluded&#34;, False)
+            if pkg not in self.packages and j.sals.fs.exists(pkgtoml_path) and not excluded:
                 all_packages.append(
                     {
                         &#34;name&#34;: pkg,
@@ -1853,6 +2480,7 @@ def threebot(self):
                         &#34;giturl&#34;: &#34;&#34;,
                         &#34;system_package&#34;: pkg in DEFAULT_PACKAGES.keys(),
                         &#34;installed&#34;: False,
+                        &#34;ui_name&#34;: ui_name,
                     }
                 )
 
@@ -1890,31 +2518,56 @@ def threebot(self):
             raise j.exceptions.NotFound(f&#34;Cannot find static dir {path}&#34;)
 
     # add bottle servers
+    # we first merge all apps of a package into a single app
+    # then mount this app on threebot main app
+    # this will work with multiple non-standalone apps
+    package_app = j.servers.appserver.make_main_app()
     for bottle_server in package.bottle_servers:
         path = j.sals.fs.join_paths(package.path, bottle_server[&#34;file_path&#34;])
         if not j.sals.fs.exists(path):
             raise j.exceptions.NotFound(f&#34;Cannot find bottle server path {path}&#34;)
 
-        bottle_app = package.get_bottle_server(path, bottle_server[&#34;host&#34;], bottle_server[&#34;port&#34;])
-        self.threebot.rack.add(f&#34;{package.name}_{bottle_server[&#39;name&#39;]}&#34;, bottle_app)
+        standalone = bottle_server.get(&#34;standalone&#34;, False)
+        if standalone:
+            bottle_wsgi_server = package.get_bottle_server(path, bottle_server[&#34;host&#34;], bottle_server[&#34;port&#34;])
+            self.threebot.rack.add(f&#34;{package.name}_{bottle_server[&#39;name&#39;]}&#34;, bottle_wsgi_server)
+        else:
+            bottle_app = package.get_package_bottle_app(path)
+            package_app.merge(bottle_app)
+
+    if package_app.routes:
+        j.logger.info(f&#34;registering {package.name} package app&#34;)
+        self.threebot.mainapp.mount(f&#34;/{package.name}&#34;, package_app)
 
     # register gedis actors
     if package.actors_dir:
         for actor in package.actors:
-            self.threebot.gedis._system_actor.register_actor(actor[&#34;name&#34;], actor[&#34;path&#34;])
+            self.threebot.gedis._system_actor.register_actor(actor[&#34;name&#34;], actor[&#34;path&#34;], force_reload=True)
 
     # add chatflows actors
     if package.chats_dir:
         self.threebot.chatbot.load(package.chats_dir)
+
+    # start background services
+    if package.services_dir:
+        for service in package.services:
+            self.threebot.services.add_service(service[&#34;name&#34;], service[&#34;path&#34;])
+
+    j.logger.info(f&#34;starting rack&#34;)
     # start servers
     self.threebot.rack.start()
 
+    j.logger.info(f&#34;applying nginx config&#34;)
     # apply nginx configuration
     package.nginx_config.apply()
 
+    j.logger.info(f&#34;starting package&#34;)
     # execute package start method
     package.start()
+
+    j.logger.info(f&#34;reloading gedis&#34;)
     self.threebot.gedis_http.client.reload()
+    j.logger.info(f&#34;reloading nginx&#34;)
     self.threebot.nginx.reload()</code></pre>
 </details>
 </dd>
@@ -1941,6 +2594,9 @@ def threebot(self):
         package = self.get(package_name)
         if not package:
             raise j.exceptions.NotFound(f&#34;{package_name} package not found&#34;)
+        if package.services_dir:
+            for service in package.services:
+                self.threebot.services.stop_service(service[&#34;name&#34;])
         self.install(package)
         self.threebot.nginx.reload()
         self.save()
@@ -1949,6 +2605,73 @@ def threebot(self):
 
     # Return updated package info
     return {package.name: self.packages[package.name]}</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.threebot.threebot.PackageManager.scan_packages_in_dir"><code class="name flex">
+<span>def <span class="ident">scan_packages_in_dir</span></span>(<span>self, path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Gets a dict from packages names to packages paths existing under a path that may have jumpscale packages at any level.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>root path that has packages on some levels</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Dict</code>[<code>package_name</code>, <code>package_path</code>]: <code>dict</code> of <code>all</code> <code>packages</code> <code>available</code> <code>under</code> <code>the</code> <code>path</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def scan_packages_in_dir(self, path):
+    &#34;&#34;&#34;Gets a dict from packages names to packages paths existing under a path that may have jumpscale packages at any level.
+
+    Args:
+        path (str): root path that has packages on some levels
+
+    Returns:
+        Dict[package_name, package_path]: dict of all packages available under the path
+    &#34;&#34;&#34;
+    pkgname_to_path = {}
+    for p in self.scan_packages_paths_in_dir(path):
+        basename = j.sals.fs.basename(p).strip()
+        if basename:
+            pkgname_to_path[basename] = p
+
+    return pkgname_to_path</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.threebot.threebot.PackageManager.scan_packages_paths_in_dir"><code class="name flex">
+<span>def <span class="ident">scan_packages_paths_in_dir</span></span>(<span>self, path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Scans all packages in a path in any level and returns list of package paths</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>root path that has packages on some levels</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List</code>[<code>str</code>]: <code>list</code> of <code>all</code> <code>packages</code> <code>available</code> <code>under</code> <code>the</code> <code>path</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def scan_packages_paths_in_dir(self, path):
+    &#34;&#34;&#34;Scans all packages in a path in any level and returns list of package paths
+
+    Args:
+        path (str): root path that has packages on some levels
+
+    Returns:
+        List[str]: list of all packages available under the path
+    &#34;&#34;&#34;
+    filterfun = lambda x: str(x).endswith(&#34;package.toml&#34;)
+    pkgtoml_paths = j.sals.fs.walk(path, filter_fun=filterfun)
+    pkgs_paths = list(map(lambda x: x.replace(&#34;/package.toml&#34;, &#34;&#34;), pkgtoml_paths))
+    return pkgs_paths</code></pre>
 </details>
 </dd>
 </dl>
@@ -1963,27 +2686,6 @@ def threebot(self):
 </li>
 </ul>
 </dd>
-<dt id="jumpscale.servers.threebot.threebot.StripPathMiddleware"><code class="flex name class">
-<span>class <span class="ident">StripPathMiddleware</span></span>
-<span>(</span><span>app)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>a middle ware for bottle apps to strip slashes</p></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">class StripPathMiddleware(object):
-    &#34;&#34;&#34;
-    a middle ware for bottle apps to strip slashes
-    &#34;&#34;&#34;
-
-    def __init__(self, app):
-        self.app = app
-
-    def __call__(self, e, h):
-        e[&#34;PATH_INFO&#34;] = e[&#34;PATH_INFO&#34;].rstrip(&#34;/&#34;)
-        return self.app(e, h)</code></pre>
-</details>
-</dd>
 <dt id="jumpscale.servers.threebot.threebot.ThreebotServer"><code class="flex name class">
 <span>class <span class="ident">ThreebotServer</span></span>
 <span>(</span><span>*args, **kwargs)</span>
@@ -1993,7 +2695,7 @@ def threebot(self):
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -2015,6 +2717,8 @@ print(p.name, p.age)
     _package_manager = fields.Factory(PackageManager)
     domain = fields.String()
     email = fields.String()
+    acme_server_type = fields.Enum(AcmeServer)
+    acme_server_url = fields.URL()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -2022,16 +2726,20 @@ print(p.name, p.age)
         self._gedis = None
         self._db = None
         self._gedis_http = None
+        self._services = None
         self._packages = None
         self._started = False
         self._nginx = None
         self._redis = None
         self.rack.add(GEDIS, self.gedis)
         self.rack.add(GEDIS_HTTP, self.gedis_http.gevent_server)
+        self.rack.add(SERVICE_MANAGER, self.services)
 
     def is_running(self):
         nginx_running = self.nginx.is_running()
-        redis_running = self.redis.cmd.is_running()
+        redis_running = self.redis.cmd.is_running() or j.sals.nettools.wait_connection_test(
+            &#34;127.0.0.1&#34;, 6379, timeout=1
+        )
         gedis_running = j.sals.nettools.wait_connection_test(&#34;127.0.0.1&#34;, 16000, timeout=1)
         return nginx_running and redis_running and gedis_running
 
@@ -2076,6 +2784,12 @@ print(p.name, p.age)
         return self._gedis_http
 
     @property
+    def services(self):
+        if self._services is None:
+            self._services = j.tools.servicemanager.get(&#34;threebot&#34;)
+        return self._services
+
+    @property
     def chatbot(self):
         return self.gedis._loaded_actors.get(&#34;chatflows_chatbot&#34;)
 
@@ -2110,11 +2824,11 @@ print(p.name, p.age)
         if not ret:
             raise j.exceptions.NotFound(f&#34;git is not installed.\n{install_msg}&#34;)
 
-    def start(self, wait: bool = False):
+    def start(self, wait: bool = False, cert: bool = True):
         # start default servers in the rack
         # handle signals
         for signal_type in (signal.SIGTERM, signal.SIGINT, signal.SIGKILL):
-            gevent.signal(signal_type, self.stop)
+            gevent.signal_handler(signal_type, self.stop)
 
         # mark app as started
         if self.is_running():
@@ -2124,9 +2838,11 @@ print(p.name, p.age)
 
         self.redis.start()
         self.nginx.start()
-        self.rack.start()
-        j.application.start(f&#34;threebot_{self.instance_name}&#34;)
+        j.sals.nginx.get(self.nginx.server_name).cert = cert
+        self.mainapp = j.servers.appserver.make_main_app()
 
+        self.rack.start()
+        j.logger.register(f&#34;threebot_{self.instance_name}&#34;)
         # add default packages
         for package_name in DEFAULT_PACKAGES:
             j.logger.info(f&#34;Configuring package {package_name}&#34;)
@@ -2140,12 +2856,20 @@ print(p.name, p.age)
                 ) from e
 
         # install all package
+
+        j.logger.info(&#34;Adding packages&#34;)
         self.packages._install_all()
+        j.logger.info(&#34;jsappserver&#34;)
+        self.jsappserver = WSGIServer((&#34;localhost&#34;, 31000), apply_main_middlewares(self.mainapp))
+        j.logger.info(&#34;rack add&#34;)
+        self.rack.add(f&#34;appserver&#34;, self.jsappserver)
+
         j.logger.info(&#34;Reloading nginx&#34;)
         self.nginx.reload()
 
         # mark server as started
         self._started = True
+        j.logger.info(f&#34;routes: {self.mainapp.routes}&#34;)
         j.logger.info(f&#34;Threebot is running at http://localhost:{PORTS.HTTP} and https://localhost:{PORTS.HTTPS}&#34;)
         self.rack.start(wait=wait)  # to keep the server running
 
@@ -2156,9 +2880,9 @@ print(p.name, p.age)
             package.stop()
         self.nginx.stop()
         # mark app as stopped, do this before stopping redis
-        j.application.stop()
-        self.redis.stop()
+        j.logger.unregister()
         self.rack.stop()
+        self.redis.stop()
         self._started = False</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2168,6 +2892,56 @@ print(p.name, p.age)
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="jumpscale.servers.threebot.threebot.ThreebotServer.acme_server_type"><code class="name">var <span class="ident">acme_server_type</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.servers.threebot.threebot.ThreebotServer.acme_server_url"><code class="name">var <span class="ident">acme_server_url</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.servers.threebot.threebot.ThreebotServer.chatbot"><code class="name">var <span class="ident">chatbot</span></code></dt>
 <dd>
 <section class="desc"></section>
@@ -2312,6 +3086,18 @@ def redis(self):
     return self._redis</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.servers.threebot.threebot.ThreebotServer.services"><code class="name">var <span class="ident">services</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def services(self):
+    if self._services is None:
+        self._services = j.tools.servicemanager.get(&#34;threebot&#34;)
+    return self._services</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.servers.threebot.threebot.ThreebotServer.started"><code class="name">var <span class="ident">started</span></code></dt>
 <dd>
 <section class="desc"></section>
@@ -2367,23 +3153,25 @@ def started(self):
 <summary>Source code</summary>
 <pre><code class="python">def is_running(self):
     nginx_running = self.nginx.is_running()
-    redis_running = self.redis.cmd.is_running()
+    redis_running = self.redis.cmd.is_running() or j.sals.nettools.wait_connection_test(
+        &#34;127.0.0.1&#34;, 6379, timeout=1
+    )
     gedis_running = j.sals.nettools.wait_connection_test(&#34;127.0.0.1&#34;, 16000, timeout=1)
     return nginx_running and redis_running and gedis_running</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.servers.threebot.threebot.ThreebotServer.start"><code class="name flex">
-<span>def <span class="ident">start</span></span>(<span>self, wait=False)</span>
+<span>def <span class="ident">start</span></span>(<span>self, wait=False, cert=True)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def start(self, wait: bool = False):
+<pre><code class="python">def start(self, wait: bool = False, cert: bool = True):
     # start default servers in the rack
     # handle signals
     for signal_type in (signal.SIGTERM, signal.SIGINT, signal.SIGKILL):
-        gevent.signal(signal_type, self.stop)
+        gevent.signal_handler(signal_type, self.stop)
 
     # mark app as started
     if self.is_running():
@@ -2393,9 +3181,11 @@ def started(self):
 
     self.redis.start()
     self.nginx.start()
-    self.rack.start()
-    j.application.start(f&#34;threebot_{self.instance_name}&#34;)
+    j.sals.nginx.get(self.nginx.server_name).cert = cert
+    self.mainapp = j.servers.appserver.make_main_app()
 
+    self.rack.start()
+    j.logger.register(f&#34;threebot_{self.instance_name}&#34;)
     # add default packages
     for package_name in DEFAULT_PACKAGES:
         j.logger.info(f&#34;Configuring package {package_name}&#34;)
@@ -2409,12 +3199,20 @@ def started(self):
             ) from e
 
     # install all package
+
+    j.logger.info(&#34;Adding packages&#34;)
     self.packages._install_all()
+    j.logger.info(&#34;jsappserver&#34;)
+    self.jsappserver = WSGIServer((&#34;localhost&#34;, 31000), apply_main_middlewares(self.mainapp))
+    j.logger.info(&#34;rack add&#34;)
+    self.rack.add(f&#34;appserver&#34;, self.jsappserver)
+
     j.logger.info(&#34;Reloading nginx&#34;)
     self.nginx.reload()
 
     # mark server as started
     self._started = True
+    j.logger.info(f&#34;routes: {self.mainapp.routes}&#34;)
     j.logger.info(f&#34;Threebot is running at http://localhost:{PORTS.HTTP} and https://localhost:{PORTS.HTTPS}&#34;)
     self.rack.start(wait=wait)  # to keep the server running</code></pre>
 </details>
@@ -2433,9 +3231,9 @@ def started(self):
         package.stop()
     self.nginx.stop()
     # mark app as stopped, do this before stopping redis
-    j.application.stop()
-    self.redis.stop()
+    j.logger.unregister()
     self.rack.stop()
+    self.redis.stop()
     self._started = False</code></pre>
 </details>
 </dd>
@@ -2483,22 +3281,31 @@ def started(self):
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.bottle_servers" href="#jumpscale.servers.threebot.threebot.Package.bottle_servers">bottle_servers</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.chats_dir" href="#jumpscale.servers.threebot.threebot.Package.chats_dir">chats_dir</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.config" href="#jumpscale.servers.threebot.threebot.Package.config">config</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.Package.exists" href="#jumpscale.servers.threebot.threebot.Package.exists">exists</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.get_bottle_server" href="#jumpscale.servers.threebot.threebot.Package.get_bottle_server">get_bottle_server</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.Package.get_package_bottle_app" href="#jumpscale.servers.threebot.threebot.Package.get_package_bottle_app">get_package_bottle_app</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.install" href="#jumpscale.servers.threebot.threebot.Package.install">install</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.Package.is_excluded" href="#jumpscale.servers.threebot.threebot.Package.is_excluded">is_excluded</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.Package.is_valid" href="#jumpscale.servers.threebot.threebot.Package.is_valid">is_valid</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.load_config" href="#jumpscale.servers.threebot.threebot.Package.load_config">load_config</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.module" href="#jumpscale.servers.threebot.threebot.Package.module">module</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.Package.package_config_path" href="#jumpscale.servers.threebot.threebot.Package.package_config_path">package_config_path</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.Package.package_module_path" href="#jumpscale.servers.threebot.threebot.Package.package_module_path">package_module_path</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.preinstall" href="#jumpscale.servers.threebot.threebot.Package.preinstall">preinstall</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.resolve_staticdir_location" href="#jumpscale.servers.threebot.threebot.Package.resolve_staticdir_location">resolve_staticdir_location</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.restart" href="#jumpscale.servers.threebot.threebot.Package.restart">restart</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.Package.services" href="#jumpscale.servers.threebot.threebot.Package.services">services</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.Package.services_dir" href="#jumpscale.servers.threebot.threebot.Package.services_dir">services_dir</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.start" href="#jumpscale.servers.threebot.threebot.Package.start">start</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.static_dirs" href="#jumpscale.servers.threebot.threebot.Package.static_dirs">static_dirs</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.stop" href="#jumpscale.servers.threebot.threebot.Package.stop">stop</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.Package.ui_name" href="#jumpscale.servers.threebot.threebot.Package.ui_name">ui_name</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.Package.uninstall" href="#jumpscale.servers.threebot.threebot.Package.uninstall">uninstall</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="jumpscale.servers.threebot.threebot.PackageManager" href="#jumpscale.servers.threebot.threebot.PackageManager">PackageManager</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="jumpscale.servers.threebot.threebot.PackageManager.add" href="#jumpscale.servers.threebot.threebot.PackageManager.add">add</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.PackageManager.delete" href="#jumpscale.servers.threebot.threebot.PackageManager.delete">delete</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.PackageManager.get" href="#jumpscale.servers.threebot.threebot.PackageManager.get">get</a></code></li>
@@ -2507,15 +3314,16 @@ def started(self):
 <li><code><a title="jumpscale.servers.threebot.threebot.PackageManager.list_all" href="#jumpscale.servers.threebot.threebot.PackageManager.list_all">list_all</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.PackageManager.packages" href="#jumpscale.servers.threebot.threebot.PackageManager.packages">packages</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.PackageManager.reload" href="#jumpscale.servers.threebot.threebot.PackageManager.reload">reload</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.PackageManager.scan_packages_in_dir" href="#jumpscale.servers.threebot.threebot.PackageManager.scan_packages_in_dir">scan_packages_in_dir</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.PackageManager.scan_packages_paths_in_dir" href="#jumpscale.servers.threebot.threebot.PackageManager.scan_packages_paths_in_dir">scan_packages_paths_in_dir</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.PackageManager.threebot" href="#jumpscale.servers.threebot.threebot.PackageManager.threebot">threebot</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="jumpscale.servers.threebot.threebot.StripPathMiddleware" href="#jumpscale.servers.threebot.threebot.StripPathMiddleware">StripPathMiddleware</a></code></h4>
-</li>
-<li>
 <h4><code><a title="jumpscale.servers.threebot.threebot.ThreebotServer" href="#jumpscale.servers.threebot.threebot.ThreebotServer">ThreebotServer</a></code></h4>
 <ul class="two-column">
+<li><code><a title="jumpscale.servers.threebot.threebot.ThreebotServer.acme_server_type" href="#jumpscale.servers.threebot.threebot.ThreebotServer.acme_server_type">acme_server_type</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.ThreebotServer.acme_server_url" href="#jumpscale.servers.threebot.threebot.ThreebotServer.acme_server_url">acme_server_url</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.ThreebotServer.chatbot" href="#jumpscale.servers.threebot.threebot.ThreebotServer.chatbot">chatbot</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.ThreebotServer.check_dependencies" href="#jumpscale.servers.threebot.threebot.ThreebotServer.check_dependencies">check_dependencies</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.ThreebotServer.db" href="#jumpscale.servers.threebot.threebot.ThreebotServer.db">db</a></code></li>
@@ -2528,6 +3336,7 @@ def started(self):
 <li><code><a title="jumpscale.servers.threebot.threebot.ThreebotServer.packages" href="#jumpscale.servers.threebot.threebot.ThreebotServer.packages">packages</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.ThreebotServer.rack" href="#jumpscale.servers.threebot.threebot.ThreebotServer.rack">rack</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.ThreebotServer.redis" href="#jumpscale.servers.threebot.threebot.ThreebotServer.redis">redis</a></code></li>
+<li><code><a title="jumpscale.servers.threebot.threebot.ThreebotServer.services" href="#jumpscale.servers.threebot.threebot.ThreebotServer.services">services</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.ThreebotServer.start" href="#jumpscale.servers.threebot.threebot.ThreebotServer.start">start</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.ThreebotServer.started" href="#jumpscale.servers.threebot.threebot.ThreebotServer.started">started</a></code></li>
 <li><code><a title="jumpscale.servers.threebot.threebot.ThreebotServer.stop" href="#jumpscale.servers.threebot.threebot.ThreebotServer.stop">stop</a></code></li>

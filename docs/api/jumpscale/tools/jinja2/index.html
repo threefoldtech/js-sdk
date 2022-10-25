@@ -22,7 +22,7 @@
 <section id="section-intro">
 <p>This module helps with the common operations of jinja2 and reduces the boilerplate around it</p>
 <h2 id="getting-environment">Getting environment</h2>
-<pre><code class="python">from jinja2 import (
+<pre><code class="language-python">from jinja2 import (
     Environment,
     FileSystemLoader,
     select_autoescape,
@@ -38,7 +38,7 @@ env = Environment(loader=FileSystemLoader(templates_path), autoescape=select_aut
 <h2 id="rendering-a-template-with-data">Rendering a template with data</h2>
 <p>you can render from a file path or a text directly using <code>j.tools.jinja2.render_template</code> and pass <code>template_text</code> in case of a string or <code>template_path</code> in case of a file path.</p>
 <p>e.g</p>
-<pre><code class="python">        data = dict(
+<pre><code class="language-python">        data = dict(
             generated_class_name=schema.url_to_class_name,
             generated_properties=schema.props,
             types_map=self._types_map,

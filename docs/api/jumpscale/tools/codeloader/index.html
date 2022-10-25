@@ -28,7 +28,7 @@ b = 6
 z = a+b
 </code></pre>
 <h2 id="using-the-codeloader-tool">Using the codeloader tool</h2>
-<pre><code class="python">JS-NG&gt; m = j.tools.codeloader.load_python_module(&quot;/tmp/hello.py&quot;)
+<pre><code class="language-python">JS-NG&gt; m = j.tools.codeloader.load_python_module(&quot;/tmp/hello.py&quot;)
 JS-NG&gt; m.a
 5
 </code></pre>
@@ -53,25 +53,30 @@ JS-NG&gt; m.a
 ```
 
 &#34;&#34;&#34;
-
+import importlib
 import os
 import sys
-import importlib
+import types
+
+from jumpscale.sals.fs import stem
 
 
-def load_python_module(module_path: str):
-    &#34;&#34;&#34;Loads python module by module path
-
-    Arguments:
-        module_path {str} -- absolute path of the module
+def load_python_module(module_path: str, force_reload: bool = False) -&gt; types.ModuleType:
     &#34;&#34;&#34;
-    from jumpscale.loader import j
+    Loads python module by path
 
+    Args:
+        module_path (str): absolute path of the module
+        force_reload (bool, optional): will reload the module if set. Defaults to False.
+
+    Returns:
+        types.ModuleType: module object
+    &#34;&#34;&#34;
     module_uid = module_path[:-3]
-    module_name = j.sals.fs.stem(module_path)
+    module_name = stem(module_path)
     spec = importlib.util.spec_from_file_location(module_name, module_path)
 
-    if module_uid in sys.modules:
+    if module_uid in sys.modules and not force_reload:
         return sys.modules[module_uid]
 
     module = importlib.util.module_from_spec(spec)
@@ -89,27 +94,40 @@ def load_python_module(module_path: str):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="jumpscale.tools.codeloader.load_python_module"><code class="name flex">
-<span>def <span class="ident">load_python_module</span></span>(<span>module_path)</span>
+<span>def <span class="ident">load_python_module</span></span>(<span>module_path, force_reload=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Loads python module by module path</p>
-<h2 id="arguments">Arguments</h2>
-<p>module_path {str} &ndash; absolute path of the module</p></section>
+<section class="desc"><p>Loads python module by path</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>module_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>absolute path of the module</dd>
+<dt><strong><code>force_reload</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>will reload the module if set. Defaults to False.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>types.ModuleType</code>: <code>module</code> <code>object</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def load_python_module(module_path: str):
-    &#34;&#34;&#34;Loads python module by module path
-
-    Arguments:
-        module_path {str} -- absolute path of the module
+<pre><code class="python">def load_python_module(module_path: str, force_reload: bool = False) -&gt; types.ModuleType:
     &#34;&#34;&#34;
-    from jumpscale.loader import j
+    Loads python module by path
 
+    Args:
+        module_path (str): absolute path of the module
+        force_reload (bool, optional): will reload the module if set. Defaults to False.
+
+    Returns:
+        types.ModuleType: module object
+    &#34;&#34;&#34;
     module_uid = module_path[:-3]
-    module_name = j.sals.fs.stem(module_path)
+    module_name = stem(module_path)
     spec = importlib.util.spec_from_file_location(module_name, module_path)
 
-    if module_uid in sys.modules:
+    if module_uid in sys.modules and not force_reload:
         return sys.modules[module_uid]
 
     module = importlib.util.module_from_spec(spec)

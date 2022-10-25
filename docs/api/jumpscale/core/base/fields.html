@@ -25,7 +25,7 @@
 where the data itself resides in Base objects (instances).</p>
 <p>See <a title="jumpscale.core.base.meta" href="meta.html"><code>jumpscale.core.base.meta</code></a>.</p>
 <p>Example:</p>
-<pre><code class="python">from enum import Enum
+<pre><code class="language-python">from enum import Enum
 
 class Permission(Base):
     read_posts = fields.Boolean()
@@ -1112,7 +1112,7 @@ class Bytes(Typed):
 
 
 class Json(String):
-    def __init__(self, default=&#34;{}&#34;, encoding=&#34;utf-8&#34;, **kwargs):
+    def __init__(self, default=&#34;{}&#34;, **kwargs):
         &#34;&#34;&#34;
         Json field, will check if the value is a valid json string.
 
@@ -1120,10 +1120,8 @@ class Json(String):
 
         Args:
             default (str, optional): default value. Defaults to &#34;{}&#34;
-            encoding: encoding to be used when serializing the value. Defaults to &#34;utf-8&#34;
             kwargs: other keyword arguments supported by `String`
         &#34;&#34;&#34;
-        self.encoding = encoding
         super().__init__(default=default, **kwargs)
 
     def validate(self, value):
@@ -1143,7 +1141,7 @@ class Json(String):
 
         # if it&#39;s a string, try to load it
         try:
-            json.loads(value, encoding=self.encoding)
+            json.loads(value)
         except Exception as e:
             raise ValidationError(f&#34;&#39;{value}&#39; isn&#39;t a valid json, {e}&#34;) from e
 
@@ -1889,7 +1887,7 @@ they will converted to objects.</p>
 <dd>
 <section class="desc"><p>Enum field, to be used with <code>enum.Enum</code>.</p>
 <p>Example:</p>
-<pre><code class="python">class UserType(Enum):
+<pre><code class="language-python">class UserType(Enum):
     USER = &quot;user&quot;
     ADMIN = &quot;admin&quot;
 
@@ -2052,14 +2050,14 @@ class User(Base):
 <dd>
 <section class="desc"><p>A factory field for any <code>Base</code> type, also, you can specify your factory type/class</p>
 <p>Example:</p>
-<pre><code class="python">class User(Base):
+<pre><code class="language-python">class User(Base):
     name = fields.String()
 
 class Server(Base):
     users = fields.Factory(User)
 </code></pre>
 <p>Another example with a custom factory class:</p>
-<pre><code class="python">class User(Base):
+<pre><code class="language-python">class User(Base):
     name = fields.String()
 
 class UserFactory(StoredFactory):
@@ -3255,7 +3253,7 @@ including IPv4,IPv6 and network</p>
 </dd>
 <dt id="jumpscale.core.base.fields.Json"><code class="flex name class">
 <span>class <span class="ident">Json</span></span>
-<span>(</span><span>default='{}', encoding='utf-8', **kwargs)</span>
+<span>(</span><span>default='{}', **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Json field, will check if the value is a valid json string.</p>
@@ -3264,15 +3262,13 @@ including IPv4,IPv6 and network</p>
 <dl>
 <dt><strong><code>default</code></strong> :&ensp;<code>str</code>, optional</dt>
 <dd>default value. Defaults to "{}"</dd>
-<dt><strong><code>encoding</code></strong></dt>
-<dd>encoding to be used when serializing the value. Defaults to "utf-8"</dd>
 <dt><strong><code>kwargs</code></strong></dt>
 <dd>other keyword arguments supported by <a title="jumpscale.core.base.fields.String" href="#jumpscale.core.base.fields.String"><code>String</code></a></dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class Json(String):
-    def __init__(self, default=&#34;{}&#34;, encoding=&#34;utf-8&#34;, **kwargs):
+    def __init__(self, default=&#34;{}&#34;, **kwargs):
         &#34;&#34;&#34;
         Json field, will check if the value is a valid json string.
 
@@ -3280,10 +3276,8 @@ including IPv4,IPv6 and network</p>
 
         Args:
             default (str, optional): default value. Defaults to &#34;{}&#34;
-            encoding: encoding to be used when serializing the value. Defaults to &#34;utf-8&#34;
             kwargs: other keyword arguments supported by `String`
         &#34;&#34;&#34;
-        self.encoding = encoding
         super().__init__(default=default, **kwargs)
 
     def validate(self, value):
@@ -3303,7 +3297,7 @@ including IPv4,IPv6 and network</p>
 
         # if it&#39;s a string, try to load it
         try:
-            json.loads(value, encoding=self.encoding)
+            json.loads(value)
         except Exception as e:
             raise ValidationError(f&#34;&#39;{value}&#39; isn&#39;t a valid json, {e}&#34;) from e
 
@@ -3398,7 +3392,7 @@ including IPv4,IPv6 and network</p>
 
     # if it&#39;s a string, try to load it
     try:
-        json.loads(value, encoding=self.encoding)
+        json.loads(value)
     except Exception as e:
         raise ValidationError(f&#34;&#39;{value}&#39; isn&#39;t a valid json, {e}&#34;) from e</code></pre>
 </details>

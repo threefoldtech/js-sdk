@@ -118,7 +118,9 @@ from jumpscale.core.base import StoredFactory
 
 def export_module_as():
     from .server import GedisServer
+    from jumpscale.loader import j
 
+    j.logger.register(&#34;gedis&#34;)
     return StoredFactory(GedisServer)</code></pre>
 </details>
 </section>
@@ -157,7 +159,9 @@ def export_module_as():
 <summary>Source code</summary>
 <pre><code class="python">def export_module_as():
     from .server import GedisServer
+    from jumpscale.loader import j
 
+    j.logger.register(&#34;gedis&#34;)
     return StoredFactory(GedisServer)</code></pre>
 </details>
 </dd>

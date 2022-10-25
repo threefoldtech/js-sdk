@@ -28,18 +28,18 @@
 </ul>
 <p>To explain what it does, we will illustrate the following examples:</p>
 <p>If we have a class called <code>Person</code>, with the following definition:</p>
-<pre><code class="python">class Person:
+<pre><code class="language-python">class Person:
     name = fields.String(default=&quot;ahmed&quot;)
 </code></pre>
 <p>Accessing name from class or instance level will yield the same value, an instance of <code>String</code> field:</p>
-<pre><code class="python">Person.name  #=&gt; &lt;jumpscale.core.base.fields.String object at 0x7efd89980c18&gt;
+<pre><code class="language-python">Person.name  #=&gt; &lt;jumpscale.core.base.fields.String object at 0x7efd89980c18&gt;
 
 p = Person()
 p.name  #=&gt; &lt;jumpscale.core.base.fields.String object at 0x7efd89980c18&gt;
 </code></pre>
 <p>The solution to this problem is using data descriptors (see <a href="https://docs.python.org/3/howto/descriptor.html">https://docs.python.org/3/howto/descriptor.html</a>)</p>
 <p>In meta and base implementations, we use property data descriptors, so the following class:</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String(default=&quot;ahmed&quot;)
 </code></pre>
 <p>Should have different behavior when accessing <code>name</code> from a class or an objects, so, it will be converted by meta class to a class like:</p>
@@ -58,7 +58,7 @@ p.name  #=&gt; &lt;jumpscale.core.base.fields.String object at 0x7efd89980c18&gt
     name = property(get_name, set_name)
 </code></pre>
 <p>And accessing <code>name</code> from class and object levels will yield:</p>
-<pre><code class="python">Person.name  #=&gt; &lt;property object at 0x7efd89a259f8&gt;
+<pre><code class="language-python">Person.name  #=&gt; &lt;property object at 0x7efd89a259f8&gt;
 
 
 p = Person()
@@ -236,19 +236,19 @@ class BaseMeta(type):
             type: a new class
         &#34;&#34;&#34;
         # will collect class fields
-        # and also all fields of super classes, as we already have them in based
         cls_fields = {}
-        super_fields = {}
 
+        # get all fields from super classes, we have them ordered in `based`
+        # make sure not to re-add any field that&#39;s already added
+        # otherwise, fields will be resolved disorderly
         for super_cls in based:
             if hasattr(super_cls, &#34;_fields&#34;):
-                super_fields.update(super_cls._fields)
+                for key, field in super_cls._fields.items():
+                    if key not in attrs:
+                        attrs[key] = field
 
-        # update current attrs with super class fields
-        attrs.update(super_fields)
-
-        # now we maintain old attributes, but convert any attribute
-        # with fields.Field type to property descriptor (property object)
+        # now we maintain old attributes, but convert any attribute with
+        # fields.Field type to property descriptor (property object)
         # using get_field_property
         new_attrs = {}
         for key in attrs:
@@ -601,7 +601,7 @@ this property will be used to enable getting/setting the actual value</p>
 but do not hold the value itself, the vale will be held in the base instance</p>
 <p>the getter and setter will be called when an object is already created,
 and any field is accessed:</p>
-<pre><code class="python">car = Car()
+<pre><code class="language-python">car = Car()
 print(car.color)  #=&gt; getter will be called
 car.color = &quot;red&quot;  #=&gt; setter will be called
 </code></pre>
@@ -700,7 +700,7 @@ car.color = &quot;red&quot;  #=&gt; setter will be called
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -1041,80 +1041,37 @@ print(p.name, p.age)
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="jumpscale.clients.base.Client" href="../../clients/base.html#jumpscale.clients.base.Client">Client</a></li>
-<li><a title="jumpscale.servers.gedis.server.GedisServer" href="../../servers/gedis/server.html#jumpscale.servers.gedis.server.GedisServer">GedisServer</a></li>
-<li><a title="jumpscale.clients.github.base.base" href="../../clients/github/base.html#jumpscale.clients.github.base.base">base</a></li>
-<li><a title="jumpscale.clients.gogs.gogs.User" href="../../clients/gogs/gogs.html#jumpscale.clients.gogs.gogs.User">User</a></li>
-<li><a title="jumpscale.clients.explorer.models.WalletAddress" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.WalletAddress">WalletAddress</a></li>
-<li><a title="jumpscale.clients.explorer.models.ResourceUnitPrice" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.ResourceUnitPrice">ResourceUnitPrice</a></li>
-<li><a title="jumpscale.clients.explorer.models.Location" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.Location">Location</a></li>
-<li><a title="jumpscale.clients.explorer.models.Farm" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.Farm">Farm</a></li>
-<li><a title="jumpscale.clients.explorer.models.WorkloadsAmount" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.WorkloadsAmount">WorkloadsAmount</a></li>
-<li><a title="jumpscale.clients.explorer.models.Gateway" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.Gateway">Gateway</a></li>
-<li><a title="jumpscale.clients.explorer.models.NodeIface" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.NodeIface">NodeIface</a></li>
-<li><a title="jumpscale.clients.explorer.models.ResourceUnitAmount" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.ResourceUnitAmount">ResourceUnitAmount</a></li>
-<li><a title="jumpscale.clients.explorer.models.NodePublicIface" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.NodePublicIface">NodePublicIface</a></li>
-<li><a title="jumpscale.clients.explorer.models.HardwareProof" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.HardwareProof">HardwareProof</a></li>
-<li><a title="jumpscale.clients.explorer.models.Node" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.Node">Node</a></li>
-<li><a title="jumpscale.clients.explorer.models.User" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.User">User</a></li>
-<li><a title="jumpscale.clients.explorer.models.DeployedReservation" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.DeployedReservation">DeployedReservation</a></li>
-<li><a title="jumpscale.clients.explorer.models.SigningRequest" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.SigningRequest">SigningRequest</a></li>
-<li><a title="jumpscale.clients.explorer.models.Signature" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.Signature">Signature</a></li>
-<li><a title="jumpscale.clients.explorer.models.ContainerMount" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.ContainerMount">ContainerMount</a></li>
-<li><a title="jumpscale.clients.explorer.models.ContainerNetworkConnection" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.ContainerNetworkConnection">ContainerNetworkConnection</a></li>
-<li><a title="jumpscale.clients.explorer.models.ContainerLogsRedis" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.ContainerLogsRedis">ContainerLogsRedis</a></li>
-<li><a title="jumpscale.clients.explorer.models.ContainerLogs" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.ContainerLogs">ContainerLogs</a></li>
-<li><a title="jumpscale.clients.explorer.models.ContainerCapacity" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.ContainerCapacity">ContainerCapacity</a></li>
-<li><a title="jumpscale.clients.explorer.models.ReservationResult" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.ReservationResult">ReservationResult</a></li>
-<li><a title="jumpscale.clients.explorer.models.ReservationInfo" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.ReservationInfo">ReservationInfo</a></li>
-<li><a title="jumpscale.clients.explorer.models.GatewayProxy" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.GatewayProxy">GatewayProxy</a></li>
-<li><a title="jumpscale.clients.explorer.models.GatewayReverseProxy" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.GatewayReverseProxy">GatewayReverseProxy</a></li>
-<li><a title="jumpscale.clients.explorer.models.GatewaySubdomain" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.GatewaySubdomain">GatewaySubdomain</a></li>
-<li><a title="jumpscale.clients.explorer.models.GatewayDelegate" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.GatewayDelegate">GatewayDelegate</a></li>
-<li><a title="jumpscale.clients.explorer.models.Gateway4to6" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.Gateway4to6">Gateway4to6</a></li>
-<li><a title="jumpscale.clients.explorer.models.Statsaggregator" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.Statsaggregator">Statsaggregator</a></li>
-<li><a title="jumpscale.clients.explorer.models.K8s" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.K8s">K8s</a></li>
-<li><a title="jumpscale.clients.explorer.models.WireguardPeer" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.WireguardPeer">WireguardPeer</a></li>
-<li><a title="jumpscale.clients.explorer.models.EscrowDetail" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.EscrowDetail">EscrowDetail</a></li>
-<li><a title="jumpscale.clients.explorer.models.Escrow" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.Escrow">Escrow</a></li>
-<li><a title="jumpscale.clients.explorer.models.PaymentDetail" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.PaymentDetail">PaymentDetail</a></li>
-<li><a title="jumpscale.clients.explorer.models.Container" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.Container">Container</a></li>
-<li><a title="jumpscale.clients.explorer.models.NetworkResource" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.NetworkResource">NetworkResource</a></li>
-<li><a title="jumpscale.clients.explorer.models.Network" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.Network">Network</a></li>
-<li><a title="jumpscale.clients.explorer.models.Volume" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.Volume">Volume</a></li>
-<li><a title="jumpscale.clients.explorer.models.ZdbNamespace" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.ZdbNamespace">ZdbNamespace</a></li>
-<li><a title="jumpscale.clients.explorer.models.ReservationData" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.ReservationData">ReservationData</a></li>
-<li><a title="jumpscale.clients.explorer.models.Reservation" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.Reservation">Reservation</a></li>
-<li><a title="jumpscale.clients.explorer.models.PoolCreateData" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.PoolCreateData">PoolCreateData</a></li>
-<li><a title="jumpscale.clients.explorer.models.PoolCreate" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.PoolCreate">PoolCreate</a></li>
-<li><a title="jumpscale.clients.explorer.models.Pool" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.Pool">Pool</a></li>
-<li><a title="jumpscale.clients.explorer.models.PoolEscrow" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.PoolEscrow">PoolEscrow</a></li>
-<li><a title="jumpscale.clients.explorer.models.PoolCreated" href="../../clients/explorer/models.html#jumpscale.clients.explorer.models.PoolCreated">PoolCreated</a></li>
-<li><a title="jumpscale.core.identity.Identity" href="../identity/index.html#jumpscale.core.identity.Identity">Identity</a></li>
-<li><a title="jumpscale.clients.kraken.kraken.Price" href="../../clients/kraken/kraken.html#jumpscale.clients.kraken.kraken.Price">Price</a></li>
-<li><a title="jumpscale.clients.liquid.liquid.Price" href="../../clients/liquid/liquid.html#jumpscale.clients.liquid.liquid.Price">Price</a></li>
+<li><a title="jumpscale.sals.backupjob.backupjob.BackupJob" href="../../sals/backupjob/backupjob.html#jumpscale.sals.backupjob.backupjob.BackupJob">BackupJob</a></li>
 <li><a title="jumpscale.sals.nginx.nginx.Location" href="../../sals/nginx/nginx.html#jumpscale.sals.nginx.nginx.Location">Location</a></li>
+<li><a title="jumpscale.sals.nginx.nginx.Certbot" href="../../sals/nginx/nginx.html#jumpscale.sals.nginx.nginx.Certbot">Certbot</a></li>
 <li><a title="jumpscale.sals.nginx.nginx.Website" href="../../sals/nginx/nginx.html#jumpscale.sals.nginx.nginx.Website">Website</a></li>
 <li><a title="jumpscale.sals.nginx.nginx.NginxConfig" href="../../sals/nginx/nginx.html#jumpscale.sals.nginx.nginx.NginxConfig">NginxConfig</a></li>
-<li><a title="jumpscale.servers.threebot.threebot.PackageManager" href="../../servers/threebot/threebot.html#jumpscale.servers.threebot.threebot.PackageManager">PackageManager</a></li>
-<li><a title="jumpscale.servers.threebot.threebot.ThreebotServer" href="../../servers/threebot/threebot.html#jumpscale.servers.threebot.threebot.ThreebotServer">ThreebotServer</a></li>
-<li><a title="jumpscale.servers.rack.rack.ServerRack" href="../../servers/rack/rack.html#jumpscale.servers.rack.rack.ServerRack">ServerRack</a></li>
-<li><a title="jumpscale.servers.gedis_http.GedisHTTPServer" href="../../servers/gedis_http/index.html#jumpscale.servers.gedis_http.GedisHTTPServer">GedisHTTPServer</a></li>
+<li><a title="jumpscale.sals.billing.models.PaymentTransactionRefund" href="../../sals/billing/models.html#jumpscale.sals.billing.models.PaymentTransactionRefund">PaymentTransactionRefund</a></li>
+<li><a title="jumpscale.sals.billing.models.PaymentTransaction" href="../../sals/billing/models.html#jumpscale.sals.billing.models.PaymentTransaction">PaymentTransaction</a></li>
+<li><a title="jumpscale.sals.billing.models.PaymentResult" href="../../sals/billing/models.html#jumpscale.sals.billing.models.PaymentResult">PaymentResult</a></li>
+<li><a title="jumpscale.sals.billing.models.Payment" href="../../sals/billing/models.html#jumpscale.sals.billing.models.Payment">Payment</a></li>
+<li><a title="jumpscale.sals.billing.models.RefundRequest" href="../../sals/billing/models.html#jumpscale.sals.billing.models.RefundRequest">RefundRequest</a></li>
 <li><a title="jumpscale.sals.chatflows.models.voter_model.User" href="../../sals/chatflows/models/voter_model.html#jumpscale.sals.chatflows.models.voter_model.User">User</a></li>
-<li><a title="jumpscale.packages.marketplace.bottle.models.UserEntry" href="../../packages/marketplace/bottle/models.html#jumpscale.packages.marketplace.bottle.models.UserEntry">UserEntry</a></li>
-<li><a title="jumpscale.sals.reservation_chatflow.models.TfgridSolution1" href="../../sals/reservation_chatflow/models.html#jumpscale.sals.reservation_chatflow.models.TfgridSolution1">TfgridSolution1</a></li>
-<li><a title="jumpscale.sals.reservation_chatflow.models.TfgridSolutionsPayment1" href="../../sals/reservation_chatflow/models.html#jumpscale.sals.reservation_chatflow.models.TfgridSolutionsPayment1">TfgridSolutionsPayment1</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.models.PoolConfig" href="../../packages/tfgrid_solutions/models/index.html#jumpscale.packages.tfgrid_solutions.models.PoolConfig">PoolConfig</a></li>
-<li><a title="jumpscale.sals.marketplace.models.UserPool" href="../../sals/marketplace/models.html#jumpscale.sals.marketplace.models.UserPool">UserPool</a></li>
+<li><a title="jumpscale.tools.startupcmd.startupcmd.StartupCmd" href="../../tools/startupcmd/startupcmd.html#jumpscale.tools.startupcmd.startupcmd.StartupCmd">StartupCmd</a></li>
+<li><a title="jumpscale.tools.redis.redis.RedisServer" href="../../tools/redis/redis.html#jumpscale.tools.redis.redis.RedisServer">RedisServer</a></li>
+<li><a title="jumpscale.tools.restic.restic.ResticRepo" href="../../tools/restic/restic.html#jumpscale.tools.restic.restic.ResticRepo">ResticRepo</a></li>
+<li><a title="jumpscale.tools.nginx.nginxserver.NginxServer" href="../../tools/nginx/nginxserver.html#jumpscale.tools.nginx.nginxserver.NginxServer">NginxServer</a></li>
+<li><a title="jumpscale.tools.servicemanager.servicemanager.ServiceManager" href="../../tools/servicemanager/servicemanager.html#jumpscale.tools.servicemanager.servicemanager.ServiceManager">ServiceManager</a></li>
+<li><a title="jumpscale.servers.rack.rack.ServerRack" href="../../servers/rack/rack.html#jumpscale.servers.rack.rack.ServerRack">ServerRack</a></li>
 <li><a title="jumpscale.servers.openresty.location.Location" href="../../servers/openresty/location.html#jumpscale.servers.openresty.location.Location">Location</a></li>
 <li><a title="jumpscale.servers.openresty.server.Website" href="../../servers/openresty/server.html#jumpscale.servers.openresty.server.Website">Website</a></li>
 <li><a title="jumpscale.servers.openresty.server.OpenRestyServer" href="../../servers/openresty/server.html#jumpscale.servers.openresty.server.OpenRestyServer">OpenRestyServer</a></li>
-<li><a title="jumpscale.tools.startupcmd.startupcmd.StartupCmd" href="../../tools/startupcmd/startupcmd.html#jumpscale.tools.startupcmd.startupcmd.StartupCmd">StartupCmd</a></li>
-<li><a title="jumpscale.tools.nginx.nginxserver.NginxServer" href="../../tools/nginx/nginxserver.html#jumpscale.tools.nginx.nginxserver.NginxServer">NginxServer</a></li>
-<li><a title="jumpscale.tools.redis.redis.RedisServer" href="../../tools/redis/redis.html#jumpscale.tools.redis.redis.RedisServer">RedisServer</a></li>
-<li><a title="jumpscale.tools.restic.restic.ResticRepo" href="../../tools/restic/restic.html#jumpscale.tools.restic.restic.ResticRepo">ResticRepo</a></li>
+<li><a title="jumpscale.clients.base.Client" href="../../clients/base.html#jumpscale.clients.base.Client">Client</a></li>
+<li><a title="jumpscale.servers.threebot.threebot.PackageManager" href="../../servers/threebot/threebot.html#jumpscale.servers.threebot.threebot.PackageManager">PackageManager</a></li>
+<li><a title="jumpscale.servers.threebot.threebot.ThreebotServer" href="../../servers/threebot/threebot.html#jumpscale.servers.threebot.threebot.ThreebotServer">ThreebotServer</a></li>
+<li><a title="jumpscale.servers.gedis.server.GedisServer" href="../../servers/gedis/server.html#jumpscale.servers.gedis.server.GedisServer">GedisServer</a></li>
+<li><a title="jumpscale.servers.gedis_http.GedisHTTPServer" href="../../servers/gedis_http/index.html#jumpscale.servers.gedis_http.GedisHTTPServer">GedisHTTPServer</a></li>
+<li><a title="jumpscale.clients.kraken.kraken.Price" href="../../clients/kraken/kraken.html#jumpscale.clients.kraken.kraken.Price">Price</a></li>
+<li><a title="jumpscale.clients.liquid.liquid.Price" href="../../clients/liquid/liquid.html#jumpscale.clients.liquid.liquid.Price">Price</a></li>
+<li><a title="jumpscale.clients.github.base.base" href="../../clients/github/base.html#jumpscale.clients.github.base.base">base</a></li>
+<li><a title="jumpscale.clients.gogs.gogs.User" href="../../clients/gogs/gogs.html#jumpscale.clients.gogs.gogs.User">User</a></li>
+<li><a title="jumpscale.core.identity.Identity" href="../identity/index.html#jumpscale.core.identity.Identity">Identity</a></li>
 <li><a title="jumpscale.packages.admin.bottle.models.UserEntry" href="../../packages/admin/bottle/models.html#jumpscale.packages.admin.bottle.models.UserEntry">UserEntry</a></li>
-<li><a title="jumpscale.packages.threebot_deployer.models.backup_tokens.BackupTokens" href="../../packages/threebot_deployer/models/backup_tokens.html#jumpscale.packages.threebot_deployer.models.backup_tokens.BackupTokens">BackupTokens</a></li>
 </ul>
 <h3>Static methods</h3>
 <dl>
@@ -1123,7 +1080,7 @@ print(p.name, p.age)
 </code></dt>
 <dd>
 <section class="desc"><p>get an instance from a dict</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -1196,7 +1153,7 @@ def parent(self):
 </code></dt>
 <dd>
 <section class="desc"><p>get a serializable dict from all values of all fields (except factories)</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -1272,7 +1229,7 @@ p.to_dict() #=&gt; {'name': 'ahmed', 'age': '19'}
 <dd>
 <section class="desc"><p>this class is used to get a new class with all field attributes replaced by property data descriptors.</p>
 <p>this should be used as a metaclass, example:</p>
-<pre><code class="python">class ExampleWithFields(metaclass=BaseMeta):
+<pre><code class="language-python">class ExampleWithFields(metaclass=BaseMeta):
     name = fields.String()
 </code></pre></section>
 <details class="source">
@@ -1302,19 +1259,19 @@ p.to_dict() #=&gt; {'name': 'ahmed', 'age': '19'}
             type: a new class
         &#34;&#34;&#34;
         # will collect class fields
-        # and also all fields of super classes, as we already have them in based
         cls_fields = {}
-        super_fields = {}
 
+        # get all fields from super classes, we have them ordered in `based`
+        # make sure not to re-add any field that&#39;s already added
+        # otherwise, fields will be resolved disorderly
         for super_cls in based:
             if hasattr(super_cls, &#34;_fields&#34;):
-                super_fields.update(super_cls._fields)
+                for key, field in super_cls._fields.items():
+                    if key not in attrs:
+                        attrs[key] = field
 
-        # update current attrs with super class fields
-        attrs.update(super_fields)
-
-        # now we maintain old attributes, but convert any attribute
-        # with fields.Field type to property descriptor (property object)
+        # now we maintain old attributes, but convert any attribute with
+        # fields.Field type to property descriptor (property object)
         # using get_field_property
         new_attrs = {}
         for key in attrs:

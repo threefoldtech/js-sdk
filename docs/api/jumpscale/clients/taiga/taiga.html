@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.6.4" />
 <title>jumpscale.clients.taiga.taiga API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Taiga client …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
@@ -20,26 +20,394 @@
 <h1 class="title">Module <code>jumpscale.clients.taiga.taiga</code></h1>
 </header>
 <section id="section-intro">
+<h1 id="taiga-client">Taiga client</h1>
+<h2 id="initialization">Initialization</h2>
+<p>Using username and
+password:</p>
+<pre><code>client = j.clients.taiga.new('test', host=&quot;https://staging.circles.threefold.me/&quot;, username='admin', password='123456')
+</code></pre>
+<p>OR using a token</p>
+<pre><code>client = j.clients.taiga.new('test', host=&quot;https://staging.circles.threefold.me/&quot;, token='extra secret token string')
+</code></pre>
+<h2 id="listing">Listing</h2>
+<h3 id="listing-issues">Listing issues</h3>
+<p>To get the issues of the user with id 123:</p>
+<pre><code>client.list_all_issues(123)
+</code></pre>
+<p>To get the issues of all users:</p>
+<pre><code>client.list_all_issues()
+
+</code></pre>
+<h3 id="listing-projects">Listing projects</h3>
+<p>To list all projects:</p>
+<pre><code>client.list_all_projects()
+</code></pre>
+<p>To list all projects not start with <strong>ARCHIVE</strong>:</p>
+<pre><code>client.list_all_active_projects()
+
+</code></pre>
+<h3 id="listing-user-stories">Listing user stories</h3>
+<p>To list the user stories of the user with id 123:</p>
+<pre><code>client.list_all_user_stories(123)
+</code></pre>
+<p>To list the user stories of all users:</p>
+<pre><code>client.list_all_user_stories()
+</code></pre>
+<h3 id="listing-tasks">Listing tasks</h3>
+<p>To list the tasks of the user with id 123:</p>
+<pre><code>client.list_all_tasks(123)
+</code></pre>
+<p>To list the tasks of all users :</p>
+<pre><code>client.list_all_tasks()
+</code></pre>
+<h3 id="list-team-circles">List team circles</h3>
+<pre><code>client.list_team_circles()
+</code></pre>
+<h3 id="list-project-circles">List project circles</h3>
+<pre><code>client.list_project_circles()
+</code></pre>
+<h3 id="list-funnel-circles">List funnel circles</h3>
+<pre><code>client.list_funnel_circles()
+
+</code></pre>
+<h2 id="custom-fields">Custom Fields</h2>
+<h3 id="get">Get</h3>
+<p>To get issue custom fields for the issue with id 123</p>
+<pre><code>custom_fields = client.get_issue_custom_fields(123)
+</code></pre>
+<p>To get user story custom fields for the story with id 123</p>
+<pre><code>custom_fields = client.get_story_custom_fields(123)
+</code></pre>
+<h3 id="validate">Validate</h3>
+<p>To validate custom field according to <a href="https://github.com/threefoldtech/circles_reporting_tool/blob/master/specs/funnel.md#custom-fields">specs</a></p>
+<pre><code>client.validate_custom_fields(custom_fields)
+</code></pre>
+<h2 id="creating">Creating</h2>
+<h3 id="create-new-circle">Create new circle</h3>
+<p>if you want full control on the circle creation on priorities, severities, .. etc, you can use <code>_create_new_circle</code> method</p>
+<pre><code>def _create_new_circle(
+    self,
+    name,
+    type_=&quot;team&quot;,
+    description=&quot;desc&quot;,
+    severities=None,
+    issues_statuses=None,
+    priorities=None,
+    issues_types=None,
+    user_stories_statuses=None,
+    tasks_statuses=None,
+    custom_fields=None
+    **attrs,
+):
+</code></pre>
+<p>otherwise you can use <code>create_new_project_circle,</code>, <code>create_new_team_circle</code>, <code>create_new_funnel_circle</code></p>
+<h3 id="create-new-story">Create new story</h3>
+<pre><code>circle_object.create_story(&quot;abc&quot;)
+</code></pre>
+<h3 id="create-a-new-issue">Create a new
+issue</h3>
+<pre><code>create_issue(&quot;my issue&quot;)
+</code></pre>
+<h2 id="exporting">Exporting</h2>
+<h3 id="export-users-and-circles">Export users and circles</h3>
+<pre><code>client.export_as_md(&quot;/tmp/taigawiki&quot;)
+</code></pre>
+<h3 id="export-users">Export users</h3>
+<pre><code>client.export_users_as_md(&quot;/tmp/taigawiki&quot;)
+</code></pre>
+<h3 id="export-circles">Export circles</h3>
+<pre><code>client.export_circles_as_md(&quot;/tmp/taigawiki&quot;)
+</code></pre>
+<h3 id="export-users-and-circles-periodically">Export users and circles periodically</h3>
+<p>To export users and circles periodically each 10 minutes</p>
+<pre><code>client.export_as_md_periodically(&quot;/tmp/taigawiki&quot;, period= 600)
+</code></pre>
+<blockquote>
+<p><strong>period</strong> use seconds as time unit.</p>
+</blockquote>
+<h3 id="export-objects-as-yaml">Export objects as yaml</h3>
+<p>To export All objects as yaml all you need is</p>
+<pre><code>client.export_as_yaml(&quot;/tmp/exported_taiga_dir&quot;)
+</code></pre>
+<p>This will export resources (users, projects, issues, stories, tasks) in `/tmp/exported_taiga_dir/$object_type/$object_id.yaml</p>
+<h2 id="importing">Importing</h2>
+<h3 id="importing-from-yaml-files">Importing from yaml files</h3>
+<p>To import from yaml files <em>files which exported using export_as_yaml</em></p>
+<pre><code>client.import_from_yaml(&quot;/tmp/exported_taiga_dir&quot;)
+</code></pre>
+<p>This will import resources (projects, issues, stories, tasks) as a new instance <em>import basic info till now</em></p>
+<h2 id="operations">Operations</h2>
+<h3 id="move-a-story-to-a-project">Move a story to a project</h3>
+<pre><code>client.move_story_to_circle(789, 123) # story id, project id
+</code></pre>
+<h3 id="copy-and-move-issue-using-project-object">Copy and Move Issue using project object</h3>
+<pre><code>project_object.copy_issue(issue_id_or_issue_object, project_id_or_project_object)
+project_object.move_issue(issue_id_or_issue_object, project_id_or_project_object)
+</code></pre>
+<blockquote>
+<p>Keep in mind that move will delete the issue from the original project</p>
+</blockquote>
+<h3 id="resources-urls">Resources urls</h3>
+<p>All of resources e.g (user, issue, user_story, circle, task) have <code>url, as_md and as_yaml</code> properties</p>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">import dateutil
+<pre><code class="python">&#34;&#34;&#34;
+# Taiga client
+
+## Initialization
+
+Using username and  password:
+```
+client = j.clients.taiga.new(&#39;test&#39;, host=&#34;https://staging.circles.threefold.me/&#34;, username=&#39;admin&#39;, password=&#39;123456&#39;)
+```
+OR using a token
+
+```
+client = j.clients.taiga.new(&#39;test&#39;, host=&#34;https://staging.circles.threefold.me/&#34;, token=&#39;extra secret token string&#39;)
+```
+## Listing
+
+### Listing issues
+
+To get the issues of the user with id 123:
+```
+client.list_all_issues(123)
+```
+To get the issues of all users:
+```
+client.list_all_issues()
+
+```
+### Listing projects
+
+To list all projects:
+```
+client.list_all_projects()
+```
+
+To list all projects not start with **ARCHIVE**:
+```
+client.list_all_active_projects()
+
+```
+### Listing user stories
+
+To list the user stories of the user with id 123:
+
+```
+client.list_all_user_stories(123)
+```
+
+To list the user stories of all users:
+
+```
+client.list_all_user_stories()
+```
+
+### Listing tasks
+
+To list the tasks of the user with id 123:
+
+```
+client.list_all_tasks(123)
+```
+
+To list the tasks of all users :
+
+```
+client.list_all_tasks()
+```
+
+
+### List team circles
+
+```
+client.list_team_circles()
+```
+
+
+### List project circles
+
+```
+client.list_project_circles()
+```
+
+### List funnel circles
+
+```
+client.list_funnel_circles()
+
+```
+
+## Custom Fields
+
+### Get
+
+To get issue custom fields for the issue with id 123
+
+```
+custom_fields = client.get_issue_custom_fields(123)
+```
+
+To get user story custom fields for the story with id 123
+
+```
+custom_fields = client.get_story_custom_fields(123)
+```
+
+### Validate
+
+To validate custom field according to [specs](https://github.com/threefoldtech/circles_reporting_tool/blob/master/specs/funnel.md#custom-fields)
+
+```
+client.validate_custom_fields(custom_fields)
+```
+
+## Creating
+
+### Create new circle
+
+if you want full control on the circle creation on priorities, severities, .. etc, you can use `_create_new_circle` method
+
+
+```
+def _create_new_circle(
+    self,
+    name,
+    type_=&#34;team&#34;,
+    description=&#34;desc&#34;,
+    severities=None,
+    issues_statuses=None,
+    priorities=None,
+    issues_types=None,
+    user_stories_statuses=None,
+    tasks_statuses=None,
+    custom_fields=None
+    **attrs,
+):
+```
+otherwise you can use `create_new_project_circle,`, `create_new_team_circle`, `create_new_funnel_circle`
+
+
+### Create new story
+
+```
+circle_object.create_story(&#34;abc&#34;)
+```
+
+### Create a new  issue
+
+```
+create_issue(&#34;my issue&#34;)
+```
+
+## Exporting
+
+### Export users and circles
+
+```
+client.export_as_md(&#34;/tmp/taigawiki&#34;)
+```
+
+### Export users
+
+```
+client.export_users_as_md(&#34;/tmp/taigawiki&#34;)
+```
+### Export circles
+```
+client.export_circles_as_md(&#34;/tmp/taigawiki&#34;)
+```
+
+### Export users and circles periodically
+
+To export users and circles periodically each 10 minutes
+```
+client.export_as_md_periodically(&#34;/tmp/taigawiki&#34;, period= 600)
+```
+&gt; **period** use seconds as time unit.
+
+### Export objects as yaml
+To export All objects as yaml all you need is
+
+```
+client.export_as_yaml(&#34;/tmp/exported_taiga_dir&#34;)
+```
+
+This will export resources (users, projects, issues, stories, tasks) in `/tmp/exported_taiga_dir/$object_type/$object_id.yaml
+
+## Importing
+
+### Importing from yaml files
+
+To import from yaml files _files which exported using export_as_yaml_
+
+```
+client.import_from_yaml(&#34;/tmp/exported_taiga_dir&#34;)
+```
+This will import resources (projects, issues, stories, tasks) as a new instance _import basic info till now_
+
+## Operations
+
+### Move a story to a project
+
+```
+client.move_story_to_circle(789, 123) # story id, project id
+```
+
+### Copy and Move Issue using project object
+```
+project_object.copy_issue(issue_id_or_issue_object, project_id_or_project_object)
+project_object.move_issue(issue_id_or_issue_object, project_id_or_project_object)
+```
+&gt; Keep in mind that move will delete the issue from the original project
+
+### Resources urls
+All of resources e.g (user, issue, user_story, circle, task) have `url, as_md and as_yaml` properties
+&#34;&#34;&#34;
+
+import copy
+from collections import defaultdict
+from functools import lru_cache
+from textwrap import dedent
+import dateutil
+import dateutil.utils
+import gevent
+from gevent.event import Event
+import yaml
+from jumpscale.clients.base import Client
+from jumpscale.clients.taiga.models import (
+    Circle,
+    CircleIssue,
+    CircleStory,
+    CircleTask,
+    CircleUser,
+    FunnelCircle,
+    ProjectCircle,
+    TeamCircle,
+)
+from jumpscale.core.base import fields
+from jumpscale.loader import j
+
 from taiga import TaigaAPI
 from taiga.exceptions import TaigaRestException
-from jumpscale.loader import j
-from jumpscale.clients.base import Client
-from jumpscale.core.base import fields
-from functools import lru_cache
+from taiga.models.models import Milestones
+from pathlib import Path
 
 
 class TaigaClient(Client):
-    host = fields.String(default=&#34;https://projects.threefold.me&#34;)
-    username = fields.String()
-    password = fields.Secret()
-    token = fields.Secret()
-
-    def __init__(self, **kwargs):
-        super().__init__()
+    def credential_updated(self, value):
         self._api = None
+
+    host = fields.String(default=&#34;https://projects.threefold.me&#34;)
+    username = fields.String(on_update=credential_updated)
+    password = fields.Secret(on_update=credential_updated)
+    token = fields.Secret(on_update=credential_updated)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._api = None
+        self.text = &#34;&#34;
 
     def __hash__(self):
         return hash(str(self))
@@ -57,47 +425,112 @@ class TaigaClient(Client):
             self._api = api
         return self._api
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_project(self, project_id):
         return self.api.projects.get(project_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_milestone(self, milestone_id):
         if milestone_id:
             return self.api.milestones.get(milestone_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_priority(self, priority_id):
         return self.api.priorities.get(priority_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_assignee(self, assignee_id):
-        if assignee_id:
-            return self.api.users.get(assignee_id)
+        return CircleUser(self, self.api.users.get(assignee_id))
 
-    @lru_cache(maxsize=128)
+    _get_user_by_id = _get_assignee
+
+    def _get_users_by_ids(self, ids=None):
+        ids = ids or []
+        return [self._get_user_by_id(x) for x in ids]
+
+    def _get_issues_by_ids(self, ids=None):
+        ids = ids or []
+        return [self._get_issue_by_id(x) for x in ids]
+
+    def _get_task_by_id(self, id):
+        return self.api.tasks.get(id)
+
+    @lru_cache(maxsize=2048)
     def _get_issue_status(self, status_id):
         return self.api.issue_statuses.get(status_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_user_stories_status(self, status_id):
         return self.api.user_story_statuses.get(status_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_task_status(self, status_id):
         return self.api.task_statuses.get(status_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_user_id(self, username):
         user = self.api.users.list(username=username)
         if user:
             user = user[0]
             return user.id
         else:
-            raise j.exceptions.Input(&#34;Couldn&#39;t find user with username: {}&#34;.format(username))
+            raise j.exceptions.Input(f&#34;Couldn&#39;t find user with username: {username}&#34;)
+
+    @lru_cache(maxsize=2048)
+    def _get_user_by_name(self, username):
+        theid = self._get_user_id(username)
+        return self._get_user_by_id(theid)
+
+    def get_issue_custom_fields(self, id):
+        &#34;&#34;&#34;Get Issue Custom fields
+
+        Args:
+            id (int): Issue id
+
+        Returns:
+            List: List of dictionaries {name: &#34;custom field name&#34;, value: {values as dict}}
+        &#34;&#34;&#34;
+        issue = self.api.issues.get(id)
+        issue_attributes = issue.get_attributes()[&#34;attributes_values&#34;]
+        project_attributes = self._get_project(issue.project).list_issue_attributes()
+        custom_fields = []
+        for p_attr in project_attributes:
+            for k, value in issue_attributes.items():
+                if p_attr.id == int(k):
+                    try:
+                        custom_fields.append({&#34;name&#34;: p_attr.name, &#34;value&#34;: yaml.full_load(value)})
+                    except:
+                        custom_fields.append({&#34;name&#34;: p_attr.name, &#34;value&#34;: value})
+                    break
+
+        return custom_fields
+
+    def get_story_custom_fields(self, id):
+        &#34;&#34;&#34;Get User_Story Custom fields
+
+        Args:
+            id (int): User_Story id
+
+        Returns:
+            List: List of dictionaries {name: &#34;custom field name&#34;, value: {values as dict}}
+        &#34;&#34;&#34;
+        user_story = self.api.user_stories.get(id)
+        user_story_attributes = user_story.get_attributes()[&#34;attributes_values&#34;]
+        project_attributes = self._get_project(user_story.project).list_user_story_attributes()
+        custom_fields = []
+        for p_attr in project_attributes:
+            for k, value in user_story_attributes.items():
+                if p_attr.id == int(k):
+                    try:
+                        custom_fields.append({&#34;name&#34;: p_attr.name, &#34;value&#34;: yaml.full_load(value)})
+                    except:
+                        custom_fields.append({&#34;name&#34;: p_attr.name, &#34;value&#34;: value})
+                    break
+
+        return custom_fields
 
     def get_user_circles(self, username):
-        &#34;&#34;&#34;Get circles owner by user
+        &#34;&#34;&#34;Get circles owned by user
 
         Args:
             username (str): Name of the user
@@ -107,7 +540,7 @@ class TaigaClient(Client):
         user_circles = []
         for circle in circles:
             if circle.owner[&#34;id&#34;] == user_id:
-                user_circles.append(circle)
+                user_circles.append(self._resolve_object(circle))
         return user_circles
 
     def get_circles_issues(self, project_id):
@@ -144,8 +577,8 @@ class TaigaClient(Client):
         user_stories = self.api.user_stories.list(assigned_to=user_id)
         user_stories = []
         for user_story in user_stories:
-            user_story.project = self._get_project(user_story.project)
-            user_story.milestone = self._get_milestone(user_story.milestone)
+            # user_story.project = self._get_project(user_story.project)
+            # user_story.milestone = self._get_milestone(user_story.milestone)
             user_story.status = self._get_user_stories_status(user_story.status)
             user_stories.append(user_story)
         return user_stories
@@ -160,14 +593,14 @@ class TaigaClient(Client):
         user_tasks = self.api.tasks.list(assigned_to=user_id)
         user_tasks = []
         for user_task in user_tasks:
-            user_task.project = self._get_project(user_task.project)
-            user_task.milestone = self._get_milestone(user_task.milestone)
+            # user_task.project = self._get_project(user_task.project)
+            # user_task.milestone = self._get_milestone(user_task.milestone)
             user_task.status = self._get_task_status(user_task.status)
-            user_tasks.append(user_task)
+            user_tasks.append(self._resolve_object(user_task))
 
         return user_tasks
 
-    def move_story_to_cirlce(self, story_id, project_id):
+    def move_story_to_circle(self, story_id, project_id):
         &#34;&#34;&#34;Moves a story to another circle/project
 
         Args:
@@ -175,8 +608,8 @@ class TaigaClient(Client):
             project_id (int): circle/project id
 
         Raises:
-            j.exceptions.NotFound: No user story with speicifed id found
-            j.exceptions.NotFound: No project with speicifed id found
+            j.exceptions.NotFound: No user story with specified id found
+            j.exceptions.NotFound: No project with specified id found
             j.exceptions.Runtime: [description]
 
         Returns:
@@ -191,7 +624,7 @@ class TaigaClient(Client):
         try:
             user_story = self.api.user_stories.get(story_id)
         except TaigaRestException:
-            raise j.exceptions.NotFound(&#34;Couldn&#39;t find user story with id: {}&#34;.format(story_id))
+            raise j.exceptions.NotFound(f&#34;Couldn&#39;t find user story with id: {story_id}&#34;)
 
         project_stories_statuses = self.api.user_story_statuses.list(project=project_id)
         status = self._get_user_stories_status(user_story.status)
@@ -207,7 +640,7 @@ class TaigaClient(Client):
                 tags=user_story.tags,
             )
         except TaigaRestException:
-            raise j.exceptions.NotFound(&#34;No project with id: {} found&#34;.format(project_id))
+            raise j.exceptions.NotFound(f&#34;No project with id: {project_id} found&#34;)
         try:
             comments = self.api.history.user_story.get(story_id)
             comments = sorted(comments, key=lambda c: dateutil.parser.isoparse(c[&#34;created_at&#34;]))
@@ -237,10 +670,877 @@ class TaigaClient(Client):
 
         except Exception as e:
             self.api.user_stories.delete(migrate_story.id)
-            raise j.exceptions.Runtime(&#34;Failed to migrate story error was: {}&#34;.format(str(e)))
+            raise j.exceptions.Runtime(f&#34;Failed to migrate story error was: {str(e)}&#34;)
 
         self.api.user_stories.delete(story_id)
-        return migrate_story.id</code></pre>
+        return migrate_story.id
+
+    def list_all_issues(self, username=&#34;&#34;, full_info=False):
+        &#34;&#34;&#34;
+        List all issues for specific user if you didn&#39;t pass user_id will list all the issues
+        HINT: Using full_info will take a longer time
+
+        Args:
+            username (str): username.
+            full_info (bool): flag used to get object with full info. Defaults to False.
+
+        Returns:
+            List: List of taiga.models.models.Issue.
+        &#34;&#34;&#34;
+        if username:
+            user_id = self._get_user_id(username)
+            if not full_info:
+                return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list(assigned_to=user_id)]
+            else:
+                return [CircleIssue(self, self.api.issues.get(x.id)) for x in self.api.issues.list(assigned_to=user_id)]
+        else:
+            if not full_info:
+                return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list()]
+            else:
+                return [CircleIssue(self, self.api.issues.get(x.id)) for x in self.api.issues.list()]
+
+    def list_all_tasks(self, username=&#34;&#34;, full_info=False):
+        &#34;&#34;&#34;
+        List all tasks for specific user if you didn&#39;t pass user_id will list all the tasks
+        HINT: Using full_info will take a longer time
+
+        Args:
+            username (str): username.
+            full_info (bool): flag used to get object with full info. Defaults to False.
+
+        Returns:
+            List: List of taiga.models.models.Task.
+        &#34;&#34;&#34;
+        if username:
+            user_id = self._get_user_id(username)
+            if not full_info:
+                return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list(assigned_to=user_id)]
+            else:
+                return [CircleTask(self, self.api.tasks.get(x.id)) for x in self.api.tasks.list(assigned_to=user_id)]
+        else:
+            if not full_info:
+                return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list()]
+            else:
+                return [CircleTask(self, self.api.tasks.get(x.id)) for x in self.api.tasks.list()]
+
+    def list_all_projects(self, full_info=False):
+        &#34;&#34;&#34;
+        List all projects
+        HINT: Using full_info will take a longer time
+
+        Args:
+            full_info(bool): flag used to get object with full info. Defaults to False.
+
+        Returns:
+            List: List of taiga.models.models.Project.
+        &#34;&#34;&#34;
+        if not full_info:
+            return [Circle(self, self._resolve_object(x)) for x in self.api.projects.list()]
+        else:
+            return [Circle(self, self.api.projects.get(x.id)) for x in self.api.projects.list()]
+
+    def list_all_active_projects(self, full_info=False):
+        &#34;&#34;&#34;
+        List all projects not starting with &#34;ARHCIVE&#34;
+        HINT: Using full_info will take a longer time
+
+        Args:
+            full_info (bool): [description]. Defaults to False.
+
+        Returns:
+            [type]: [description]
+        &#34;&#34;&#34;
+        return [
+            Circle(self, p)
+            for p in self.list_projects_by(lambda x: not x.name.startswith(&#34;ARCHIVE_&#34;), full_info=full_info)
+        ]
+
+    def list_all_milestones(self):
+        &#34;&#34;&#34;
+        List all milestones
+
+        Returns:
+            List: List of taiga.models.models.Milestone.
+        &#34;&#34;&#34;
+        return [self._resolve_object(x) for x in self.api.milestones.list()]
+
+    def list_all_user_stories(self, username=&#34;&#34;, full_info=False):
+        &#34;&#34;&#34;
+        List all user stories for specific user if you didn&#39;t pass user_id will list all the available user stories
+        HINT: Using full_info will take a longer time
+
+        Args:
+            username (str): username.
+            full_info(bool): flag used to get object with full info. Defaults to False
+
+        Returns:
+            List: List of CircleStory.
+        &#34;&#34;&#34;
+        if username:
+            user_id = self._get_user_id(username)
+            if not full_info:
+                return [
+                    CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list(assigned_to=user_id)
+                ]
+            else:
+                return [
+                    CircleStory(self, self.api.user_stories.get(x.id))
+                    for x in self.api.user_stories.list(assigned_to=user_id)
+                ]
+        else:
+            if not full_info:
+                return [CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list()]
+            else:
+                return [CircleStory(self, self.api.user_stories.get(x.id)) for x in self.api.user_stories.list()]
+
+    def list_all_users(self, full_info=False):
+        &#34;&#34;&#34;
+        List all user stories for specific user if you didn&#39;t pass user_id will list all the available user stories
+        HINT: Using full_info will take a longer time
+        Args:
+            username (str): username.
+            full_info(bool): flag used to get object with full info. Defaults to False
+
+        Returns:
+            List: List of CircleUser.
+        &#34;&#34;&#34;
+        circles = self.list_all_projects()
+        users = set()
+        for c in circles:
+            for m in c.members:
+                users.add(m)
+
+        return [CircleUser(self, self._get_user_by_id(uid)) for uid in users]
+
+    def get_issue_by_id(self, issue_id):
+        &#34;&#34;&#34;Get issue
+        Args:
+            issue_id: the id of the desired issue
+
+        Returns:
+            Issue object: issue
+        &#34;&#34;&#34;
+        return CircleIssue(self, self.api.issues.get(issue_id))
+
+    def _resolve_object(self, obj):
+        resolvers = {
+            &#34;owners&#34;: self._get_users_by_ids,
+            &#34;watchers&#34;: self._get_users_by_ids,
+            &#34;members&#34;: self._get_users_by_ids,
+            &#34;project&#34;: self._get_project,
+            &#34;circle&#34;: self._get_project,
+            &#34;milestone&#34;: self._get_milestone,
+            &#34;task_status&#34;: self._get_task_status,
+            &#34;assigned_to&#34;: self._get_user_by_id,
+            &#34;owner&#34;: self._get_user_by_id,
+            &#34;issues&#34;: self._get_issues_by_ids,
+            &#34;tasks&#34;: self._get_task_by_id,
+        }
+        newobj = copy.deepcopy(obj)
+        for k in dir(newobj):
+            v = getattr(newobj, k)
+            if isinstance(v, int) or isinstance(v, list) and v and isinstance(v[0], int):
+                if k in resolvers:
+                    resolved = None
+                    resolver = resolvers[k]
+                    try:
+                        copied_v = copy.deepcopy(v)
+                        resolved = lambda: resolver(copied_v)
+
+                        if isinstance(v, list):
+                            setattr(newobj, f&#34;{k}_objects&#34;, resolved)
+                        else:
+                            setattr(newobj, f&#34;{k}_object&#34;, resolved)
+
+                    except Exception as e:
+                        import traceback
+
+                        traceback.print_exc()
+
+                        j.logger.error(f&#34;error {e}&#34;)
+
+        return newobj
+
+    def list_projects_by(self, fn=lambda x: True, full_info=False):
+        return [p for p in self.list_all_projects(full_info=full_info) if fn(p)]
+
+    def list_team_circles(self):
+        return [TeamCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith(&#34;TEAM_&#34;))]
+
+    def list_project_circles(self):
+        return [ProjectCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith(&#34;PROJECT_&#34;))]
+
+    def list_funnel_circles(self):
+        return [FunnelCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith(&#34;FUNNEL_&#34;))]
+
+    def validate_custom_fields(self, attributes):
+        &#34;&#34;&#34;Validate custom fields values to match our requirements
+
+        Args:
+            attributes (List): Output from get_issue/story_custom_fields functions
+
+        Raises:
+            j.exceptions.Validation: Raise validation exception if any input not valid
+
+        Returns:
+            bool: Return True if no exception raised and print logs
+        &#34;&#34;&#34;
+
+        for attr in attributes:
+            name = attr.get(&#34;name&#34;)
+            value = attr.get(&#34;value&#34;)
+
+            period = value.get(&#34;period&#34;, &#34;onetime&#34;)
+            duration = value.get(&#34;duration&#34;, 1)
+            amount = value.get(&#34;amount&#34;, 0)
+            currency = value.get(&#34;currency&#34;, &#34;eur&#34;)
+            start_date = value.get(&#34;start_date&#34;, f&#34;{dateutil.utils.today().month}:{dateutil.utils.today().year}&#34;,)
+            confidence = value.get(&#34;confidence&#34;, 100)
+            user = value.get(&#34;user&#34;)
+            part = value.get(&#34;part&#34;, &#34;0%&#34;)
+            type = value.get(&#34;type&#34;, &#34;revenue&#34;)
+
+            if name not in [&#34;bookings&#34;, &#34;commission&#34;]:
+                raise j.exceptions.Validation(
+                    f&#39;Name: ({name}) is unknown custom field, please select one of the following [&#34;bookings&#34;, &#34;commission&#34;]&#39;
+                )
+
+            if period not in [&#34;onetime&#34;, &#34;month&#34;, &#34;year&#34;]:
+                raise j.exceptions.Validation(
+                    f&#39;Period: ({period}) not found, please select one of following [&#34;onetime&#34;, &#34;month&#34;, &#34;year&#34;]&#39;
+                )
+
+            if duration &lt; 1 or duration &gt; 120:
+                raise j.exceptions.Validation(f&#34;Duration: ({duration}) is not in range, please select it from 1 to 120&#34;)
+
+            if not isinstance(amount, int):
+                raise j.exceptions.Validation(f&#34;Amount: ({amount}) is not integer, please add int value&#34;)
+
+            if currency.replace(&#34; &#34;, &#34;&#34;).lower() not in [
+                &#34;usd&#34;,
+                &#34;chf&#34;,
+                &#34;eur&#34;,
+                &#34;gbp&#34;,
+                &#34;egp&#34;,
+            ]:
+                raise j.exceptions.Validation(
+                    f&#39;Currency: ({currency}) is not supported, please use one of the following currencies [&#34;usd&#34;, &#34;chf&#34;, &#34;eur&#34;, &#34;gbp&#34;, &#34;egp&#34;]&#39;
+                )
+            try:
+                date = start_date.split(&#34;:&#34;)
+                month = int(date[0])
+                year = int(date[1]) if len(date) &gt; 1 else dateutil.utils.today().year
+                if month &lt; 1 or month &gt; 12:
+                    raise j.exceptions.Validation(
+                        &#34;Please use values from 1 to 12 in Month field, follow format like MONTH:YEAR as 11:2020 or MONTH as 11&#34;
+                    )
+            except ValueError as e:
+                raise j.exceptions.Validation(
+                    &#34;Please use numeric date with the following format MONTH:YEAR as 11:2020 or MONTH as 11&#34;
+                )
+            except AttributeError as e:
+                pass  # Will check what happen if start_date not provide
+
+            if confidence % 10 != 0:
+                j.exceptions.Validation(f&#34;Confidence: ({confidence}) not multiple of 10, it must be multiple of 10&#34;)
+
+            part_tmp = part.replace(&#34;%&#34;, &#34;&#34;)
+            if user != None and user not in self.list_all_users():
+                raise j.exceptions.Validation(f&#34;User: ({user}) is not found&#34;)
+
+            if int(part_tmp) &lt; 0 or int(part_tmp) &gt; 100:
+                j.exceptions.Validation(f&#34;Part: ({part}) is a not a valid percentage, it must be from 0% to 100%&#34;)
+
+            if type not in [&#34;revenue&#34;, &#34;booking&#34;]:
+                raise j.exceptions.Validation(
+                    f&#39;Type: ({type}) is not supported type, please choose one of the following [&#34;revenue&#34; , &#34;booking&#34;]&#39;
+                )
+
+            j.logger.info(f&#34;Attribute: {name} passed&#34;)
+
+        return True
+
+    def _create_new_circle(
+        self,
+        name,
+        type_=&#34;team&#34;,
+        description=&#34;desc&#34;,
+        severities=None,
+        issues_statuses=None,
+        priorities=None,
+        issues_types=None,
+        user_stories_statuses=None,
+        tasks_statuses=None,
+        custom_fields=None,
+        **attrs,
+    ):
+        severities = severities or [&#34;Low&#34;, &#34;Mid&#34;, &#34;High&#34;]
+        priorities = priorities or [
+            &#34;Wishlist&#34;,
+            &#34;Minor&#34;,
+            &#34;Normal&#34;,
+            &#34;Important&#34;,
+            &#34;Critical&#34;,
+        ]
+        issues_statuses = issues_statuses or [
+            &#34;New&#34;,
+            &#34;In progress&#34;,
+            &#34;Ready for test&#34;,
+            &#34;Closed&#34;,
+            &#34;Needs Info&#34;,
+            &#34;Rejected&#34;,
+            &#34;Postponed&#34;,
+        ]
+        issues_types = issues_types or []
+        user_stories_statuses = user_stories_statuses or []
+        tasks_statuses = tasks_statuses or []
+        custom_fields = custom_fields or []
+
+        type_ = type_.upper()
+        project_name = f&#34;{type_}_{name}&#34;
+        p = self.api.projects.create(project_name, description=description)
+        for t in tasks_statuses:
+            try:
+                p.add_task_status(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping task {t} {e}&#34;)
+
+        for t in priorities:
+            try:
+                p.add_priority(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping prio {t} {e}&#34;)
+
+        for t in severities:
+            try:
+                p.add_severity(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping sever {t} {e}&#34;)
+
+        for t in issues_statuses:
+            try:
+                p.add_issue_status(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping status {t} {e}&#34;)
+
+        for t in user_stories_statuses:
+            try:
+                p.add_user_story_status(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping user status {t} {e}&#34;)
+
+        for t in issues_types:
+            try:
+                p.add_issue_type(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping issue type {t} {e}&#34;)
+
+        for t in custom_fields:
+            try:
+                p.add_issue_attribute(t)
+                p.add_user_story_attribute(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping custom field type {t} {e}&#34;)
+
+        return p
+
+    def create_new_project_circle(
+        self, name, description=&#34;&#34;, **attrs,
+    ):
+        &#34;&#34;&#34;Creates a new project circle.
+
+        Args:
+            name (str): circle name
+            description (str, optional): circle description. Defaults to &#34;&#34;.
+
+        Returns:
+            [ProjectCircle]: Project circle
+        &#34;&#34;&#34;
+
+        attrs = {
+            &#34;is_backlog_activated&#34;: False,
+            &#34;is_issues_activated&#34;: True,
+            &#34;is_kanban_activated&#34;: True,
+            &#34;is_private&#34;: False,
+            &#34;is_wiki_activated&#34;: True,
+        }
+        issues_types = [&#34;Bug&#34;, &#34;Question&#34;, &#34;Enhancement&#34;]
+        severities = [&#34;Wishlist&#34;, &#34;Minor&#34;, &#34;Normal&#34;, &#34;Important&#34;, &#34;Critical&#34;]
+        priorities = None
+
+        story_statuses = [
+            &#34;New&#34;,
+            &#34;to-start&#34;,
+            &#34;in-progress&#34;,
+            &#34;Blocked&#34;,
+            &#34;Implemented&#34;,
+            &#34;Verified&#34;,
+            &#34;Archived&#34;,
+        ]
+        item_statuses = [&#34;New&#34;, &#34;to-start&#34;, &#34;in-progress&#34;, &#34;Blocked&#34;, &#34;Done&#34;]
+        issues_statuses = [
+            &#34;New&#34;,
+            &#34;to-start&#34;,
+            &#34;in-progress&#34;,
+            &#34;Blocked&#34;,
+            &#34;Implemented&#34;,
+            &#34;Closed&#34;,
+            &#34;Rejected&#34;,
+            &#34;Postponed&#34;,
+            &#34;Archived&#34;,
+        ]
+
+        return ProjectCircle(
+            self,
+            self._create_new_circle(
+                name,
+                type_=&#34;project&#34;,
+                description=description,
+                severities=severities,
+                issues_statuses=issues_statuses,
+                priorities=priorities,
+                issues_types=issues_types,
+                user_stories_statuses=story_statuses,
+                tasks_statuses=item_statuses,
+                **attrs,
+            ),
+        )
+
+    def create_new_team_circle(self, name, description=&#34;&#34;, **attrs):
+        &#34;&#34;&#34;Creates a new team circle. using sprints &amp; timeline (does not use kanban)
+
+        Args:
+            name (str): circle name
+            description (str, optional): circle description. Defaults to &#34;&#34;.
+            severities (List[str], optional): list of strings to represent severities. Defaults to None.
+            issues_statuses (List[str], optional): list of strings to represent issues_stauses. Defaults to None.
+            priorities (List[str], optional): list of strings to represent priorities. Defaults to None.
+            issues_types (List[str], optional): list of strings to represent issues types. Defaults to None.
+            user_stories_statuses (List[str], optional): list of strings to represent user stories. Defaults to None.
+            tasks_statuses (List[str], optional): list of strings to represent task statuses. Defaults to None.
+
+        Returns:
+            [TeamCircle]: team circle
+        &#34;&#34;&#34;
+
+        attrs = {
+            &#34;is_backlog_activated&#34;: True,
+            &#34;is_issues_activated&#34;: True,
+            &#34;is_kanban_activated&#34;: False,
+            &#34;is_private&#34;: False,
+            &#34;is_wiki_activated&#34;: True,
+        }
+        issues_types = [&#34;Bug&#34;, &#34;Question&#34;, &#34;Enhancement&#34;]
+        severities = [&#34;Wishlist&#34;, &#34;Minor&#34;, &#34;Normal&#34;, &#34;Important&#34;, &#34;Critical&#34;]
+        priorities = None
+
+        story_statuses = [
+            &#34;New&#34;,
+            &#34;to-start&#34;,
+            &#34;in-progress&#34;,
+            &#34;Blocked&#34;,
+            &#34;Implemented&#34;,
+            &#34;Verified&#34;,
+            &#34;Archived&#34;,
+        ]
+        item_statuses = [&#34;New&#34;, &#34;to-start&#34;, &#34;in-progress&#34;, &#34;Blocked&#34;, &#34;Done&#34;]
+        issues_statuses = [
+            &#34;New&#34;,
+            &#34;to-start&#34;,
+            &#34;in-progress&#34;,
+            &#34;Blocked&#34;,
+            &#34;Implemented&#34;,
+            &#34;Closed&#34;,
+            &#34;Rejected&#34;,
+            &#34;Postponed&#34;,
+            &#34;Archived&#34;,
+        ]
+
+        return TeamCircle(
+            self,
+            self._create_new_circle(
+                name,
+                type_=&#34;team&#34;,
+                description=description,
+                severities=severities,
+                issues_statuses=issues_statuses,
+                priorities=priorities,
+                issues_types=issues_types,
+                user_stories_statuses=story_statuses,
+                tasks_statuses=item_statuses,
+                **attrs,
+            ),
+        )
+
+    def create_new_funnel_circle(self, name, description=&#34;&#34;, **attrs):
+        &#34;&#34;&#34;Creates a new funnel circle. using sprints &amp; timeline (does not use kanban)
+
+        Args:
+            name (str): circle name
+            description (str, optional): circle description. Defaults to &#34;&#34;.
+
+        Returns:
+            [FunnelCircle]: funnel circle
+        &#34;&#34;&#34;
+        attrs = {
+            &#34;is_backlog_activated&#34;: False,
+            &#34;is_issues_activated&#34;: True,
+            &#34;is_kanban_activated&#34;: True,
+            &#34;is_private&#34;: False,
+            &#34;is_wiki_activated&#34;: True,
+        }
+
+        severities = [&#34;unknown&#34;, &#34;low&#34;, &#34;25%&#34;, &#34;50%&#34;, &#34;75%&#34;, &#34;90%&#34;]
+        priorities = [&#34;Low&#34;, &#34;Normal&#34;, &#34;High&#34;]
+        issues_types = &#34;opportunity&#34;
+
+        issues_statuses = [
+            &#34;New&#34;,
+            &#34;Interested&#34;,
+            &#34;Deal&#34;,
+            &#34;Blocked&#34;,
+            &#34;NeedInfo&#34;,
+            &#34;Lost&#34;,
+            &#34;Postponed&#34;,
+            &#34;Won&#34;,
+        ]
+        story_statuses = [
+            &#34;New&#34;,
+            &#34;Proposal&#34;,
+            &#34;Contract&#34;,
+            &#34;Blocked&#34;,
+            &#34;NeedInfo&#34;,
+            &#34;Closed&#34;,
+        ]
+        task_statuses = [&#34;New&#34;, &#34;In progress&#34;, &#34;Verification&#34;, &#34;Needs info&#34;, &#34;Closed&#34;]
+
+        custom_fields = [&#34;bookings&#34;, &#34;commission&#34;]
+
+        return FunnelCircle(
+            self,
+            self._create_new_circle(
+                name,
+                type_=&#34;funnel&#34;,
+                description=description,
+                severities=severities,
+                issues_statuses=issues_statuses,
+                priorities=priorities,
+                issues_types=issues_types,
+                user_stories_statuses=story_statuses,
+                tasks_statuses=task_statuses,
+                custom_fields=custom_fields,
+                **attrs,
+            ),
+        )
+
+    def export_circles_as_md(self, wikipath=&#34;/tmp/taigawiki&#34;, modified_only=True, full_info=False):
+        &#34;&#34;&#34;export circles into {wikipath}/src/circles
+        HINT: Using full_info will take longer time
+
+        Args:
+            wikipath (str, optional): wiki path. Defaults to &#34;/tmp/taigawiki&#34;.
+            full_info (bool): export object with full info. Defaults to False
+        &#34;&#34;&#34;
+        path = j.sals.fs.join_paths(wikipath, &#34;src&#34;, &#34;circles&#34;)
+
+        j.sals.fs.mkdirs(path)
+        circles = self.list_all_active_projects(full_info=full_info)
+
+        def write_md_for_circle(circle):
+            circle_md = circle.as_md
+            circle_mdpath = j.sals.fs.join_paths(path, f&#34;{circle.clean_name}.md&#34;)
+            if not (
+                modified_only and j.sals.fs.exists(circle_mdpath) and j.sals.fs.read_ascii(circle_mdpath) == circle_md
+            ):
+                j.sals.fs.write_ascii(circle_mdpath, circle_md)
+
+        circles_mdpath = j.sals.fs.join_paths(path, &#34;circles.md&#34;)
+        circles_mdcontent = &#34;# circles\n\n&#34;
+        for c in circles:
+            circles_mdcontent += f&#34;- [{c.name}](./{c.clean_name}.md)\n&#34;
+
+        j.sals.fs.write_ascii(circles_mdpath, circles_mdcontent)
+
+        greenlets = [gevent.spawn(write_md_for_circle, gcircle_obj) for gcircle_obj in circles]
+        gevent.joinall(greenlets)
+
+    def export_users_as_md(self, wikipath=&#34;/tmp/taigawiki&#34;, modified_only=True, full_info=False):
+        &#34;&#34;&#34;export users into {wikipath}/src/users
+        HINT: Using full_info will take longer time
+
+        Args:
+            wikipath (str, optional): wiki path. Defaults to &#34;/tmp/taigawiki&#34;.
+            modified_only (bool): export moidified objects only
+            full_info (bool): export object with full info. Defaults to False
+        &#34;&#34;&#34;
+
+        path = j.sals.fs.join_paths(wikipath, &#34;src&#34;, &#34;users&#34;)
+        j.sals.fs.mkdirs(path)
+        users_objects = self.list_all_users(full_info=full_info)
+
+        users_mdpath = j.sals.fs.join_paths(path, &#34;users.md&#34;)
+        users_mdcontent = &#34;# users\n\n&#34;
+
+        def write_md_for_user(user):
+            user_md = user.as_md
+            user_mdpath = j.sals.fs.join_paths(path, f&#34;{user.clean_name}.md&#34;)
+            if not (modified_only and j.sals.fs.exists(user_mdpath) and j.sals.fs.read_ascii(user_mdpath) == user_md):
+                j.sals.fs.write_ascii(user_mdpath, user_md)
+
+        for u in users_objects:
+            users_mdcontent += f&#34;- [{u.username}](./{u.clean_name}.md)\n&#34;
+
+        j.sals.fs.write_ascii(users_mdpath, users_mdcontent)
+
+        greenlets = [gevent.spawn(write_md_for_user, guser_obj) for guser_obj in users_objects]
+        gevent.joinall(greenlets)
+
+    def export_as_md(self, wiki_path=&#34;/tmp/taigawiki&#34;, modified_only: bool = True, full_info=False):
+        &#34;&#34;&#34;export taiga instance into a wiki  showing users and circles
+        HINT: Using full_info will take longer time
+
+        Args:
+            wiki_src_path (str, optional): wiki path. Defaults to &#34;/tmp/taigawiki&#34;.
+            modified_only (bool): write modified objects only. Defaults to True
+            full_info (bool): export object with full info. Defaults to False
+        &#34;&#34;&#34;
+        j.logger.info(&#34;Start Exporting Wiki ...&#34;)
+        gs = []
+        gs.append(gevent.spawn(self.export_circles_as_md, wiki_path, modified_only, full_info))
+        gs.append(gevent.spawn(self.export_users_as_md, wiki_path, modified_only, full_info))
+        gevent.joinall(gs)
+
+        template_file = j.sals.fs.join_paths(Path(__file__).parent, &#34;template.html&#34;)
+        index_html_path = j.sals.fs.join_paths(wiki_path, &#34;src&#34;, &#34;index.html&#34;)
+        readme_md_path = j.sals.fs.join_paths(wiki_path, &#34;src&#34;, &#34;README.md&#34;)
+        sidebar_md_path = j.sals.fs.join_paths(wiki_path, &#34;src&#34;, &#34;_sidebar.md&#34;)
+        content = dedent(
+            f&#34;&#34;&#34;
+            # Taiga overview
+
+            - [circles](./circles/circles.md)
+            - [users](./users/users.md)
+        &#34;&#34;&#34;
+        )
+        j.sals.fs.write_ascii(readme_md_path, content)
+        j.sals.fs.write_ascii(sidebar_md_path, content)
+        j.sals.fs.copy_file(template_file, index_html_path)
+        j.logger.info(f&#34;Exported at {wiki_path}&#34;)
+
+    def export_as_md_periodically(
+        self, wiki_path=&#34;/tmp/taigawiki&#34;, period: int = 300, modified_only: bool = True, full_info=False
+    ):
+        &#34;&#34;&#34;export taiga instance into a wiki  showing users and circles periodically
+        HINT: Using full_info will take longer time
+
+        Args:
+            wiki_path (str, optional): wiki path. Defaults to &#34;/tmp/taigawiki&#34;.
+            period (int): Time to wait between each export in &#34;Seconds&#34;. Defaults to 300 (5 Min).
+            modified_only (bool): write modified objects only.. Defaults to True.
+            full_info (bool): export object with full info. Defaults to False
+
+        &#34;&#34;&#34;
+        repeater = Event()
+        while True:
+            j.logger.info(&#34;Start Exporting ....&#34;)
+            self.export_as_md(wiki_path, modified_only, full_info)
+            j.logger.info(f&#34;Exported at {wiki_path}&#34;)
+            repeater.wait(period)
+
+    def export_as_yaml(self, export_dir=&#34;/tmp/export_dir&#34;, full_info=False):
+        &#34;&#34;&#34;export taiga instance [Circle, Story, Issue, Task , User] into a yaml files
+        HINT: Using full_info will take longer time
+
+        Args:
+            export_dir (str, optional): [description]. Defaults to &#34;/tmp/export_dir&#34;.
+            full_info (bool): export object with full info. Defaults to False
+        &#34;&#34;&#34;
+
+        def _export_objects_to_dir(objects_dir, objects_fun, full_info):
+            j.sals.fs.mkdirs(objects_dir)
+            objects = objects_fun(full_info=full_info)
+            for obj in objects:
+                try:
+                    outpath = j.sals.fs.join_paths(objects_dir, f&#34;{obj.id}.yaml&#34;)
+                    j.sals.fs.write_ascii(outpath, obj.as_yaml)
+
+                except Exception as e:
+                    import traceback
+
+                    traceback.print_exc()
+                    j.logger.error(e)
+                    j.logger.error(f&#34;{type(obj)}: {obj.id}&#34;)
+
+        projects_path = j.sals.fs.join_paths(export_dir, &#34;projects&#34;)
+        stories_path = j.sals.fs.join_paths(export_dir, &#34;stories&#34;)
+        issues_path = j.sals.fs.join_paths(export_dir, &#34;issues&#34;)
+        tasks_path = j.sals.fs.join_paths(export_dir, &#34;tasks&#34;)
+        # Milestones is not one of our model objects
+        # milestones_path = j.sals.fs.join_paths(export_dir, &#34;milestones&#34;)
+        users_path = j.sals.fs.join_paths(export_dir, &#34;users&#34;)
+
+        def on_err(*args, **kwargs):
+            print(&#34;err, &#34;, args, kwargs)
+
+        j.logger.info(&#34;Start Export as YAML&#34;)
+
+        gs = []
+        gs.append(gevent.spawn(_export_objects_to_dir, projects_path, self.list_all_active_projects, full_info))
+        gs.append(gevent.spawn(_export_objects_to_dir, stories_path, self.list_all_user_stories, full_info))
+        gs.append(gevent.spawn(_export_objects_to_dir, issues_path, self.list_all_issues, full_info))
+        # Milestones is not one of our model objects
+        # gs.append(gevent.spawn(_export_objects_to_dir, milestones_path, self.list_all_milestones)
+        gs.append(gevent.spawn(_export_objects_to_dir, users_path, self.list_all_users, full_info))
+        gs.append(gevent.spawn(_export_objects_to_dir, tasks_path, self.list_all_tasks, full_info))
+        gevent.joinall(gs)
+
+        j.logger.info(&#34;Finish Export as YAML&#34;)
+
+    def import_from_yaml(self, import_dir=&#34;/tmp/export_dir&#34;):
+        &#34;&#34;&#34;Import Circle with all stories, issues and tasks from yaml files
+
+        Args:
+            import_dir (str): import directory path. Defaults to &#34;/tmp/export_dir&#34;.
+        &#34;&#34;&#34;
+        # Helper Functions
+        def check_by_name(list_obj, name_to_find):
+            for obj in list_obj:
+                if obj.name == name_to_find:
+                    return obj.id
+
+            return list_obj[0].id
+
+        def import_circle(self, yaml_obj):
+            circle = None
+            # Funnel Circle
+            if yaml_obj[&#34;basic_info&#34;][&#34;name&#34;].lower() == &#34;funnel&#34;:
+                circle = self.create_new_funnel_circle(
+                    yaml_obj[&#34;basic_info&#34;][&#34;name&#34;], yaml_obj[&#34;basic_info&#34;][&#34;description&#34;],
+                )
+            # Team Circle
+            elif yaml_obj[&#34;basic_info&#34;][&#34;name&#34;].lower() == &#34;team&#34;:
+                circle = self.create_new_team_circle(
+                    yaml_obj[&#34;basic_info&#34;][&#34;name&#34;], yaml_obj[&#34;basic_info&#34;][&#34;description&#34;],
+                )
+            # Project Circle
+            elif yaml_obj[&#34;basic_info&#34;][&#34;name&#34;].lower() == &#34;project&#34;:
+                circle = self.create_new_project_circle(
+                    yaml_obj[&#34;basic_info&#34;][&#34;name&#34;], yaml_obj[&#34;basic_info&#34;][&#34;description&#34;],
+                )
+            # Any Other Circle
+            else:
+                circle = self._create_new_circle(yaml_obj[&#34;basic_info&#34;][&#34;name&#34;], yaml_obj[&#34;basic_info&#34;][&#34;description&#34;],)
+                circle.is_backlog_activated = yaml_obj[&#34;modules&#34;][&#34;is_backlog_activated&#34;]
+                circle.is_issues_activated = yaml_obj[&#34;modules&#34;][&#34;is_issues_activated&#34;]
+                circle.is_kanban_activated = yaml_obj[&#34;modules&#34;][&#34;is_kanban_activated&#34;]
+                circle.is_wiki_activated = yaml_obj[&#34;modules&#34;][&#34;is_wiki_activated&#34;]
+
+            circle.is_private = yaml_obj[&#34;basic_info&#34;][&#34;is_private&#34;]
+            circle.videoconferences = yaml_obj[&#34;modules&#34;][&#34;videoconferences&#34;]
+            for issue_attr in yaml_obj[&#34;issues_attributes&#34;]:
+                circle.add_issue_attribute(issue_attr)
+            for us_attr in yaml_obj[&#34;stories_attributes&#34;]:
+                circle.add_user_story_attribute(us_attr)
+            return circle
+
+        def import_story(circle_object, yaml_obj):
+            status_id = check_by_name(circle_object.us_statuses, yaml_obj[&#34;status&#34;][&#34;name&#34;])
+
+            story = circle_object.add_user_story(
+                yaml_obj[&#34;basic_info&#34;].get(&#34;subject&#34;),
+                tags=yaml_obj[&#34;basic_info&#34;].get(&#34;tags&#34;),
+                description=yaml_obj[&#34;basic_info&#34;].get(&#34;description&#34;, &#34;&#34;),
+                client_requirement=yaml_obj[&#34;requirements&#34;].get(&#34;client_requirement&#34;),
+                team_requirement=yaml_obj[&#34;requirements&#34;].get(&#34;team_requirement&#34;),
+                is_blocked=yaml_obj[&#34;additional_info&#34;].get(&#34;is_blocked&#34;),
+                due_date=yaml_obj[&#34;date&#34;].get(&#34;due_date&#34;),
+                status=status_id,
+            )
+
+            for field in yaml_obj.get(&#34;custom_fields&#34;, []):
+                for attr in circle_object.list_user_story_attributes():
+                    if attr.name == field[&#34;name&#34;]:
+                        story.set_attribute(attr.id, field[&#34;value&#34;])
+                        break
+            return story
+
+        def import_issue(circle_object, yaml_obj):
+            priority_id = check_by_name(circle_object.priorities, yaml_obj[&#34;priority&#34;][&#34;name&#34;])
+            status_id = check_by_name(circle_object.issue_statuses, yaml_obj[&#34;status&#34;][&#34;name&#34;])
+            type_id = check_by_name(circle_object.issue_types, yaml_obj[&#34;type&#34;][&#34;name&#34;])
+            severity_id = check_by_name(circle_object.severities, yaml_obj[&#34;severity&#34;][&#34;name&#34;])
+            issue = circle_object.add_issue(
+                yaml_obj[&#34;basic_info&#34;][&#34;subject&#34;],
+                priority_id,
+                status_id,
+                type_id,
+                severity_id,
+                description=yaml_obj[&#34;basic_info&#34;].get(&#34;description&#34;),
+            )
+
+            for field in yaml_obj[&#34;custom_fields&#34;]:
+                for attr in circle_object.list_issue_attributes():
+                    if attr.name == field[&#34;name&#34;]:
+                        issue.set_attribute(attr.id, field[&#34;value&#34;])
+                        break
+            return issue
+
+        def import_tasks(circle_object, story_object, yaml_obj):
+            status_id = check_by_name(circle_object.task_statuses, yaml_obj[&#34;status&#34;][&#34;name&#34;])
+            task = story_object.add_task(
+                yaml_obj[&#34;basic_info&#34;].get(&#34;subject&#34;),
+                status_id,
+                description=yaml_obj[&#34;basic_info&#34;].get(&#34;description&#34;, &#34;&#34;),
+                tags=yaml_obj[&#34;basic_info&#34;].get(&#34;tags&#34;),
+            )
+            return task
+
+        # Folders Path
+        projects_path = j.sals.fs.join_paths(import_dir, &#34;projects&#34;)
+        stories_path = j.sals.fs.join_paths(import_dir, &#34;stories&#34;)
+        issues_path = j.sals.fs.join_paths(import_dir, &#34;issues&#34;)
+        tasks_path = j.sals.fs.join_paths(import_dir, &#34;tasks&#34;)
+
+        # List of Files inside project Folder
+        projects = j.sals.fs.os.listdir(projects_path)
+
+        for project_file in projects:
+            if project_file.endswith(&#34;.yaml&#34;) or project_file.endswith(&#34;.yml&#34;):
+                with open(j.sals.fs.join_paths(projects_path, project_file)) as pf:
+                    circle_yaml = yaml.full_load(pf)
+                    circle_obj = import_circle(self, circle_yaml)
+                    j.logger.info(f&#34;&lt;Circle {circle_obj.id} Created&gt;&#34;)
+
+                    for story in circle_yaml[&#34;stories&#34;]:
+                        with open(j.sals.fs.join_paths(stories_path, f&#34;{story}.yaml&#34;)) as sf:
+                            story_yaml = yaml.full_load(sf)
+                            story_obj = import_story(circle_obj, story_yaml)
+                            j.logger.info(f&#34;&lt;Story {story_obj.id} Created in Circle {circle_obj.id}&gt;&#34;)
+
+                            for task in story_yaml[&#34;tasks&#34;]:
+                                with open(j.sals.fs.join_paths(tasks_path, f&#34;{task}.yaml&#34;)) as tf:
+                                    task_yaml = yaml.full_load(tf)
+                                    task_obj = import_tasks(circle_obj, story_obj, task_yaml)
+                                    j.logger.info(f&#34;&lt;Task {task_obj.id} Created in Story {story_obj.id}&gt;&#34;)
+                                    task_obj.update()
+                            story_obj.update()
+
+                    for issue in circle_yaml[&#34;issues&#34;]:
+                        with open(j.sals.fs.join_paths(issues_path, f&#34;{issue}.yaml&#34;)) as isf:
+                            issue_yaml = yaml.full_load(isf)
+                            issue_obj = import_issue(circle_obj, issue_yaml)
+                            j.logger.info(f&#34;&lt;Issue {issue_obj.id} Created in Circle {circle_obj.id}&gt;&#34;)
+                            issue_obj.update()
+
+                    circle_obj.update()
+                    j.logger.info(f&#34;&lt;Circle {circle_obj.id} Imported with All Stories and Issues&#34;)</code></pre>
 </details>
 </section>
 <section>
@@ -254,14 +1554,14 @@ class TaigaClient(Client):
 <dl>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient"><code class="flex name class">
 <span>class <span class="ident">TaigaClient</span></span>
-<span>(</span><span>**kwargs)</span>
+<span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -280,14 +1580,18 @@ print(p.name, p.age)
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class TaigaClient(Client):
-    host = fields.String(default=&#34;https://projects.threefold.me&#34;)
-    username = fields.String()
-    password = fields.Secret()
-    token = fields.Secret()
-
-    def __init__(self, **kwargs):
-        super().__init__()
+    def credential_updated(self, value):
         self._api = None
+
+    host = fields.String(default=&#34;https://projects.threefold.me&#34;)
+    username = fields.String(on_update=credential_updated)
+    password = fields.Secret(on_update=credential_updated)
+    token = fields.Secret(on_update=credential_updated)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._api = None
+        self.text = &#34;&#34;
 
     def __hash__(self):
         return hash(str(self))
@@ -305,47 +1609,112 @@ print(p.name, p.age)
             self._api = api
         return self._api
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_project(self, project_id):
         return self.api.projects.get(project_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_milestone(self, milestone_id):
         if milestone_id:
             return self.api.milestones.get(milestone_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_priority(self, priority_id):
         return self.api.priorities.get(priority_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_assignee(self, assignee_id):
-        if assignee_id:
-            return self.api.users.get(assignee_id)
+        return CircleUser(self, self.api.users.get(assignee_id))
 
-    @lru_cache(maxsize=128)
+    _get_user_by_id = _get_assignee
+
+    def _get_users_by_ids(self, ids=None):
+        ids = ids or []
+        return [self._get_user_by_id(x) for x in ids]
+
+    def _get_issues_by_ids(self, ids=None):
+        ids = ids or []
+        return [self._get_issue_by_id(x) for x in ids]
+
+    def _get_task_by_id(self, id):
+        return self.api.tasks.get(id)
+
+    @lru_cache(maxsize=2048)
     def _get_issue_status(self, status_id):
         return self.api.issue_statuses.get(status_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_user_stories_status(self, status_id):
         return self.api.user_story_statuses.get(status_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_task_status(self, status_id):
         return self.api.task_statuses.get(status_id)
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=2048)
     def _get_user_id(self, username):
         user = self.api.users.list(username=username)
         if user:
             user = user[0]
             return user.id
         else:
-            raise j.exceptions.Input(&#34;Couldn&#39;t find user with username: {}&#34;.format(username))
+            raise j.exceptions.Input(f&#34;Couldn&#39;t find user with username: {username}&#34;)
+
+    @lru_cache(maxsize=2048)
+    def _get_user_by_name(self, username):
+        theid = self._get_user_id(username)
+        return self._get_user_by_id(theid)
+
+    def get_issue_custom_fields(self, id):
+        &#34;&#34;&#34;Get Issue Custom fields
+
+        Args:
+            id (int): Issue id
+
+        Returns:
+            List: List of dictionaries {name: &#34;custom field name&#34;, value: {values as dict}}
+        &#34;&#34;&#34;
+        issue = self.api.issues.get(id)
+        issue_attributes = issue.get_attributes()[&#34;attributes_values&#34;]
+        project_attributes = self._get_project(issue.project).list_issue_attributes()
+        custom_fields = []
+        for p_attr in project_attributes:
+            for k, value in issue_attributes.items():
+                if p_attr.id == int(k):
+                    try:
+                        custom_fields.append({&#34;name&#34;: p_attr.name, &#34;value&#34;: yaml.full_load(value)})
+                    except:
+                        custom_fields.append({&#34;name&#34;: p_attr.name, &#34;value&#34;: value})
+                    break
+
+        return custom_fields
+
+    def get_story_custom_fields(self, id):
+        &#34;&#34;&#34;Get User_Story Custom fields
+
+        Args:
+            id (int): User_Story id
+
+        Returns:
+            List: List of dictionaries {name: &#34;custom field name&#34;, value: {values as dict}}
+        &#34;&#34;&#34;
+        user_story = self.api.user_stories.get(id)
+        user_story_attributes = user_story.get_attributes()[&#34;attributes_values&#34;]
+        project_attributes = self._get_project(user_story.project).list_user_story_attributes()
+        custom_fields = []
+        for p_attr in project_attributes:
+            for k, value in user_story_attributes.items():
+                if p_attr.id == int(k):
+                    try:
+                        custom_fields.append({&#34;name&#34;: p_attr.name, &#34;value&#34;: yaml.full_load(value)})
+                    except:
+                        custom_fields.append({&#34;name&#34;: p_attr.name, &#34;value&#34;: value})
+                    break
+
+        return custom_fields
 
     def get_user_circles(self, username):
-        &#34;&#34;&#34;Get circles owner by user
+        &#34;&#34;&#34;Get circles owned by user
 
         Args:
             username (str): Name of the user
@@ -355,7 +1724,7 @@ print(p.name, p.age)
         user_circles = []
         for circle in circles:
             if circle.owner[&#34;id&#34;] == user_id:
-                user_circles.append(circle)
+                user_circles.append(self._resolve_object(circle))
         return user_circles
 
     def get_circles_issues(self, project_id):
@@ -392,8 +1761,8 @@ print(p.name, p.age)
         user_stories = self.api.user_stories.list(assigned_to=user_id)
         user_stories = []
         for user_story in user_stories:
-            user_story.project = self._get_project(user_story.project)
-            user_story.milestone = self._get_milestone(user_story.milestone)
+            # user_story.project = self._get_project(user_story.project)
+            # user_story.milestone = self._get_milestone(user_story.milestone)
             user_story.status = self._get_user_stories_status(user_story.status)
             user_stories.append(user_story)
         return user_stories
@@ -408,14 +1777,14 @@ print(p.name, p.age)
         user_tasks = self.api.tasks.list(assigned_to=user_id)
         user_tasks = []
         for user_task in user_tasks:
-            user_task.project = self._get_project(user_task.project)
-            user_task.milestone = self._get_milestone(user_task.milestone)
+            # user_task.project = self._get_project(user_task.project)
+            # user_task.milestone = self._get_milestone(user_task.milestone)
             user_task.status = self._get_task_status(user_task.status)
-            user_tasks.append(user_task)
+            user_tasks.append(self._resolve_object(user_task))
 
         return user_tasks
 
-    def move_story_to_cirlce(self, story_id, project_id):
+    def move_story_to_circle(self, story_id, project_id):
         &#34;&#34;&#34;Moves a story to another circle/project
 
         Args:
@@ -423,8 +1792,8 @@ print(p.name, p.age)
             project_id (int): circle/project id
 
         Raises:
-            j.exceptions.NotFound: No user story with speicifed id found
-            j.exceptions.NotFound: No project with speicifed id found
+            j.exceptions.NotFound: No user story with specified id found
+            j.exceptions.NotFound: No project with specified id found
             j.exceptions.Runtime: [description]
 
         Returns:
@@ -439,7 +1808,7 @@ print(p.name, p.age)
         try:
             user_story = self.api.user_stories.get(story_id)
         except TaigaRestException:
-            raise j.exceptions.NotFound(&#34;Couldn&#39;t find user story with id: {}&#34;.format(story_id))
+            raise j.exceptions.NotFound(f&#34;Couldn&#39;t find user story with id: {story_id}&#34;)
 
         project_stories_statuses = self.api.user_story_statuses.list(project=project_id)
         status = self._get_user_stories_status(user_story.status)
@@ -455,7 +1824,7 @@ print(p.name, p.age)
                 tags=user_story.tags,
             )
         except TaigaRestException:
-            raise j.exceptions.NotFound(&#34;No project with id: {} found&#34;.format(project_id))
+            raise j.exceptions.NotFound(f&#34;No project with id: {project_id} found&#34;)
         try:
             comments = self.api.history.user_story.get(story_id)
             comments = sorted(comments, key=lambda c: dateutil.parser.isoparse(c[&#34;created_at&#34;]))
@@ -485,10 +1854,877 @@ print(p.name, p.age)
 
         except Exception as e:
             self.api.user_stories.delete(migrate_story.id)
-            raise j.exceptions.Runtime(&#34;Failed to migrate story error was: {}&#34;.format(str(e)))
+            raise j.exceptions.Runtime(f&#34;Failed to migrate story error was: {str(e)}&#34;)
 
         self.api.user_stories.delete(story_id)
-        return migrate_story.id</code></pre>
+        return migrate_story.id
+
+    def list_all_issues(self, username=&#34;&#34;, full_info=False):
+        &#34;&#34;&#34;
+        List all issues for specific user if you didn&#39;t pass user_id will list all the issues
+        HINT: Using full_info will take a longer time
+
+        Args:
+            username (str): username.
+            full_info (bool): flag used to get object with full info. Defaults to False.
+
+        Returns:
+            List: List of taiga.models.models.Issue.
+        &#34;&#34;&#34;
+        if username:
+            user_id = self._get_user_id(username)
+            if not full_info:
+                return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list(assigned_to=user_id)]
+            else:
+                return [CircleIssue(self, self.api.issues.get(x.id)) for x in self.api.issues.list(assigned_to=user_id)]
+        else:
+            if not full_info:
+                return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list()]
+            else:
+                return [CircleIssue(self, self.api.issues.get(x.id)) for x in self.api.issues.list()]
+
+    def list_all_tasks(self, username=&#34;&#34;, full_info=False):
+        &#34;&#34;&#34;
+        List all tasks for specific user if you didn&#39;t pass user_id will list all the tasks
+        HINT: Using full_info will take a longer time
+
+        Args:
+            username (str): username.
+            full_info (bool): flag used to get object with full info. Defaults to False.
+
+        Returns:
+            List: List of taiga.models.models.Task.
+        &#34;&#34;&#34;
+        if username:
+            user_id = self._get_user_id(username)
+            if not full_info:
+                return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list(assigned_to=user_id)]
+            else:
+                return [CircleTask(self, self.api.tasks.get(x.id)) for x in self.api.tasks.list(assigned_to=user_id)]
+        else:
+            if not full_info:
+                return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list()]
+            else:
+                return [CircleTask(self, self.api.tasks.get(x.id)) for x in self.api.tasks.list()]
+
+    def list_all_projects(self, full_info=False):
+        &#34;&#34;&#34;
+        List all projects
+        HINT: Using full_info will take a longer time
+
+        Args:
+            full_info(bool): flag used to get object with full info. Defaults to False.
+
+        Returns:
+            List: List of taiga.models.models.Project.
+        &#34;&#34;&#34;
+        if not full_info:
+            return [Circle(self, self._resolve_object(x)) for x in self.api.projects.list()]
+        else:
+            return [Circle(self, self.api.projects.get(x.id)) for x in self.api.projects.list()]
+
+    def list_all_active_projects(self, full_info=False):
+        &#34;&#34;&#34;
+        List all projects not starting with &#34;ARHCIVE&#34;
+        HINT: Using full_info will take a longer time
+
+        Args:
+            full_info (bool): [description]. Defaults to False.
+
+        Returns:
+            [type]: [description]
+        &#34;&#34;&#34;
+        return [
+            Circle(self, p)
+            for p in self.list_projects_by(lambda x: not x.name.startswith(&#34;ARCHIVE_&#34;), full_info=full_info)
+        ]
+
+    def list_all_milestones(self):
+        &#34;&#34;&#34;
+        List all milestones
+
+        Returns:
+            List: List of taiga.models.models.Milestone.
+        &#34;&#34;&#34;
+        return [self._resolve_object(x) for x in self.api.milestones.list()]
+
+    def list_all_user_stories(self, username=&#34;&#34;, full_info=False):
+        &#34;&#34;&#34;
+        List all user stories for specific user if you didn&#39;t pass user_id will list all the available user stories
+        HINT: Using full_info will take a longer time
+
+        Args:
+            username (str): username.
+            full_info(bool): flag used to get object with full info. Defaults to False
+
+        Returns:
+            List: List of CircleStory.
+        &#34;&#34;&#34;
+        if username:
+            user_id = self._get_user_id(username)
+            if not full_info:
+                return [
+                    CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list(assigned_to=user_id)
+                ]
+            else:
+                return [
+                    CircleStory(self, self.api.user_stories.get(x.id))
+                    for x in self.api.user_stories.list(assigned_to=user_id)
+                ]
+        else:
+            if not full_info:
+                return [CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list()]
+            else:
+                return [CircleStory(self, self.api.user_stories.get(x.id)) for x in self.api.user_stories.list()]
+
+    def list_all_users(self, full_info=False):
+        &#34;&#34;&#34;
+        List all user stories for specific user if you didn&#39;t pass user_id will list all the available user stories
+        HINT: Using full_info will take a longer time
+        Args:
+            username (str): username.
+            full_info(bool): flag used to get object with full info. Defaults to False
+
+        Returns:
+            List: List of CircleUser.
+        &#34;&#34;&#34;
+        circles = self.list_all_projects()
+        users = set()
+        for c in circles:
+            for m in c.members:
+                users.add(m)
+
+        return [CircleUser(self, self._get_user_by_id(uid)) for uid in users]
+
+    def get_issue_by_id(self, issue_id):
+        &#34;&#34;&#34;Get issue
+        Args:
+            issue_id: the id of the desired issue
+
+        Returns:
+            Issue object: issue
+        &#34;&#34;&#34;
+        return CircleIssue(self, self.api.issues.get(issue_id))
+
+    def _resolve_object(self, obj):
+        resolvers = {
+            &#34;owners&#34;: self._get_users_by_ids,
+            &#34;watchers&#34;: self._get_users_by_ids,
+            &#34;members&#34;: self._get_users_by_ids,
+            &#34;project&#34;: self._get_project,
+            &#34;circle&#34;: self._get_project,
+            &#34;milestone&#34;: self._get_milestone,
+            &#34;task_status&#34;: self._get_task_status,
+            &#34;assigned_to&#34;: self._get_user_by_id,
+            &#34;owner&#34;: self._get_user_by_id,
+            &#34;issues&#34;: self._get_issues_by_ids,
+            &#34;tasks&#34;: self._get_task_by_id,
+        }
+        newobj = copy.deepcopy(obj)
+        for k in dir(newobj):
+            v = getattr(newobj, k)
+            if isinstance(v, int) or isinstance(v, list) and v and isinstance(v[0], int):
+                if k in resolvers:
+                    resolved = None
+                    resolver = resolvers[k]
+                    try:
+                        copied_v = copy.deepcopy(v)
+                        resolved = lambda: resolver(copied_v)
+
+                        if isinstance(v, list):
+                            setattr(newobj, f&#34;{k}_objects&#34;, resolved)
+                        else:
+                            setattr(newobj, f&#34;{k}_object&#34;, resolved)
+
+                    except Exception as e:
+                        import traceback
+
+                        traceback.print_exc()
+
+                        j.logger.error(f&#34;error {e}&#34;)
+
+        return newobj
+
+    def list_projects_by(self, fn=lambda x: True, full_info=False):
+        return [p for p in self.list_all_projects(full_info=full_info) if fn(p)]
+
+    def list_team_circles(self):
+        return [TeamCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith(&#34;TEAM_&#34;))]
+
+    def list_project_circles(self):
+        return [ProjectCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith(&#34;PROJECT_&#34;))]
+
+    def list_funnel_circles(self):
+        return [FunnelCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith(&#34;FUNNEL_&#34;))]
+
+    def validate_custom_fields(self, attributes):
+        &#34;&#34;&#34;Validate custom fields values to match our requirements
+
+        Args:
+            attributes (List): Output from get_issue/story_custom_fields functions
+
+        Raises:
+            j.exceptions.Validation: Raise validation exception if any input not valid
+
+        Returns:
+            bool: Return True if no exception raised and print logs
+        &#34;&#34;&#34;
+
+        for attr in attributes:
+            name = attr.get(&#34;name&#34;)
+            value = attr.get(&#34;value&#34;)
+
+            period = value.get(&#34;period&#34;, &#34;onetime&#34;)
+            duration = value.get(&#34;duration&#34;, 1)
+            amount = value.get(&#34;amount&#34;, 0)
+            currency = value.get(&#34;currency&#34;, &#34;eur&#34;)
+            start_date = value.get(&#34;start_date&#34;, f&#34;{dateutil.utils.today().month}:{dateutil.utils.today().year}&#34;,)
+            confidence = value.get(&#34;confidence&#34;, 100)
+            user = value.get(&#34;user&#34;)
+            part = value.get(&#34;part&#34;, &#34;0%&#34;)
+            type = value.get(&#34;type&#34;, &#34;revenue&#34;)
+
+            if name not in [&#34;bookings&#34;, &#34;commission&#34;]:
+                raise j.exceptions.Validation(
+                    f&#39;Name: ({name}) is unknown custom field, please select one of the following [&#34;bookings&#34;, &#34;commission&#34;]&#39;
+                )
+
+            if period not in [&#34;onetime&#34;, &#34;month&#34;, &#34;year&#34;]:
+                raise j.exceptions.Validation(
+                    f&#39;Period: ({period}) not found, please select one of following [&#34;onetime&#34;, &#34;month&#34;, &#34;year&#34;]&#39;
+                )
+
+            if duration &lt; 1 or duration &gt; 120:
+                raise j.exceptions.Validation(f&#34;Duration: ({duration}) is not in range, please select it from 1 to 120&#34;)
+
+            if not isinstance(amount, int):
+                raise j.exceptions.Validation(f&#34;Amount: ({amount}) is not integer, please add int value&#34;)
+
+            if currency.replace(&#34; &#34;, &#34;&#34;).lower() not in [
+                &#34;usd&#34;,
+                &#34;chf&#34;,
+                &#34;eur&#34;,
+                &#34;gbp&#34;,
+                &#34;egp&#34;,
+            ]:
+                raise j.exceptions.Validation(
+                    f&#39;Currency: ({currency}) is not supported, please use one of the following currencies [&#34;usd&#34;, &#34;chf&#34;, &#34;eur&#34;, &#34;gbp&#34;, &#34;egp&#34;]&#39;
+                )
+            try:
+                date = start_date.split(&#34;:&#34;)
+                month = int(date[0])
+                year = int(date[1]) if len(date) &gt; 1 else dateutil.utils.today().year
+                if month &lt; 1 or month &gt; 12:
+                    raise j.exceptions.Validation(
+                        &#34;Please use values from 1 to 12 in Month field, follow format like MONTH:YEAR as 11:2020 or MONTH as 11&#34;
+                    )
+            except ValueError as e:
+                raise j.exceptions.Validation(
+                    &#34;Please use numeric date with the following format MONTH:YEAR as 11:2020 or MONTH as 11&#34;
+                )
+            except AttributeError as e:
+                pass  # Will check what happen if start_date not provide
+
+            if confidence % 10 != 0:
+                j.exceptions.Validation(f&#34;Confidence: ({confidence}) not multiple of 10, it must be multiple of 10&#34;)
+
+            part_tmp = part.replace(&#34;%&#34;, &#34;&#34;)
+            if user != None and user not in self.list_all_users():
+                raise j.exceptions.Validation(f&#34;User: ({user}) is not found&#34;)
+
+            if int(part_tmp) &lt; 0 or int(part_tmp) &gt; 100:
+                j.exceptions.Validation(f&#34;Part: ({part}) is a not a valid percentage, it must be from 0% to 100%&#34;)
+
+            if type not in [&#34;revenue&#34;, &#34;booking&#34;]:
+                raise j.exceptions.Validation(
+                    f&#39;Type: ({type}) is not supported type, please choose one of the following [&#34;revenue&#34; , &#34;booking&#34;]&#39;
+                )
+
+            j.logger.info(f&#34;Attribute: {name} passed&#34;)
+
+        return True
+
+    def _create_new_circle(
+        self,
+        name,
+        type_=&#34;team&#34;,
+        description=&#34;desc&#34;,
+        severities=None,
+        issues_statuses=None,
+        priorities=None,
+        issues_types=None,
+        user_stories_statuses=None,
+        tasks_statuses=None,
+        custom_fields=None,
+        **attrs,
+    ):
+        severities = severities or [&#34;Low&#34;, &#34;Mid&#34;, &#34;High&#34;]
+        priorities = priorities or [
+            &#34;Wishlist&#34;,
+            &#34;Minor&#34;,
+            &#34;Normal&#34;,
+            &#34;Important&#34;,
+            &#34;Critical&#34;,
+        ]
+        issues_statuses = issues_statuses or [
+            &#34;New&#34;,
+            &#34;In progress&#34;,
+            &#34;Ready for test&#34;,
+            &#34;Closed&#34;,
+            &#34;Needs Info&#34;,
+            &#34;Rejected&#34;,
+            &#34;Postponed&#34;,
+        ]
+        issues_types = issues_types or []
+        user_stories_statuses = user_stories_statuses or []
+        tasks_statuses = tasks_statuses or []
+        custom_fields = custom_fields or []
+
+        type_ = type_.upper()
+        project_name = f&#34;{type_}_{name}&#34;
+        p = self.api.projects.create(project_name, description=description)
+        for t in tasks_statuses:
+            try:
+                p.add_task_status(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping task {t} {e}&#34;)
+
+        for t in priorities:
+            try:
+                p.add_priority(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping prio {t} {e}&#34;)
+
+        for t in severities:
+            try:
+                p.add_severity(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping sever {t} {e}&#34;)
+
+        for t in issues_statuses:
+            try:
+                p.add_issue_status(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping status {t} {e}&#34;)
+
+        for t in user_stories_statuses:
+            try:
+                p.add_user_story_status(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping user status {t} {e}&#34;)
+
+        for t in issues_types:
+            try:
+                p.add_issue_type(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping issue type {t} {e}&#34;)
+
+        for t in custom_fields:
+            try:
+                p.add_issue_attribute(t)
+                p.add_user_story_attribute(t)
+            except Exception as e:
+                # check if duplicated
+                j.logger.debug(f&#34;skipping custom field type {t} {e}&#34;)
+
+        return p
+
+    def create_new_project_circle(
+        self, name, description=&#34;&#34;, **attrs,
+    ):
+        &#34;&#34;&#34;Creates a new project circle.
+
+        Args:
+            name (str): circle name
+            description (str, optional): circle description. Defaults to &#34;&#34;.
+
+        Returns:
+            [ProjectCircle]: Project circle
+        &#34;&#34;&#34;
+
+        attrs = {
+            &#34;is_backlog_activated&#34;: False,
+            &#34;is_issues_activated&#34;: True,
+            &#34;is_kanban_activated&#34;: True,
+            &#34;is_private&#34;: False,
+            &#34;is_wiki_activated&#34;: True,
+        }
+        issues_types = [&#34;Bug&#34;, &#34;Question&#34;, &#34;Enhancement&#34;]
+        severities = [&#34;Wishlist&#34;, &#34;Minor&#34;, &#34;Normal&#34;, &#34;Important&#34;, &#34;Critical&#34;]
+        priorities = None
+
+        story_statuses = [
+            &#34;New&#34;,
+            &#34;to-start&#34;,
+            &#34;in-progress&#34;,
+            &#34;Blocked&#34;,
+            &#34;Implemented&#34;,
+            &#34;Verified&#34;,
+            &#34;Archived&#34;,
+        ]
+        item_statuses = [&#34;New&#34;, &#34;to-start&#34;, &#34;in-progress&#34;, &#34;Blocked&#34;, &#34;Done&#34;]
+        issues_statuses = [
+            &#34;New&#34;,
+            &#34;to-start&#34;,
+            &#34;in-progress&#34;,
+            &#34;Blocked&#34;,
+            &#34;Implemented&#34;,
+            &#34;Closed&#34;,
+            &#34;Rejected&#34;,
+            &#34;Postponed&#34;,
+            &#34;Archived&#34;,
+        ]
+
+        return ProjectCircle(
+            self,
+            self._create_new_circle(
+                name,
+                type_=&#34;project&#34;,
+                description=description,
+                severities=severities,
+                issues_statuses=issues_statuses,
+                priorities=priorities,
+                issues_types=issues_types,
+                user_stories_statuses=story_statuses,
+                tasks_statuses=item_statuses,
+                **attrs,
+            ),
+        )
+
+    def create_new_team_circle(self, name, description=&#34;&#34;, **attrs):
+        &#34;&#34;&#34;Creates a new team circle. using sprints &amp; timeline (does not use kanban)
+
+        Args:
+            name (str): circle name
+            description (str, optional): circle description. Defaults to &#34;&#34;.
+            severities (List[str], optional): list of strings to represent severities. Defaults to None.
+            issues_statuses (List[str], optional): list of strings to represent issues_stauses. Defaults to None.
+            priorities (List[str], optional): list of strings to represent priorities. Defaults to None.
+            issues_types (List[str], optional): list of strings to represent issues types. Defaults to None.
+            user_stories_statuses (List[str], optional): list of strings to represent user stories. Defaults to None.
+            tasks_statuses (List[str], optional): list of strings to represent task statuses. Defaults to None.
+
+        Returns:
+            [TeamCircle]: team circle
+        &#34;&#34;&#34;
+
+        attrs = {
+            &#34;is_backlog_activated&#34;: True,
+            &#34;is_issues_activated&#34;: True,
+            &#34;is_kanban_activated&#34;: False,
+            &#34;is_private&#34;: False,
+            &#34;is_wiki_activated&#34;: True,
+        }
+        issues_types = [&#34;Bug&#34;, &#34;Question&#34;, &#34;Enhancement&#34;]
+        severities = [&#34;Wishlist&#34;, &#34;Minor&#34;, &#34;Normal&#34;, &#34;Important&#34;, &#34;Critical&#34;]
+        priorities = None
+
+        story_statuses = [
+            &#34;New&#34;,
+            &#34;to-start&#34;,
+            &#34;in-progress&#34;,
+            &#34;Blocked&#34;,
+            &#34;Implemented&#34;,
+            &#34;Verified&#34;,
+            &#34;Archived&#34;,
+        ]
+        item_statuses = [&#34;New&#34;, &#34;to-start&#34;, &#34;in-progress&#34;, &#34;Blocked&#34;, &#34;Done&#34;]
+        issues_statuses = [
+            &#34;New&#34;,
+            &#34;to-start&#34;,
+            &#34;in-progress&#34;,
+            &#34;Blocked&#34;,
+            &#34;Implemented&#34;,
+            &#34;Closed&#34;,
+            &#34;Rejected&#34;,
+            &#34;Postponed&#34;,
+            &#34;Archived&#34;,
+        ]
+
+        return TeamCircle(
+            self,
+            self._create_new_circle(
+                name,
+                type_=&#34;team&#34;,
+                description=description,
+                severities=severities,
+                issues_statuses=issues_statuses,
+                priorities=priorities,
+                issues_types=issues_types,
+                user_stories_statuses=story_statuses,
+                tasks_statuses=item_statuses,
+                **attrs,
+            ),
+        )
+
+    def create_new_funnel_circle(self, name, description=&#34;&#34;, **attrs):
+        &#34;&#34;&#34;Creates a new funnel circle. using sprints &amp; timeline (does not use kanban)
+
+        Args:
+            name (str): circle name
+            description (str, optional): circle description. Defaults to &#34;&#34;.
+
+        Returns:
+            [FunnelCircle]: funnel circle
+        &#34;&#34;&#34;
+        attrs = {
+            &#34;is_backlog_activated&#34;: False,
+            &#34;is_issues_activated&#34;: True,
+            &#34;is_kanban_activated&#34;: True,
+            &#34;is_private&#34;: False,
+            &#34;is_wiki_activated&#34;: True,
+        }
+
+        severities = [&#34;unknown&#34;, &#34;low&#34;, &#34;25%&#34;, &#34;50%&#34;, &#34;75%&#34;, &#34;90%&#34;]
+        priorities = [&#34;Low&#34;, &#34;Normal&#34;, &#34;High&#34;]
+        issues_types = &#34;opportunity&#34;
+
+        issues_statuses = [
+            &#34;New&#34;,
+            &#34;Interested&#34;,
+            &#34;Deal&#34;,
+            &#34;Blocked&#34;,
+            &#34;NeedInfo&#34;,
+            &#34;Lost&#34;,
+            &#34;Postponed&#34;,
+            &#34;Won&#34;,
+        ]
+        story_statuses = [
+            &#34;New&#34;,
+            &#34;Proposal&#34;,
+            &#34;Contract&#34;,
+            &#34;Blocked&#34;,
+            &#34;NeedInfo&#34;,
+            &#34;Closed&#34;,
+        ]
+        task_statuses = [&#34;New&#34;, &#34;In progress&#34;, &#34;Verification&#34;, &#34;Needs info&#34;, &#34;Closed&#34;]
+
+        custom_fields = [&#34;bookings&#34;, &#34;commission&#34;]
+
+        return FunnelCircle(
+            self,
+            self._create_new_circle(
+                name,
+                type_=&#34;funnel&#34;,
+                description=description,
+                severities=severities,
+                issues_statuses=issues_statuses,
+                priorities=priorities,
+                issues_types=issues_types,
+                user_stories_statuses=story_statuses,
+                tasks_statuses=task_statuses,
+                custom_fields=custom_fields,
+                **attrs,
+            ),
+        )
+
+    def export_circles_as_md(self, wikipath=&#34;/tmp/taigawiki&#34;, modified_only=True, full_info=False):
+        &#34;&#34;&#34;export circles into {wikipath}/src/circles
+        HINT: Using full_info will take longer time
+
+        Args:
+            wikipath (str, optional): wiki path. Defaults to &#34;/tmp/taigawiki&#34;.
+            full_info (bool): export object with full info. Defaults to False
+        &#34;&#34;&#34;
+        path = j.sals.fs.join_paths(wikipath, &#34;src&#34;, &#34;circles&#34;)
+
+        j.sals.fs.mkdirs(path)
+        circles = self.list_all_active_projects(full_info=full_info)
+
+        def write_md_for_circle(circle):
+            circle_md = circle.as_md
+            circle_mdpath = j.sals.fs.join_paths(path, f&#34;{circle.clean_name}.md&#34;)
+            if not (
+                modified_only and j.sals.fs.exists(circle_mdpath) and j.sals.fs.read_ascii(circle_mdpath) == circle_md
+            ):
+                j.sals.fs.write_ascii(circle_mdpath, circle_md)
+
+        circles_mdpath = j.sals.fs.join_paths(path, &#34;circles.md&#34;)
+        circles_mdcontent = &#34;# circles\n\n&#34;
+        for c in circles:
+            circles_mdcontent += f&#34;- [{c.name}](./{c.clean_name}.md)\n&#34;
+
+        j.sals.fs.write_ascii(circles_mdpath, circles_mdcontent)
+
+        greenlets = [gevent.spawn(write_md_for_circle, gcircle_obj) for gcircle_obj in circles]
+        gevent.joinall(greenlets)
+
+    def export_users_as_md(self, wikipath=&#34;/tmp/taigawiki&#34;, modified_only=True, full_info=False):
+        &#34;&#34;&#34;export users into {wikipath}/src/users
+        HINT: Using full_info will take longer time
+
+        Args:
+            wikipath (str, optional): wiki path. Defaults to &#34;/tmp/taigawiki&#34;.
+            modified_only (bool): export moidified objects only
+            full_info (bool): export object with full info. Defaults to False
+        &#34;&#34;&#34;
+
+        path = j.sals.fs.join_paths(wikipath, &#34;src&#34;, &#34;users&#34;)
+        j.sals.fs.mkdirs(path)
+        users_objects = self.list_all_users(full_info=full_info)
+
+        users_mdpath = j.sals.fs.join_paths(path, &#34;users.md&#34;)
+        users_mdcontent = &#34;# users\n\n&#34;
+
+        def write_md_for_user(user):
+            user_md = user.as_md
+            user_mdpath = j.sals.fs.join_paths(path, f&#34;{user.clean_name}.md&#34;)
+            if not (modified_only and j.sals.fs.exists(user_mdpath) and j.sals.fs.read_ascii(user_mdpath) == user_md):
+                j.sals.fs.write_ascii(user_mdpath, user_md)
+
+        for u in users_objects:
+            users_mdcontent += f&#34;- [{u.username}](./{u.clean_name}.md)\n&#34;
+
+        j.sals.fs.write_ascii(users_mdpath, users_mdcontent)
+
+        greenlets = [gevent.spawn(write_md_for_user, guser_obj) for guser_obj in users_objects]
+        gevent.joinall(greenlets)
+
+    def export_as_md(self, wiki_path=&#34;/tmp/taigawiki&#34;, modified_only: bool = True, full_info=False):
+        &#34;&#34;&#34;export taiga instance into a wiki  showing users and circles
+        HINT: Using full_info will take longer time
+
+        Args:
+            wiki_src_path (str, optional): wiki path. Defaults to &#34;/tmp/taigawiki&#34;.
+            modified_only (bool): write modified objects only. Defaults to True
+            full_info (bool): export object with full info. Defaults to False
+        &#34;&#34;&#34;
+        j.logger.info(&#34;Start Exporting Wiki ...&#34;)
+        gs = []
+        gs.append(gevent.spawn(self.export_circles_as_md, wiki_path, modified_only, full_info))
+        gs.append(gevent.spawn(self.export_users_as_md, wiki_path, modified_only, full_info))
+        gevent.joinall(gs)
+
+        template_file = j.sals.fs.join_paths(Path(__file__).parent, &#34;template.html&#34;)
+        index_html_path = j.sals.fs.join_paths(wiki_path, &#34;src&#34;, &#34;index.html&#34;)
+        readme_md_path = j.sals.fs.join_paths(wiki_path, &#34;src&#34;, &#34;README.md&#34;)
+        sidebar_md_path = j.sals.fs.join_paths(wiki_path, &#34;src&#34;, &#34;_sidebar.md&#34;)
+        content = dedent(
+            f&#34;&#34;&#34;
+            # Taiga overview
+
+            - [circles](./circles/circles.md)
+            - [users](./users/users.md)
+        &#34;&#34;&#34;
+        )
+        j.sals.fs.write_ascii(readme_md_path, content)
+        j.sals.fs.write_ascii(sidebar_md_path, content)
+        j.sals.fs.copy_file(template_file, index_html_path)
+        j.logger.info(f&#34;Exported at {wiki_path}&#34;)
+
+    def export_as_md_periodically(
+        self, wiki_path=&#34;/tmp/taigawiki&#34;, period: int = 300, modified_only: bool = True, full_info=False
+    ):
+        &#34;&#34;&#34;export taiga instance into a wiki  showing users and circles periodically
+        HINT: Using full_info will take longer time
+
+        Args:
+            wiki_path (str, optional): wiki path. Defaults to &#34;/tmp/taigawiki&#34;.
+            period (int): Time to wait between each export in &#34;Seconds&#34;. Defaults to 300 (5 Min).
+            modified_only (bool): write modified objects only.. Defaults to True.
+            full_info (bool): export object with full info. Defaults to False
+
+        &#34;&#34;&#34;
+        repeater = Event()
+        while True:
+            j.logger.info(&#34;Start Exporting ....&#34;)
+            self.export_as_md(wiki_path, modified_only, full_info)
+            j.logger.info(f&#34;Exported at {wiki_path}&#34;)
+            repeater.wait(period)
+
+    def export_as_yaml(self, export_dir=&#34;/tmp/export_dir&#34;, full_info=False):
+        &#34;&#34;&#34;export taiga instance [Circle, Story, Issue, Task , User] into a yaml files
+        HINT: Using full_info will take longer time
+
+        Args:
+            export_dir (str, optional): [description]. Defaults to &#34;/tmp/export_dir&#34;.
+            full_info (bool): export object with full info. Defaults to False
+        &#34;&#34;&#34;
+
+        def _export_objects_to_dir(objects_dir, objects_fun, full_info):
+            j.sals.fs.mkdirs(objects_dir)
+            objects = objects_fun(full_info=full_info)
+            for obj in objects:
+                try:
+                    outpath = j.sals.fs.join_paths(objects_dir, f&#34;{obj.id}.yaml&#34;)
+                    j.sals.fs.write_ascii(outpath, obj.as_yaml)
+
+                except Exception as e:
+                    import traceback
+
+                    traceback.print_exc()
+                    j.logger.error(e)
+                    j.logger.error(f&#34;{type(obj)}: {obj.id}&#34;)
+
+        projects_path = j.sals.fs.join_paths(export_dir, &#34;projects&#34;)
+        stories_path = j.sals.fs.join_paths(export_dir, &#34;stories&#34;)
+        issues_path = j.sals.fs.join_paths(export_dir, &#34;issues&#34;)
+        tasks_path = j.sals.fs.join_paths(export_dir, &#34;tasks&#34;)
+        # Milestones is not one of our model objects
+        # milestones_path = j.sals.fs.join_paths(export_dir, &#34;milestones&#34;)
+        users_path = j.sals.fs.join_paths(export_dir, &#34;users&#34;)
+
+        def on_err(*args, **kwargs):
+            print(&#34;err, &#34;, args, kwargs)
+
+        j.logger.info(&#34;Start Export as YAML&#34;)
+
+        gs = []
+        gs.append(gevent.spawn(_export_objects_to_dir, projects_path, self.list_all_active_projects, full_info))
+        gs.append(gevent.spawn(_export_objects_to_dir, stories_path, self.list_all_user_stories, full_info))
+        gs.append(gevent.spawn(_export_objects_to_dir, issues_path, self.list_all_issues, full_info))
+        # Milestones is not one of our model objects
+        # gs.append(gevent.spawn(_export_objects_to_dir, milestones_path, self.list_all_milestones)
+        gs.append(gevent.spawn(_export_objects_to_dir, users_path, self.list_all_users, full_info))
+        gs.append(gevent.spawn(_export_objects_to_dir, tasks_path, self.list_all_tasks, full_info))
+        gevent.joinall(gs)
+
+        j.logger.info(&#34;Finish Export as YAML&#34;)
+
+    def import_from_yaml(self, import_dir=&#34;/tmp/export_dir&#34;):
+        &#34;&#34;&#34;Import Circle with all stories, issues and tasks from yaml files
+
+        Args:
+            import_dir (str): import directory path. Defaults to &#34;/tmp/export_dir&#34;.
+        &#34;&#34;&#34;
+        # Helper Functions
+        def check_by_name(list_obj, name_to_find):
+            for obj in list_obj:
+                if obj.name == name_to_find:
+                    return obj.id
+
+            return list_obj[0].id
+
+        def import_circle(self, yaml_obj):
+            circle = None
+            # Funnel Circle
+            if yaml_obj[&#34;basic_info&#34;][&#34;name&#34;].lower() == &#34;funnel&#34;:
+                circle = self.create_new_funnel_circle(
+                    yaml_obj[&#34;basic_info&#34;][&#34;name&#34;], yaml_obj[&#34;basic_info&#34;][&#34;description&#34;],
+                )
+            # Team Circle
+            elif yaml_obj[&#34;basic_info&#34;][&#34;name&#34;].lower() == &#34;team&#34;:
+                circle = self.create_new_team_circle(
+                    yaml_obj[&#34;basic_info&#34;][&#34;name&#34;], yaml_obj[&#34;basic_info&#34;][&#34;description&#34;],
+                )
+            # Project Circle
+            elif yaml_obj[&#34;basic_info&#34;][&#34;name&#34;].lower() == &#34;project&#34;:
+                circle = self.create_new_project_circle(
+                    yaml_obj[&#34;basic_info&#34;][&#34;name&#34;], yaml_obj[&#34;basic_info&#34;][&#34;description&#34;],
+                )
+            # Any Other Circle
+            else:
+                circle = self._create_new_circle(yaml_obj[&#34;basic_info&#34;][&#34;name&#34;], yaml_obj[&#34;basic_info&#34;][&#34;description&#34;],)
+                circle.is_backlog_activated = yaml_obj[&#34;modules&#34;][&#34;is_backlog_activated&#34;]
+                circle.is_issues_activated = yaml_obj[&#34;modules&#34;][&#34;is_issues_activated&#34;]
+                circle.is_kanban_activated = yaml_obj[&#34;modules&#34;][&#34;is_kanban_activated&#34;]
+                circle.is_wiki_activated = yaml_obj[&#34;modules&#34;][&#34;is_wiki_activated&#34;]
+
+            circle.is_private = yaml_obj[&#34;basic_info&#34;][&#34;is_private&#34;]
+            circle.videoconferences = yaml_obj[&#34;modules&#34;][&#34;videoconferences&#34;]
+            for issue_attr in yaml_obj[&#34;issues_attributes&#34;]:
+                circle.add_issue_attribute(issue_attr)
+            for us_attr in yaml_obj[&#34;stories_attributes&#34;]:
+                circle.add_user_story_attribute(us_attr)
+            return circle
+
+        def import_story(circle_object, yaml_obj):
+            status_id = check_by_name(circle_object.us_statuses, yaml_obj[&#34;status&#34;][&#34;name&#34;])
+
+            story = circle_object.add_user_story(
+                yaml_obj[&#34;basic_info&#34;].get(&#34;subject&#34;),
+                tags=yaml_obj[&#34;basic_info&#34;].get(&#34;tags&#34;),
+                description=yaml_obj[&#34;basic_info&#34;].get(&#34;description&#34;, &#34;&#34;),
+                client_requirement=yaml_obj[&#34;requirements&#34;].get(&#34;client_requirement&#34;),
+                team_requirement=yaml_obj[&#34;requirements&#34;].get(&#34;team_requirement&#34;),
+                is_blocked=yaml_obj[&#34;additional_info&#34;].get(&#34;is_blocked&#34;),
+                due_date=yaml_obj[&#34;date&#34;].get(&#34;due_date&#34;),
+                status=status_id,
+            )
+
+            for field in yaml_obj.get(&#34;custom_fields&#34;, []):
+                for attr in circle_object.list_user_story_attributes():
+                    if attr.name == field[&#34;name&#34;]:
+                        story.set_attribute(attr.id, field[&#34;value&#34;])
+                        break
+            return story
+
+        def import_issue(circle_object, yaml_obj):
+            priority_id = check_by_name(circle_object.priorities, yaml_obj[&#34;priority&#34;][&#34;name&#34;])
+            status_id = check_by_name(circle_object.issue_statuses, yaml_obj[&#34;status&#34;][&#34;name&#34;])
+            type_id = check_by_name(circle_object.issue_types, yaml_obj[&#34;type&#34;][&#34;name&#34;])
+            severity_id = check_by_name(circle_object.severities, yaml_obj[&#34;severity&#34;][&#34;name&#34;])
+            issue = circle_object.add_issue(
+                yaml_obj[&#34;basic_info&#34;][&#34;subject&#34;],
+                priority_id,
+                status_id,
+                type_id,
+                severity_id,
+                description=yaml_obj[&#34;basic_info&#34;].get(&#34;description&#34;),
+            )
+
+            for field in yaml_obj[&#34;custom_fields&#34;]:
+                for attr in circle_object.list_issue_attributes():
+                    if attr.name == field[&#34;name&#34;]:
+                        issue.set_attribute(attr.id, field[&#34;value&#34;])
+                        break
+            return issue
+
+        def import_tasks(circle_object, story_object, yaml_obj):
+            status_id = check_by_name(circle_object.task_statuses, yaml_obj[&#34;status&#34;][&#34;name&#34;])
+            task = story_object.add_task(
+                yaml_obj[&#34;basic_info&#34;].get(&#34;subject&#34;),
+                status_id,
+                description=yaml_obj[&#34;basic_info&#34;].get(&#34;description&#34;, &#34;&#34;),
+                tags=yaml_obj[&#34;basic_info&#34;].get(&#34;tags&#34;),
+            )
+            return task
+
+        # Folders Path
+        projects_path = j.sals.fs.join_paths(import_dir, &#34;projects&#34;)
+        stories_path = j.sals.fs.join_paths(import_dir, &#34;stories&#34;)
+        issues_path = j.sals.fs.join_paths(import_dir, &#34;issues&#34;)
+        tasks_path = j.sals.fs.join_paths(import_dir, &#34;tasks&#34;)
+
+        # List of Files inside project Folder
+        projects = j.sals.fs.os.listdir(projects_path)
+
+        for project_file in projects:
+            if project_file.endswith(&#34;.yaml&#34;) or project_file.endswith(&#34;.yml&#34;):
+                with open(j.sals.fs.join_paths(projects_path, project_file)) as pf:
+                    circle_yaml = yaml.full_load(pf)
+                    circle_obj = import_circle(self, circle_yaml)
+                    j.logger.info(f&#34;&lt;Circle {circle_obj.id} Created&gt;&#34;)
+
+                    for story in circle_yaml[&#34;stories&#34;]:
+                        with open(j.sals.fs.join_paths(stories_path, f&#34;{story}.yaml&#34;)) as sf:
+                            story_yaml = yaml.full_load(sf)
+                            story_obj = import_story(circle_obj, story_yaml)
+                            j.logger.info(f&#34;&lt;Story {story_obj.id} Created in Circle {circle_obj.id}&gt;&#34;)
+
+                            for task in story_yaml[&#34;tasks&#34;]:
+                                with open(j.sals.fs.join_paths(tasks_path, f&#34;{task}.yaml&#34;)) as tf:
+                                    task_yaml = yaml.full_load(tf)
+                                    task_obj = import_tasks(circle_obj, story_obj, task_yaml)
+                                    j.logger.info(f&#34;&lt;Task {task_obj.id} Created in Story {story_obj.id}&gt;&#34;)
+                                    task_obj.update()
+                            story_obj.update()
+
+                    for issue in circle_yaml[&#34;issues&#34;]:
+                        with open(j.sals.fs.join_paths(issues_path, f&#34;{issue}.yaml&#34;)) as isf:
+                            issue_yaml = yaml.full_load(isf)
+                            issue_obj = import_issue(circle_obj, issue_yaml)
+                            j.logger.info(f&#34;&lt;Issue {issue_obj.id} Created in Circle {circle_obj.id}&gt;&#34;)
+                            issue_obj.update()
+
+                    circle_obj.update()
+                    j.logger.info(f&#34;&lt;Circle {circle_obj.id} Imported with All Stories and Issues&#34;)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -620,6 +2856,522 @@ and will get the default value if not</p>
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.create_new_funnel_circle"><code class="name flex">
+<span>def <span class="ident">create_new_funnel_circle</span></span>(<span>self, name, description=&#39;&#39;, **attrs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Creates a new funnel circle. using sprints &amp; timeline (does not use kanban)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>circle name</dd>
+<dt><strong><code>description</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>circle description. Defaults to "".</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>[FunnelCircle]: funnel circle</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def create_new_funnel_circle(self, name, description=&#34;&#34;, **attrs):
+    &#34;&#34;&#34;Creates a new funnel circle. using sprints &amp; timeline (does not use kanban)
+
+    Args:
+        name (str): circle name
+        description (str, optional): circle description. Defaults to &#34;&#34;.
+
+    Returns:
+        [FunnelCircle]: funnel circle
+    &#34;&#34;&#34;
+    attrs = {
+        &#34;is_backlog_activated&#34;: False,
+        &#34;is_issues_activated&#34;: True,
+        &#34;is_kanban_activated&#34;: True,
+        &#34;is_private&#34;: False,
+        &#34;is_wiki_activated&#34;: True,
+    }
+
+    severities = [&#34;unknown&#34;, &#34;low&#34;, &#34;25%&#34;, &#34;50%&#34;, &#34;75%&#34;, &#34;90%&#34;]
+    priorities = [&#34;Low&#34;, &#34;Normal&#34;, &#34;High&#34;]
+    issues_types = &#34;opportunity&#34;
+
+    issues_statuses = [
+        &#34;New&#34;,
+        &#34;Interested&#34;,
+        &#34;Deal&#34;,
+        &#34;Blocked&#34;,
+        &#34;NeedInfo&#34;,
+        &#34;Lost&#34;,
+        &#34;Postponed&#34;,
+        &#34;Won&#34;,
+    ]
+    story_statuses = [
+        &#34;New&#34;,
+        &#34;Proposal&#34;,
+        &#34;Contract&#34;,
+        &#34;Blocked&#34;,
+        &#34;NeedInfo&#34;,
+        &#34;Closed&#34;,
+    ]
+    task_statuses = [&#34;New&#34;, &#34;In progress&#34;, &#34;Verification&#34;, &#34;Needs info&#34;, &#34;Closed&#34;]
+
+    custom_fields = [&#34;bookings&#34;, &#34;commission&#34;]
+
+    return FunnelCircle(
+        self,
+        self._create_new_circle(
+            name,
+            type_=&#34;funnel&#34;,
+            description=description,
+            severities=severities,
+            issues_statuses=issues_statuses,
+            priorities=priorities,
+            issues_types=issues_types,
+            user_stories_statuses=story_statuses,
+            tasks_statuses=task_statuses,
+            custom_fields=custom_fields,
+            **attrs,
+        ),
+    )</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.create_new_project_circle"><code class="name flex">
+<span>def <span class="ident">create_new_project_circle</span></span>(<span>self, name, description=&#39;&#39;, **attrs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Creates a new project circle.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>circle name</dd>
+<dt><strong><code>description</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>circle description. Defaults to "".</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>[ProjectCircle]: Project circle</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def create_new_project_circle(
+    self, name, description=&#34;&#34;, **attrs,
+):
+    &#34;&#34;&#34;Creates a new project circle.
+
+    Args:
+        name (str): circle name
+        description (str, optional): circle description. Defaults to &#34;&#34;.
+
+    Returns:
+        [ProjectCircle]: Project circle
+    &#34;&#34;&#34;
+
+    attrs = {
+        &#34;is_backlog_activated&#34;: False,
+        &#34;is_issues_activated&#34;: True,
+        &#34;is_kanban_activated&#34;: True,
+        &#34;is_private&#34;: False,
+        &#34;is_wiki_activated&#34;: True,
+    }
+    issues_types = [&#34;Bug&#34;, &#34;Question&#34;, &#34;Enhancement&#34;]
+    severities = [&#34;Wishlist&#34;, &#34;Minor&#34;, &#34;Normal&#34;, &#34;Important&#34;, &#34;Critical&#34;]
+    priorities = None
+
+    story_statuses = [
+        &#34;New&#34;,
+        &#34;to-start&#34;,
+        &#34;in-progress&#34;,
+        &#34;Blocked&#34;,
+        &#34;Implemented&#34;,
+        &#34;Verified&#34;,
+        &#34;Archived&#34;,
+    ]
+    item_statuses = [&#34;New&#34;, &#34;to-start&#34;, &#34;in-progress&#34;, &#34;Blocked&#34;, &#34;Done&#34;]
+    issues_statuses = [
+        &#34;New&#34;,
+        &#34;to-start&#34;,
+        &#34;in-progress&#34;,
+        &#34;Blocked&#34;,
+        &#34;Implemented&#34;,
+        &#34;Closed&#34;,
+        &#34;Rejected&#34;,
+        &#34;Postponed&#34;,
+        &#34;Archived&#34;,
+    ]
+
+    return ProjectCircle(
+        self,
+        self._create_new_circle(
+            name,
+            type_=&#34;project&#34;,
+            description=description,
+            severities=severities,
+            issues_statuses=issues_statuses,
+            priorities=priorities,
+            issues_types=issues_types,
+            user_stories_statuses=story_statuses,
+            tasks_statuses=item_statuses,
+            **attrs,
+        ),
+    )</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.create_new_team_circle"><code class="name flex">
+<span>def <span class="ident">create_new_team_circle</span></span>(<span>self, name, description=&#39;&#39;, **attrs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Creates a new team circle. using sprints &amp; timeline (does not use kanban)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>circle name</dd>
+<dt><strong><code>description</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>circle description. Defaults to "".</dd>
+<dt><strong><code>severities</code></strong> :&ensp;<code>List</code>[<code>str</code>], optional</dt>
+<dd>list of strings to represent severities. Defaults to None.</dd>
+<dt><strong><code>issues_statuses</code></strong> :&ensp;<code>List</code>[<code>str</code>], optional</dt>
+<dd>list of strings to represent issues_stauses. Defaults to None.</dd>
+<dt><strong><code>priorities</code></strong> :&ensp;<code>List</code>[<code>str</code>], optional</dt>
+<dd>list of strings to represent priorities. Defaults to None.</dd>
+<dt><strong><code>issues_types</code></strong> :&ensp;<code>List</code>[<code>str</code>], optional</dt>
+<dd>list of strings to represent issues types. Defaults to None.</dd>
+<dt><strong><code>user_stories_statuses</code></strong> :&ensp;<code>List</code>[<code>str</code>], optional</dt>
+<dd>list of strings to represent user stories. Defaults to None.</dd>
+<dt><strong><code>tasks_statuses</code></strong> :&ensp;<code>List</code>[<code>str</code>], optional</dt>
+<dd>list of strings to represent task statuses. Defaults to None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>[TeamCircle]: team circle</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def create_new_team_circle(self, name, description=&#34;&#34;, **attrs):
+    &#34;&#34;&#34;Creates a new team circle. using sprints &amp; timeline (does not use kanban)
+
+    Args:
+        name (str): circle name
+        description (str, optional): circle description. Defaults to &#34;&#34;.
+        severities (List[str], optional): list of strings to represent severities. Defaults to None.
+        issues_statuses (List[str], optional): list of strings to represent issues_stauses. Defaults to None.
+        priorities (List[str], optional): list of strings to represent priorities. Defaults to None.
+        issues_types (List[str], optional): list of strings to represent issues types. Defaults to None.
+        user_stories_statuses (List[str], optional): list of strings to represent user stories. Defaults to None.
+        tasks_statuses (List[str], optional): list of strings to represent task statuses. Defaults to None.
+
+    Returns:
+        [TeamCircle]: team circle
+    &#34;&#34;&#34;
+
+    attrs = {
+        &#34;is_backlog_activated&#34;: True,
+        &#34;is_issues_activated&#34;: True,
+        &#34;is_kanban_activated&#34;: False,
+        &#34;is_private&#34;: False,
+        &#34;is_wiki_activated&#34;: True,
+    }
+    issues_types = [&#34;Bug&#34;, &#34;Question&#34;, &#34;Enhancement&#34;]
+    severities = [&#34;Wishlist&#34;, &#34;Minor&#34;, &#34;Normal&#34;, &#34;Important&#34;, &#34;Critical&#34;]
+    priorities = None
+
+    story_statuses = [
+        &#34;New&#34;,
+        &#34;to-start&#34;,
+        &#34;in-progress&#34;,
+        &#34;Blocked&#34;,
+        &#34;Implemented&#34;,
+        &#34;Verified&#34;,
+        &#34;Archived&#34;,
+    ]
+    item_statuses = [&#34;New&#34;, &#34;to-start&#34;, &#34;in-progress&#34;, &#34;Blocked&#34;, &#34;Done&#34;]
+    issues_statuses = [
+        &#34;New&#34;,
+        &#34;to-start&#34;,
+        &#34;in-progress&#34;,
+        &#34;Blocked&#34;,
+        &#34;Implemented&#34;,
+        &#34;Closed&#34;,
+        &#34;Rejected&#34;,
+        &#34;Postponed&#34;,
+        &#34;Archived&#34;,
+    ]
+
+    return TeamCircle(
+        self,
+        self._create_new_circle(
+            name,
+            type_=&#34;team&#34;,
+            description=description,
+            severities=severities,
+            issues_statuses=issues_statuses,
+            priorities=priorities,
+            issues_types=issues_types,
+            user_stories_statuses=story_statuses,
+            tasks_statuses=item_statuses,
+            **attrs,
+        ),
+    )</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.credential_updated"><code class="name flex">
+<span>def <span class="ident">credential_updated</span></span>(<span>self, value)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def credential_updated(self, value):
+    self._api = None</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.export_as_md"><code class="name flex">
+<span>def <span class="ident">export_as_md</span></span>(<span>self, wiki_path=&#39;/tmp/taigawiki&#39;, modified_only=True, full_info=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>export taiga instance into a wiki
+showing users and circles
+HINT: Using full_info will take longer time</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>wiki_src_path</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>wiki path. Defaults to "/tmp/taigawiki".</dd>
+<dt><strong><code>modified_only</code></strong> :&ensp;<code>bool</code></dt>
+<dd>write modified objects only. Defaults to True</dd>
+<dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
+<dd>export object with full info. Defaults to False</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def export_as_md(self, wiki_path=&#34;/tmp/taigawiki&#34;, modified_only: bool = True, full_info=False):
+    &#34;&#34;&#34;export taiga instance into a wiki  showing users and circles
+    HINT: Using full_info will take longer time
+
+    Args:
+        wiki_src_path (str, optional): wiki path. Defaults to &#34;/tmp/taigawiki&#34;.
+        modified_only (bool): write modified objects only. Defaults to True
+        full_info (bool): export object with full info. Defaults to False
+    &#34;&#34;&#34;
+    j.logger.info(&#34;Start Exporting Wiki ...&#34;)
+    gs = []
+    gs.append(gevent.spawn(self.export_circles_as_md, wiki_path, modified_only, full_info))
+    gs.append(gevent.spawn(self.export_users_as_md, wiki_path, modified_only, full_info))
+    gevent.joinall(gs)
+
+    template_file = j.sals.fs.join_paths(Path(__file__).parent, &#34;template.html&#34;)
+    index_html_path = j.sals.fs.join_paths(wiki_path, &#34;src&#34;, &#34;index.html&#34;)
+    readme_md_path = j.sals.fs.join_paths(wiki_path, &#34;src&#34;, &#34;README.md&#34;)
+    sidebar_md_path = j.sals.fs.join_paths(wiki_path, &#34;src&#34;, &#34;_sidebar.md&#34;)
+    content = dedent(
+        f&#34;&#34;&#34;
+        # Taiga overview
+
+        - [circles](./circles/circles.md)
+        - [users](./users/users.md)
+    &#34;&#34;&#34;
+    )
+    j.sals.fs.write_ascii(readme_md_path, content)
+    j.sals.fs.write_ascii(sidebar_md_path, content)
+    j.sals.fs.copy_file(template_file, index_html_path)
+    j.logger.info(f&#34;Exported at {wiki_path}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.export_as_md_periodically"><code class="name flex">
+<span>def <span class="ident">export_as_md_periodically</span></span>(<span>self, wiki_path=&#39;/tmp/taigawiki&#39;, period=300, modified_only=True, full_info=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>export taiga instance into a wiki
+showing users and circles periodically
+HINT: Using full_info will take longer time</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>wiki_path</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>wiki path. Defaults to "/tmp/taigawiki".</dd>
+<dt><strong><code>period</code></strong> :&ensp;<code>int</code></dt>
+<dd>Time to wait between each export in "Seconds". Defaults to 300 (5 Min).</dd>
+<dt><strong><code>modified_only</code></strong> :&ensp;<code>bool</code></dt>
+<dd>write modified objects only.. Defaults to True.</dd>
+<dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
+<dd>export object with full info. Defaults to False</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def export_as_md_periodically(
+    self, wiki_path=&#34;/tmp/taigawiki&#34;, period: int = 300, modified_only: bool = True, full_info=False
+):
+    &#34;&#34;&#34;export taiga instance into a wiki  showing users and circles periodically
+    HINT: Using full_info will take longer time
+
+    Args:
+        wiki_path (str, optional): wiki path. Defaults to &#34;/tmp/taigawiki&#34;.
+        period (int): Time to wait between each export in &#34;Seconds&#34;. Defaults to 300 (5 Min).
+        modified_only (bool): write modified objects only.. Defaults to True.
+        full_info (bool): export object with full info. Defaults to False
+
+    &#34;&#34;&#34;
+    repeater = Event()
+    while True:
+        j.logger.info(&#34;Start Exporting ....&#34;)
+        self.export_as_md(wiki_path, modified_only, full_info)
+        j.logger.info(f&#34;Exported at {wiki_path}&#34;)
+        repeater.wait(period)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.export_as_yaml"><code class="name flex">
+<span>def <span class="ident">export_as_yaml</span></span>(<span>self, export_dir=&#39;/tmp/export_dir&#39;, full_info=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>export taiga instance [Circle, Story, Issue, Task , User] into a yaml files
+HINT: Using full_info will take longer time</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>export_dir</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>[description]. Defaults to "/tmp/export_dir".</dd>
+<dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
+<dd>export object with full info. Defaults to False</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def export_as_yaml(self, export_dir=&#34;/tmp/export_dir&#34;, full_info=False):
+    &#34;&#34;&#34;export taiga instance [Circle, Story, Issue, Task , User] into a yaml files
+    HINT: Using full_info will take longer time
+
+    Args:
+        export_dir (str, optional): [description]. Defaults to &#34;/tmp/export_dir&#34;.
+        full_info (bool): export object with full info. Defaults to False
+    &#34;&#34;&#34;
+
+    def _export_objects_to_dir(objects_dir, objects_fun, full_info):
+        j.sals.fs.mkdirs(objects_dir)
+        objects = objects_fun(full_info=full_info)
+        for obj in objects:
+            try:
+                outpath = j.sals.fs.join_paths(objects_dir, f&#34;{obj.id}.yaml&#34;)
+                j.sals.fs.write_ascii(outpath, obj.as_yaml)
+
+            except Exception as e:
+                import traceback
+
+                traceback.print_exc()
+                j.logger.error(e)
+                j.logger.error(f&#34;{type(obj)}: {obj.id}&#34;)
+
+    projects_path = j.sals.fs.join_paths(export_dir, &#34;projects&#34;)
+    stories_path = j.sals.fs.join_paths(export_dir, &#34;stories&#34;)
+    issues_path = j.sals.fs.join_paths(export_dir, &#34;issues&#34;)
+    tasks_path = j.sals.fs.join_paths(export_dir, &#34;tasks&#34;)
+    # Milestones is not one of our model objects
+    # milestones_path = j.sals.fs.join_paths(export_dir, &#34;milestones&#34;)
+    users_path = j.sals.fs.join_paths(export_dir, &#34;users&#34;)
+
+    def on_err(*args, **kwargs):
+        print(&#34;err, &#34;, args, kwargs)
+
+    j.logger.info(&#34;Start Export as YAML&#34;)
+
+    gs = []
+    gs.append(gevent.spawn(_export_objects_to_dir, projects_path, self.list_all_active_projects, full_info))
+    gs.append(gevent.spawn(_export_objects_to_dir, stories_path, self.list_all_user_stories, full_info))
+    gs.append(gevent.spawn(_export_objects_to_dir, issues_path, self.list_all_issues, full_info))
+    # Milestones is not one of our model objects
+    # gs.append(gevent.spawn(_export_objects_to_dir, milestones_path, self.list_all_milestones)
+    gs.append(gevent.spawn(_export_objects_to_dir, users_path, self.list_all_users, full_info))
+    gs.append(gevent.spawn(_export_objects_to_dir, tasks_path, self.list_all_tasks, full_info))
+    gevent.joinall(gs)
+
+    j.logger.info(&#34;Finish Export as YAML&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.export_circles_as_md"><code class="name flex">
+<span>def <span class="ident">export_circles_as_md</span></span>(<span>self, wikipath=&#39;/tmp/taigawiki&#39;, modified_only=True, full_info=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>export circles into {wikipath}/src/circles
+HINT: Using full_info will take longer time</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>wikipath</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>wiki path. Defaults to "/tmp/taigawiki".</dd>
+<dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
+<dd>export object with full info. Defaults to False</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def export_circles_as_md(self, wikipath=&#34;/tmp/taigawiki&#34;, modified_only=True, full_info=False):
+    &#34;&#34;&#34;export circles into {wikipath}/src/circles
+    HINT: Using full_info will take longer time
+
+    Args:
+        wikipath (str, optional): wiki path. Defaults to &#34;/tmp/taigawiki&#34;.
+        full_info (bool): export object with full info. Defaults to False
+    &#34;&#34;&#34;
+    path = j.sals.fs.join_paths(wikipath, &#34;src&#34;, &#34;circles&#34;)
+
+    j.sals.fs.mkdirs(path)
+    circles = self.list_all_active_projects(full_info=full_info)
+
+    def write_md_for_circle(circle):
+        circle_md = circle.as_md
+        circle_mdpath = j.sals.fs.join_paths(path, f&#34;{circle.clean_name}.md&#34;)
+        if not (
+            modified_only and j.sals.fs.exists(circle_mdpath) and j.sals.fs.read_ascii(circle_mdpath) == circle_md
+        ):
+            j.sals.fs.write_ascii(circle_mdpath, circle_md)
+
+    circles_mdpath = j.sals.fs.join_paths(path, &#34;circles.md&#34;)
+    circles_mdcontent = &#34;# circles\n\n&#34;
+    for c in circles:
+        circles_mdcontent += f&#34;- [{c.name}](./{c.clean_name}.md)\n&#34;
+
+    j.sals.fs.write_ascii(circles_mdpath, circles_mdcontent)
+
+    greenlets = [gevent.spawn(write_md_for_circle, gcircle_obj) for gcircle_obj in circles]
+    gevent.joinall(greenlets)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.export_users_as_md"><code class="name flex">
+<span>def <span class="ident">export_users_as_md</span></span>(<span>self, wikipath=&#39;/tmp/taigawiki&#39;, modified_only=True, full_info=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>export users into {wikipath}/src/users
+HINT: Using full_info will take longer time</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>wikipath</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>wiki path. Defaults to "/tmp/taigawiki".</dd>
+<dt><strong><code>modified_only</code></strong> :&ensp;<code>bool</code></dt>
+<dd>export moidified objects only</dd>
+<dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
+<dd>export object with full info. Defaults to False</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def export_users_as_md(self, wikipath=&#34;/tmp/taigawiki&#34;, modified_only=True, full_info=False):
+    &#34;&#34;&#34;export users into {wikipath}/src/users
+    HINT: Using full_info will take longer time
+
+    Args:
+        wikipath (str, optional): wiki path. Defaults to &#34;/tmp/taigawiki&#34;.
+        modified_only (bool): export moidified objects only
+        full_info (bool): export object with full info. Defaults to False
+    &#34;&#34;&#34;
+
+    path = j.sals.fs.join_paths(wikipath, &#34;src&#34;, &#34;users&#34;)
+    j.sals.fs.mkdirs(path)
+    users_objects = self.list_all_users(full_info=full_info)
+
+    users_mdpath = j.sals.fs.join_paths(path, &#34;users.md&#34;)
+    users_mdcontent = &#34;# users\n\n&#34;
+
+    def write_md_for_user(user):
+        user_md = user.as_md
+        user_mdpath = j.sals.fs.join_paths(path, f&#34;{user.clean_name}.md&#34;)
+        if not (modified_only and j.sals.fs.exists(user_mdpath) and j.sals.fs.read_ascii(user_mdpath) == user_md):
+            j.sals.fs.write_ascii(user_mdpath, user_md)
+
+    for u in users_objects:
+        users_mdcontent += f&#34;- [{u.username}](./{u.clean_name}.md)\n&#34;
+
+    j.sals.fs.write_ascii(users_mdpath, users_mdcontent)
+
+    greenlets = [gevent.spawn(write_md_for_user, guser_obj) for guser_obj in users_objects]
+    gevent.joinall(greenlets)</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.get_circles_issues"><code class="name flex">
 <span>def <span class="ident">get_circles_issues</span></span>(<span>self, project_id)</span>
 </code></dt>
@@ -662,11 +3414,123 @@ and will get the default value if not</p>
     return circle_issues</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.get_issue_by_id"><code class="name flex">
+<span>def <span class="ident">get_issue_by_id</span></span>(<span>self, issue_id)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get issue</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>issue_id</code></strong></dt>
+<dd>the id of the desired issue</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Issue</code> <code>object</code>: <code>issue</code></dt>
+<dd>&nbsp;</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_issue_by_id(self, issue_id):
+    &#34;&#34;&#34;Get issue
+    Args:
+        issue_id: the id of the desired issue
+
+    Returns:
+        Issue object: issue
+    &#34;&#34;&#34;
+    return CircleIssue(self, self.api.issues.get(issue_id))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.get_issue_custom_fields"><code class="name flex">
+<span>def <span class="ident">get_issue_custom_fields</span></span>(<span>self, id)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get Issue Custom fields</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>id</code></strong> :&ensp;<code>int</code></dt>
+<dd>Issue id</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>List</code></strong></dt>
+<dd>List of dictionaries {name: "custom field name", value: {values as dict}}</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_issue_custom_fields(self, id):
+    &#34;&#34;&#34;Get Issue Custom fields
+
+    Args:
+        id (int): Issue id
+
+    Returns:
+        List: List of dictionaries {name: &#34;custom field name&#34;, value: {values as dict}}
+    &#34;&#34;&#34;
+    issue = self.api.issues.get(id)
+    issue_attributes = issue.get_attributes()[&#34;attributes_values&#34;]
+    project_attributes = self._get_project(issue.project).list_issue_attributes()
+    custom_fields = []
+    for p_attr in project_attributes:
+        for k, value in issue_attributes.items():
+            if p_attr.id == int(k):
+                try:
+                    custom_fields.append({&#34;name&#34;: p_attr.name, &#34;value&#34;: yaml.full_load(value)})
+                except:
+                    custom_fields.append({&#34;name&#34;: p_attr.name, &#34;value&#34;: value})
+                break
+
+    return custom_fields</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.get_story_custom_fields"><code class="name flex">
+<span>def <span class="ident">get_story_custom_fields</span></span>(<span>self, id)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get User_Story Custom fields</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>id</code></strong> :&ensp;<code>int</code></dt>
+<dd>User_Story id</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>List</code></strong></dt>
+<dd>List of dictionaries {name: "custom field name", value: {values as dict}}</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_story_custom_fields(self, id):
+    &#34;&#34;&#34;Get User_Story Custom fields
+
+    Args:
+        id (int): User_Story id
+
+    Returns:
+        List: List of dictionaries {name: &#34;custom field name&#34;, value: {values as dict}}
+    &#34;&#34;&#34;
+    user_story = self.api.user_stories.get(id)
+    user_story_attributes = user_story.get_attributes()[&#34;attributes_values&#34;]
+    project_attributes = self._get_project(user_story.project).list_user_story_attributes()
+    custom_fields = []
+    for p_attr in project_attributes:
+        for k, value in user_story_attributes.items():
+            if p_attr.id == int(k):
+                try:
+                    custom_fields.append({&#34;name&#34;: p_attr.name, &#34;value&#34;: yaml.full_load(value)})
+                except:
+                    custom_fields.append({&#34;name&#34;: p_attr.name, &#34;value&#34;: value})
+                break
+
+    return custom_fields</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.get_user_circles"><code class="name flex">
 <span>def <span class="ident">get_user_circles</span></span>(<span>self, username)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get circles owner by user</p>
+<section class="desc"><p>Get circles owned by user</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
@@ -675,7 +3539,7 @@ and will get the default value if not</p>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def get_user_circles(self, username):
-    &#34;&#34;&#34;Get circles owner by user
+    &#34;&#34;&#34;Get circles owned by user
 
     Args:
         username (str): Name of the user
@@ -685,7 +3549,7 @@ and will get the default value if not</p>
     user_circles = []
     for circle in circles:
         if circle.owner[&#34;id&#34;] == user_id:
-            user_circles.append(circle)
+            user_circles.append(self._resolve_object(circle))
     return user_circles</code></pre>
 </details>
 </dd>
@@ -711,8 +3575,8 @@ and will get the default value if not</p>
     user_stories = self.api.user_stories.list(assigned_to=user_id)
     user_stories = []
     for user_story in user_stories:
-        user_story.project = self._get_project(user_story.project)
-        user_story.milestone = self._get_milestone(user_story.milestone)
+        # user_story.project = self._get_project(user_story.project)
+        # user_story.milestone = self._get_milestone(user_story.milestone)
         user_story.status = self._get_user_stories_status(user_story.status)
         user_stories.append(user_story)
     return user_stories</code></pre>
@@ -740,16 +3604,475 @@ and will get the default value if not</p>
     user_tasks = self.api.tasks.list(assigned_to=user_id)
     user_tasks = []
     for user_task in user_tasks:
-        user_task.project = self._get_project(user_task.project)
-        user_task.milestone = self._get_milestone(user_task.milestone)
+        # user_task.project = self._get_project(user_task.project)
+        # user_task.milestone = self._get_milestone(user_task.milestone)
         user_task.status = self._get_task_status(user_task.status)
-        user_tasks.append(user_task)
+        user_tasks.append(self._resolve_object(user_task))
 
     return user_tasks</code></pre>
 </details>
 </dd>
-<dt id="jumpscale.clients.taiga.taiga.TaigaClient.move_story_to_cirlce"><code class="name flex">
-<span>def <span class="ident">move_story_to_cirlce</span></span>(<span>self, story_id, project_id)</span>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.import_from_yaml"><code class="name flex">
+<span>def <span class="ident">import_from_yaml</span></span>(<span>self, import_dir=&#39;/tmp/export_dir&#39;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Import Circle with all stories, issues and tasks from yaml files</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>import_dir</code></strong> :&ensp;<code>str</code></dt>
+<dd>import directory path. Defaults to "/tmp/export_dir".</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def import_from_yaml(self, import_dir=&#34;/tmp/export_dir&#34;):
+    &#34;&#34;&#34;Import Circle with all stories, issues and tasks from yaml files
+
+    Args:
+        import_dir (str): import directory path. Defaults to &#34;/tmp/export_dir&#34;.
+    &#34;&#34;&#34;
+    # Helper Functions
+    def check_by_name(list_obj, name_to_find):
+        for obj in list_obj:
+            if obj.name == name_to_find:
+                return obj.id
+
+        return list_obj[0].id
+
+    def import_circle(self, yaml_obj):
+        circle = None
+        # Funnel Circle
+        if yaml_obj[&#34;basic_info&#34;][&#34;name&#34;].lower() == &#34;funnel&#34;:
+            circle = self.create_new_funnel_circle(
+                yaml_obj[&#34;basic_info&#34;][&#34;name&#34;], yaml_obj[&#34;basic_info&#34;][&#34;description&#34;],
+            )
+        # Team Circle
+        elif yaml_obj[&#34;basic_info&#34;][&#34;name&#34;].lower() == &#34;team&#34;:
+            circle = self.create_new_team_circle(
+                yaml_obj[&#34;basic_info&#34;][&#34;name&#34;], yaml_obj[&#34;basic_info&#34;][&#34;description&#34;],
+            )
+        # Project Circle
+        elif yaml_obj[&#34;basic_info&#34;][&#34;name&#34;].lower() == &#34;project&#34;:
+            circle = self.create_new_project_circle(
+                yaml_obj[&#34;basic_info&#34;][&#34;name&#34;], yaml_obj[&#34;basic_info&#34;][&#34;description&#34;],
+            )
+        # Any Other Circle
+        else:
+            circle = self._create_new_circle(yaml_obj[&#34;basic_info&#34;][&#34;name&#34;], yaml_obj[&#34;basic_info&#34;][&#34;description&#34;],)
+            circle.is_backlog_activated = yaml_obj[&#34;modules&#34;][&#34;is_backlog_activated&#34;]
+            circle.is_issues_activated = yaml_obj[&#34;modules&#34;][&#34;is_issues_activated&#34;]
+            circle.is_kanban_activated = yaml_obj[&#34;modules&#34;][&#34;is_kanban_activated&#34;]
+            circle.is_wiki_activated = yaml_obj[&#34;modules&#34;][&#34;is_wiki_activated&#34;]
+
+        circle.is_private = yaml_obj[&#34;basic_info&#34;][&#34;is_private&#34;]
+        circle.videoconferences = yaml_obj[&#34;modules&#34;][&#34;videoconferences&#34;]
+        for issue_attr in yaml_obj[&#34;issues_attributes&#34;]:
+            circle.add_issue_attribute(issue_attr)
+        for us_attr in yaml_obj[&#34;stories_attributes&#34;]:
+            circle.add_user_story_attribute(us_attr)
+        return circle
+
+    def import_story(circle_object, yaml_obj):
+        status_id = check_by_name(circle_object.us_statuses, yaml_obj[&#34;status&#34;][&#34;name&#34;])
+
+        story = circle_object.add_user_story(
+            yaml_obj[&#34;basic_info&#34;].get(&#34;subject&#34;),
+            tags=yaml_obj[&#34;basic_info&#34;].get(&#34;tags&#34;),
+            description=yaml_obj[&#34;basic_info&#34;].get(&#34;description&#34;, &#34;&#34;),
+            client_requirement=yaml_obj[&#34;requirements&#34;].get(&#34;client_requirement&#34;),
+            team_requirement=yaml_obj[&#34;requirements&#34;].get(&#34;team_requirement&#34;),
+            is_blocked=yaml_obj[&#34;additional_info&#34;].get(&#34;is_blocked&#34;),
+            due_date=yaml_obj[&#34;date&#34;].get(&#34;due_date&#34;),
+            status=status_id,
+        )
+
+        for field in yaml_obj.get(&#34;custom_fields&#34;, []):
+            for attr in circle_object.list_user_story_attributes():
+                if attr.name == field[&#34;name&#34;]:
+                    story.set_attribute(attr.id, field[&#34;value&#34;])
+                    break
+        return story
+
+    def import_issue(circle_object, yaml_obj):
+        priority_id = check_by_name(circle_object.priorities, yaml_obj[&#34;priority&#34;][&#34;name&#34;])
+        status_id = check_by_name(circle_object.issue_statuses, yaml_obj[&#34;status&#34;][&#34;name&#34;])
+        type_id = check_by_name(circle_object.issue_types, yaml_obj[&#34;type&#34;][&#34;name&#34;])
+        severity_id = check_by_name(circle_object.severities, yaml_obj[&#34;severity&#34;][&#34;name&#34;])
+        issue = circle_object.add_issue(
+            yaml_obj[&#34;basic_info&#34;][&#34;subject&#34;],
+            priority_id,
+            status_id,
+            type_id,
+            severity_id,
+            description=yaml_obj[&#34;basic_info&#34;].get(&#34;description&#34;),
+        )
+
+        for field in yaml_obj[&#34;custom_fields&#34;]:
+            for attr in circle_object.list_issue_attributes():
+                if attr.name == field[&#34;name&#34;]:
+                    issue.set_attribute(attr.id, field[&#34;value&#34;])
+                    break
+        return issue
+
+    def import_tasks(circle_object, story_object, yaml_obj):
+        status_id = check_by_name(circle_object.task_statuses, yaml_obj[&#34;status&#34;][&#34;name&#34;])
+        task = story_object.add_task(
+            yaml_obj[&#34;basic_info&#34;].get(&#34;subject&#34;),
+            status_id,
+            description=yaml_obj[&#34;basic_info&#34;].get(&#34;description&#34;, &#34;&#34;),
+            tags=yaml_obj[&#34;basic_info&#34;].get(&#34;tags&#34;),
+        )
+        return task
+
+    # Folders Path
+    projects_path = j.sals.fs.join_paths(import_dir, &#34;projects&#34;)
+    stories_path = j.sals.fs.join_paths(import_dir, &#34;stories&#34;)
+    issues_path = j.sals.fs.join_paths(import_dir, &#34;issues&#34;)
+    tasks_path = j.sals.fs.join_paths(import_dir, &#34;tasks&#34;)
+
+    # List of Files inside project Folder
+    projects = j.sals.fs.os.listdir(projects_path)
+
+    for project_file in projects:
+        if project_file.endswith(&#34;.yaml&#34;) or project_file.endswith(&#34;.yml&#34;):
+            with open(j.sals.fs.join_paths(projects_path, project_file)) as pf:
+                circle_yaml = yaml.full_load(pf)
+                circle_obj = import_circle(self, circle_yaml)
+                j.logger.info(f&#34;&lt;Circle {circle_obj.id} Created&gt;&#34;)
+
+                for story in circle_yaml[&#34;stories&#34;]:
+                    with open(j.sals.fs.join_paths(stories_path, f&#34;{story}.yaml&#34;)) as sf:
+                        story_yaml = yaml.full_load(sf)
+                        story_obj = import_story(circle_obj, story_yaml)
+                        j.logger.info(f&#34;&lt;Story {story_obj.id} Created in Circle {circle_obj.id}&gt;&#34;)
+
+                        for task in story_yaml[&#34;tasks&#34;]:
+                            with open(j.sals.fs.join_paths(tasks_path, f&#34;{task}.yaml&#34;)) as tf:
+                                task_yaml = yaml.full_load(tf)
+                                task_obj = import_tasks(circle_obj, story_obj, task_yaml)
+                                j.logger.info(f&#34;&lt;Task {task_obj.id} Created in Story {story_obj.id}&gt;&#34;)
+                                task_obj.update()
+                        story_obj.update()
+
+                for issue in circle_yaml[&#34;issues&#34;]:
+                    with open(j.sals.fs.join_paths(issues_path, f&#34;{issue}.yaml&#34;)) as isf:
+                        issue_yaml = yaml.full_load(isf)
+                        issue_obj = import_issue(circle_obj, issue_yaml)
+                        j.logger.info(f&#34;&lt;Issue {issue_obj.id} Created in Circle {circle_obj.id}&gt;&#34;)
+                        issue_obj.update()
+
+                circle_obj.update()
+                j.logger.info(f&#34;&lt;Circle {circle_obj.id} Imported with All Stories and Issues&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_all_active_projects"><code class="name flex">
+<span>def <span class="ident">list_all_active_projects</span></span>(<span>self, full_info=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>List all projects not starting with "ARHCIVE"
+HINT: Using full_info will take a longer time</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
+<dd>[description]. Defaults to False.</dd>
+</dl>
+<h2 id="returns">Returns</h2></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_all_active_projects(self, full_info=False):
+    &#34;&#34;&#34;
+    List all projects not starting with &#34;ARHCIVE&#34;
+    HINT: Using full_info will take a longer time
+
+    Args:
+        full_info (bool): [description]. Defaults to False.
+
+    Returns:
+        [type]: [description]
+    &#34;&#34;&#34;
+    return [
+        Circle(self, p)
+        for p in self.list_projects_by(lambda x: not x.name.startswith(&#34;ARCHIVE_&#34;), full_info=full_info)
+    ]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_all_issues"><code class="name flex">
+<span>def <span class="ident">list_all_issues</span></span>(<span>self, username=&#39;&#39;, full_info=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>List all issues for specific user if you didn't pass user_id will list all the issues
+HINT: Using full_info will take a longer time</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>username.</dd>
+<dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag used to get object with full info. Defaults to False.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>List</code></strong></dt>
+<dd>List of taiga.models.models.Issue.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_all_issues(self, username=&#34;&#34;, full_info=False):
+    &#34;&#34;&#34;
+    List all issues for specific user if you didn&#39;t pass user_id will list all the issues
+    HINT: Using full_info will take a longer time
+
+    Args:
+        username (str): username.
+        full_info (bool): flag used to get object with full info. Defaults to False.
+
+    Returns:
+        List: List of taiga.models.models.Issue.
+    &#34;&#34;&#34;
+    if username:
+        user_id = self._get_user_id(username)
+        if not full_info:
+            return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list(assigned_to=user_id)]
+        else:
+            return [CircleIssue(self, self.api.issues.get(x.id)) for x in self.api.issues.list(assigned_to=user_id)]
+    else:
+        if not full_info:
+            return [CircleIssue(self, self._resolve_object(x)) for x in self.api.issues.list()]
+        else:
+            return [CircleIssue(self, self.api.issues.get(x.id)) for x in self.api.issues.list()]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_all_milestones"><code class="name flex">
+<span>def <span class="ident">list_all_milestones</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>List all milestones</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>List</code></strong></dt>
+<dd>List of taiga.models.models.Milestone.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_all_milestones(self):
+    &#34;&#34;&#34;
+    List all milestones
+
+    Returns:
+        List: List of taiga.models.models.Milestone.
+    &#34;&#34;&#34;
+    return [self._resolve_object(x) for x in self.api.milestones.list()]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_all_projects"><code class="name flex">
+<span>def <span class="ident">list_all_projects</span></span>(<span>self, full_info=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>List all projects
+HINT: Using full_info will take a longer time</p>
+<h2 id="args">Args</h2>
+<p>full_info(bool): flag used to get object with full info. Defaults to False.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>List</code></strong></dt>
+<dd>List of taiga.models.models.Project.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_all_projects(self, full_info=False):
+    &#34;&#34;&#34;
+    List all projects
+    HINT: Using full_info will take a longer time
+
+    Args:
+        full_info(bool): flag used to get object with full info. Defaults to False.
+
+    Returns:
+        List: List of taiga.models.models.Project.
+    &#34;&#34;&#34;
+    if not full_info:
+        return [Circle(self, self._resolve_object(x)) for x in self.api.projects.list()]
+    else:
+        return [Circle(self, self.api.projects.get(x.id)) for x in self.api.projects.list()]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_all_tasks"><code class="name flex">
+<span>def <span class="ident">list_all_tasks</span></span>(<span>self, username=&#39;&#39;, full_info=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>List all tasks for specific user if you didn't pass user_id will list all the tasks
+HINT: Using full_info will take a longer time</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>username.</dd>
+<dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag used to get object with full info. Defaults to False.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>List</code></strong></dt>
+<dd>List of taiga.models.models.Task.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_all_tasks(self, username=&#34;&#34;, full_info=False):
+    &#34;&#34;&#34;
+    List all tasks for specific user if you didn&#39;t pass user_id will list all the tasks
+    HINT: Using full_info will take a longer time
+
+    Args:
+        username (str): username.
+        full_info (bool): flag used to get object with full info. Defaults to False.
+
+    Returns:
+        List: List of taiga.models.models.Task.
+    &#34;&#34;&#34;
+    if username:
+        user_id = self._get_user_id(username)
+        if not full_info:
+            return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list(assigned_to=user_id)]
+        else:
+            return [CircleTask(self, self.api.tasks.get(x.id)) for x in self.api.tasks.list(assigned_to=user_id)]
+    else:
+        if not full_info:
+            return [CircleTask(self, self._resolve_object(x)) for x in self.api.tasks.list()]
+        else:
+            return [CircleTask(self, self.api.tasks.get(x.id)) for x in self.api.tasks.list()]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_all_user_stories"><code class="name flex">
+<span>def <span class="ident">list_all_user_stories</span></span>(<span>self, username=&#39;&#39;, full_info=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>List all user stories for specific user if you didn't pass user_id will list all the available user stories
+HINT: Using full_info will take a longer time</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>username.</dd>
+</dl>
+<p>full_info(bool): flag used to get object with full info. Defaults to False</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>List</code></strong></dt>
+<dd>List of CircleStory.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_all_user_stories(self, username=&#34;&#34;, full_info=False):
+    &#34;&#34;&#34;
+    List all user stories for specific user if you didn&#39;t pass user_id will list all the available user stories
+    HINT: Using full_info will take a longer time
+
+    Args:
+        username (str): username.
+        full_info(bool): flag used to get object with full info. Defaults to False
+
+    Returns:
+        List: List of CircleStory.
+    &#34;&#34;&#34;
+    if username:
+        user_id = self._get_user_id(username)
+        if not full_info:
+            return [
+                CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list(assigned_to=user_id)
+            ]
+        else:
+            return [
+                CircleStory(self, self.api.user_stories.get(x.id))
+                for x in self.api.user_stories.list(assigned_to=user_id)
+            ]
+    else:
+        if not full_info:
+            return [CircleStory(self, self._resolve_object(x)) for x in self.api.user_stories.list()]
+        else:
+            return [CircleStory(self, self.api.user_stories.get(x.id)) for x in self.api.user_stories.list()]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_all_users"><code class="name flex">
+<span>def <span class="ident">list_all_users</span></span>(<span>self, full_info=False)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>List all user stories for specific user if you didn't pass user_id will list all the available user stories
+HINT: Using full_info will take a longer time</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
+<dd>username.</dd>
+</dl>
+<p>full_info(bool): flag used to get object with full info. Defaults to False</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>List</code></strong></dt>
+<dd>List of CircleUser.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_all_users(self, full_info=False):
+    &#34;&#34;&#34;
+    List all user stories for specific user if you didn&#39;t pass user_id will list all the available user stories
+    HINT: Using full_info will take a longer time
+    Args:
+        username (str): username.
+        full_info(bool): flag used to get object with full info. Defaults to False
+
+    Returns:
+        List: List of CircleUser.
+    &#34;&#34;&#34;
+    circles = self.list_all_projects()
+    users = set()
+    for c in circles:
+        for m in c.members:
+            users.add(m)
+
+    return [CircleUser(self, self._get_user_by_id(uid)) for uid in users]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_funnel_circles"><code class="name flex">
+<span>def <span class="ident">list_funnel_circles</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_funnel_circles(self):
+    return [FunnelCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith(&#34;FUNNEL_&#34;))]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_project_circles"><code class="name flex">
+<span>def <span class="ident">list_project_circles</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_project_circles(self):
+    return [ProjectCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith(&#34;PROJECT_&#34;))]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_projects_by"><code class="name flex">
+<span>def <span class="ident">list_projects_by</span></span>(<span>self, fn=&lt;function TaigaClient.&lt;lambda&gt;&gt;, full_info=False)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_projects_by(self, fn=lambda x: True, full_info=False):
+    return [p for p in self.list_all_projects(full_info=full_info) if fn(p)]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_team_circles"><code class="name flex">
+<span>def <span class="ident">list_team_circles</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def list_team_circles(self):
+    return [TeamCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith(&#34;TEAM_&#34;))]</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.move_story_to_circle"><code class="name flex">
+<span>def <span class="ident">move_story_to_circle</span></span>(<span>self, story_id, project_id)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Moves a story to another circle/project</p>
@@ -762,9 +4085,9 @@ and will get the default value if not</p>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><code>j.exceptions.NotFound</code>: <code>No</code> <code>user</code> <code>story</code> <code>with</code> <code>speicifed</code> <code>id</code> <code>found</code></dt>
+<dt><code>j.exceptions.NotFound</code>: <code>No</code> <code>user</code> <code>story</code> <code>with</code> <code>specified</code> <code>id</code> <code>found</code></dt>
 <dd>&nbsp;</dd>
-<dt><code>j.exceptions.NotFound</code>: <code>No</code> <code>project</code> <code>with</code> <code>speicifed</code> <code>id</code> <code>found</code></dt>
+<dt><code>j.exceptions.NotFound</code>: <code>No</code> <code>project</code> <code>with</code> <code>specified</code> <code>id</code> <code>found</code></dt>
 <dd>&nbsp;</dd>
 <dt><code>j.exceptions.Runtime</code>: [<code>description</code>]</dt>
 <dd>&nbsp;</dd>
@@ -776,7 +4099,7 @@ and will get the default value if not</p>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def move_story_to_cirlce(self, story_id, project_id):
+<pre><code class="python">def move_story_to_circle(self, story_id, project_id):
     &#34;&#34;&#34;Moves a story to another circle/project
 
     Args:
@@ -784,8 +4107,8 @@ and will get the default value if not</p>
         project_id (int): circle/project id
 
     Raises:
-        j.exceptions.NotFound: No user story with speicifed id found
-        j.exceptions.NotFound: No project with speicifed id found
+        j.exceptions.NotFound: No user story with specified id found
+        j.exceptions.NotFound: No project with specified id found
         j.exceptions.Runtime: [description]
 
     Returns:
@@ -800,7 +4123,7 @@ and will get the default value if not</p>
     try:
         user_story = self.api.user_stories.get(story_id)
     except TaigaRestException:
-        raise j.exceptions.NotFound(&#34;Couldn&#39;t find user story with id: {}&#34;.format(story_id))
+        raise j.exceptions.NotFound(f&#34;Couldn&#39;t find user story with id: {story_id}&#34;)
 
     project_stories_statuses = self.api.user_story_statuses.list(project=project_id)
     status = self._get_user_stories_status(user_story.status)
@@ -816,7 +4139,7 @@ and will get the default value if not</p>
             tags=user_story.tags,
         )
     except TaigaRestException:
-        raise j.exceptions.NotFound(&#34;No project with id: {} found&#34;.format(project_id))
+        raise j.exceptions.NotFound(f&#34;No project with id: {project_id} found&#34;)
     try:
         comments = self.api.history.user_story.get(story_id)
         comments = sorted(comments, key=lambda c: dateutil.parser.isoparse(c[&#34;created_at&#34;]))
@@ -846,10 +4169,120 @@ and will get the default value if not</p>
 
     except Exception as e:
         self.api.user_stories.delete(migrate_story.id)
-        raise j.exceptions.Runtime(&#34;Failed to migrate story error was: {}&#34;.format(str(e)))
+        raise j.exceptions.Runtime(f&#34;Failed to migrate story error was: {str(e)}&#34;)
 
     self.api.user_stories.delete(story_id)
     return migrate_story.id</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.taiga.taiga.TaigaClient.validate_custom_fields"><code class="name flex">
+<span>def <span class="ident">validate_custom_fields</span></span>(<span>self, attributes)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Validate custom fields values to match our requirements</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>attributes</code></strong> :&ensp;<code>List</code></dt>
+<dd>Output from get_issue/story_custom_fields functions</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>j.exceptions.Validation</code>: <code>Raise</code> <code>validation</code> <code>exception</code> <code>if</code> <code>any</code> <code>input</code> <code>not</code> <code>valid</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>Return True if no exception raised and print logs</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def validate_custom_fields(self, attributes):
+    &#34;&#34;&#34;Validate custom fields values to match our requirements
+
+    Args:
+        attributes (List): Output from get_issue/story_custom_fields functions
+
+    Raises:
+        j.exceptions.Validation: Raise validation exception if any input not valid
+
+    Returns:
+        bool: Return True if no exception raised and print logs
+    &#34;&#34;&#34;
+
+    for attr in attributes:
+        name = attr.get(&#34;name&#34;)
+        value = attr.get(&#34;value&#34;)
+
+        period = value.get(&#34;period&#34;, &#34;onetime&#34;)
+        duration = value.get(&#34;duration&#34;, 1)
+        amount = value.get(&#34;amount&#34;, 0)
+        currency = value.get(&#34;currency&#34;, &#34;eur&#34;)
+        start_date = value.get(&#34;start_date&#34;, f&#34;{dateutil.utils.today().month}:{dateutil.utils.today().year}&#34;,)
+        confidence = value.get(&#34;confidence&#34;, 100)
+        user = value.get(&#34;user&#34;)
+        part = value.get(&#34;part&#34;, &#34;0%&#34;)
+        type = value.get(&#34;type&#34;, &#34;revenue&#34;)
+
+        if name not in [&#34;bookings&#34;, &#34;commission&#34;]:
+            raise j.exceptions.Validation(
+                f&#39;Name: ({name}) is unknown custom field, please select one of the following [&#34;bookings&#34;, &#34;commission&#34;]&#39;
+            )
+
+        if period not in [&#34;onetime&#34;, &#34;month&#34;, &#34;year&#34;]:
+            raise j.exceptions.Validation(
+                f&#39;Period: ({period}) not found, please select one of following [&#34;onetime&#34;, &#34;month&#34;, &#34;year&#34;]&#39;
+            )
+
+        if duration &lt; 1 or duration &gt; 120:
+            raise j.exceptions.Validation(f&#34;Duration: ({duration}) is not in range, please select it from 1 to 120&#34;)
+
+        if not isinstance(amount, int):
+            raise j.exceptions.Validation(f&#34;Amount: ({amount}) is not integer, please add int value&#34;)
+
+        if currency.replace(&#34; &#34;, &#34;&#34;).lower() not in [
+            &#34;usd&#34;,
+            &#34;chf&#34;,
+            &#34;eur&#34;,
+            &#34;gbp&#34;,
+            &#34;egp&#34;,
+        ]:
+            raise j.exceptions.Validation(
+                f&#39;Currency: ({currency}) is not supported, please use one of the following currencies [&#34;usd&#34;, &#34;chf&#34;, &#34;eur&#34;, &#34;gbp&#34;, &#34;egp&#34;]&#39;
+            )
+        try:
+            date = start_date.split(&#34;:&#34;)
+            month = int(date[0])
+            year = int(date[1]) if len(date) &gt; 1 else dateutil.utils.today().year
+            if month &lt; 1 or month &gt; 12:
+                raise j.exceptions.Validation(
+                    &#34;Please use values from 1 to 12 in Month field, follow format like MONTH:YEAR as 11:2020 or MONTH as 11&#34;
+                )
+        except ValueError as e:
+            raise j.exceptions.Validation(
+                &#34;Please use numeric date with the following format MONTH:YEAR as 11:2020 or MONTH as 11&#34;
+            )
+        except AttributeError as e:
+            pass  # Will check what happen if start_date not provide
+
+        if confidence % 10 != 0:
+            j.exceptions.Validation(f&#34;Confidence: ({confidence}) not multiple of 10, it must be multiple of 10&#34;)
+
+        part_tmp = part.replace(&#34;%&#34;, &#34;&#34;)
+        if user != None and user not in self.list_all_users():
+            raise j.exceptions.Validation(f&#34;User: ({user}) is not found&#34;)
+
+        if int(part_tmp) &lt; 0 or int(part_tmp) &gt; 100:
+            j.exceptions.Validation(f&#34;Part: ({part}) is a not a valid percentage, it must be from 0% to 100%&#34;)
+
+        if type not in [&#34;revenue&#34;, &#34;booking&#34;]:
+            raise j.exceptions.Validation(
+                f&#39;Type: ({type}) is not supported type, please choose one of the following [&#34;revenue&#34; , &#34;booking&#34;]&#39;
+            )
+
+        j.logger.info(f&#34;Attribute: {name} passed&#34;)
+
+    return True</code></pre>
 </details>
 </dd>
 </dl>
@@ -870,7 +4303,52 @@ and will get the default value if not</p>
 <nav id="sidebar">
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#taiga-client">Taiga client</a><ul>
+<li><a href="#initialization">Initialization</a></li>
+<li><a href="#listing">Listing</a><ul>
+<li><a href="#listing-issues">Listing issues</a></li>
+<li><a href="#listing-projects">Listing projects</a></li>
+<li><a href="#listing-user-stories">Listing user stories</a></li>
+<li><a href="#listing-tasks">Listing tasks</a></li>
+<li><a href="#list-team-circles">List team circles</a></li>
+<li><a href="#list-project-circles">List project circles</a></li>
+<li><a href="#list-funnel-circles">List funnel circles</a></li>
+</ul>
+</li>
+<li><a href="#custom-fields">Custom Fields</a><ul>
+<li><a href="#get">Get</a></li>
+<li><a href="#validate">Validate</a></li>
+</ul>
+</li>
+<li><a href="#creating">Creating</a><ul>
+<li><a href="#create-new-circle">Create new circle</a></li>
+<li><a href="#create-new-story">Create new story</a></li>
+<li><a href="#create-a-new-issue">Create a new
+issue</a></li>
+</ul>
+</li>
+<li><a href="#exporting">Exporting</a><ul>
+<li><a href="#export-users-and-circles">Export users and circles</a></li>
+<li><a href="#export-users">Export users</a></li>
+<li><a href="#export-circles">Export circles</a></li>
+<li><a href="#export-users-and-circles-periodically">Export users and circles periodically</a></li>
+<li><a href="#export-objects-as-yaml">Export objects as yaml</a></li>
+</ul>
+</li>
+<li><a href="#importing">Importing</a><ul>
+<li><a href="#importing-from-yaml-files">Importing from yaml files</a></li>
+</ul>
+</li>
+<li><a href="#operations">Operations</a><ul>
+<li><a href="#move-a-story-to-a-project">Move a story to a project</a></li>
+<li><a href="#copy-and-move-issue-using-project-object">Copy and Move Issue using project object</a></li>
+<li><a href="#resources-urls">Resources urls</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>
@@ -884,15 +4362,40 @@ and will get the default value if not</p>
 <h4><code><a title="jumpscale.clients.taiga.taiga.TaigaClient" href="#jumpscale.clients.taiga.taiga.TaigaClient">TaigaClient</a></code></h4>
 <ul class="">
 <li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.api" href="#jumpscale.clients.taiga.taiga.TaigaClient.api">api</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.create_new_funnel_circle" href="#jumpscale.clients.taiga.taiga.TaigaClient.create_new_funnel_circle">create_new_funnel_circle</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.create_new_project_circle" href="#jumpscale.clients.taiga.taiga.TaigaClient.create_new_project_circle">create_new_project_circle</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.create_new_team_circle" href="#jumpscale.clients.taiga.taiga.TaigaClient.create_new_team_circle">create_new_team_circle</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.credential_updated" href="#jumpscale.clients.taiga.taiga.TaigaClient.credential_updated">credential_updated</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.export_as_md" href="#jumpscale.clients.taiga.taiga.TaigaClient.export_as_md">export_as_md</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.export_as_md_periodically" href="#jumpscale.clients.taiga.taiga.TaigaClient.export_as_md_periodically">export_as_md_periodically</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.export_as_yaml" href="#jumpscale.clients.taiga.taiga.TaigaClient.export_as_yaml">export_as_yaml</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.export_circles_as_md" href="#jumpscale.clients.taiga.taiga.TaigaClient.export_circles_as_md">export_circles_as_md</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.export_users_as_md" href="#jumpscale.clients.taiga.taiga.TaigaClient.export_users_as_md">export_users_as_md</a></code></li>
 <li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.get_circles_issues" href="#jumpscale.clients.taiga.taiga.TaigaClient.get_circles_issues">get_circles_issues</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.get_issue_by_id" href="#jumpscale.clients.taiga.taiga.TaigaClient.get_issue_by_id">get_issue_by_id</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.get_issue_custom_fields" href="#jumpscale.clients.taiga.taiga.TaigaClient.get_issue_custom_fields">get_issue_custom_fields</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.get_story_custom_fields" href="#jumpscale.clients.taiga.taiga.TaigaClient.get_story_custom_fields">get_story_custom_fields</a></code></li>
 <li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.get_user_circles" href="#jumpscale.clients.taiga.taiga.TaigaClient.get_user_circles">get_user_circles</a></code></li>
 <li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.get_user_stories" href="#jumpscale.clients.taiga.taiga.TaigaClient.get_user_stories">get_user_stories</a></code></li>
 <li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.get_user_tasks" href="#jumpscale.clients.taiga.taiga.TaigaClient.get_user_tasks">get_user_tasks</a></code></li>
 <li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.host" href="#jumpscale.clients.taiga.taiga.TaigaClient.host">host</a></code></li>
-<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.move_story_to_cirlce" href="#jumpscale.clients.taiga.taiga.TaigaClient.move_story_to_cirlce">move_story_to_cirlce</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.import_from_yaml" href="#jumpscale.clients.taiga.taiga.TaigaClient.import_from_yaml">import_from_yaml</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.list_all_active_projects" href="#jumpscale.clients.taiga.taiga.TaigaClient.list_all_active_projects">list_all_active_projects</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.list_all_issues" href="#jumpscale.clients.taiga.taiga.TaigaClient.list_all_issues">list_all_issues</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.list_all_milestones" href="#jumpscale.clients.taiga.taiga.TaigaClient.list_all_milestones">list_all_milestones</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.list_all_projects" href="#jumpscale.clients.taiga.taiga.TaigaClient.list_all_projects">list_all_projects</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.list_all_tasks" href="#jumpscale.clients.taiga.taiga.TaigaClient.list_all_tasks">list_all_tasks</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.list_all_user_stories" href="#jumpscale.clients.taiga.taiga.TaigaClient.list_all_user_stories">list_all_user_stories</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.list_all_users" href="#jumpscale.clients.taiga.taiga.TaigaClient.list_all_users">list_all_users</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.list_funnel_circles" href="#jumpscale.clients.taiga.taiga.TaigaClient.list_funnel_circles">list_funnel_circles</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.list_project_circles" href="#jumpscale.clients.taiga.taiga.TaigaClient.list_project_circles">list_project_circles</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.list_projects_by" href="#jumpscale.clients.taiga.taiga.TaigaClient.list_projects_by">list_projects_by</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.list_team_circles" href="#jumpscale.clients.taiga.taiga.TaigaClient.list_team_circles">list_team_circles</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.move_story_to_circle" href="#jumpscale.clients.taiga.taiga.TaigaClient.move_story_to_circle">move_story_to_circle</a></code></li>
 <li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.password" href="#jumpscale.clients.taiga.taiga.TaigaClient.password">password</a></code></li>
 <li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.token" href="#jumpscale.clients.taiga.taiga.TaigaClient.token">token</a></code></li>
 <li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.username" href="#jumpscale.clients.taiga.taiga.TaigaClient.username">username</a></code></li>
+<li><code><a title="jumpscale.clients.taiga.taiga.TaigaClient.validate_custom_fields" href="#jumpscale.clients.taiga.taiga.TaigaClient.validate_custom_fields">validate_custom_fields</a></code></li>
 </ul>
 </li>
 </ul>

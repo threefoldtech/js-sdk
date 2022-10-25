@@ -39,6 +39,8 @@ class Balance:
         if response_balance[&#34;asset_type&#34;] == &#34;native&#34;:
             asset_code = &#34;XLM&#34;
             asset_issuer = None
+        elif response_balance[&#34;asset_type&#34;] == &#34;liquidity_pool_shares&#34;:
+            return None
         else:
             asset_code = response_balance[&#34;asset_code&#34;]
             asset_issuer = response_balance[&#34;asset_issuer&#34;]
@@ -105,26 +107,51 @@ class EscrowAccount:
         return str(self)
 
 
+class VestingAccount:
+    def __init__(self, address, balances, scheme):
+        self.address = address
+        self.balances = balances
+        self.scheme = scheme
+
+    def __str__(self):
+        representation = f&#34;Vesting Account {self.address}&#34;
+        for balance in self.balances:
+            representation += f&#34;\n- {balance.balance} {balance.asset_code}&#34;
+            if balance.asset_issuer is not None:
+                representation += f&#34;:{balance.asset_issuer}&#34;
+        return representation
+
+    def __repr__(self):
+        return str(self)
+
+
 class AccountBalances:
     def __init__(self, address):
         self.address = address
         self.balances = []
         self.escrow_accounts = []
+        self.vesting_accounts = []
 
     def add_balance(self, balance):
         self.balances.append(balance)
 
     def add_escrow_account(self, account):
-        self.escrow_accounts.append(account)
+        if type(account) is VestingAccount:
+            self.vesting_accounts.append(account)
+        else:
+            self.escrow_accounts.append(account)
 
     def __str__(self):
         representation = &#34;Balances&#34;
         for balance in self.balances:
             representation += &#34;\n  &#34; + str(balance)
-        if len(self.escrow_accounts) &gt; 0:
+        for vesting_account in self.vesting_accounts:
+            representation += f&#34;\n{str(vesting_account)}&#34;
+
+        if self.escrow_accounts:
             representation += &#34;\nLocked balances:&#34;
             for escrow_account in self.escrow_accounts:
-                representation += &#34;\n - {account}&#34;.format(account=str(escrow_account))
+                representation += f&#34;\n - {str(escrow_account)}&#34;
         return representation
 
     def __repr__(self):
@@ -153,21 +180,28 @@ class AccountBalances:
         self.address = address
         self.balances = []
         self.escrow_accounts = []
+        self.vesting_accounts = []
 
     def add_balance(self, balance):
         self.balances.append(balance)
 
     def add_escrow_account(self, account):
-        self.escrow_accounts.append(account)
+        if type(account) is VestingAccount:
+            self.vesting_accounts.append(account)
+        else:
+            self.escrow_accounts.append(account)
 
     def __str__(self):
         representation = &#34;Balances&#34;
         for balance in self.balances:
             representation += &#34;\n  &#34; + str(balance)
-        if len(self.escrow_accounts) &gt; 0:
+        for vesting_account in self.vesting_accounts:
+            representation += f&#34;\n{str(vesting_account)}&#34;
+
+        if self.escrow_accounts:
             representation += &#34;\nLocked balances:&#34;
             for escrow_account in self.escrow_accounts:
-                representation += &#34;\n - {account}&#34;.format(account=str(escrow_account))
+                representation += f&#34;\n - {str(escrow_account)}&#34;
         return representation
 
     def __repr__(self):
@@ -194,7 +228,10 @@ class AccountBalances:
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_escrow_account(self, account):
-    self.escrow_accounts.append(account)</code></pre>
+    if type(account) is VestingAccount:
+        self.vesting_accounts.append(account)
+    else:
+        self.escrow_accounts.append(account)</code></pre>
 </details>
 </dd>
 </dl>
@@ -219,6 +256,8 @@ class AccountBalances:
         if response_balance[&#34;asset_type&#34;] == &#34;native&#34;:
             asset_code = &#34;XLM&#34;
             asset_issuer = None
+        elif response_balance[&#34;asset_type&#34;] == &#34;liquidity_pool_shares&#34;:
+            return None
         else:
             asset_code = response_balance[&#34;asset_code&#34;]
             asset_issuer = response_balance[&#34;asset_issuer&#34;]
@@ -251,6 +290,8 @@ def from_horizon_response(response_balance):
     if response_balance[&#34;asset_type&#34;] == &#34;native&#34;:
         asset_code = &#34;XLM&#34;
         asset_issuer = None
+    elif response_balance[&#34;asset_type&#34;] == &#34;liquidity_pool_shares&#34;:
+        return None
     else:
         asset_code = response_balance[&#34;asset_code&#34;]
         asset_issuer = response_balance[&#34;asset_issuer&#34;]
@@ -347,6 +388,32 @@ def from_horizon_response(response_balance):
 </dd>
 </dl>
 </dd>
+<dt id="jumpscale.clients.stellar.balance.VestingAccount"><code class="flex name class">
+<span>class <span class="ident">VestingAccount</span></span>
+<span>(</span><span>address, balances, scheme)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class VestingAccount:
+    def __init__(self, address, balances, scheme):
+        self.address = address
+        self.balances = balances
+        self.scheme = scheme
+
+    def __str__(self):
+        representation = f&#34;Vesting Account {self.address}&#34;
+        for balance in self.balances:
+            representation += f&#34;\n- {balance.balance} {balance.asset_code}&#34;
+            if balance.asset_issuer is not None:
+                representation += f&#34;:{balance.asset_issuer}&#34;
+        return representation
+
+    def __repr__(self):
+        return str(self)</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 </article>
@@ -382,6 +449,9 @@ def from_horizon_response(response_balance):
 <ul class="">
 <li><code><a title="jumpscale.clients.stellar.balance.EscrowAccount.can_be_unlocked" href="#jumpscale.clients.stellar.balance.EscrowAccount.can_be_unlocked">can_be_unlocked</a></code></li>
 </ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.clients.stellar.balance.VestingAccount" href="#jumpscale.clients.stellar.balance.VestingAccount">VestingAccount</a></code></h4>
 </li>
 </ul>
 </li>

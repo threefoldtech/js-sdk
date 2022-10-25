@@ -25,7 +25,6 @@
 <pre><code class="python">import base64
 import sys
 import uuid
-from captcha.image import ImageCaptcha
 from importlib import import_module
 import inspect
 import json
@@ -33,6 +32,7 @@ import gevent
 import gevent.queue
 import html
 from jumpscale.loader import j
+import stellar_sdk
 
 
 class Result:
@@ -105,6 +105,7 @@ class GedisChatBot:
 
     steps = []
     title = &#34;Zero Chat Bot&#34;
+    alert_view_url = None
 
     def __init__(self, **kwargs):
         &#34;&#34;&#34;
@@ -114,6 +115,7 @@ class GedisChatBot:
         &#34;&#34;&#34;
         self.session_id = str(uuid.uuid4())
         self.kwargs = kwargs
+        self.spawn = kwargs.get(&#34;spawn&#34;, True)
         self._state = {}
         self._current_step = 0
         self._steps_info = {}
@@ -159,41 +161,67 @@ class GedisChatBot:
             &#34;final_step&#34;: self.step_info.get(&#34;final_step&#34;),
         }
 
-    def _execute_current_step(self, spawn=True):
+    def _execute_current_step(self, spawn=None):
+        if spawn is None:
+            spawn = self.spawn
+
         def wrapper(step_name):
             internal_error = False
             try:
                 getattr(self, step_name)()
             except StopChatFlow as e:
                 internal_error = True
-                j.logger.exception(&#34;error&#34;, exception=e)
+                j.logger.exception(f&#34;chatflow stopped in step {step_name}. exception: {str(e)}&#34;, exception=e)
+                traceback_info = j.tools.errorhandler.get_traceback()
                 j.tools.alerthandler.alert_raise(
-                    appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
+                    app_name=&#34;chatflows&#34;,
+                    category=&#34;internal_errors&#34;,
+                    message=str(e),
+                    alert_type=&#34;exception&#34;,
+                    traceback=traceback_info,
                 )
                 if e.msg:
                     self.send_error(
-                        e.msg + &#34;. Please use the refresh button on the upper right to restart the chatflow&#34;, **e.kwargs
+                        e.msg + f&#34;. Use the refresh button on the upper right to restart {self.title} creation&#34;,
+                        **e.kwargs,
                     )
                 self.send_data({&#34;category&#34;: &#34;end&#34;})
 
             except Exception as e:
+                message = &#34;Something wrong happened&#34;
+                if isinstance(e, stellar_sdk.exceptions.BadRequestError) and &#34;op_underfunded&#34; in e.extras.get(
+                    &#34;result_codes&#34;, {}
+                ).get(&#34;operations&#34;, []):
+                    message = &#34;Not enough funds&#34;
                 internal_error = True
-                j.logger.exception(&#34;error&#34;, exception=e)
+                j.logger.exception(f&#34;error when executing step {step_name}. exception: {str(e)}&#34;, exception=e)
+                traceback_info = j.tools.errorhandler.get_traceback()
                 alert = j.tools.alerthandler.alert_raise(
-                    appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
+                    app_name=&#34;chatflows&#34;,
+                    category=&#34;internal_errors&#34;,
+                    message=str(e),
+                    alert_type=&#34;exception&#34;,
+                    traceback=traceback_info,
                 )
                 username = self.user_info()[&#34;username&#34;]
-                if username in j.core.identity.me.admins:
+                if self.alert_view_url:
                     self.send_error(
-                        f&#34;&#34;&#34;Something wrong happened, please check alert: &lt;a href=&#34;/admin/#/alerts/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;&#34;&#34;&#34;
-                        &#34;Please use the refresh button on the upper right to restart the chatflow&#34;,
+                        f&#34;&#34;&#34;{message}, please check alert: &lt;a href=&#34;{self.alert_view_url}/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;. This could occur if Stellar service was down.&#34;&#34;&#34;
+                        f&#34;Use the refresh button on the upper right to restart {self.title} creation&#34;,
+                        md=True,
+                        html=True,
+                    )
+                elif username in j.core.identity.me.admins:
+                    self.send_error(
+                        f&#34;&#34;&#34;{message}, please check alert: &lt;a href=&#34;/admin/#/alerts/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;. This could occur if Stellar service was down.&#34;&#34;&#34;
+                        f&#34;Use the refresh button on the upper right to restart {self.title} creation&#34;,
                         md=True,
                         html=True,
                     )
                 else:
                     self.send_error(
                         f&#34;Something wrong happened, please contact support with alert ID: {alert.id}\n&#34;
-                        &#34;Please use the refresh button on the upper right to restart the chatflow&#34;
+                        f&#34;Use the refresh button on the upper right to restart {self.title} creation&#34;
                     )
                 self.send_data({&#34;category&#34;: &#34;end&#34;})
 
@@ -564,26 +592,6 @@ class GedisChatBot:
         qrcode = j.tools.qrcode.base64_get(data, scale=scale)
         self.send_data({&#34;category&#34;: &#34;qrcode_show&#34;, &#34;msg&#34;: msg, &#34;qrcode&#34;: qrcode, &#34;kwargs&#34;: kwargs}, is_slide=True)
         self._queue_in.get()
-
-    def captcha_msg(self, **kwargs):
-        image = ImageCaptcha()
-        captcha = j.data.idgenerator.generateXCharID(4)
-        data = image.generate(captcha)
-        kwargs[&#34;value&#34;] = captcha
-        return (
-            captcha,
-            {
-                &#34;category&#34;: &#34;captcha_ask&#34;,
-                &#34;captcha&#34;: base64.b64encode(data.read()).decode(),
-                &#34;value&#34;: captcha,
-                &#34;msg&#34;: &#34;Are you human?&#34;,
-                &#34;kwargs&#34;: kwargs,
-            },
-        )
-
-    def captcha_ask(self, **kwargs):
-        captcha, message = self.captcha_msg(required=True, **kwargs)
-        return self.ask(message) == captcha
 
     def md_msg(self, msg, **kwargs):
         return {&#34;category&#34;: &#34;md_show&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
@@ -907,6 +915,7 @@ any extra kwargs that is passed while creating the session
 
     steps = []
     title = &#34;Zero Chat Bot&#34;
+    alert_view_url = None
 
     def __init__(self, **kwargs):
         &#34;&#34;&#34;
@@ -916,6 +925,7 @@ any extra kwargs that is passed while creating the session
         &#34;&#34;&#34;
         self.session_id = str(uuid.uuid4())
         self.kwargs = kwargs
+        self.spawn = kwargs.get(&#34;spawn&#34;, True)
         self._state = {}
         self._current_step = 0
         self._steps_info = {}
@@ -961,41 +971,67 @@ any extra kwargs that is passed while creating the session
             &#34;final_step&#34;: self.step_info.get(&#34;final_step&#34;),
         }
 
-    def _execute_current_step(self, spawn=True):
+    def _execute_current_step(self, spawn=None):
+        if spawn is None:
+            spawn = self.spawn
+
         def wrapper(step_name):
             internal_error = False
             try:
                 getattr(self, step_name)()
             except StopChatFlow as e:
                 internal_error = True
-                j.logger.exception(&#34;error&#34;, exception=e)
+                j.logger.exception(f&#34;chatflow stopped in step {step_name}. exception: {str(e)}&#34;, exception=e)
+                traceback_info = j.tools.errorhandler.get_traceback()
                 j.tools.alerthandler.alert_raise(
-                    appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
+                    app_name=&#34;chatflows&#34;,
+                    category=&#34;internal_errors&#34;,
+                    message=str(e),
+                    alert_type=&#34;exception&#34;,
+                    traceback=traceback_info,
                 )
                 if e.msg:
                     self.send_error(
-                        e.msg + &#34;. Please use the refresh button on the upper right to restart the chatflow&#34;, **e.kwargs
+                        e.msg + f&#34;. Use the refresh button on the upper right to restart {self.title} creation&#34;,
+                        **e.kwargs,
                     )
                 self.send_data({&#34;category&#34;: &#34;end&#34;})
 
             except Exception as e:
+                message = &#34;Something wrong happened&#34;
+                if isinstance(e, stellar_sdk.exceptions.BadRequestError) and &#34;op_underfunded&#34; in e.extras.get(
+                    &#34;result_codes&#34;, {}
+                ).get(&#34;operations&#34;, []):
+                    message = &#34;Not enough funds&#34;
                 internal_error = True
-                j.logger.exception(&#34;error&#34;, exception=e)
+                j.logger.exception(f&#34;error when executing step {step_name}. exception: {str(e)}&#34;, exception=e)
+                traceback_info = j.tools.errorhandler.get_traceback()
                 alert = j.tools.alerthandler.alert_raise(
-                    appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
+                    app_name=&#34;chatflows&#34;,
+                    category=&#34;internal_errors&#34;,
+                    message=str(e),
+                    alert_type=&#34;exception&#34;,
+                    traceback=traceback_info,
                 )
                 username = self.user_info()[&#34;username&#34;]
-                if username in j.core.identity.me.admins:
+                if self.alert_view_url:
                     self.send_error(
-                        f&#34;&#34;&#34;Something wrong happened, please check alert: &lt;a href=&#34;/admin/#/alerts/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;&#34;&#34;&#34;
-                        &#34;Please use the refresh button on the upper right to restart the chatflow&#34;,
+                        f&#34;&#34;&#34;{message}, please check alert: &lt;a href=&#34;{self.alert_view_url}/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;. This could occur if Stellar service was down.&#34;&#34;&#34;
+                        f&#34;Use the refresh button on the upper right to restart {self.title} creation&#34;,
+                        md=True,
+                        html=True,
+                    )
+                elif username in j.core.identity.me.admins:
+                    self.send_error(
+                        f&#34;&#34;&#34;{message}, please check alert: &lt;a href=&#34;/admin/#/alerts/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;. This could occur if Stellar service was down.&#34;&#34;&#34;
+                        f&#34;Use the refresh button on the upper right to restart {self.title} creation&#34;,
                         md=True,
                         html=True,
                     )
                 else:
                     self.send_error(
                         f&#34;Something wrong happened, please contact support with alert ID: {alert.id}\n&#34;
-                        &#34;Please use the refresh button on the upper right to restart the chatflow&#34;
+                        f&#34;Use the refresh button on the upper right to restart {self.title} creation&#34;
                     )
                 self.send_data({&#34;category&#34;: &#34;end&#34;})
 
@@ -1367,26 +1403,6 @@ any extra kwargs that is passed while creating the session
         self.send_data({&#34;category&#34;: &#34;qrcode_show&#34;, &#34;msg&#34;: msg, &#34;qrcode&#34;: qrcode, &#34;kwargs&#34;: kwargs}, is_slide=True)
         self._queue_in.get()
 
-    def captcha_msg(self, **kwargs):
-        image = ImageCaptcha()
-        captcha = j.data.idgenerator.generateXCharID(4)
-        data = image.generate(captcha)
-        kwargs[&#34;value&#34;] = captcha
-        return (
-            captcha,
-            {
-                &#34;category&#34;: &#34;captcha_ask&#34;,
-                &#34;captcha&#34;: base64.b64encode(data.read()).decode(),
-                &#34;value&#34;: captcha,
-                &#34;msg&#34;: &#34;Are you human?&#34;,
-                &#34;kwargs&#34;: kwargs,
-            },
-        )
-
-    def captcha_ask(self, **kwargs):
-        captcha, message = self.captcha_msg(required=True, **kwargs)
-        return self.ask(message) == captcha
-
     def md_msg(self, msg, **kwargs):
         return {&#34;category&#34;: &#34;md_show&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
 
@@ -1467,21 +1483,13 @@ any extra kwargs that is passed while creating the session
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.polls.Poll" href="polls.html#jumpscale.sals.chatflows.polls.Poll">Poll</a></li>
-<li><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow" href="../marketplace/chatflow.html#jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow">MarketPlaceChatflow</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.gollum.GollumDeploy" href="../../packages/tfgrid_solutions/chats/gollum.html#jumpscale.packages.tfgrid_solutions.chats.gollum.GollumDeploy">GollumDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.exposed.SolutionExpose" href="../../packages/tfgrid_solutions/chats/exposed.html#jumpscale.packages.tfgrid_solutions.chats.exposed.SolutionExpose">SolutionExpose</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.flist.FlistDeploy" href="../../packages/tfgrid_solutions/chats/flist.html#jumpscale.packages.tfgrid_solutions.chats.flist.FlistDeploy">FlistDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.kubernetes.KubernetesDeploy" href="../../packages/tfgrid_solutions/chats/kubernetes.html#jumpscale.packages.tfgrid_solutions.chats.kubernetes.KubernetesDeploy">KubernetesDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.minio.MinioDeploy" href="../../packages/tfgrid_solutions/chats/minio.html#jumpscale.packages.tfgrid_solutions.chats.minio.MinioDeploy">MinioDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.monitoring.MonitoringDeploy" href="../../packages/tfgrid_solutions/chats/monitoring.html#jumpscale.packages.tfgrid_solutions.chats.monitoring.MonitoringDeploy">MonitoringDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy" href="../../packages/tfgrid_solutions/chats/network.html#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy">NetworkDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway" href="../../packages/tfgrid_solutions/chats/4to6gw.html#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway">FourToSixGateway</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.delegated_domain.DomainDelegation" href="../../packages/tfgrid_solutions/chats/delegated_domain.html#jumpscale.packages.tfgrid_solutions.chats.delegated_domain.DomainDelegation">DomainDelegation</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation" href="../../packages/tfgrid_solutions/chats/pools.html#jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation">PoolReservation</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.ubuntu.UbuntuDeploy" href="../../packages/tfgrid_solutions/chats/ubuntu.html#jumpscale.packages.tfgrid_solutions.chats.ubuntu.UbuntuDeploy">UbuntuDeploy</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.alert_view_url"><code class="name">var <span class="ident">alert_view_url</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
 <dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.steps"><code class="name">var <span class="ident">steps</span></code></dt>
 <dd>
 <section class="desc"></section>
@@ -1609,42 +1617,6 @@ html (bool): render message as html</p>
         str: user input
     &#34;&#34;&#34;
     return self.drop_down_choice(msg, options, auto_complete=True, **kwargs)</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_ask"><code class="name flex">
-<span>def <span class="ident">captcha_ask</span></span>(<span>self, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def captcha_ask(self, **kwargs):
-    captcha, message = self.captcha_msg(required=True, **kwargs)
-    return self.ask(message) == captcha</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_msg"><code class="name flex">
-<span>def <span class="ident">captcha_msg</span></span>(<span>self, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def captcha_msg(self, **kwargs):
-    image = ImageCaptcha()
-    captcha = j.data.idgenerator.generateXCharID(4)
-    data = image.generate(captcha)
-    kwargs[&#34;value&#34;] = captcha
-    return (
-        captcha,
-        {
-            &#34;category&#34;: &#34;captcha_ask&#34;,
-            &#34;captcha&#34;: base64.b64encode(data.read()).decode(),
-            &#34;value&#34;: captcha,
-            &#34;msg&#34;: &#34;Are you human?&#34;,
-            &#34;kwargs&#34;: kwargs,
-        },
-    )</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker"><code class="name flex">
@@ -2689,10 +2661,6 @@ def value(self):
 <li>builtins.Exception</li>
 <li>builtins.BaseException</li>
 </ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.sals.reservation_chatflow.DeploymentFailed" href="../reservation_chatflow/index.html#jumpscale.sals.reservation_chatflow.DeploymentFailed">DeploymentFailed</a></li>
-</ul>
 </dd>
 </dl>
 </section>
@@ -2733,10 +2701,9 @@ def value(self):
 <li>
 <h4><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></code></h4>
 <ul class="">
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.alert_view_url" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.alert_view_url">alert_view_url</a></code></li>
 <li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.ask" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.ask">ask</a></code></li>
 <li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.autocomplete_drop_down" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.autocomplete_drop_down">autocomplete_drop_down</a></code></li>
-<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_ask" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_ask">captcha_ask</a></code></li>
-<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_msg">captcha_msg</a></code></li>
 <li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker">datetime_picker</a></code></li>
 <li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker_msg">datetime_picker_msg</a></code></li>
 <li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.download_file" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.download_file">download_file</a></code></li>

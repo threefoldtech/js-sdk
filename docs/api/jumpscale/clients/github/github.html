@@ -22,11 +22,15 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.clients.base import Client
+<pre><code class="python">from gevent import sleep
+from jumpscale.clients.base import Client
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
-from .repo import GithubRepo
+
 from github import Github, GithubObject
+
+from .repo import GithubRepo
+from .helper import retry
 
 NotSet = GithubObject.NotSet
 
@@ -49,21 +53,25 @@ class GithubClient(Client):
                 self.__client = Github(login_or_token=self.username, password=self.password)
         return self.__client
 
+    @retry
     def get_repo(self, repo_full_name):
-        return GithubRepo(self.github_client,repo_full_name)
+        return GithubRepo(self.github_client, repo_full_name)
 
+    @retry
     def get_repos(self):
         l = []
         for r in self.github_client.get_user().get_repos():
-            l.append(GithubRepo(self.github_client,r.full_name))
+            l.append(GithubRepo(self.github_client, r.full_name))
         return l
 
+    @retry
     def get_orgs(self):
         l = []
         for o in self.github_client.get_user().get_orgs():
             l.append(o.login)
         return l
 
+    @retry
     def get_userdata(self):
         u = self.github_client.get_user()
         el = []
@@ -71,6 +79,7 @@ class GithubClient(Client):
             el.append(e)
         return {&#34;name&#34;: u.name, &#34;emails&#34;: el, &#34;id&#34;: u.id, &#34;avatar_url&#34;: u.avatar_url}
 
+    @retry
     def create_repo(
         self,
         name,
@@ -96,6 +105,7 @@ class GithubClient(Client):
             gitignore_template=gitignore_template,
         )
 
+    @retry
     def delete_repo(self, repo_name):
         return self.github_client.get_user().get_repo(repo_name).delete()</code></pre>
 </details>
@@ -118,7 +128,7 @@ class GithubClient(Client):
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -154,21 +164,25 @@ print(p.name, p.age)
                 self.__client = Github(login_or_token=self.username, password=self.password)
         return self.__client
 
+    @retry
     def get_repo(self, repo_full_name):
-        return GithubRepo(self.github_client,repo_full_name)
+        return GithubRepo(self.github_client, repo_full_name)
 
+    @retry
     def get_repos(self):
         l = []
         for r in self.github_client.get_user().get_repos():
-            l.append(GithubRepo(self.github_client,r.full_name))
+            l.append(GithubRepo(self.github_client, r.full_name))
         return l
 
+    @retry
     def get_orgs(self):
         l = []
         for o in self.github_client.get_user().get_orgs():
             l.append(o.login)
         return l
 
+    @retry
     def get_userdata(self):
         u = self.github_client.get_user()
         el = []
@@ -176,6 +190,7 @@ print(p.name, p.age)
             el.append(e)
         return {&#34;name&#34;: u.name, &#34;emails&#34;: el, &#34;id&#34;: u.id, &#34;avatar_url&#34;: u.avatar_url}
 
+    @retry
     def create_repo(
         self,
         name,
@@ -201,6 +216,7 @@ print(p.name, p.age)
             gitignore_template=gitignore_template,
         )
 
+    @retry
     def delete_repo(self, repo_name):
         return self.github_client.get_user().get_repo(repo_name).delete()</code></pre>
 </details>
@@ -306,101 +322,123 @@ and will get the default value if not</p>
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.clients.github.github.GithubClient.create_repo"><code class="name flex">
-<span>def <span class="ident">create_repo</span></span>(<span>self, name, description=NotSet, homepage=NotSet, private=NotSet, has_issues=NotSet, has_wiki=NotSet, has_downloads=NotSet, auto_init=NotSet, gitignore_template=NotSet)</span>
+<span>def <span class="ident">create_repo</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def create_repo(
-    self,
-    name,
-    description=NotSet,
-    homepage=NotSet,
-    private=NotSet,
-    has_issues=NotSet,
-    has_wiki=NotSet,
-    has_downloads=NotSet,
-    auto_init=NotSet,
-    gitignore_template=NotSet,
-):
-
-    return self.github_client.get_user().create_repo(
-        name,
-        description=description,
-        homepage=homepage,
-        private=private,
-        has_issues=has_issues,
-        has_wiki=has_wiki,
-        has_downloads=has_downloads,
-        auto_init=auto_init,
-        gitignore_template=gitignore_template,
-    )</code></pre>
+<pre><code class="python">def wrapper(self, *args, **kwargs):
+    for _ in range(6):
+        try:
+            result = function(self, *args, **kwargs)
+            break
+        except Exception as e:
+            j.logger.warning(f&#34;Failed to execute {function.__name__} due to error: {str(e)}&#34;)
+            sleep(1)
+    else:
+        raise j.exceptions.Runtime(f&#34;Failed to execute {function.__name__} after multiple retries&#34;)
+    return result</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.clients.github.github.GithubClient.delete_repo"><code class="name flex">
-<span>def <span class="ident">delete_repo</span></span>(<span>self, repo_name)</span>
+<span>def <span class="ident">delete_repo</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def delete_repo(self, repo_name):
-    return self.github_client.get_user().get_repo(repo_name).delete()</code></pre>
+<pre><code class="python">def wrapper(self, *args, **kwargs):
+    for _ in range(6):
+        try:
+            result = function(self, *args, **kwargs)
+            break
+        except Exception as e:
+            j.logger.warning(f&#34;Failed to execute {function.__name__} due to error: {str(e)}&#34;)
+            sleep(1)
+    else:
+        raise j.exceptions.Runtime(f&#34;Failed to execute {function.__name__} after multiple retries&#34;)
+    return result</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.clients.github.github.GithubClient.get_orgs"><code class="name flex">
-<span>def <span class="ident">get_orgs</span></span>(<span>self)</span>
+<span>def <span class="ident">get_orgs</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def get_orgs(self):
-    l = []
-    for o in self.github_client.get_user().get_orgs():
-        l.append(o.login)
-    return l</code></pre>
+<pre><code class="python">def wrapper(self, *args, **kwargs):
+    for _ in range(6):
+        try:
+            result = function(self, *args, **kwargs)
+            break
+        except Exception as e:
+            j.logger.warning(f&#34;Failed to execute {function.__name__} due to error: {str(e)}&#34;)
+            sleep(1)
+    else:
+        raise j.exceptions.Runtime(f&#34;Failed to execute {function.__name__} after multiple retries&#34;)
+    return result</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.clients.github.github.GithubClient.get_repo"><code class="name flex">
-<span>def <span class="ident">get_repo</span></span>(<span>self, repo_full_name)</span>
+<span>def <span class="ident">get_repo</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def get_repo(self, repo_full_name):
-    return GithubRepo(self.github_client,repo_full_name)</code></pre>
+<pre><code class="python">def wrapper(self, *args, **kwargs):
+    for _ in range(6):
+        try:
+            result = function(self, *args, **kwargs)
+            break
+        except Exception as e:
+            j.logger.warning(f&#34;Failed to execute {function.__name__} due to error: {str(e)}&#34;)
+            sleep(1)
+    else:
+        raise j.exceptions.Runtime(f&#34;Failed to execute {function.__name__} after multiple retries&#34;)
+    return result</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.clients.github.github.GithubClient.get_repos"><code class="name flex">
-<span>def <span class="ident">get_repos</span></span>(<span>self)</span>
+<span>def <span class="ident">get_repos</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def get_repos(self):
-    l = []
-    for r in self.github_client.get_user().get_repos():
-        l.append(GithubRepo(self.github_client,r.full_name))
-    return l</code></pre>
+<pre><code class="python">def wrapper(self, *args, **kwargs):
+    for _ in range(6):
+        try:
+            result = function(self, *args, **kwargs)
+            break
+        except Exception as e:
+            j.logger.warning(f&#34;Failed to execute {function.__name__} due to error: {str(e)}&#34;)
+            sleep(1)
+    else:
+        raise j.exceptions.Runtime(f&#34;Failed to execute {function.__name__} after multiple retries&#34;)
+    return result</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.clients.github.github.GithubClient.get_userdata"><code class="name flex">
-<span>def <span class="ident">get_userdata</span></span>(<span>self)</span>
+<span>def <span class="ident">get_userdata</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def get_userdata(self):
-    u = self.github_client.get_user()
-    el = []
-    for e in u.get_emails():
-        el.append(e)
-    return {&#34;name&#34;: u.name, &#34;emails&#34;: el, &#34;id&#34;: u.id, &#34;avatar_url&#34;: u.avatar_url}</code></pre>
+<pre><code class="python">def wrapper(self, *args, **kwargs):
+    for _ in range(6):
+        try:
+            result = function(self, *args, **kwargs)
+            break
+        except Exception as e:
+            j.logger.warning(f&#34;Failed to execute {function.__name__} due to error: {str(e)}&#34;)
+            sleep(1)
+    else:
+        raise j.exceptions.Runtime(f&#34;Failed to execute {function.__name__} after multiple retries&#34;)
+    return result</code></pre>
 </details>
 </dd>
 </dl>

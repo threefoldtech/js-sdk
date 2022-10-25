@@ -87,6 +87,17 @@ class Packages(BaseActor):
     def delete_package(self, name: str) -&gt; str:
         return j.data.serializers.json.dumps({&#34;data&#34;: self.threebot.packages.delete(name)})
 
+    @actor_method
+    def list_chat_urls(self, name: str) -&gt; str:
+        package_chats = []
+        if name in self.threebot.packages.packages:
+            package = self.threebot.packages.get(name)
+            if name in self.threebot.chatbot.chats:
+                package_chat_names = self.threebot.chatbot.chats[name].keys()
+                for chat_name in package_chat_names:
+                    package_chats.append({&#34;name&#34;: chat_name, &#34;url&#34;: f&#34;{package.base_url}/chats/{chat_name}&#34;})
+        return j.data.serializers.json.dumps({&#34;data&#34;: package_chats})
+
 
 Actor = Packages</code></pre>
 </details>
@@ -165,7 +176,18 @@ Actor = Packages</code></pre>
 
     @actor_method
     def delete_package(self, name: str) -&gt; str:
-        return j.data.serializers.json.dumps({&#34;data&#34;: self.threebot.packages.delete(name)})</code></pre>
+        return j.data.serializers.json.dumps({&#34;data&#34;: self.threebot.packages.delete(name)})
+
+    @actor_method
+    def list_chat_urls(self, name: str) -&gt; str:
+        package_chats = []
+        if name in self.threebot.packages.packages:
+            package = self.threebot.packages.get(name)
+            if name in self.threebot.chatbot.chats:
+                package_chat_names = self.threebot.chatbot.chats[name].keys()
+                for chat_name in package_chat_names:
+                    package_chats.append({&#34;name&#34;: chat_name, &#34;url&#34;: f&#34;{package.base_url}/chats/{chat_name}&#34;})
+        return j.data.serializers.json.dumps({&#34;data&#34;: package_chats})</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -275,6 +297,25 @@ def delete_package(self, name: str) -&gt; str:
 <pre><code class="python">@actor_method
 def get_package_status(self, names: list) -&gt; str:
     return &#34;hello from packages_get_status actor&#34;</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.admin.actors.packages.Packages.list_chat_urls"><code class="name flex">
+<span>def <span class="ident">list_chat_urls</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@actor_method
+def list_chat_urls(self, name: str) -&gt; str:
+    package_chats = []
+    if name in self.threebot.packages.packages:
+        package = self.threebot.packages.get(name)
+        if name in self.threebot.chatbot.chats:
+            package_chat_names = self.threebot.chatbot.chats[name].keys()
+            for chat_name in package_chat_names:
+                package_chats.append({&#34;name&#34;: chat_name, &#34;url&#34;: f&#34;{package.base_url}/chats/{chat_name}&#34;})
+    return j.data.serializers.json.dumps({&#34;data&#34;: package_chats})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.packages.Packages.list_packages"><code class="name flex">
@@ -368,7 +409,18 @@ def packages_names(self) -&gt; str:
 
     @actor_method
     def delete_package(self, name: str) -&gt; str:
-        return j.data.serializers.json.dumps({&#34;data&#34;: self.threebot.packages.delete(name)})</code></pre>
+        return j.data.serializers.json.dumps({&#34;data&#34;: self.threebot.packages.delete(name)})
+
+    @actor_method
+    def list_chat_urls(self, name: str) -&gt; str:
+        package_chats = []
+        if name in self.threebot.packages.packages:
+            package = self.threebot.packages.get(name)
+            if name in self.threebot.chatbot.chats:
+                package_chat_names = self.threebot.chatbot.chats[name].keys()
+                for chat_name in package_chat_names:
+                    package_chats.append({&#34;name&#34;: chat_name, &#34;url&#34;: f&#34;{package.base_url}/chats/{chat_name}&#34;})
+        return j.data.serializers.json.dumps({&#34;data&#34;: package_chats})</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -480,6 +532,25 @@ def get_package_status(self, names: list) -&gt; str:
     return &#34;hello from packages_get_status actor&#34;</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.packages.admin.actors.packages.Packages.list_chat_urls"><code class="name flex">
+<span>def <span class="ident">list_chat_urls</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@actor_method
+def list_chat_urls(self, name: str) -&gt; str:
+    package_chats = []
+    if name in self.threebot.packages.packages:
+        package = self.threebot.packages.get(name)
+        if name in self.threebot.chatbot.chats:
+            package_chat_names = self.threebot.chatbot.chats[name].keys()
+            for chat_name in package_chat_names:
+                package_chats.append({&#34;name&#34;: chat_name, &#34;url&#34;: f&#34;{package.base_url}/chats/{chat_name}&#34;})
+    return j.data.serializers.json.dumps({&#34;data&#34;: package_chats})</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.packages.admin.actors.packages.Packages.list_packages"><code class="name flex">
 <span>def <span class="ident">list_packages</span></span>(<span>self)</span>
 </code></dt>
@@ -529,6 +600,7 @@ def packages_names(self) -&gt; str:
 <li><code><a title="jumpscale.packages.admin.actors.packages.Packages.add_package" href="#jumpscale.packages.admin.actors.packages.Packages.add_package">add_package</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.packages.Packages.delete_package" href="#jumpscale.packages.admin.actors.packages.Packages.delete_package">delete_package</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.packages.Packages.get_package_status" href="#jumpscale.packages.admin.actors.packages.Packages.get_package_status">get_package_status</a></code></li>
+<li><code><a title="jumpscale.packages.admin.actors.packages.Packages.list_chat_urls" href="#jumpscale.packages.admin.actors.packages.Packages.list_chat_urls">list_chat_urls</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.packages.Packages.list_packages" href="#jumpscale.packages.admin.actors.packages.Packages.list_packages">list_packages</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.packages.Packages.packages_names" href="#jumpscale.packages.admin.actors.packages.Packages.packages_names">packages_names</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.packages.Packages.threebot" href="#jumpscale.packages.admin.actors.packages.Packages.threebot">threebot</a></code></li>
@@ -541,6 +613,7 @@ def packages_names(self) -&gt; str:
 <li><code><a title="jumpscale.packages.admin.actors.packages.Packages.add_package" href="#jumpscale.packages.admin.actors.packages.Packages.add_package">add_package</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.packages.Packages.delete_package" href="#jumpscale.packages.admin.actors.packages.Packages.delete_package">delete_package</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.packages.Packages.get_package_status" href="#jumpscale.packages.admin.actors.packages.Packages.get_package_status">get_package_status</a></code></li>
+<li><code><a title="jumpscale.packages.admin.actors.packages.Packages.list_chat_urls" href="#jumpscale.packages.admin.actors.packages.Packages.list_chat_urls">list_chat_urls</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.packages.Packages.list_packages" href="#jumpscale.packages.admin.actors.packages.Packages.list_packages">list_packages</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.packages.Packages.packages_names" href="#jumpscale.packages.admin.actors.packages.Packages.packages_names">packages_names</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.packages.Packages.threebot" href="#jumpscale.packages.admin.actors.packages.Packages.threebot">threebot</a></code></li>

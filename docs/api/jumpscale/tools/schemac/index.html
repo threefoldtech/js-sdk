@@ -25,7 +25,7 @@
 <h2 id="example">Example</h2>
 <p>In this example there're bunch of types (bools, int, string, dict, time, date, enumerations, objects, list of objects, email) defined in jsx old style.</p>
 <h3 id="jsx-schema">jsx schema</h3>
-<pre><code class="python">schema = &quot;&quot;&quot;
+<pre><code class="language-python">schema = &quot;&quot;&quot;
 @url = despiegk.test
 listany = (LO)
 llist2 = &quot;&quot; (LS) #L means = list, S=String
@@ -34,7 +34,7 @@ today = (D)
 now = (T)
 info = (dict)
 theemail = (email)
-status = &quot;on,off&quot; (E) 
+status = &quot;on,off&quot; (E)
 happy = &quot;yes, no&quot; (E)
 &amp;nr    = 4
 obj = (O)!hamada.test
@@ -59,7 +59,7 @@ mood = &quot;stressed,sleeping&quot; (E)
 </code></pre>
 <h3 id="converting-to-the-new-system">Converting to the new system</h3>
 <p>We expect that to expand or convert to plain old python classes, with dependency resolution.</p>
-<pre><code class="python">    c = j.tools.schemac.get_compiler(schema, &quot;python&quot;)
+<pre><code class="language-python">    c = j.tools.schemac.get_compiler(schema, &quot;python&quot;)
     assert c
 
     assert c._schema_text
@@ -70,7 +70,7 @@ mood = &quot;stressed,sleeping&quot; (E)
     print(generated_python)
 </code></pre>
 <h3 id="generated-file">Generated file</h3>
-<pre><code class="python">#GENERATED CLASS DONT EDIT
+<pre><code class="language-python">#GENERATED CLASS DONT EDIT
 from jumpscale.core.base import Base, fields
 from enum import Enum
 
@@ -123,7 +123,7 @@ class DespiegkTest(Base):
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">&#39;&#39;&#39;
-# schemac 
+# schemac
 
 Schemac is a tool used to convert (transpile) the schemas defined in jsx systems into the new objects definitions in js-ng
 
@@ -143,7 +143,7 @@ today = (D)
 now = (T)
 info = (dict)
 theemail = (email)
-status = &#34;on,off&#34; (E) 
+status = &#34;on,off&#34; (E)
 happy = &#34;yes, no&#34; (E)
 &amp;nr    = 4
 obj = (O)!hamada.test

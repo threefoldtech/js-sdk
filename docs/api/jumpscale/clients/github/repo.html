@@ -22,20 +22,24 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">import threading
+<pre><code class="python">import base64
 import copy
-import base64
-from .issue import Issue
+import threading
 
-from .base import replacelabels
+# import collections
+import urllib
+
+from gevent import sleep
 from jumpscale.clients.base import Client
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 
-# import collections
-import urllib
-from .milestone import RepoMilestone
 from github.GithubException import UnknownObjectException
+
+from .base import replacelabels
+from .helper import retry
+from .issue import Issue
+from .milestone import RepoMilestone
 
 
 class GithubRepo:
@@ -94,6 +98,11 @@ class GithubRepo:
                 self._labels = [item for item in self.api.get_labels()]
 
         return self._labels
+
+    @property
+    def branches(self):
+        &#34;&#34;&#34;list of `Branch` objects&#34;&#34;&#34;
+        return list(self.api.get_branches())
 
     @property
     def stories(self):
@@ -310,6 +319,7 @@ class GithubRepo:
         else:
             return None
 
+    @retry
     def create_milestone(self, name, title, description=&#34;&#34;, deadline=&#34;&#34;, owner=&#34;&#34;):
         self._log_info(&#39;Attempt to create milestone &#34;%s&#34; [%s] deadline %s&#39; % (name, title, deadline))
 
@@ -403,6 +413,7 @@ class GithubRepo:
 
         return &#34;ffffff&#34;
 
+    @retry
     def set_file(self, path, content, message=&#34;update file&#34;):
         &#34;&#34;&#34;
         Creates or updates the file content at path with given content
@@ -446,7 +457,7 @@ class GithubRepo:
         contents = self.api.get_dir_contents(src, ref=branch)
 
         for content in contents:
-            if content.type == &#39;dir&#39;:
+            if content.type == &#34;dir&#34;:
                 dir_path = j.sals.fs.join_paths(dest, content.path)
                 j.sals.fs.mkdirs(dir_path)
                 self.download_directory(content.path, download_dir, branch)
@@ -458,6 +469,10 @@ class GithubRepo:
                     f.write(base64.b64decode(file_content.content).decode())
 
         return j.sals.fs.join_paths(dest, src)
+
+    def get_git_tree(self, sha_or_branch):
+        &#34;&#34;&#34;return a list of `GitTreeElement` for every element in source tree&#34;&#34;&#34;
+        return self.api.get_git_tree(sha_or_branch).tree
 
     def __str__(self):
         return &#34;gitrepo:%s&#34; % self.fullname
@@ -540,6 +555,11 @@ class GithubRepo:
         return self._labels
 
     @property
+    def branches(self):
+        &#34;&#34;&#34;list of `Branch` objects&#34;&#34;&#34;
+        return list(self.api.get_branches())
+
+    @property
     def stories(self):
         # walk overall issues find the stories (based on type)
         # only for home type repo, otherwise return []
@@ -754,6 +774,7 @@ class GithubRepo:
         else:
             return None
 
+    @retry
     def create_milestone(self, name, title, description=&#34;&#34;, deadline=&#34;&#34;, owner=&#34;&#34;):
         self._log_info(&#39;Attempt to create milestone &#34;%s&#34; [%s] deadline %s&#39; % (name, title, deadline))
 
@@ -847,6 +868,7 @@ class GithubRepo:
 
         return &#34;ffffff&#34;
 
+    @retry
     def set_file(self, path, content, message=&#34;update file&#34;):
         &#34;&#34;&#34;
         Creates or updates the file content at path with given content
@@ -890,7 +912,7 @@ class GithubRepo:
         contents = self.api.get_dir_contents(src, ref=branch)
 
         for content in contents:
-            if content.type == &#39;dir&#39;:
+            if content.type == &#34;dir&#34;:
                 dir_path = j.sals.fs.join_paths(dest, content.path)
                 j.sals.fs.mkdirs(dir_path)
                 self.download_directory(content.path, download_dir, branch)
@@ -902,6 +924,10 @@ class GithubRepo:
                     f.write(base64.b64decode(file_content.content).decode())
 
         return j.sals.fs.join_paths(dest, src)
+
+    def get_git_tree(self, sha_or_branch):
+        &#34;&#34;&#34;return a list of `GitTreeElement` for every element in source tree&#34;&#34;&#34;
+        return self.api.get_git_tree(sha_or_branch).tree
 
     def __str__(self):
         return &#34;gitrepo:%s&#34; % self.fullname
@@ -935,6 +961,17 @@ def api(self):
     if self._repoclient is None:
         self._repoclient = self.client.get_repo(self.fullname)
     return self._repoclient</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.github.repo.GithubRepo.branches"><code class="name">var <span class="ident">branches</span></code></dt>
+<dd>
+<section class="desc"><p>list of <code>Branch</code> objects</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def branches(self):
+    &#34;&#34;&#34;list of `Branch` objects&#34;&#34;&#34;
+    return list(self.api.get_branches())</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.clients.github.repo.GithubRepo.issues"><code class="name">var <span class="ident">issues</span></code></dt>
@@ -1103,44 +1140,23 @@ def types(self):
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.clients.github.repo.GithubRepo.create_milestone"><code class="name flex">
-<span>def <span class="ident">create_milestone</span></span>(<span>self, name, title, description=&#39;&#39;, deadline=&#39;&#39;, owner=&#39;&#39;)</span>
+<span>def <span class="ident">create_milestone</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def create_milestone(self, name, title, description=&#34;&#34;, deadline=&#34;&#34;, owner=&#34;&#34;):
-    self._log_info(&#39;Attempt to create milestone &#34;%s&#34; [%s] deadline %s&#39; % (name, title, deadline))
-
-    def getBody(descr, name, owner):
-        out = &#34;%s\n\n&#34; % descr
-        out += &#34;## name:%s\n&#34; % name
-        out += &#34;## owner:%s\n&#34; % owner
-        return out
-
-    ms = None
-    for s in [name, title]:
-        ms = self.get_milestone(s, die=False)
-        if ms is not None:
+<pre><code class="python">def wrapper(self, *args, **kwargs):
+    for _ in range(6):
+        try:
+            result = function(self, *args, **kwargs)
             break
-
-    if ms is not None:
-        if ms.title != title:
-            ms.title = title
-        # if ms.deadline != deadline:
-        #     ms.deadline = deadline
-        tocheck = getBody(description.strip(), name, owner)
-        if ms.body.strip() != tocheck.strip():
-            ms.body = tocheck
+        except Exception as e:
+            j.logger.warning(f&#34;Failed to execute {function.__name__} due to error: {str(e)}&#34;)
+            sleep(1)
     else:
-        # due = j.data.time.epoch2pythonDateTime(int(j.data.time.getEpochFuture(deadline)))
-        self._log_info(&#34;Create milestone on %s: %s&#34; % (self, title))
-        body = getBody(description.strip(), name, owner)
-        # workaround for https://github.com/PyGithub/PyGithub/issues/396
-        milestone = self.api.create_milestone(title=title, description=body)
-        milestone.edit(title=title)
-
-        self._milestones.append(RepoMilestone(self, milestone))</code></pre>
+        raise j.exceptions.Runtime(f&#34;Failed to execute {function.__name__} after multiple retries&#34;)
+    return result</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.clients.github.repo.GithubRepo.delete_milestone"><code class="name flex">
@@ -1176,7 +1192,7 @@ def types(self):
     contents = self.api.get_dir_contents(src, ref=branch)
 
     for content in contents:
-        if content.type == &#39;dir&#39;:
+        if content.type == &#34;dir&#34;:
             dir_path = j.sals.fs.join_paths(dest, content.path)
             j.sals.fs.mkdirs(dir_path)
             self.download_directory(content.path, download_dir, branch)
@@ -1236,6 +1252,18 @@ def types(self):
         return &#34;f9d0c4&#34;  # roze
 
     return &#34;ffffff&#34;</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.clients.github.repo.GithubRepo.get_git_tree"><code class="name flex">
+<span>def <span class="ident">get_git_tree</span></span>(<span>self, sha_or_branch)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>return a list of <code>GitTreeElement</code> for every element in source tree</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_git_tree(self, sha_or_branch):
+    &#34;&#34;&#34;return a list of `GitTreeElement` for every element in source tree&#34;&#34;&#34;
+    return self.api.get_git_tree(sha_or_branch).tree</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.clients.github.repo.GithubRepo.get_issue"><code class="name flex">
@@ -1492,38 +1520,23 @@ returns dict of dict keys: type, state and then issues sorted following priority
 </details>
 </dd>
 <dt id="jumpscale.clients.github.repo.GithubRepo.set_file"><code class="name flex">
-<span>def <span class="ident">set_file</span></span>(<span>self, path, content, message=&#39;update file&#39;)</span>
+<span>def <span class="ident">set_file</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Creates or updates the file content at path with given content
-:param path: file path <code>README.md</code>
-:param content: Plain content of file
-:return:</p></section>
+<section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def set_file(self, path, content, message=&#34;update file&#34;):
-    &#34;&#34;&#34;
-    Creates or updates the file content at path with given content
-    :param path: file path `README.md`
-    :param content: Plain content of file
-    :return:
-    &#34;&#34;&#34;
-    bytes = content.encode()
-    encoded = base64.encodebytes(bytes)
-
-    params = {&#34;message&#34;: message, &#34;content&#34;: encoded.decode()}
-
-    path = urllib.parse.quote(path)
-    try:
-        obj = self.api.get_contents(path)
-        params[&#34;sha&#34;] = obj.sha
-        if base64.decodebytes(obj.content.encode()) == bytes:
-            return
-    except UnknownObjectException:
-        pass
-
-    self._log_info(&#39;Updating file &#34;%s&#34;&#39; % path)
-    self.api._requester.requestJsonAndCheck(&#34;PUT&#34;, self.api.url + &#34;/contents/&#34; + path, input=params)</code></pre>
+<pre><code class="python">def wrapper(self, *args, **kwargs):
+    for _ in range(6):
+        try:
+            result = function(self, *args, **kwargs)
+            break
+        except Exception as e:
+            j.logger.warning(f&#34;Failed to execute {function.__name__} due to error: {str(e)}&#34;)
+            sleep(1)
+    else:
+        raise j.exceptions.Runtime(f&#34;Failed to execute {function.__name__} after multiple retries&#34;)
+    return result</code></pre>
 </details>
 </dd>
 </dl>
@@ -1551,10 +1564,12 @@ returns dict of dict keys: type, state and then issues sorted following priority
 <li><code><a title="jumpscale.clients.github.repo.GithubRepo.STATES" href="#jumpscale.clients.github.repo.GithubRepo.STATES">STATES</a></code></li>
 <li><code><a title="jumpscale.clients.github.repo.GithubRepo.TYPES" href="#jumpscale.clients.github.repo.GithubRepo.TYPES">TYPES</a></code></li>
 <li><code><a title="jumpscale.clients.github.repo.GithubRepo.api" href="#jumpscale.clients.github.repo.GithubRepo.api">api</a></code></li>
+<li><code><a title="jumpscale.clients.github.repo.GithubRepo.branches" href="#jumpscale.clients.github.repo.GithubRepo.branches">branches</a></code></li>
 <li><code><a title="jumpscale.clients.github.repo.GithubRepo.create_milestone" href="#jumpscale.clients.github.repo.GithubRepo.create_milestone">create_milestone</a></code></li>
 <li><code><a title="jumpscale.clients.github.repo.GithubRepo.delete_milestone" href="#jumpscale.clients.github.repo.GithubRepo.delete_milestone">delete_milestone</a></code></li>
 <li><code><a title="jumpscale.clients.github.repo.GithubRepo.download_directory" href="#jumpscale.clients.github.repo.GithubRepo.download_directory">download_directory</a></code></li>
 <li><code><a title="jumpscale.clients.github.repo.GithubRepo.get_color" href="#jumpscale.clients.github.repo.GithubRepo.get_color">get_color</a></code></li>
+<li><code><a title="jumpscale.clients.github.repo.GithubRepo.get_git_tree" href="#jumpscale.clients.github.repo.GithubRepo.get_git_tree">get_git_tree</a></code></li>
 <li><code><a title="jumpscale.clients.github.repo.GithubRepo.get_issue" href="#jumpscale.clients.github.repo.GithubRepo.get_issue">get_issue</a></code></li>
 <li><code><a title="jumpscale.clients.github.repo.GithubRepo.get_issue_from_markdown" href="#jumpscale.clients.github.repo.GithubRepo.get_issue_from_markdown">get_issue_from_markdown</a></code></li>
 <li><code><a title="jumpscale.clients.github.repo.GithubRepo.get_milestone" href="#jumpscale.clients.github.repo.GithubRepo.get_milestone">get_milestone</a></code></li>

@@ -129,8 +129,6 @@ JS-NG&gt; j.core.config.set(&#34;favcolor&#34;, &#34;grey&#34;)
 JS-NG&gt; j.core.config.get(&#34;favcolor&#34;)
 &#39;grey&#39;
 ```
-
-
 &#34;&#34;&#34;
 
 import os
@@ -138,6 +136,13 @@ import os
 import nacl.utils
 import nacl.encoding
 import pytoml as toml
+
+try:
+    from importlib import metadata
+except ImportError:
+    # Running on pre-3.8 Python; use importlib-metadata package
+    import importlib_metadata as metadata
+
 from nacl.public import PrivateKey
 
 
@@ -154,7 +159,9 @@ __all__ = [
     &#34;get_current_version&#34;,
 ]
 
-__version__ = &#34;11.0.0-a3&#34;
+
+package_name = &#34;js-ng&#34;
+__version__ = metadata.version(package_name)
 
 
 config_root = os.path.expanduser(os.path.join(&#34;~/.config&#34;, &#34;jumpscale&#34;))
@@ -175,6 +182,7 @@ def get_default_config():
         &#34;debug&#34;: True,
         &#34;shell&#34;: &#34;ptpython&#34;,
         &#34;logging&#34;: {
+            &#34;default&#34;: {&#34;enabled&#34;: True, &#34;level&#34;: 10,},
             &#34;redis&#34;: {
                 &#34;enabled&#34;: True,
                 &#34;level&#34;: 15,
@@ -263,8 +271,6 @@ def set_default(key, val):
     else:
         set(key, val)
         return val
-
-
 
 
 def migrate_config():
@@ -426,6 +432,7 @@ migrate_config()</code></pre>
         &#34;debug&#34;: True,
         &#34;shell&#34;: &#34;ptpython&#34;,
         &#34;logging&#34;: {
+            &#34;default&#34;: {&#34;enabled&#34;: True, &#34;level&#34;: 10,},
             &#34;redis&#34;: {
                 &#34;enabled&#34;: True,
                 &#34;level&#34;: 15,
@@ -485,7 +492,7 @@ migrate_config()</code></pre>
 <span>def <span class="ident">set_default</span></span>(<span>key, val)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Sets key to value in jumpscale config and returns </p>
+<section class="desc"><p>Sets key to value in jumpscale config and returns</p>
 <h2 id="arguments">Arguments</h2>
 <dl>
 <dt><strong><code>key</code></strong> :&ensp;<code>str</code></dt>

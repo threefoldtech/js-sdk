@@ -85,15 +85,14 @@ class Server(stellarServer):
 <span>(</span><span>account_id, sequence, wallet)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>The :class:<a title="jumpscale.clients.stellar.wrapped.Account" href="#jumpscale.clients.stellar.wrapped.Account"><code>Account</code></a> object, which represents represents a single
-account in Stellar network and its sequence number.</p>
+<section class="desc"><p>The :class:<a title="jumpscale.clients.stellar.wrapped.Account" href="#jumpscale.clients.stellar.wrapped.Account"><code>Account</code></a> object represents a single
+account on the Stellar network and its sequence number.</p>
 <p>Account tracks the sequence number as it is used
 by :class:<code>TransactionBuilder &lt;stellar_sdk.transaction_builder.TransactionBuilder&gt;</code></p>
 <p>See <code>Accounts</code>_ For more information about the formats used for asset codes and how issuers
-work on Stellar's network,</p>
-<p>:param account_id: MuxedAccount or Account ID of the
+work on Stellar,</p>
+<p>:param account_id: Account ID of the
 account (ex. <code>GB3KJPLFUYN5VL6R3GU3EGCGVCKFDSD7BEDX42HWG5BWFKB3KQGJJRMA</code>)
-or muxed account (ex. <code>MAAAAAAAAAAAJURAAB2X52XFQP6FBXLGT6LWOOWMEXWHEWBDVRZ7V5WH34Y22MPFBHUHY</code>)
 :param sequence: sequence current sequence number of the account
 :raises:
 :exc:<code>Ed25519PublicKeyInvalidError &lt;stellar_sdk.exceptions.Ed25519PublicKeyInvalidError&gt;</code>: if <code>account_id</code>

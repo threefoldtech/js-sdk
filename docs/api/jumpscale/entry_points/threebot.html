@@ -27,14 +27,13 @@
 monkey.patch_all(subprocess=False)  # noqa: E402
 
 import sys
-
 import click
 import tempfile
 import subprocess
 
 from jumpscale.loader import j
-from jumpscale.threesdk.identitymanager import IdentityManager
 from jumpscale.sals.nginx.nginx import PORTS
+from jumpscale.packages.admin.actors.wallet import Wallet
 
 SERVICES_PORTS = {&#34;nginx&#34;: 8999, &#34;nginx_http&#34;: 80, &#34;nginx_https&#34;: 443, &#34;gedis&#34;: 16000}
 
@@ -92,18 +91,22 @@ http {
 @click.option(
     &#34;--local/--no-local&#34;, default=False, help=&#34;run threebot server on none privileged ports instead of 80/443&#34;
 )
-def start(identity=None, background=False, local=False, development=False, domain=None, email=None):
+@click.option(&#34;--cert/--no-cert&#34;, default=True, help=&#34;Generate certificates for ssl virtual hosts&#34;)
+def start(identity=None, background=False, local=False, cert=True, development=False, domain=None, email=None):
     &#34;&#34;&#34;start 3Bot server after making sure identity is ok
     It will start with the default identity in j.me, if you&#39;d like to specify an identity
     please pass the optional arguments
 
     usage: threebot start
-    or: threebot start --identity &lt;identity&gt; --explorer &lt;explorer&gt;
+    or: threebot start --identity &lt;identity&gt;
 
     Args:
         identity (str, optional): threebot name. Defaults to None.
-        explorer (str, optional): which explorer network to use: mainnet, testnet, devnet. Defaults to None.
     &#34;&#34;&#34;
+    if j.config.get(&#34;ANNOUNCED&#34;) is None:
+        j.config.set(&#34;ANNOUNCED&#34;, False)
+
+    create_wallets_if_not_exists()
     check_for_bins()
     PORTS.init_default_ports(local)
     SERVICES_PORTS[&#34;nginx_http&#34;] = PORTS.HTTP
@@ -121,14 +124,12 @@ def start(identity=None, background=False, local=False, development=False, domai
             sys.exit(1)
 
     if not development and not j.core.identity.list_all():
-        identity_data = IdentityManager()
-        identity_info = identity_data.ask_identity()
+        identity_info = j.core.identity.ask()
         me = j.core.identity.new(
             &#34;default&#34;,
             tname=identity_info.identity,
             email=identity_info.email,
             words=identity_info.words,
-            explorer_url=f&#34;https://{identity_info.explorer}/api/v1&#34;,
         )
         me.register()
         me.save()
@@ -158,9 +159,7 @@ def start(identity=None, background=False, local=False, development=False, domai
 
     if background:
         cmd = j.tools.startupcmd.get(&#34;threebot_default&#34;)
-        cmd.start_cmd = (
-            f&#34;jsng &#39;j.servers.threebot.start_default(wait=True, local={local}, domain={domain}, email={email})&#39;&#34;
-        )
+        cmd.start_cmd = f&#34;jsng &#39;j.servers.threebot.start_default(wait=True, local={local}, domain={domain}, email={email}, cert={cert})&#39;&#34;
         cmd.process_strings_regex = [&#34;.*threebot_default.sh&#34;]
         cmd.ports = [8000, 8999]
         cmd.start()
@@ -177,13 +176,12 @@ def start(identity=None, background=False, local=False, development=False, domai
                 f&#34;{{WHITE}}Visit admin dashboard at: {{GREEN}}http://localhost:{PORTS.HTTP}/\n{{RESET}}&#34;
             )
     else:
-        j.servers.threebot.start_default(wait=True, local=local, domain=domain, email=email)
+        j.servers.threebot.start_default(wait=True, local=local, domain=domain, email=email, cert=cert)
 
 
 @click.command()
 def stop():
-    &#34;&#34;&#34;stops threebot server
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;stops threebot server&#34;&#34;&#34;
     threebot_pids = j.sals.process.get_pids(&#34;threebot&#34;)
     if len(threebot_pids) &gt; 1:  # Check if threebot was started in foreground
         # Kill all other processes other than `threebot stop`
@@ -201,8 +199,7 @@ def stop():
 
 @click.command()
 def status():
-    &#34;&#34;&#34;return the status of threebot server
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;return the status of threebot server&#34;&#34;&#34;
     if j.servers.threebot.get().is_running():
         j.tools.console.printcolors(&#34;Server is {GREEN}running{RESET}&#34;)
     else:
@@ -220,8 +217,7 @@ def status():
 )
 @click.pass_context
 def restart(ctx, identity=None, background=False, local=False, development=False, domain=None, email=None):
-    &#34;&#34;&#34;restart threebot server
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;restart threebot server&#34;&#34;&#34;
     ctx.invoke(stop)
     ctx.invoke(
         start,
@@ -237,8 +233,7 @@ def restart(ctx, identity=None, background=False, local=False, development=False
 @click.command()
 @click.option(&#34;--all&#34;, default=False, is_flag=True, help=&#34;delete all of jumpscale config&#34;)
 def clean(all=False):
-    &#34;&#34;&#34;deletes previous configurations of jumpscale
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;deletes previous configurations of jumpscale&#34;&#34;&#34;
     config_root = j.core.config.config_root
 
     if all:
@@ -251,7 +246,7 @@ def clean(all=False):
                 print(f&#34;exception was {e} for debugging&#34;)
 
             answer = j.tools.console.ask_yes_no(f&#34;Do you want to remove {config_root} ? &#34;)
-            if answer==&#34;y&#34;:
+            if answer == &#34;y&#34;:
                 j.sals.fs.rmtree(config_root)
                 print(&#34;Previous configuration is deleted.&#34;)
 
@@ -260,12 +255,42 @@ def clean(all=False):
             print(f&#34;exception for debugging {e}&#34;)
 
 
+@click.command()
+@click.option(&#34;-o&#34;, &#34;--output&#34;, default=&#34;export.tar.gz&#34;, help=&#34;exported output file&#34;)
+def export(output):
+    j.tools.export.export_threebot_state(output)
+
 
 @click.group()
 def cli():
     pass
 
 
+def have_wallets():
+    wallets = j.clients.stellar.list_all()
+    for wallet_name in wallets:
+        wallet = j.clients.stellar.get(wallet_name)
+        if wallet.network.value == &#34;STD&#34;:
+            return True
+    return False
+
+
+def create_main_wallet(wallet_name):
+    wallet_actor = Wallet()
+    try:
+        wallet_actor.create_wallet(wallet_name)
+    except Exception as e:
+        j.logger.error(str(e))
+
+
+def create_wallets_if_not_exists():
+    main_wallet = have_wallets()
+    if not j.core.identity.is_configured:
+        j.logger.warning(&#34;skipping wallets creation, identity isn&#39;t configured yet&#34;)
+        return
+    else:
+        if not main_wallet:
+            create_main_wallet(&#34;main&#34;)
 
 
 cli.add_command(start)
@@ -273,6 +298,7 @@ cli.add_command(stop)
 cli.add_command(status)
 cli.add_command(restart)
 cli.add_command(clean)
+cli.add_command(export)
 
 
 if __name__ == &#34;__main__&#34;:
@@ -308,6 +334,54 @@ if __name__ == &#34;__main__&#34;:
     else:
         bins = &#34;,&#34;.join(THREEBOT_DEPS_BINS)
         j.logger.info(f&#34;✅ binaries {bins} required are installed.&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.entry_points.threebot.create_main_wallet"><code class="name flex">
+<span>def <span class="ident">create_main_wallet</span></span>(<span>wallet_name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def create_main_wallet(wallet_name):
+    wallet_actor = Wallet()
+    try:
+        wallet_actor.create_wallet(wallet_name)
+    except Exception as e:
+        j.logger.error(str(e))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.entry_points.threebot.create_wallets_if_not_exists"><code class="name flex">
+<span>def <span class="ident">create_wallets_if_not_exists</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def create_wallets_if_not_exists():
+    main_wallet = have_wallets()
+    if not j.core.identity.is_configured:
+        j.logger.warning(&#34;skipping wallets creation, identity isn&#39;t configured yet&#34;)
+        return
+    else:
+        if not main_wallet:
+            create_main_wallet(&#34;main&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.entry_points.threebot.have_wallets"><code class="name flex">
+<span>def <span class="ident">have_wallets</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def have_wallets():
+    wallets = j.clients.stellar.list_all()
+    for wallet_name in wallets:
+        wallet = j.clients.stellar.get(wallet_name)
+        if wallet.network.value == &#34;STD&#34;:
+            return True
+    return False</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.entry_points.threebot.test_privileged_ports_bind"><code class="name flex">
@@ -361,6 +435,9 @@ http {
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="jumpscale.entry_points.threebot.check_for_bins" href="#jumpscale.entry_points.threebot.check_for_bins">check_for_bins</a></code></li>
+<li><code><a title="jumpscale.entry_points.threebot.create_main_wallet" href="#jumpscale.entry_points.threebot.create_main_wallet">create_main_wallet</a></code></li>
+<li><code><a title="jumpscale.entry_points.threebot.create_wallets_if_not_exists" href="#jumpscale.entry_points.threebot.create_wallets_if_not_exists">create_wallets_if_not_exists</a></code></li>
+<li><code><a title="jumpscale.entry_points.threebot.have_wallets" href="#jumpscale.entry_points.threebot.have_wallets">have_wallets</a></code></li>
 <li><code><a title="jumpscale.entry_points.threebot.test_privileged_ports_bind" href="#jumpscale.entry_points.threebot.test_privileged_ports_bind">test_privileged_ports_bind</a></code></li>
 </ul>
 </li>

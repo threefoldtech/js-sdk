@@ -23,10 +23,11 @@
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">from jumpscale.loader import j
+import gevent
 
 
-def _get_identifier(appname, message, public_message, category, alert_type):
-    return j.data.hash.md5(&#34;:&#34;.join([appname, message, public_message, category, alert_type]))
+def _get_identifier(app_name, message, public_message, category, alert_type):
+    return j.data.hash.md5(&#34;:&#34;.join([app_name, message, public_message, category, alert_type]))
 
 
 class Alert:
@@ -34,7 +35,7 @@ class Alert:
         self.id = None
         self.type = None
         self.level = 0
-        self.appname = None
+        self.app_name = None
         self.category = None
         self.message = None
         self.public_message = None
@@ -55,7 +56,7 @@ class Alert:
 
     @property
     def identifier(self):
-        return _get_identifier(self.appname, self.message, self.public_message, self.category, self.type)
+        return _get_identifier(self.app_name, self.message, self.public_message, self.category, self.type)
 
     @property
     def json(self):
@@ -71,6 +72,7 @@ class AlertsHandler:
         self._rkey_id = &#34;alerts:id&#34;
         self._rkey_incr = &#34;alerts:id:incr&#34;
         self._db = None
+        self.handlers = []
 
     def __dir__(self):
         return (&#34;get&#34;, &#34;find&#34;, &#34;alert_raise&#34;, &#34;count&#34;, &#34;reset&#34;, &#34;delete&#34;, &#34;delete_all&#34;)
@@ -109,18 +111,18 @@ class AlertsHandler:
 
     def find(
         self,
-        appname: str = &#34;&#34;,
+        app_name: str = &#34;&#34;,
         category: str = &#34;&#34;,
         message: str = &#34;&#34;,
         pid: int = None,
         start_time: int = None,
         end_time: int = None,
-    ) -&gt; Alert:
+    ) -&gt; list:
 
         &#34;&#34;&#34;Find alerts
 
         Keyword Arguments:
-            appname {str} -- filter by allert app name (default: {&#34;&#34;})
+            app_name (str):  filter by allert app name (default: {&#34;&#34;})
             category {str} -- filter by alert category (default: {&#34;&#34;})
             message {str} -- filter by alert message (default: {&#34;&#34;})
             pid {int} -- filter by process id (default: {None})
@@ -128,9 +130,10 @@ class AlertsHandler:
             end_time {int} -- filter by end time (default: {None})
 
         Returns:
-            Alert -- alert object
+            list of Alert objects
         &#34;&#34;&#34;
-        appname = appname.strip().lower()
+
+        app_name = app_name.strip().lower()
         category = category.strip().lower()
         message = message.strip().lower()
 
@@ -140,13 +143,15 @@ class AlertsHandler:
         for item in items:
             alert = Alert.loads(item[1])
 
-            if appname and appname != alert.appname:
+            if app_name and app_name != alert.app_name.strip().lower():
                 continue
 
-            if category and category != alert.category:
+            if category and category != alert.category.strip().lower():
                 continue
 
-            if message and (message not in alert.message and message not in alert.public_message):
+            if message and (
+                message not in alert.message.strip().lower() and message not in alert.public_message.strip().lower()
+            ):
                 continue
 
             if start_time and start_time &lt; alert.first_occurrence:
@@ -167,7 +172,7 @@ class AlertsHandler:
 
     def alert_raise(
         self,
-        appname,
+        app_name,
         message,
         public_message: str = &#34;&#34;,
         category: str = &#34;&#34;,
@@ -196,7 +201,7 @@ class AlertsHandler:
         if not self.db.is_running():
             return
 
-        identifier = _get_identifier(appname, message, public_message, category, alert_type)
+        identifier = _get_identifier(app_name, message, public_message, category, alert_type)
         alert = self.get(identifier=identifier, die=False) or Alert()
 
         if alert.id:
@@ -208,7 +213,7 @@ class AlertsHandler:
             alert.status = &#34;new&#34;
             alert.first_occurrence = timestamp or j.data.time.now().timestamp
 
-        alert.appname = appname
+        alert.app_name = app_name
         alert.category = category
         alert.message = message
         alert.public_message = public_message
@@ -223,6 +228,9 @@ class AlertsHandler:
 
         alert.tracebacks.append(traceback)
         self._save(alert)
+        for handler_func, handler_level in self.handlers:
+            if level &gt;= handler_level:
+                gevent.spawn(handler_func, alert)
         return alert
 
     def count(self) -&gt; int:
@@ -263,15 +271,25 @@ class AlertsHandler:
             self.db.hdel(self._rkey, alert_id)
 
     def delete_all(self):
-        &#34;&#34;&#34;Deletes all alerts
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Deletes all alerts&#34;&#34;&#34;
         self.db.delete(self._rkey, self._rkey_id)
 
     def reset(self):
-        &#34;&#34;&#34;Delete all alerts and reset the db
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Delete all alerts and reset the db&#34;&#34;&#34;
         self.delete_all()
-        self.db.delete(self._rkey_incr)</code></pre>
+        self.db.delete(self._rkey_incr)
+
+    def register_handler(self, handler: callable, level: int = 40):
+        &#34;&#34;&#34;Register new alert handler
+
+        Arguments:
+            handler (callable): error handler callable
+
+        Keyword Arguments:
+            level (int): exception level (default: {40})
+        &#34;&#34;&#34;
+        if (handler, level) not in self.handlers:
+            self.handlers.append((handler, level))</code></pre>
 </details>
 </section>
 <section>
@@ -295,7 +313,7 @@ class AlertsHandler:
         self.id = None
         self.type = None
         self.level = 0
-        self.appname = None
+        self.app_name = None
         self.category = None
         self.message = None
         self.public_message = None
@@ -316,7 +334,7 @@ class AlertsHandler:
 
     @property
     def identifier(self):
-        return _get_identifier(self.appname, self.message, self.public_message, self.category, self.type)
+        return _get_identifier(self.app_name, self.message, self.public_message, self.category, self.type)
 
     @property
     def json(self):
@@ -352,7 +370,7 @@ def loads(cls, value):
 <summary>Source code</summary>
 <pre><code class="python">@property
 def identifier(self):
-    return _get_identifier(self.appname, self.message, self.public_message, self.category, self.type)</code></pre>
+    return _get_identifier(self.app_name, self.message, self.public_message, self.category, self.type)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.tools.alerthandler.alerthandler.Alert.json"><code class="name">var <span class="ident">json</span></code></dt>
@@ -394,6 +412,7 @@ def json(self):
         self._rkey_id = &#34;alerts:id&#34;
         self._rkey_incr = &#34;alerts:id:incr&#34;
         self._db = None
+        self.handlers = []
 
     def __dir__(self):
         return (&#34;get&#34;, &#34;find&#34;, &#34;alert_raise&#34;, &#34;count&#34;, &#34;reset&#34;, &#34;delete&#34;, &#34;delete_all&#34;)
@@ -432,18 +451,18 @@ def json(self):
 
     def find(
         self,
-        appname: str = &#34;&#34;,
+        app_name: str = &#34;&#34;,
         category: str = &#34;&#34;,
         message: str = &#34;&#34;,
         pid: int = None,
         start_time: int = None,
         end_time: int = None,
-    ) -&gt; Alert:
+    ) -&gt; list:
 
         &#34;&#34;&#34;Find alerts
 
         Keyword Arguments:
-            appname {str} -- filter by allert app name (default: {&#34;&#34;})
+            app_name (str):  filter by allert app name (default: {&#34;&#34;})
             category {str} -- filter by alert category (default: {&#34;&#34;})
             message {str} -- filter by alert message (default: {&#34;&#34;})
             pid {int} -- filter by process id (default: {None})
@@ -451,9 +470,10 @@ def json(self):
             end_time {int} -- filter by end time (default: {None})
 
         Returns:
-            Alert -- alert object
+            list of Alert objects
         &#34;&#34;&#34;
-        appname = appname.strip().lower()
+
+        app_name = app_name.strip().lower()
         category = category.strip().lower()
         message = message.strip().lower()
 
@@ -463,13 +483,15 @@ def json(self):
         for item in items:
             alert = Alert.loads(item[1])
 
-            if appname and appname != alert.appname:
+            if app_name and app_name != alert.app_name.strip().lower():
                 continue
 
-            if category and category != alert.category:
+            if category and category != alert.category.strip().lower():
                 continue
 
-            if message and (message not in alert.message and message not in alert.public_message):
+            if message and (
+                message not in alert.message.strip().lower() and message not in alert.public_message.strip().lower()
+            ):
                 continue
 
             if start_time and start_time &lt; alert.first_occurrence:
@@ -490,7 +512,7 @@ def json(self):
 
     def alert_raise(
         self,
-        appname,
+        app_name,
         message,
         public_message: str = &#34;&#34;,
         category: str = &#34;&#34;,
@@ -519,7 +541,7 @@ def json(self):
         if not self.db.is_running():
             return
 
-        identifier = _get_identifier(appname, message, public_message, category, alert_type)
+        identifier = _get_identifier(app_name, message, public_message, category, alert_type)
         alert = self.get(identifier=identifier, die=False) or Alert()
 
         if alert.id:
@@ -531,7 +553,7 @@ def json(self):
             alert.status = &#34;new&#34;
             alert.first_occurrence = timestamp or j.data.time.now().timestamp
 
-        alert.appname = appname
+        alert.app_name = app_name
         alert.category = category
         alert.message = message
         alert.public_message = public_message
@@ -546,6 +568,9 @@ def json(self):
 
         alert.tracebacks.append(traceback)
         self._save(alert)
+        for handler_func, handler_level in self.handlers:
+            if level &gt;= handler_level:
+                gevent.spawn(handler_func, alert)
         return alert
 
     def count(self) -&gt; int:
@@ -586,15 +611,25 @@ def json(self):
             self.db.hdel(self._rkey, alert_id)
 
     def delete_all(self):
-        &#34;&#34;&#34;Deletes all alerts
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Deletes all alerts&#34;&#34;&#34;
         self.db.delete(self._rkey, self._rkey_id)
 
     def reset(self):
-        &#34;&#34;&#34;Delete all alerts and reset the db
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Delete all alerts and reset the db&#34;&#34;&#34;
         self.delete_all()
-        self.db.delete(self._rkey_incr)</code></pre>
+        self.db.delete(self._rkey_incr)
+
+    def register_handler(self, handler: callable, level: int = 40):
+        &#34;&#34;&#34;Register new alert handler
+
+        Arguments:
+            handler (callable): error handler callable
+
+        Keyword Arguments:
+            level (int): exception level (default: {40})
+        &#34;&#34;&#34;
+        if (handler, level) not in self.handlers:
+            self.handlers.append((handler, level))</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
@@ -614,7 +649,7 @@ def db(self):
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.alert_raise"><code class="name flex">
-<span>def <span class="ident">alert_raise</span></span>(<span>self, appname, message, public_message=&#39;&#39;, category=&#39;&#39;, alert_type=&#39;event_system&#39;, level=40, data=None, timestamp=None, traceback=None)</span>
+<span>def <span class="ident">alert_raise</span></span>(<span>self, app_name, message, public_message=&#39;&#39;, category=&#39;&#39;, alert_type=&#39;event_system&#39;, level=40, data=None, timestamp=None, traceback=None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Raise a new alert</p>
@@ -635,7 +670,7 @@ traceback {dict} &ndash; alert traceback (default: {None})</p>
 <summary>Source code</summary>
 <pre><code class="python">def alert_raise(
     self,
-    appname,
+    app_name,
     message,
     public_message: str = &#34;&#34;,
     category: str = &#34;&#34;,
@@ -664,7 +699,7 @@ traceback {dict} &ndash; alert traceback (default: {None})</p>
     if not self.db.is_running():
         return
 
-    identifier = _get_identifier(appname, message, public_message, category, alert_type)
+    identifier = _get_identifier(app_name, message, public_message, category, alert_type)
     alert = self.get(identifier=identifier, die=False) or Alert()
 
     if alert.id:
@@ -676,7 +711,7 @@ traceback {dict} &ndash; alert traceback (default: {None})</p>
         alert.status = &#34;new&#34;
         alert.first_occurrence = timestamp or j.data.time.now().timestamp
 
-    alert.appname = appname
+    alert.app_name = app_name
     alert.category = category
     alert.message = message
     alert.public_message = public_message
@@ -691,6 +726,9 @@ traceback {dict} &ndash; alert traceback (default: {None})</p>
 
     alert.tracebacks.append(traceback)
     self._save(alert)
+    for handler_func, handler_level in self.handlers:
+        if level &gt;= handler_level:
+            gevent.spawn(handler_func, alert)
     return alert</code></pre>
 </details>
 </dd>
@@ -756,18 +794,18 @@ identifier {str} &ndash; alert identifier (default: {None})</dd>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def delete_all(self):
-    &#34;&#34;&#34;Deletes all alerts
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Deletes all alerts&#34;&#34;&#34;
     self.db.delete(self._rkey, self._rkey_id)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.find"><code class="name flex">
-<span>def <span class="ident">find</span></span>(<span>self, appname=&#39;&#39;, category=&#39;&#39;, message=&#39;&#39;, pid=None, start_time=None, end_time=None)</span>
+<span>def <span class="ident">find</span></span>(<span>self, app_name=&#39;&#39;, category=&#39;&#39;, message=&#39;&#39;, pid=None, start_time=None, end_time=None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Find alerts</p>
 <p>Keyword Arguments:
-appname {str} &ndash; filter by allert app name (default: {""})
+app_name (str):
+filter by allert app name (default: {""})
 category {str} &ndash; filter by alert category (default: {""})
 message {str} &ndash; filter by alert message (default: {""})
 pid {int} &ndash; filter by process id (default: {None})
@@ -775,25 +813,25 @@ start_time {int} &ndash; filter by start time (default: {None})
 end_time {int} &ndash; filter by end time (default: {None})</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><a title="jumpscale.tools.alerthandler.alerthandler.Alert" href="#jumpscale.tools.alerthandler.alerthandler.Alert"><code>Alert</code></a> &ndash; <code>alert</code> <code>object</code></dt>
+<dt><code>list</code> of <a title="jumpscale.tools.alerthandler.alerthandler.Alert" href="#jumpscale.tools.alerthandler.alerthandler.Alert"><code>Alert</code></a> <code>objects</code></dt>
 <dd>&nbsp;</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def find(
     self,
-    appname: str = &#34;&#34;,
+    app_name: str = &#34;&#34;,
     category: str = &#34;&#34;,
     message: str = &#34;&#34;,
     pid: int = None,
     start_time: int = None,
     end_time: int = None,
-) -&gt; Alert:
+) -&gt; list:
 
     &#34;&#34;&#34;Find alerts
 
     Keyword Arguments:
-        appname {str} -- filter by allert app name (default: {&#34;&#34;})
+        app_name (str):  filter by allert app name (default: {&#34;&#34;})
         category {str} -- filter by alert category (default: {&#34;&#34;})
         message {str} -- filter by alert message (default: {&#34;&#34;})
         pid {int} -- filter by process id (default: {None})
@@ -801,9 +839,10 @@ end_time {int} &ndash; filter by end time (default: {None})</p>
         end_time {int} -- filter by end time (default: {None})
 
     Returns:
-        Alert -- alert object
+        list of Alert objects
     &#34;&#34;&#34;
-    appname = appname.strip().lower()
+
+    app_name = app_name.strip().lower()
     category = category.strip().lower()
     message = message.strip().lower()
 
@@ -813,13 +852,15 @@ end_time {int} &ndash; filter by end time (default: {None})</p>
     for item in items:
         alert = Alert.loads(item[1])
 
-        if appname and appname != alert.appname:
+        if app_name and app_name != alert.app_name.strip().lower():
             continue
 
-        if category and category != alert.category:
+        if category and category != alert.category.strip().lower():
             continue
 
-        if message and (message not in alert.message and message not in alert.public_message):
+        if message and (
+            message not in alert.message.strip().lower() and message not in alert.public_message.strip().lower()
+        ):
             continue
 
         if start_time and start_time &lt; alert.first_occurrence:
@@ -889,6 +930,33 @@ die {bool} &ndash; flag to rasie exception if alert is not found (default: {True
         raise j.core.exceptions.NotFound(&#34;Requested alert is not found&#34;)</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.register_handler"><code class="name flex">
+<span>def <span class="ident">register_handler</span></span>(<span>self, handler, level=40)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Register new alert handler</p>
+<h2 id="arguments">Arguments</h2>
+<dl>
+<dt><strong><code>handler</code></strong> :&ensp;<code>callable</code></dt>
+<dd>error handler callable</dd>
+</dl>
+<p>Keyword Arguments:
+level (int): exception level (default: {40})</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def register_handler(self, handler: callable, level: int = 40):
+    &#34;&#34;&#34;Register new alert handler
+
+    Arguments:
+        handler (callable): error handler callable
+
+    Keyword Arguments:
+        level (int): exception level (default: {40})
+    &#34;&#34;&#34;
+    if (handler, level) not in self.handlers:
+        self.handlers.append((handler, level))</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.reset"><code class="name flex">
 <span>def <span class="ident">reset</span></span>(<span>self)</span>
 </code></dt>
@@ -897,8 +965,7 @@ die {bool} &ndash; flag to rasie exception if alert is not found (default: {True
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def reset(self):
-    &#34;&#34;&#34;Delete all alerts and reset the db
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Delete all alerts and reset the db&#34;&#34;&#34;
     self.delete_all()
     self.db.delete(self._rkey_incr)</code></pre>
 </details>
@@ -940,6 +1007,7 @@ die {bool} &ndash; flag to rasie exception if alert is not found (default: {True
 <li><code><a title="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.delete_all" href="#jumpscale.tools.alerthandler.alerthandler.AlertsHandler.delete_all">delete_all</a></code></li>
 <li><code><a title="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.find" href="#jumpscale.tools.alerthandler.alerthandler.AlertsHandler.find">find</a></code></li>
 <li><code><a title="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.get" href="#jumpscale.tools.alerthandler.alerthandler.AlertsHandler.get">get</a></code></li>
+<li><code><a title="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.register_handler" href="#jumpscale.tools.alerthandler.alerthandler.AlertsHandler.register_handler">register_handler</a></code></li>
 <li><code><a title="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.reset" href="#jumpscale.tools.alerthandler.alerthandler.AlertsHandler.reset">reset</a></code></li>
 </ul>
 </li>
