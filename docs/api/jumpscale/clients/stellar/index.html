@@ -28,6 +28,21 @@ from jumpscale.loader import j
 from jumpscale.core.base import StoredFactory
 from stellar_sdk import Keypair
 from .exceptions import *
+from requests.exceptions import RequestException
+
+TRANSACTION_FEES = 0.01
+
+THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
+    &#34;TEST&#34;: &#34;https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
+    &#34;STD&#34;: &#34;https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
+}
+
+HORIZON_NETWORKS = {
+    &#34;TEST&#34;: &#34;https://horizon-testnet.stellar.org&#34;,
+    &#34;STD&#34;: &#34;https://horizon.stellar.org&#34;,
+}
+
+NETWORKS = HORIZON_NETWORKS.keys()
 
 
 class StellarFactory(StoredFactory):
@@ -42,38 +57,25 @@ class StellarFactory(StoredFactory):
 
         return instance
 
-    def check_stellar_service(self):
-        &#34;&#34;&#34;This method will check if stellar and token service is up or not
-        &#34;&#34;&#34;
-        _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
-            &#34;TEST&#34;: &#34;https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
-            &#34;STD&#34;: &#34;https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
-        }
-        _HORIZON_NETWORKS = {&#34;TEST&#34;: &#34;https://horizon-testnet.stellar.org&#34;, &#34;STD&#34;: &#34;https://horizon.stellar.org&#34;}
+    def check_stellar_service(self, networks=NETWORKS):
+        &#34;&#34;&#34;This method will check if stellar and token service is up or not&#34;&#34;&#34;
+        for newtwork in networks:
+            stellar_url = HORIZON_NETWORKS[newtwork]
+            tokenservices_url = THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[newtwork]
 
-        services_status = True
+            # check stellar service
+            try:
+                j.tools.http.get(stellar_url)
+            except RequestException:
+                return False
 
-        # urls of services according to identity explorer
-        if &#34;testnet&#34; in j.core.identity.me.explorer_url:
-            stellar_url = _HORIZON_NETWORKS[&#34;TEST&#34;]
-            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;TEST&#34;]
-        else:
-            stellar_url = _HORIZON_NETWORKS[&#34;STD&#34;]
-            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;STD&#34;]
+            # check token services
+            try:
+                j.tools.http.options(tokenservices_url)
+            except RequestException:
+                return False
 
-        # check stellar service
-        try:
-            j.tools.http.get(stellar_url)
-        except:
-            services_status = False
-
-        # check token services
-        try:
-            j.tools.http.get(tokenservices_url)
-        except:
-            services_status = False
-
-        return services_status
+        return True
 
     def create_testnet_funded_wallet(self, name: str) -&gt; bool:
         &#34;&#34;&#34;This method will create a testnet wallet and fund it from the facuet
@@ -137,6 +139,10 @@ def export_module_as():
 <section class="desc"></section>
 </dd>
 <dt><code class="name"><a title="jumpscale.clients.stellar.transaction" href="transaction.html">jumpscale.clients.stellar.transaction</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt><code class="name"><a title="jumpscale.clients.stellar.vesting" href="vesting.html">jumpscale.clients.stellar.vesting</a></code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
@@ -205,38 +211,25 @@ to store all instance configurations.</p>
 
         return instance
 
-    def check_stellar_service(self):
-        &#34;&#34;&#34;This method will check if stellar and token service is up or not
-        &#34;&#34;&#34;
-        _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
-            &#34;TEST&#34;: &#34;https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
-            &#34;STD&#34;: &#34;https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
-        }
-        _HORIZON_NETWORKS = {&#34;TEST&#34;: &#34;https://horizon-testnet.stellar.org&#34;, &#34;STD&#34;: &#34;https://horizon.stellar.org&#34;}
+    def check_stellar_service(self, networks=NETWORKS):
+        &#34;&#34;&#34;This method will check if stellar and token service is up or not&#34;&#34;&#34;
+        for newtwork in networks:
+            stellar_url = HORIZON_NETWORKS[newtwork]
+            tokenservices_url = THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[newtwork]
 
-        services_status = True
+            # check stellar service
+            try:
+                j.tools.http.get(stellar_url)
+            except RequestException:
+                return False
 
-        # urls of services according to identity explorer
-        if &#34;testnet&#34; in j.core.identity.me.explorer_url:
-            stellar_url = _HORIZON_NETWORKS[&#34;TEST&#34;]
-            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;TEST&#34;]
-        else:
-            stellar_url = _HORIZON_NETWORKS[&#34;STD&#34;]
-            tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;STD&#34;]
+            # check token services
+            try:
+                j.tools.http.options(tokenservices_url)
+            except RequestException:
+                return False
 
-        # check stellar service
-        try:
-            j.tools.http.get(stellar_url)
-        except:
-            services_status = False
-
-        # check token services
-        try:
-            j.tools.http.get(tokenservices_url)
-        except:
-            services_status = False
-
-        return services_status
+        return True
 
     def create_testnet_funded_wallet(self, name: str) -&gt; bool:
         &#34;&#34;&#34;This method will create a testnet wallet and fund it from the facuet
@@ -285,44 +278,31 @@ to store all instance configurations.</p>
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.clients.stellar.StellarFactory.check_stellar_service"><code class="name flex">
-<span>def <span class="ident">check_stellar_service</span></span>(<span>self)</span>
+<span>def <span class="ident">check_stellar_service</span></span>(<span>self, networks=dict_keys([&#39;TEST&#39;, &#39;STD&#39;]))</span>
 </code></dt>
 <dd>
 <section class="desc"><p>This method will check if stellar and token service is up or not</p></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def check_stellar_service(self):
-    &#34;&#34;&#34;This method will check if stellar and token service is up or not
-    &#34;&#34;&#34;
-    _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
-        &#34;TEST&#34;: &#34;https://testnet.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
-        &#34;STD&#34;: &#34;https://tokenservices.threefold.io/threefoldfoundation/transactionfunding_service/fund_transaction&#34;,
-    }
-    _HORIZON_NETWORKS = {&#34;TEST&#34;: &#34;https://horizon-testnet.stellar.org&#34;, &#34;STD&#34;: &#34;https://horizon.stellar.org&#34;}
+<pre><code class="python">def check_stellar_service(self, networks=NETWORKS):
+    &#34;&#34;&#34;This method will check if stellar and token service is up or not&#34;&#34;&#34;
+    for newtwork in networks:
+        stellar_url = HORIZON_NETWORKS[newtwork]
+        tokenservices_url = THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[newtwork]
 
-    services_status = True
+        # check stellar service
+        try:
+            j.tools.http.get(stellar_url)
+        except RequestException:
+            return False
 
-    # urls of services according to identity explorer
-    if &#34;testnet&#34; in j.core.identity.me.explorer_url:
-        stellar_url = _HORIZON_NETWORKS[&#34;TEST&#34;]
-        tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;TEST&#34;]
-    else:
-        stellar_url = _HORIZON_NETWORKS[&#34;STD&#34;]
-        tokenservices_url = _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES[&#34;STD&#34;]
+        # check token services
+        try:
+            j.tools.http.options(tokenservices_url)
+        except RequestException:
+            return False
 
-    # check stellar service
-    try:
-        j.tools.http.get(stellar_url)
-    except:
-        services_status = False
-
-    # check token services
-    try:
-        j.tools.http.get(tokenservices_url)
-    except:
-        services_status = False
-
-    return services_status</code></pre>
+    return True</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.clients.stellar.StellarFactory.create_testnet_funded_wallet"><code class="name flex">
@@ -415,6 +395,7 @@ to store all instance configurations.</p>
 <li><code><a title="jumpscale.clients.stellar.exceptions" href="exceptions.html">jumpscale.clients.stellar.exceptions</a></code></li>
 <li><code><a title="jumpscale.clients.stellar.stellar" href="stellar.html">jumpscale.clients.stellar.stellar</a></code></li>
 <li><code><a title="jumpscale.clients.stellar.transaction" href="transaction.html">jumpscale.clients.stellar.transaction</a></code></li>
+<li><code><a title="jumpscale.clients.stellar.vesting" href="vesting.html">jumpscale.clients.stellar.vesting</a></code></li>
 <li><code><a title="jumpscale.clients.stellar.wrapped" href="wrapped.html">jumpscale.clients.stellar.wrapped</a></code></li>
 </ul>
 </li>

@@ -67,7 +67,7 @@ class IdentityManager:
         response = requests.get(f&#34;https://login.threefold.me/api/users/{self.identity}&#34;)
         if response.status_code == 404:
             raise exceptions.Value(
-                &#34;\nThis identity does not exist in 3bot mobile app connect, Please create an identity first using ThreeFold Connect mobile Application\n&#34;
+                &#34;\nThis identity does not exist in 3bot mobile app connect, Please create an idenity first using 3Bot Connect mobile Application\n&#34;
             )
         userdata = response.json()
 
@@ -87,7 +87,7 @@ class IdentityManager:
             if not self._check_keys(users[0][&#34;pubkey&#34;], userdata):
                 raise exceptions.Value(
                     f&#34;\nYour 3bot on {self.explorer} seems to have been previously registered with a different public key.\n&#34;
-                    f&#34;The identity of {self.identity} is mismatched with ThreeFold Connect app&#34;
+                    f&#34;The identity of {self.identity} is mismatched with 3bot connect app&#34;
                     &#34;Please contact support.grid.tf to reset it.\n&#34;
                     &#34;Note: use the same email registered on the explorer to contact support otherwise we cannot reset the account.\n&#34;
                 )
@@ -110,7 +110,7 @@ class IdentityManager:
     def ask_identity(self, identity=None, explorer=None):
         def _fill_identity_args(identity, explorer):
             def fill_words():
-                words = ask_string(&#34;Copy the phrase from your ThreeFold Connect app here: &#34;)
+                words = ask_string(&#34;Copy the phrase from your 3bot Connect app here: &#34;)
                 self.words = words
 
             def fill_identity():
@@ -257,7 +257,7 @@ class IdentityManager:
         response = requests.get(f&#34;https://login.threefold.me/api/users/{self.identity}&#34;)
         if response.status_code == 404:
             raise exceptions.Value(
-                &#34;\nThis identity does not exist in 3bot mobile app connect, Please create an identity first using ThreeFold Connect mobile Application\n&#34;
+                &#34;\nThis identity does not exist in 3bot mobile app connect, Please create an idenity first using 3Bot Connect mobile Application\n&#34;
             )
         userdata = response.json()
 
@@ -277,7 +277,7 @@ class IdentityManager:
             if not self._check_keys(users[0][&#34;pubkey&#34;], userdata):
                 raise exceptions.Value(
                     f&#34;\nYour 3bot on {self.explorer} seems to have been previously registered with a different public key.\n&#34;
-                    f&#34;The identity of {self.identity} is mismatched with ThreeFold Connect app&#34;
+                    f&#34;The identity of {self.identity} is mismatched with 3bot connect app&#34;
                     &#34;Please contact support.grid.tf to reset it.\n&#34;
                     &#34;Note: use the same email registered on the explorer to contact support otherwise we cannot reset the account.\n&#34;
                 )
@@ -300,7 +300,7 @@ class IdentityManager:
     def ask_identity(self, identity=None, explorer=None):
         def _fill_identity_args(identity, explorer):
             def fill_words():
-                words = ask_string(&#34;Copy the phrase from your ThreeFold Connect app here: &#34;)
+                words = ask_string(&#34;Copy the phrase from your 3bot Connect app here: &#34;)
                 self.words = words
 
             def fill_identity():
@@ -386,7 +386,7 @@ class IdentityManager:
 <pre><code class="python">def ask_identity(self, identity=None, explorer=None):
     def _fill_identity_args(identity, explorer):
         def fill_words():
-            words = ask_string(&#34;Copy the phrase from your ThreeFold Connect app here: &#34;)
+            words = ask_string(&#34;Copy the phrase from your 3bot Connect app here: &#34;)
             self.words = words
 
         def fill_identity():

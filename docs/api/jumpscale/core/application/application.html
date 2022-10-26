@@ -22,35 +22,18 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.loader import j
-import sys
+<pre><code class="python">import sys
 
-DEFAULT_APP_NAME = &#34;init&#34;
+from jumpscale.loader import j
 
 
 class Application:
     def __init__(self):
-        self.appname = DEFAULT_APP_NAME
         sys.excepthook = j.tools.errorhandler.excepthook
 
     @property
     def process_id(self):
-        return j.sals.process.get_my_process().pid
-
-    def start(self, appname):
-        self.appname = appname
-        j.logger.set_appname(appname)
-
-        if j.core.db.is_running():
-            j.core.db.sadd(&#34;applications&#34;, self.appname)
-
-        j.logger.info(&#34;Application {} is started, process id: {}&#34;, self.appname, self.process_id)
-
-    def stop(self):
-        j.logger.info(&#34;Application {} is stopped&#34;, self.appname)
-
-        if j.core.db.is_running():
-            j.core.db.srem(&#34;applications&#34;, self.appname)</code></pre>
+        return j.sals.process.get_my_process().pid</code></pre>
 </details>
 </section>
 <section>
@@ -71,27 +54,11 @@ class Application:
 <summary>Source code</summary>
 <pre><code class="python">class Application:
     def __init__(self):
-        self.appname = DEFAULT_APP_NAME
         sys.excepthook = j.tools.errorhandler.excepthook
 
     @property
     def process_id(self):
-        return j.sals.process.get_my_process().pid
-
-    def start(self, appname):
-        self.appname = appname
-        j.logger.set_appname(appname)
-
-        if j.core.db.is_running():
-            j.core.db.sadd(&#34;applications&#34;, self.appname)
-
-        j.logger.info(&#34;Application {} is started, process id: {}&#34;, self.appname, self.process_id)
-
-    def stop(self):
-        j.logger.info(&#34;Application {} is stopped&#34;, self.appname)
-
-        if j.core.db.is_running():
-            j.core.db.srem(&#34;applications&#34;, self.appname)</code></pre>
+        return j.sals.process.get_my_process().pid</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
@@ -103,40 +70,6 @@ class Application:
 <pre><code class="python">@property
 def process_id(self):
     return j.sals.process.get_my_process().pid</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="jumpscale.core.application.application.Application.start"><code class="name flex">
-<span>def <span class="ident">start</span></span>(<span>self, appname)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def start(self, appname):
-    self.appname = appname
-    j.logger.set_appname(appname)
-
-    if j.core.db.is_running():
-        j.core.db.sadd(&#34;applications&#34;, self.appname)
-
-    j.logger.info(&#34;Application {} is started, process id: {}&#34;, self.appname, self.process_id)</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.core.application.application.Application.stop"><code class="name flex">
-<span>def <span class="ident">stop</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def stop(self):
-    j.logger.info(&#34;Application {} is stopped&#34;, self.appname)
-
-    if j.core.db.is_running():
-        j.core.db.srem(&#34;applications&#34;, self.appname)</code></pre>
 </details>
 </dd>
 </dl>
@@ -161,8 +94,6 @@ def process_id(self):
 <h4><code><a title="jumpscale.core.application.application.Application" href="#jumpscale.core.application.application.Application">Application</a></code></h4>
 <ul class="">
 <li><code><a title="jumpscale.core.application.application.Application.process_id" href="#jumpscale.core.application.application.Application.process_id">process_id</a></code></li>
-<li><code><a title="jumpscale.core.application.application.Application.start" href="#jumpscale.core.application.application.Application.start">start</a></code></li>
-<li><code><a title="jumpscale.core.application.application.Application.stop" href="#jumpscale.core.application.application.Application.stop">stop</a></code></li>
 </ul>
 </li>
 </ul>

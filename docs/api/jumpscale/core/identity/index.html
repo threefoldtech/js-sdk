@@ -24,32 +24,37 @@
 <summary>Source code</summary>
 <pre><code class="python">import requests
 
-from jumpscale.clients.explorer.models import User
+from collections import namedtuple
+from nacl.exceptions import CryptoError
+
+from jumpscale.core import exceptions
 from jumpscale.core.base import Base, StoredFactory, fields
 from jumpscale.core.config import get_config, update_config
-from jumpscale.core.exceptions import Input, NotFound, Value
-from jumpscale.data.encryption import mnemonic
+from jumpscale.core.exceptions import Input, Value
+from jumpscale.data import serializers
+from jumpscale.data.encryption import mnemonic, generate_mnemonic
 from jumpscale.data.nacl import NACL
-from jumpscale.sals.nettools import get_default_ip_config
+from jumpscale.data.idgenerator import random_int
+from jumpscale.data.types import Email
+from jumpscale.tools.console import ask_choice, ask_string
 
 
 class Identity(Base):
-    def _explorer_url_update(self, value):
-        if hasattr(self, &#34;_explorer&#34;):
-            if self._explorer and self._explorer.url != value:
-                self._explorer = None
-        else:
-            self._explorer = None
-
     _tid = fields.Integer(default=-1)
     words = fields.Secret()
     email = fields.String()
     tname = fields.String()
-    explorer_url = fields.String(on_update=_explorer_url_update)
     admins = fields.List(fields.String())
 
     def __init__(
-        self, tname=None, email=None, words=None, explorer_url=None, _tid=-1, admins=None, *args, **kwargs,
+        self,
+        tname=None,
+        email=None,
+        words=None,
+        _tid=-1,
+        admins=None,
+        *args,
+        **kwargs,
     ):
         &#34;&#34;&#34;
         Get Identity
@@ -60,16 +65,24 @@ class Identity(Base):
             tname (str, optional): Name eg. example.3bot
             email (str, optional): Email of identity
             words (str): Words used to secure identity
-            explorer_url (str, optional): Url for the explorer to use
-            tid (int, optional): When tid is passed tname, email will be verified against it
+            admins (list of str, optional): Admins
 
-        Raises: NotFound incase tid is passed but does not exists on the explorer
+        Raises: NotFound incase tid is passed but does not exists
         Raises: Input: when params are missing
         &#34;&#34;&#34;
-        self._explorer = None
+        if not words:
+            words = generate_mnemonic()
+
         super().__init__(
-            tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=_tid, admins=admins, *args, **kwargs,
+            tname=tname,
+            email=email,
+            words=words,
+            _tid=_tid,
+            admins=admins,
+            *args,
+            **kwargs,
         )
+
         self._nacl = None
         self.verify_configuration()
 
@@ -84,39 +97,17 @@ class Identity(Base):
         &#34;&#34;&#34;
         Verifies passed arguments to constructor
 
-        Raises: NotFound incase tid is passed but does not exists on the explorer
+        Raises: NotFound incase tid is passed but does not exists
         Raises: Input: when params are missing
         &#34;&#34;&#34;
         if not self.words:
             raise Input(&#34;Words are mandotory for an indentity&#34;)
         if self._tid != -1:
-            resp = requests.get(f&#34;{self.explorer_url}/users/{self._tid}&#34;)
-            resp.raise_for_status()
-            user = User.from_dict(resp.json())
-            if self.tname and self.tname != user.name:
-                raise Input(&#34;Name of user does not match name in explorer&#34;)
-            self.tname = user.name
-            if self.nacl.get_verify_key_hex() != user.pubkey:
-                raise Input(
-                    &#34;The verify key on your local system does not correspond with verify key on the TFGrid explorer&#34;
-                )
+            self.register()
         else:
             for key in [&#34;email&#34;, &#34;tname&#34;]:
                 if not getattr(self, key):
                     raise Value(f&#34;Threebot {key} not configured&#34;)
-
-    @property
-    def explorer(self):
-        if self._explorer is None:
-            from jumpscale.clients.explorer import export_module_as  # Import here to avoid circular imports
-
-            ex_factory = export_module_as()
-            if self.explorer_url:
-                self._explorer = ex_factory.get_by_url_and_identity(self.explorer_url, identity_name=self.instance_name)
-            else:
-                self._explorer = ex_factory.get_default()
-                self.explorer_url = self._explorer.url
-        return self._explorer
 
     @property
     def tid(self):
@@ -125,70 +116,52 @@ class Identity(Base):
         return self._tid
 
     def register(self, host=None):
-        self.verify_configuration()
-
-        # check if we are not already registered with the configured identity
-        resp = requests.get(f&#34;{self.explorer_url}/users?name={self.tname}&#34;)
-        if resp.status_code == 404:
-            user = None
-        elif resp.status_code != 200:
-            resp.raise_for_status()
-
-        users = resp.json()
-        if not users:
-            user = None
-        else:
-            user = User.from_dict(users[0])
-
-        tid = None
-        if not user:
-            if not host:
-                try:
-                    _, host = get_default_ip_config()
-                except Exception:
-                    host = &#34;localhost&#34;
-            user = User()
-            user.name = self.tname
-            user.host = host
-            user.email = self.email
-            user.description = &#34;&#34;
-            user.pubkey = self.nacl.get_verify_key_hex()
-
-            resp = requests.post(f&#34;{self.explorer_url}/users&#34;, json=user.to_dict())
-            if resp.status_code == 409:  # conflict
-                raise Input(&#34;A user with same name or email exists om TFGrid phonebook.&#34;)
-            if resp.status_code != 201:
-                resp.raise_for_status()
-
-            tid = resp.json()[&#34;id&#34;]
-        else:
-            if self.nacl.get_verify_key_hex() != user.pubkey:
-                raise Input(
-                    &#34;The verify key on your local system does not correspond with verify key on the TFGrid explorer&#34;
-                )
-            tid = user.id
-        self._tid = tid
+        # self.verify_configuration()
         if self.tname not in self.admins:
             self.admins.append(self.tname)
-        self.save()
-        return tid
+        self._tid = random_int(1, 100000000)
+
+    def set_default(self):
+        from jumpscale.loader import j
+
+        return j.core.identity.set_default(self.instance_name)
 
 
 def get_identity():
     return IdentityFactory(Identity).me
 
 
+RESTART_CHOICE = &#34;Restart from the begining&#34;
+REENTER_CHOICE = &#34;Re-Enter your value&#34;
+CHOICES = [RESTART_CHOICE, REENTER_CHOICE]
+
+IdentityInfo = namedtuple(&#34;IdentityInfo&#34;, [&#34;identity&#34;, &#34;email&#34;, &#34;words&#34;])
+
+
+class Restart(Exception):
+    pass
+
+
 class IdentityFactory(StoredFactory):
     _me = None
 
     def new(
-        self, name, tname=None, email=None, words=None, explorer_url=None, tid=-1, admins=None,
+        self,
+        name,
+        tname=None,
+        email=None,
+        words=None,
+        tid=-1,
+        admins=None,
+        **kwargs,
     ):
-        instance = super().new(
-            name, tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=tid, admins=admins,
-        )
+        instance = super().new(name, tname=tname, email=email, words=words, _tid=tid, admins=admins, **kwargs)
         instance.save()
         return instance
+
+    @property
+    def is_configured(self):
+        return self._me is not None
 
     @property
     def me(self):
@@ -210,6 +183,76 @@ class IdentityFactory(StoredFactory):
         config[&#34;threebot&#34;][&#34;default&#34;] = name
         update_config(config)
         self.__class__._me = None
+
+    def get_user(self, tname):
+        response = requests.get(f&#34;https://login.threefold.me/api/users/{tname}&#34;)
+        if response.status_code == 404:
+            raise exceptions.NotFound(
+                &#34;\nThis identity does not exist in 3bot mobile app connect, Please create an idenity first using 3Bot Connect mobile Application\n&#34;
+            )
+        return response.json()
+
+    def ask(self):
+        &#34;&#34;&#34;get identity information interactively&#34;&#34;&#34;
+
+        def check_email(email):
+            # TODO: a way to check/verify email (threefold connect or openkyc?)
+            return Email().check(email)
+
+        def with_error(e):
+            &#34;&#34;&#34;used in a loop to re-enter the value or break by raising `Restart` exception&#34;&#34;&#34;
+            response = ask_choice(f&#34;{e}, What would you like to do? &#34;, CHOICES)
+            if response == RESTART_CHOICE:
+                raise Restart
+
+        def get_identity_info():
+            def fill_words():
+                return ask_string(&#34;Copy the phrase from your 3bot Connect app here: &#34;)
+
+            def fill_identity():
+                identity = ask_string(&#34;what is your threebot name (identity)? &#34;)
+                if &#34;.&#34; not in identity:
+                    identity += &#34;.3bot&#34;
+                return identity
+
+            user = None
+            while not user:
+                identity = fill_identity()
+                try:
+                    user = self.get_user(identity)
+                except exceptions.NotFound as e:
+                    with_error(e)
+
+            while True:
+                email = ask_string(&#34;What is the email address associated with your identity? &#34;)
+                if check_email(email):
+                    break
+                else:
+                    with_error(&#34;This Email address is not valid&#34;)
+
+            print(&#34;Configured email for this identity is {}&#34;.format(email))
+
+            # time to do validation of words
+            while True:
+                words = fill_words()
+                try:
+                    seed = mnemonic.mnemonic_to_key(words.strip())
+                    key = NACL(seed).get_verification_key()
+                    if user and key != serializers.base64.decode(user[&#34;publicKey&#34;]):
+                        raise exceptions.Input
+                    break
+                except (exceptions.NotFound, exceptions.Input, CryptoError):
+                    with_error(&#34;Seems one or more more words entered is invalid&#34;)
+
+            return IdentityInfo(identity, email, words)
+
+        while True:
+            try:
+                return get_identity_info()
+            except Restart:
+                continue
+            except KeyboardInterrupt:
+                break
 
 
 def export_module_as():
@@ -252,7 +295,7 @@ def export_module_as():
 <dl>
 <dt id="jumpscale.core.identity.Identity"><code class="flex name class">
 <span>class <span class="ident">Identity</span></span>
-<span>(</span><span>tname=None, email=None, words=None, explorer_url=None, admins=None, *args, **kwargs)</span>
+<span>(</span><span>tname=None, email=None, words=None, admins=None, *args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>A simple attribute-based namespace.</p>
@@ -267,11 +310,9 @@ def export_module_as():
 <dd>Email of identity</dd>
 <dt><strong><code>words</code></strong> :&ensp;<code>str</code></dt>
 <dd>Words used to secure identity</dd>
-<dt><strong><code>explorer_url</code></strong> :&ensp;<code>str</code>, optional</dt>
-<dd>Url for the explorer to use</dd>
-<dt><strong><code>tid</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>When tid is passed tname, email will be verified against it</dd>
-<dt><strong><code>Raises</code></strong> :&ensp;<code>NotFound</code> <code>incase</code> <code>tid</code> <code>is</code> <code>passed</code> <code>but</code> <code>does</code> <code>not</code> <code>exists</code> <code>on</code> <code>the</code> <code>explorer</code></dt>
+<dt><strong><code>admins</code></strong> :&ensp;<code>list</code> of <code>str</code>, optional</dt>
+<dd>Admins</dd>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>NotFound</code> <code>incase</code> <code>tid</code> <code>is</code> <code>passed</code> <code>but</code> <code>does</code> <code>not</code> <code>exists</code></dt>
 <dd>&nbsp;</dd>
 <dt><strong><code>Raises</code></strong> :&ensp;<code>Input</code>: <code>when</code> <code>params</code> <code>are</code> <code>missing</code></dt>
 <dd>&nbsp;</dd>
@@ -279,22 +320,21 @@ def export_module_as():
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class Identity(Base):
-    def _explorer_url_update(self, value):
-        if hasattr(self, &#34;_explorer&#34;):
-            if self._explorer and self._explorer.url != value:
-                self._explorer = None
-        else:
-            self._explorer = None
-
     _tid = fields.Integer(default=-1)
     words = fields.Secret()
     email = fields.String()
     tname = fields.String()
-    explorer_url = fields.String(on_update=_explorer_url_update)
     admins = fields.List(fields.String())
 
     def __init__(
-        self, tname=None, email=None, words=None, explorer_url=None, _tid=-1, admins=None, *args, **kwargs,
+        self,
+        tname=None,
+        email=None,
+        words=None,
+        _tid=-1,
+        admins=None,
+        *args,
+        **kwargs,
     ):
         &#34;&#34;&#34;
         Get Identity
@@ -305,16 +345,24 @@ def export_module_as():
             tname (str, optional): Name eg. example.3bot
             email (str, optional): Email of identity
             words (str): Words used to secure identity
-            explorer_url (str, optional): Url for the explorer to use
-            tid (int, optional): When tid is passed tname, email will be verified against it
+            admins (list of str, optional): Admins
 
-        Raises: NotFound incase tid is passed but does not exists on the explorer
+        Raises: NotFound incase tid is passed but does not exists
         Raises: Input: when params are missing
         &#34;&#34;&#34;
-        self._explorer = None
+        if not words:
+            words = generate_mnemonic()
+
         super().__init__(
-            tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=_tid, admins=admins, *args, **kwargs,
+            tname=tname,
+            email=email,
+            words=words,
+            _tid=_tid,
+            admins=admins,
+            *args,
+            **kwargs,
         )
+
         self._nacl = None
         self.verify_configuration()
 
@@ -329,39 +377,17 @@ def export_module_as():
         &#34;&#34;&#34;
         Verifies passed arguments to constructor
 
-        Raises: NotFound incase tid is passed but does not exists on the explorer
+        Raises: NotFound incase tid is passed but does not exists
         Raises: Input: when params are missing
         &#34;&#34;&#34;
         if not self.words:
             raise Input(&#34;Words are mandotory for an indentity&#34;)
         if self._tid != -1:
-            resp = requests.get(f&#34;{self.explorer_url}/users/{self._tid}&#34;)
-            resp.raise_for_status()
-            user = User.from_dict(resp.json())
-            if self.tname and self.tname != user.name:
-                raise Input(&#34;Name of user does not match name in explorer&#34;)
-            self.tname = user.name
-            if self.nacl.get_verify_key_hex() != user.pubkey:
-                raise Input(
-                    &#34;The verify key on your local system does not correspond with verify key on the TFGrid explorer&#34;
-                )
+            self.register()
         else:
             for key in [&#34;email&#34;, &#34;tname&#34;]:
                 if not getattr(self, key):
                     raise Value(f&#34;Threebot {key} not configured&#34;)
-
-    @property
-    def explorer(self):
-        if self._explorer is None:
-            from jumpscale.clients.explorer import export_module_as  # Import here to avoid circular imports
-
-            ex_factory = export_module_as()
-            if self.explorer_url:
-                self._explorer = ex_factory.get_by_url_and_identity(self.explorer_url, identity_name=self.instance_name)
-            else:
-                self._explorer = ex_factory.get_default()
-                self.explorer_url = self._explorer.url
-        return self._explorer
 
     @property
     def tid(self):
@@ -370,53 +396,15 @@ def export_module_as():
         return self._tid
 
     def register(self, host=None):
-        self.verify_configuration()
-
-        # check if we are not already registered with the configured identity
-        resp = requests.get(f&#34;{self.explorer_url}/users?name={self.tname}&#34;)
-        if resp.status_code == 404:
-            user = None
-        elif resp.status_code != 200:
-            resp.raise_for_status()
-
-        users = resp.json()
-        if not users:
-            user = None
-        else:
-            user = User.from_dict(users[0])
-
-        tid = None
-        if not user:
-            if not host:
-                try:
-                    _, host = get_default_ip_config()
-                except Exception:
-                    host = &#34;localhost&#34;
-            user = User()
-            user.name = self.tname
-            user.host = host
-            user.email = self.email
-            user.description = &#34;&#34;
-            user.pubkey = self.nacl.get_verify_key_hex()
-
-            resp = requests.post(f&#34;{self.explorer_url}/users&#34;, json=user.to_dict())
-            if resp.status_code == 409:  # conflict
-                raise Input(&#34;A user with same name or email exists om TFGrid phonebook.&#34;)
-            if resp.status_code != 201:
-                resp.raise_for_status()
-
-            tid = resp.json()[&#34;id&#34;]
-        else:
-            if self.nacl.get_verify_key_hex() != user.pubkey:
-                raise Input(
-                    &#34;The verify key on your local system does not correspond with verify key on the TFGrid explorer&#34;
-                )
-            tid = user.id
-        self._tid = tid
+        # self.verify_configuration()
         if self.tname not in self.admins:
             self.admins.append(self.tname)
-        self.save()
-        return tid</code></pre>
+        self._tid = random_int(1, 100000000)
+
+    def set_default(self):
+        from jumpscale.loader import j
+
+        return j.core.identity.set_default(self.instance_name)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -451,50 +439,6 @@ and will get the default value if not</p>
 </details>
 </dd>
 <dt id="jumpscale.core.identity.Identity.email"><code class="name">var <span class="ident">email</span></code></dt>
-<dd>
-<section class="desc"><p>getter method this property</p>
-<p>will call <code>_get_value</code>, which would if the value is already defined
-and will get the default value if not</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><strong><code>any</code></strong></dt>
-<dd>the field value</dd>
-</dl></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def getter(self):
-    &#34;&#34;&#34;
-    getter method this property
-
-    will call `_get_value`, which would if the value is already defined
-    and will get the default value if not
-
-    Returns:
-        any: the field value
-    &#34;&#34;&#34;
-    return self._get_value(name, field)</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.core.identity.Identity.explorer"><code class="name">var <span class="ident">explorer</span></code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">@property
-def explorer(self):
-    if self._explorer is None:
-        from jumpscale.clients.explorer import export_module_as  # Import here to avoid circular imports
-
-        ex_factory = export_module_as()
-        if self.explorer_url:
-            self._explorer = ex_factory.get_by_url_and_identity(self.explorer_url, identity_name=self.instance_name)
-        else:
-            self._explorer = ex_factory.get_default()
-            self.explorer_url = self._explorer.url
-    return self._explorer</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.core.identity.Identity.explorer_url"><code class="name">var <span class="ident">explorer_url</span></code></dt>
 <dd>
 <section class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
@@ -605,53 +549,23 @@ and will get the default value if not</p>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def register(self, host=None):
-    self.verify_configuration()
-
-    # check if we are not already registered with the configured identity
-    resp = requests.get(f&#34;{self.explorer_url}/users?name={self.tname}&#34;)
-    if resp.status_code == 404:
-        user = None
-    elif resp.status_code != 200:
-        resp.raise_for_status()
-
-    users = resp.json()
-    if not users:
-        user = None
-    else:
-        user = User.from_dict(users[0])
-
-    tid = None
-    if not user:
-        if not host:
-            try:
-                _, host = get_default_ip_config()
-            except Exception:
-                host = &#34;localhost&#34;
-        user = User()
-        user.name = self.tname
-        user.host = host
-        user.email = self.email
-        user.description = &#34;&#34;
-        user.pubkey = self.nacl.get_verify_key_hex()
-
-        resp = requests.post(f&#34;{self.explorer_url}/users&#34;, json=user.to_dict())
-        if resp.status_code == 409:  # conflict
-            raise Input(&#34;A user with same name or email exists om TFGrid phonebook.&#34;)
-        if resp.status_code != 201:
-            resp.raise_for_status()
-
-        tid = resp.json()[&#34;id&#34;]
-    else:
-        if self.nacl.get_verify_key_hex() != user.pubkey:
-            raise Input(
-                &#34;The verify key on your local system does not correspond with verify key on the TFGrid explorer&#34;
-            )
-        tid = user.id
-    self._tid = tid
+    # self.verify_configuration()
     if self.tname not in self.admins:
         self.admins.append(self.tname)
-    self.save()
-    return tid</code></pre>
+    self._tid = random_int(1, 100000000)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.identity.Identity.set_default"><code class="name flex">
+<span>def <span class="ident">set_default</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def set_default(self):
+    from jumpscale.loader import j
+
+    return j.core.identity.set_default(self.instance_name)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.core.identity.Identity.verify_configuration"><code class="name flex">
@@ -659,7 +573,7 @@ and will get the default value if not</p>
 </code></dt>
 <dd>
 <section class="desc"><p>Verifies passed arguments to constructor</p>
-<p>Raises: NotFound incase tid is passed but does not exists on the explorer
+<p>Raises: NotFound incase tid is passed but does not exists
 Raises: Input: when params are missing</p></section>
 <details class="source">
 <summary>Source code</summary>
@@ -667,22 +581,13 @@ Raises: Input: when params are missing</p></section>
     &#34;&#34;&#34;
     Verifies passed arguments to constructor
 
-    Raises: NotFound incase tid is passed but does not exists on the explorer
+    Raises: NotFound incase tid is passed but does not exists
     Raises: Input: when params are missing
     &#34;&#34;&#34;
     if not self.words:
         raise Input(&#34;Words are mandotory for an indentity&#34;)
     if self._tid != -1:
-        resp = requests.get(f&#34;{self.explorer_url}/users/{self._tid}&#34;)
-        resp.raise_for_status()
-        user = User.from_dict(resp.json())
-        if self.tname and self.tname != user.name:
-            raise Input(&#34;Name of user does not match name in explorer&#34;)
-        self.tname = user.name
-        if self.nacl.get_verify_key_hex() != user.pubkey:
-            raise Input(
-                &#34;The verify key on your local system does not correspond with verify key on the TFGrid explorer&#34;
-            )
+        self.register()
     else:
         for key in [&#34;email&#34;, &#34;tname&#34;]:
             if not getattr(self, key):
@@ -728,13 +633,22 @@ to store all instance configurations.</p>
     _me = None
 
     def new(
-        self, name, tname=None, email=None, words=None, explorer_url=None, tid=-1, admins=None,
+        self,
+        name,
+        tname=None,
+        email=None,
+        words=None,
+        tid=-1,
+        admins=None,
+        **kwargs,
     ):
-        instance = super().new(
-            name, tname=tname, email=email, words=words, explorer_url=explorer_url, _tid=tid, admins=admins,
-        )
+        instance = super().new(name, tname=tname, email=email, words=words, _tid=tid, admins=admins, **kwargs)
         instance.save()
         return instance
+
+    @property
+    def is_configured(self):
+        return self._me is not None
 
     @property
     def me(self):
@@ -755,7 +669,77 @@ to store all instance configurations.</p>
         config = get_config()
         config[&#34;threebot&#34;][&#34;default&#34;] = name
         update_config(config)
-        self.__class__._me = None</code></pre>
+        self.__class__._me = None
+
+    def get_user(self, tname):
+        response = requests.get(f&#34;https://login.threefold.me/api/users/{tname}&#34;)
+        if response.status_code == 404:
+            raise exceptions.NotFound(
+                &#34;\nThis identity does not exist in 3bot mobile app connect, Please create an idenity first using 3Bot Connect mobile Application\n&#34;
+            )
+        return response.json()
+
+    def ask(self):
+        &#34;&#34;&#34;get identity information interactively&#34;&#34;&#34;
+
+        def check_email(email):
+            # TODO: a way to check/verify email (threefold connect or openkyc?)
+            return Email().check(email)
+
+        def with_error(e):
+            &#34;&#34;&#34;used in a loop to re-enter the value or break by raising `Restart` exception&#34;&#34;&#34;
+            response = ask_choice(f&#34;{e}, What would you like to do? &#34;, CHOICES)
+            if response == RESTART_CHOICE:
+                raise Restart
+
+        def get_identity_info():
+            def fill_words():
+                return ask_string(&#34;Copy the phrase from your 3bot Connect app here: &#34;)
+
+            def fill_identity():
+                identity = ask_string(&#34;what is your threebot name (identity)? &#34;)
+                if &#34;.&#34; not in identity:
+                    identity += &#34;.3bot&#34;
+                return identity
+
+            user = None
+            while not user:
+                identity = fill_identity()
+                try:
+                    user = self.get_user(identity)
+                except exceptions.NotFound as e:
+                    with_error(e)
+
+            while True:
+                email = ask_string(&#34;What is the email address associated with your identity? &#34;)
+                if check_email(email):
+                    break
+                else:
+                    with_error(&#34;This Email address is not valid&#34;)
+
+            print(&#34;Configured email for this identity is {}&#34;.format(email))
+
+            # time to do validation of words
+            while True:
+                words = fill_words()
+                try:
+                    seed = mnemonic.mnemonic_to_key(words.strip())
+                    key = NACL(seed).get_verification_key()
+                    if user and key != serializers.base64.decode(user[&#34;publicKey&#34;]):
+                        raise exceptions.Input
+                    break
+                except (exceptions.NotFound, exceptions.Input, CryptoError):
+                    with_error(&#34;Seems one or more more words entered is invalid&#34;)
+
+            return IdentityInfo(identity, email, words)
+
+        while True:
+            try:
+                return get_identity_info()
+            except Restart:
+                continue
+            except KeyboardInterrupt:
+                break</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -765,6 +749,16 @@ to store all instance configurations.</p>
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="jumpscale.core.identity.IdentityFactory.is_configured"><code class="name">var <span class="ident">is_configured</span></code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@property
+def is_configured(self):
+    return self._me is not None</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.core.identity.IdentityFactory.me"><code class="name">var <span class="ident">me</span></code></dt>
 <dd>
 <section class="desc"></section>
@@ -789,6 +783,92 @@ def me(self):
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="jumpscale.core.identity.IdentityFactory.ask"><code class="name flex">
+<span>def <span class="ident">ask</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>get identity information interactively</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def ask(self):
+    &#34;&#34;&#34;get identity information interactively&#34;&#34;&#34;
+
+    def check_email(email):
+        # TODO: a way to check/verify email (threefold connect or openkyc?)
+        return Email().check(email)
+
+    def with_error(e):
+        &#34;&#34;&#34;used in a loop to re-enter the value or break by raising `Restart` exception&#34;&#34;&#34;
+        response = ask_choice(f&#34;{e}, What would you like to do? &#34;, CHOICES)
+        if response == RESTART_CHOICE:
+            raise Restart
+
+    def get_identity_info():
+        def fill_words():
+            return ask_string(&#34;Copy the phrase from your 3bot Connect app here: &#34;)
+
+        def fill_identity():
+            identity = ask_string(&#34;what is your threebot name (identity)? &#34;)
+            if &#34;.&#34; not in identity:
+                identity += &#34;.3bot&#34;
+            return identity
+
+        user = None
+        while not user:
+            identity = fill_identity()
+            try:
+                user = self.get_user(identity)
+            except exceptions.NotFound as e:
+                with_error(e)
+
+        while True:
+            email = ask_string(&#34;What is the email address associated with your identity? &#34;)
+            if check_email(email):
+                break
+            else:
+                with_error(&#34;This Email address is not valid&#34;)
+
+        print(&#34;Configured email for this identity is {}&#34;.format(email))
+
+        # time to do validation of words
+        while True:
+            words = fill_words()
+            try:
+                seed = mnemonic.mnemonic_to_key(words.strip())
+                key = NACL(seed).get_verification_key()
+                if user and key != serializers.base64.decode(user[&#34;publicKey&#34;]):
+                    raise exceptions.Input
+                break
+            except (exceptions.NotFound, exceptions.Input, CryptoError):
+                with_error(&#34;Seems one or more more words entered is invalid&#34;)
+
+        return IdentityInfo(identity, email, words)
+
+    while True:
+        try:
+            return get_identity_info()
+        except Restart:
+            continue
+        except KeyboardInterrupt:
+            break</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.identity.IdentityFactory.get_user"><code class="name flex">
+<span>def <span class="ident">get_user</span></span>(<span>self, tname)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_user(self, tname):
+    response = requests.get(f&#34;https://login.threefold.me/api/users/{tname}&#34;)
+    if response.status_code == 404:
+        raise exceptions.NotFound(
+            &#34;\nThis identity does not exist in 3bot mobile app connect, Please create an idenity first using 3Bot Connect mobile Application\n&#34;
+        )
+    return response.json()</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.core.identity.IdentityFactory.set_default"><code class="name flex">
 <span>def <span class="ident">set_default</span></span>(<span>self, name)</span>
 </code></dt>
@@ -822,6 +902,49 @@ def me(self):
 </li>
 </ul>
 </dd>
+<dt id="jumpscale.core.identity.IdentityInfo"><code class="flex name class">
+<span>class <span class="ident">IdentityInfo</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>IdentityInfo(identity, email, words)</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.tuple</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.core.identity.IdentityInfo.email"><code class="name">var <span class="ident">email</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 1</p></section>
+</dd>
+<dt id="jumpscale.core.identity.IdentityInfo.identity"><code class="name">var <span class="ident">identity</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 0</p></section>
+</dd>
+<dt id="jumpscale.core.identity.IdentityInfo.words"><code class="name">var <span class="ident">words</span></code></dt>
+<dd>
+<section class="desc"><p>Alias for field number 2</p></section>
+</dd>
+</dl>
+</dd>
+<dt id="jumpscale.core.identity.Restart"><code class="flex name class">
+<span>class <span class="ident">Restart</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class Restart(Exception):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
 </dl>
 </section>
 </article>
@@ -849,10 +972,9 @@ def me(self):
 <ul class="">
 <li><code><a title="jumpscale.core.identity.Identity.admins" href="#jumpscale.core.identity.Identity.admins">admins</a></code></li>
 <li><code><a title="jumpscale.core.identity.Identity.email" href="#jumpscale.core.identity.Identity.email">email</a></code></li>
-<li><code><a title="jumpscale.core.identity.Identity.explorer" href="#jumpscale.core.identity.Identity.explorer">explorer</a></code></li>
-<li><code><a title="jumpscale.core.identity.Identity.explorer_url" href="#jumpscale.core.identity.Identity.explorer_url">explorer_url</a></code></li>
 <li><code><a title="jumpscale.core.identity.Identity.nacl" href="#jumpscale.core.identity.Identity.nacl">nacl</a></code></li>
 <li><code><a title="jumpscale.core.identity.Identity.register" href="#jumpscale.core.identity.Identity.register">register</a></code></li>
+<li><code><a title="jumpscale.core.identity.Identity.set_default" href="#jumpscale.core.identity.Identity.set_default">set_default</a></code></li>
 <li><code><a title="jumpscale.core.identity.Identity.tid" href="#jumpscale.core.identity.Identity.tid">tid</a></code></li>
 <li><code><a title="jumpscale.core.identity.Identity.tname" href="#jumpscale.core.identity.Identity.tname">tname</a></code></li>
 <li><code><a title="jumpscale.core.identity.Identity.verify_configuration" href="#jumpscale.core.identity.Identity.verify_configuration">verify_configuration</a></code></li>
@@ -862,9 +984,23 @@ def me(self):
 <li>
 <h4><code><a title="jumpscale.core.identity.IdentityFactory" href="#jumpscale.core.identity.IdentityFactory">IdentityFactory</a></code></h4>
 <ul class="">
+<li><code><a title="jumpscale.core.identity.IdentityFactory.ask" href="#jumpscale.core.identity.IdentityFactory.ask">ask</a></code></li>
+<li><code><a title="jumpscale.core.identity.IdentityFactory.get_user" href="#jumpscale.core.identity.IdentityFactory.get_user">get_user</a></code></li>
+<li><code><a title="jumpscale.core.identity.IdentityFactory.is_configured" href="#jumpscale.core.identity.IdentityFactory.is_configured">is_configured</a></code></li>
 <li><code><a title="jumpscale.core.identity.IdentityFactory.me" href="#jumpscale.core.identity.IdentityFactory.me">me</a></code></li>
 <li><code><a title="jumpscale.core.identity.IdentityFactory.set_default" href="#jumpscale.core.identity.IdentityFactory.set_default">set_default</a></code></li>
 </ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.core.identity.IdentityInfo" href="#jumpscale.core.identity.IdentityInfo">IdentityInfo</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.core.identity.IdentityInfo.email" href="#jumpscale.core.identity.IdentityInfo.email">email</a></code></li>
+<li><code><a title="jumpscale.core.identity.IdentityInfo.identity" href="#jumpscale.core.identity.IdentityInfo.identity">identity</a></code></li>
+<li><code><a title="jumpscale.core.identity.IdentityInfo.words" href="#jumpscale.core.identity.IdentityInfo.words">words</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.core.identity.Restart" href="#jumpscale.core.identity.Restart">Restart</a></code></h4>
 </li>
 </ul>
 </li>

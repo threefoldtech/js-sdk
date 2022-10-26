@@ -22,17 +22,18 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from jumpscale.loader import j
-from jumpscale.core.base import Base, fields
+<pre><code class="python">import re
 import shutil
+from jumpscale.loader import j
+from jumpscale.core.base import Base, fields
 
 
 class NginxServer(Base):
-    name = fields.String(default=&#34;main&#34;)
+    server_name = fields.String(default=&#34;main&#34;)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config_path = j.sals.fs.join_paths(j.core.dirs.CFGDIR, &#34;nginx&#34;, self.name, &#34;nginx.conf&#34;)
+        self.config_path = j.sals.fs.join_paths(j.core.dirs.CFGDIR, &#34;nginx&#34;, self.server_name, &#34;nginx.conf&#34;)
 
     @property
     def check_command_string(self):
@@ -51,14 +52,15 @@ class NginxServer(Base):
         &#34;&#34;&#34;
         start nginx server using your config path
         &#34;&#34;&#34;
-        nginx = j.sals.nginx.get(self.name)
+        nginx = j.sals.nginx.get(self.server_name)
         nginx.configure()
-        nginx.save()
-        cmd = j.tools.startupcmd.get(f&#34;nginx_{self.name}&#34;)
+        cmd = j.tools.startupcmd.get(f&#34;nginx_{self.server_name}&#34;)
         cmd.start_cmd = f&#34;nginx -c {self.config_path}&#34;
         cmd.stop_cmd = f&#34;nginx -c {self.config_path} -s stop&#34;
         cmd.path = nginx.cfg_dir
         cmd.timeout = 10
+        pid_file_path = self.get_pid_file_path()
+        cmd.check_cmd = f&#39;pid=$(cat &#34;{pid_file_path}&#34;) &amp;&amp; [[ $(ps -p $pid -o command=) == &#34;nginx: master&#34;* ]]&#39;
         cmd.process_strings_regex = [self.check_command_string]
         cmd.save()
         if not cmd.is_running():
@@ -68,14 +70,16 @@ class NginxServer(Base):
         &#34;&#34;&#34;
         stop nginx server
         &#34;&#34;&#34;
-        cmd = j.tools.startupcmd.get(f&#34;nginx_{self.name}&#34;)
+        cmd = j.tools.startupcmd.get(f&#34;nginx_{self.server_name}&#34;)
         cmd.stop()
 
     def is_running(self):
+        &#34;&#34;&#34;Check if nginxserver is running
+
+        Returns:
+            bool: True if Nginx master process is running, otherwise False.
         &#34;&#34;&#34;
-        Check if nginxserver is running
-        &#34;&#34;&#34;
-        return j.tools.startupcmd.get(f&#34;nginx_{self.name}&#34;).is_running()
+        return j.tools.startupcmd.get(f&#34;nginx_{self.server_name}&#34;).is_running()
 
     def reload(self):
         &#34;&#34;&#34;
@@ -88,7 +92,26 @@ class NginxServer(Base):
         restart nginx server
         &#34;&#34;&#34;
         self.stop()
-        self.start()</code></pre>
+        self.start()
+
+    def get_pid_file_path(self):
+        &#34;&#34;&#34;Return the path to nginx.pid file as specified in the Nginx configuration file
+        Raises:
+            j.exceptions.Runtime: if pid directive not found in the Nginx configuration file
+            FileNotFoundError: if the Nginx configuration file not found
+        Returns:
+            str: the path to the file that process ID of the Nginx master process is written to.
+        &#34;&#34;&#34;
+        with open(j.sals.fs.expanduser(self.config_path), &#34;r&#34;) as file:
+            for line in file:
+                m = re.match(r&#34;^pid\s+(.*);&#34;, line)
+                if m:
+                    pid_file_path = m.group(1)
+                    return pid_file_path
+            else:
+                raise j.exceptions.Runtime(
+                    f&#34;can&#39;t read the PID directive in the Nginx configuration file {self.config_path}&#34;
+                )</code></pre>
 </details>
 </section>
 <section>
@@ -109,7 +132,7 @@ class NginxServer(Base):
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -128,11 +151,11 @@ print(p.name, p.age)
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class NginxServer(Base):
-    name = fields.String(default=&#34;main&#34;)
+    server_name = fields.String(default=&#34;main&#34;)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config_path = j.sals.fs.join_paths(j.core.dirs.CFGDIR, &#34;nginx&#34;, self.name, &#34;nginx.conf&#34;)
+        self.config_path = j.sals.fs.join_paths(j.core.dirs.CFGDIR, &#34;nginx&#34;, self.server_name, &#34;nginx.conf&#34;)
 
     @property
     def check_command_string(self):
@@ -151,14 +174,15 @@ print(p.name, p.age)
         &#34;&#34;&#34;
         start nginx server using your config path
         &#34;&#34;&#34;
-        nginx = j.sals.nginx.get(self.name)
+        nginx = j.sals.nginx.get(self.server_name)
         nginx.configure()
-        nginx.save()
-        cmd = j.tools.startupcmd.get(f&#34;nginx_{self.name}&#34;)
+        cmd = j.tools.startupcmd.get(f&#34;nginx_{self.server_name}&#34;)
         cmd.start_cmd = f&#34;nginx -c {self.config_path}&#34;
         cmd.stop_cmd = f&#34;nginx -c {self.config_path} -s stop&#34;
         cmd.path = nginx.cfg_dir
         cmd.timeout = 10
+        pid_file_path = self.get_pid_file_path()
+        cmd.check_cmd = f&#39;pid=$(cat &#34;{pid_file_path}&#34;) &amp;&amp; [[ $(ps -p $pid -o command=) == &#34;nginx: master&#34;* ]]&#39;
         cmd.process_strings_regex = [self.check_command_string]
         cmd.save()
         if not cmd.is_running():
@@ -168,14 +192,16 @@ print(p.name, p.age)
         &#34;&#34;&#34;
         stop nginx server
         &#34;&#34;&#34;
-        cmd = j.tools.startupcmd.get(f&#34;nginx_{self.name}&#34;)
+        cmd = j.tools.startupcmd.get(f&#34;nginx_{self.server_name}&#34;)
         cmd.stop()
 
     def is_running(self):
+        &#34;&#34;&#34;Check if nginxserver is running
+
+        Returns:
+            bool: True if Nginx master process is running, otherwise False.
         &#34;&#34;&#34;
-        Check if nginxserver is running
-        &#34;&#34;&#34;
-        return j.tools.startupcmd.get(f&#34;nginx_{self.name}&#34;).is_running()
+        return j.tools.startupcmd.get(f&#34;nginx_{self.server_name}&#34;).is_running()
 
     def reload(self):
         &#34;&#34;&#34;
@@ -188,7 +214,26 @@ print(p.name, p.age)
         restart nginx server
         &#34;&#34;&#34;
         self.stop()
-        self.start()</code></pre>
+        self.start()
+
+    def get_pid_file_path(self):
+        &#34;&#34;&#34;Return the path to nginx.pid file as specified in the Nginx configuration file
+        Raises:
+            j.exceptions.Runtime: if pid directive not found in the Nginx configuration file
+            FileNotFoundError: if the Nginx configuration file not found
+        Returns:
+            str: the path to the file that process ID of the Nginx master process is written to.
+        &#34;&#34;&#34;
+        with open(j.sals.fs.expanduser(self.config_path), &#34;r&#34;) as file:
+            for line in file:
+                m = re.match(r&#34;^pid\s+(.*);&#34;, line)
+                if m:
+                    pid_file_path = m.group(1)
+                    return pid_file_path
+            else:
+                raise j.exceptions.Runtime(
+                    f&#34;can&#39;t read the PID directive in the Nginx configuration file {self.config_path}&#34;
+                )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -227,7 +272,7 @@ def installed(self) -&gt; bool:
     return shutil.which(&#34;nginx&#34;)</code></pre>
 </details>
 </dd>
-<dt id="jumpscale.tools.nginx.nginxserver.NginxServer.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dt id="jumpscale.tools.nginx.nginxserver.NginxServer.server_name"><code class="name">var <span class="ident">server_name</span></code></dt>
 <dd>
 <section class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
@@ -255,18 +300,64 @@ and will get the default value if not</p>
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="jumpscale.tools.nginx.nginxserver.NginxServer.get_pid_file_path"><code class="name flex">
+<span>def <span class="ident">get_pid_file_path</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Return the path to nginx.pid file as specified in the Nginx configuration file</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>j.exceptions.Runtime</code>: <code>if</code> <code>pid</code> <code>directive</code> <code>not</code> <code>found</code> <code>in</code> <code>the</code> <code>Nginx</code> <code>configuration</code> <code>file</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>FileNotFoundError</code></strong></dt>
+<dd>if the Nginx configuration file not found</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>the path to the file that process ID of the Nginx master process is written to.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_pid_file_path(self):
+    &#34;&#34;&#34;Return the path to nginx.pid file as specified in the Nginx configuration file
+    Raises:
+        j.exceptions.Runtime: if pid directive not found in the Nginx configuration file
+        FileNotFoundError: if the Nginx configuration file not found
+    Returns:
+        str: the path to the file that process ID of the Nginx master process is written to.
+    &#34;&#34;&#34;
+    with open(j.sals.fs.expanduser(self.config_path), &#34;r&#34;) as file:
+        for line in file:
+            m = re.match(r&#34;^pid\s+(.*);&#34;, line)
+            if m:
+                pid_file_path = m.group(1)
+                return pid_file_path
+        else:
+            raise j.exceptions.Runtime(
+                f&#34;can&#39;t read the PID directive in the Nginx configuration file {self.config_path}&#34;
+            )</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.tools.nginx.nginxserver.NginxServer.is_running"><code class="name flex">
 <span>def <span class="ident">is_running</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Check if nginxserver is running</p></section>
+<section class="desc"><p>Check if nginxserver is running</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if Nginx master process is running, otherwise False.</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def is_running(self):
+    &#34;&#34;&#34;Check if nginxserver is running
+
+    Returns:
+        bool: True if Nginx master process is running, otherwise False.
     &#34;&#34;&#34;
-    Check if nginxserver is running
-    &#34;&#34;&#34;
-    return j.tools.startupcmd.get(f&#34;nginx_{self.name}&#34;).is_running()</code></pre>
+    return j.tools.startupcmd.get(f&#34;nginx_{self.server_name}&#34;).is_running()</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.tools.nginx.nginxserver.NginxServer.reload"><code class="name flex">
@@ -309,14 +400,15 @@ and will get the default value if not</p>
     &#34;&#34;&#34;
     start nginx server using your config path
     &#34;&#34;&#34;
-    nginx = j.sals.nginx.get(self.name)
+    nginx = j.sals.nginx.get(self.server_name)
     nginx.configure()
-    nginx.save()
-    cmd = j.tools.startupcmd.get(f&#34;nginx_{self.name}&#34;)
+    cmd = j.tools.startupcmd.get(f&#34;nginx_{self.server_name}&#34;)
     cmd.start_cmd = f&#34;nginx -c {self.config_path}&#34;
     cmd.stop_cmd = f&#34;nginx -c {self.config_path} -s stop&#34;
     cmd.path = nginx.cfg_dir
     cmd.timeout = 10
+    pid_file_path = self.get_pid_file_path()
+    cmd.check_cmd = f&#39;pid=$(cat &#34;{pid_file_path}&#34;) &amp;&amp; [[ $(ps -p $pid -o command=) == &#34;nginx: master&#34;* ]]&#39;
     cmd.process_strings_regex = [self.check_command_string]
     cmd.save()
     if not cmd.is_running():
@@ -334,7 +426,7 @@ and will get the default value if not</p>
     &#34;&#34;&#34;
     stop nginx server
     &#34;&#34;&#34;
-    cmd = j.tools.startupcmd.get(f&#34;nginx_{self.name}&#34;)
+    cmd = j.tools.startupcmd.get(f&#34;nginx_{self.server_name}&#34;)
     cmd.stop()</code></pre>
 </details>
 </dd>
@@ -370,11 +462,12 @@ and will get the default value if not</p>
 <h4><code><a title="jumpscale.tools.nginx.nginxserver.NginxServer" href="#jumpscale.tools.nginx.nginxserver.NginxServer">NginxServer</a></code></h4>
 <ul class="">
 <li><code><a title="jumpscale.tools.nginx.nginxserver.NginxServer.check_command_string" href="#jumpscale.tools.nginx.nginxserver.NginxServer.check_command_string">check_command_string</a></code></li>
+<li><code><a title="jumpscale.tools.nginx.nginxserver.NginxServer.get_pid_file_path" href="#jumpscale.tools.nginx.nginxserver.NginxServer.get_pid_file_path">get_pid_file_path</a></code></li>
 <li><code><a title="jumpscale.tools.nginx.nginxserver.NginxServer.installed" href="#jumpscale.tools.nginx.nginxserver.NginxServer.installed">installed</a></code></li>
 <li><code><a title="jumpscale.tools.nginx.nginxserver.NginxServer.is_running" href="#jumpscale.tools.nginx.nginxserver.NginxServer.is_running">is_running</a></code></li>
-<li><code><a title="jumpscale.tools.nginx.nginxserver.NginxServer.name" href="#jumpscale.tools.nginx.nginxserver.NginxServer.name">name</a></code></li>
 <li><code><a title="jumpscale.tools.nginx.nginxserver.NginxServer.reload" href="#jumpscale.tools.nginx.nginxserver.NginxServer.reload">reload</a></code></li>
 <li><code><a title="jumpscale.tools.nginx.nginxserver.NginxServer.restart" href="#jumpscale.tools.nginx.nginxserver.NginxServer.restart">restart</a></code></li>
+<li><code><a title="jumpscale.tools.nginx.nginxserver.NginxServer.server_name" href="#jumpscale.tools.nginx.nginxserver.NginxServer.server_name">server_name</a></code></li>
 <li><code><a title="jumpscale.tools.nginx.nginxserver.NginxServer.start" href="#jumpscale.tools.nginx.nginxserver.NginxServer.start">start</a></code></li>
 <li><code><a title="jumpscale.tools.nginx.nginxserver.NginxServer.stop" href="#jumpscale.tools.nginx.nginxserver.NginxServer.stop">stop</a></code></li>
 </ul>

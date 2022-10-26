@@ -59,17 +59,22 @@ class SystemActor(BaseActor):
         self._server = server
 
     @actor_method
-    def register_actor(self, actor_name: str, actor_path: str) -&gt; bool:
-        &#34;&#34;&#34;Register new actor
+    def register_actor(self, actor_name: str, actor_path: str, force_reload: bool = False) -&gt; bool:
+        &#34;&#34;&#34;
+        Register new actor
 
-        Arguments:
-            actor_name {str} -- actor name within gedis server.
-            actor_path {str} -- actor path on gedis server machine.
+        Args:
+            actor_name (str): actor name within gedis server.
+            actor_path (str): actor path on gedis server machine.
+            force_reload (bool, optional): reload the module if set. Defaults to False.
+
+        Raises:
+            j.exceptions.Validation: in case the actor is not valid
 
         Returns:
-            bool -- True if registered.
+            bool: True if registered
         &#34;&#34;&#34;
-        module = j.tools.codeloader.load_python_module(actor_path)
+        module = j.tools.codeloader.load_python_module(actor_path, force_reload=force_reload)
         actor = module.Actor()
         actor.path = actor_path
         result = actor.__validate_actor__()
@@ -188,17 +193,22 @@ def list_actors(self) -&gt; list:
         self._server = server
 
     @actor_method
-    def register_actor(self, actor_name: str, actor_path: str) -&gt; bool:
-        &#34;&#34;&#34;Register new actor
+    def register_actor(self, actor_name: str, actor_path: str, force_reload: bool = False) -&gt; bool:
+        &#34;&#34;&#34;
+        Register new actor
 
-        Arguments:
-            actor_name {str} -- actor name within gedis server.
-            actor_path {str} -- actor path on gedis server machine.
+        Args:
+            actor_name (str): actor name within gedis server.
+            actor_path (str): actor path on gedis server machine.
+            force_reload (bool, optional): reload the module if set. Defaults to False.
+
+        Raises:
+            j.exceptions.Validation: in case the actor is not valid
 
         Returns:
-            bool -- True if registered.
+            bool: True if registered
         &#34;&#34;&#34;
-        module = j.tools.codeloader.load_python_module(actor_path)
+        module = j.tools.codeloader.load_python_module(actor_path, force_reload=force_reload)
         actor = module.Actor()
         actor.path = actor_path
         result = actor.__validate_actor__()
@@ -231,29 +241,48 @@ def list_actors(self) -&gt; list:
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.servers.gedis.systemactor.SystemActor.register_actor"><code class="name flex">
-<span>def <span class="ident">register_actor</span></span>(<span>self, actor_name, actor_path)</span>
+<span>def <span class="ident">register_actor</span></span>(<span>self, actor_name, actor_path, force_reload=False)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Register new actor</p>
-<h2 id="arguments">Arguments</h2>
-<p>actor_name {str} &ndash; actor name within gedis server.
-actor_path {str} &ndash; actor path on gedis server machine.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>actor_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>actor name within gedis server.</dd>
+<dt><strong><code>actor_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>actor path on gedis server machine.</dd>
+<dt><strong><code>force_reload</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>reload the module if set. Defaults to False.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>j.exceptions.Validation</code>: <code>in</code> <code>case</code> <code>the</code> <code>actor</code> <code>is</code> <code>not</code> <code>valid</code></dt>
+<dd>&nbsp;</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>bool &ndash; True if registered.</p></section>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if registered</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
-def register_actor(self, actor_name: str, actor_path: str) -&gt; bool:
-    &#34;&#34;&#34;Register new actor
+def register_actor(self, actor_name: str, actor_path: str, force_reload: bool = False) -&gt; bool:
+    &#34;&#34;&#34;
+    Register new actor
 
-    Arguments:
-        actor_name {str} -- actor name within gedis server.
-        actor_path {str} -- actor path on gedis server machine.
+    Args:
+        actor_name (str): actor name within gedis server.
+        actor_path (str): actor path on gedis server machine.
+        force_reload (bool, optional): reload the module if set. Defaults to False.
+
+    Raises:
+        j.exceptions.Validation: in case the actor is not valid
 
     Returns:
-        bool -- True if registered.
+        bool: True if registered
     &#34;&#34;&#34;
-    module = j.tools.codeloader.load_python_module(actor_path)
+    module = j.tools.codeloader.load_python_module(actor_path, force_reload=force_reload)
     actor = module.Actor()
     actor.path = actor_path
     result = actor.__validate_actor__()

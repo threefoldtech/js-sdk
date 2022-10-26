@@ -22,15 +22,23 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def export_module_as():
+<pre><code class="python">import sys
+
+
+def export_module_as():
 
     from jumpscale.loader import j
-    from .logging import Logger, RedisLogHandler, LogHandler
+    from .logging import MainLogger, RedisLogHandler, LogHandler
 
-    logger = Logger()
+    logger = MainLogger()
     config = j.core.config.config.get_config().get(&#34;logging&#34;)
 
     if config:
+        # remove the default stderr handler
+        logger.remove_handler(0)
+        if config[&#34;default&#34;][&#34;enabled&#34;]:
+            logger.add_handler(sys.stderr, level=config[&#34;default&#34;][&#34;level&#34;])
+
         # configure redis handler if enabled
         if config[&#34;redis&#34;][&#34;enabled&#34;] and j.core.db:
             redis_config = config[&#34;redis&#34;]
@@ -71,12 +79,17 @@
 <pre><code class="python">def export_module_as():
 
     from jumpscale.loader import j
-    from .logging import Logger, RedisLogHandler, LogHandler
+    from .logging import MainLogger, RedisLogHandler, LogHandler
 
-    logger = Logger()
+    logger = MainLogger()
     config = j.core.config.config.get_config().get(&#34;logging&#34;)
 
     if config:
+        # remove the default stderr handler
+        logger.remove_handler(0)
+        if config[&#34;default&#34;][&#34;enabled&#34;]:
+            logger.add_handler(sys.stderr, level=config[&#34;default&#34;][&#34;level&#34;])
+
         # configure redis handler if enabled
         if config[&#34;redis&#34;][&#34;enabled&#34;] and j.core.db:
             redis_config = config[&#34;redis&#34;]

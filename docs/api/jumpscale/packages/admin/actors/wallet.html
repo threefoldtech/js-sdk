@@ -30,28 +30,23 @@ from jumpscale.clients.stellar.stellar import _NETWORK_KNOWN_TRUSTS
 class Wallet(BaseActor):
     @actor_method
     def create_wallet(self, name: str) -&gt; str:
-        explorer = j.core.identity.me.explorer
-        wallettype = &#34;STD&#34;
-        if &#34;testnet&#34; in explorer.url or &#34;devnet&#34; in explorer.url:
-            wallettype = &#34;TEST&#34;
+        if j.clients.stellar.find(name):
+            raise j.exceptions.Value(f&#34;Wallet {name} already exists&#34;)
 
-        # Why while not if?
-        while j.clients.stellar.find(name):
-            raise j.exceptions.Value(&#34;Name already exists&#34;)
-        wallet = j.clients.stellar.new(name=name, network=wallettype)
-
+        wallet = j.clients.stellar.new(name=name)
         try:
-            if wallettype == &#34;TEST&#34;:
-                wallet.activate_through_friendbot()
-            else:
-                wallet.activate_through_threefold_service()
+            wallet.activate_through_threefold_service()
         except Exception:
             j.clients.stellar.delete(name=name)
             raise j.exceptions.JSException(&#34;Error on wallet activation&#34;)
 
-        trustlines = _NETWORK_KNOWN_TRUSTS[str(wallet.network.name)].copy()
-        for asset_code in trustlines.keys():
-            wallet.add_known_trustline(asset_code)
+        try:
+            wallet.add_known_trustline(&#34;TFT&#34;)
+        except Exception:
+            j.clients.stellar.delete(name=name)
+            raise j.exceptions.JSException(
+                f&#34;Failed to add trustlines to wallet {name}. Any changes made will be reverted.&#34;
+            )
 
         wallet.save()
         return j.data.serializers.json.dumps({&#34;data&#34;: wallet.address})
@@ -62,20 +57,32 @@ class Wallet(BaseActor):
             raise j.exceptions.Value(&#34;Wallet does not exist&#34;)
 
         wallet = j.clients.stellar.get(name=name)
-        balances = wallet.get_balance()
-        balances_data = []
-        for item in balances.balances:
-            balances_data.append(
-                {&#34;balance&#34;: item.balance, &#34;asset_code&#34;: item.asset_code, &#34;asset_issuer&#34;: item.asset_issuer}
-            )
+        error = &#34;&#34;
+        ret = {}
+        try:
+            balances = wallet.get_balance()
+            balances_data = []
+            for item in balances.balances:
+                balances_data.append(
+                    {&#34;balance&#34;: item.balance, &#34;asset_code&#34;: item.asset_code, &#34;asset_issuer&#34;: item.asset_issuer}
+                )
 
-        ret = {
-            &#34;address&#34;: wallet.address,
-            &#34;network&#34;: wallet.network.value,
-            &#34;secret&#34;: wallet.secret,
-            &#34;balances&#34;: balances_data,
-        }
-        return j.data.serializers.json.dumps({&#34;data&#34;: ret})
+            qrcode_amount = 100  # user can modify it after scanning QR code
+            qrcode_data = f&#34;TFT:{wallet.address}?amount={qrcode_amount}&amp;message=topup&amp;sender=me&#34;
+            qrcode_image = j.tools.qrcode.base64_get(qrcode_data, scale=2)
+
+            ret = {
+                &#34;address&#34;: wallet.address,
+                &#34;network&#34;: wallet.network.value,
+                &#34;secret&#34;: wallet.secret,
+                &#34;balances&#34;: balances_data,
+                &#34;qrcode&#34;: qrcode_image,
+            }
+        except Exception as e:
+            error = str(e)
+            j.logger.error(error)
+
+        return j.data.serializers.json.dumps({&#34;data&#34;: ret, &#34;error&#34;: error})
 
     @actor_method
     def get_wallets(self) -&gt; str:
@@ -97,19 +104,18 @@ class Wallet(BaseActor):
         for balance in wallet.get_balance().balances:
             if balance.asset_code in trustlines:
                 trustlines.pop(balance.asset_code)
-        for asset_code in trustlines.keys():
-            wallet.add_known_trustline(asset_code)
+        if &#34;TFT&#34; in trustlines.keys():
+            wallet.add_known_trustline(&#34;TFT&#34;)
 
         wallet.save()
         return j.data.serializers.json.dumps({&#34;data&#34;: trustlines})
 
     @actor_method
-    def import_wallet(self, name: str, secret: str, network: str) -&gt; str:
+    def import_wallet(self, name: str, secret: str) -&gt; str:
         if name in j.clients.stellar.list_all():
             return j.data.serializers.json.dumps({&#34;error&#34;: &#34;Wallet name already exists&#34;})
-        network = network or &#34;TEST&#34;
         try:
-            wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+            wallet = j.clients.stellar.new(name=name, secret=secret)
         except Exception as e:
             j.clients.stellar.delete(name)
             return j.data.serializers.json.dumps({&#34;error&#34;: str(e)})
@@ -118,7 +124,7 @@ class Wallet(BaseActor):
         except:
             j.clients.stellar.delete(name)
             return j.data.serializers.json.dumps(
-                {&#34;error&#34;: &#34;Import failed.Make sure wallet is activated and network matches the wallet&#39;s network.&#34;}
+                {&#34;error&#34;: &#34;Import failed. Make sure wallet is activated on STD network.&#34;}
             )
         wallet.save()
         return j.data.serializers.json.dumps({&#34;data&#34;: wallet.address})
@@ -126,11 +132,6 @@ class Wallet(BaseActor):
     @actor_method
     def delete_wallet(self, name: str) -&gt; str:
         j.clients.stellar.delete(name=name)
-        return j.data.serializers.json.dumps({&#34;data&#34;: True})
-
-    @actor_method
-    def create_testnet_funded(self, name: str) -&gt; str:
-        j.clients.stellar.create_testnet_funded_wallet(name=name)
         return j.data.serializers.json.dumps({&#34;data&#34;: True})
 
 
@@ -156,28 +157,23 @@ Actor = Wallet</code></pre>
 <pre><code class="python">class Wallet(BaseActor):
     @actor_method
     def create_wallet(self, name: str) -&gt; str:
-        explorer = j.core.identity.me.explorer
-        wallettype = &#34;STD&#34;
-        if &#34;testnet&#34; in explorer.url or &#34;devnet&#34; in explorer.url:
-            wallettype = &#34;TEST&#34;
+        if j.clients.stellar.find(name):
+            raise j.exceptions.Value(f&#34;Wallet {name} already exists&#34;)
 
-        # Why while not if?
-        while j.clients.stellar.find(name):
-            raise j.exceptions.Value(&#34;Name already exists&#34;)
-        wallet = j.clients.stellar.new(name=name, network=wallettype)
-
+        wallet = j.clients.stellar.new(name=name)
         try:
-            if wallettype == &#34;TEST&#34;:
-                wallet.activate_through_friendbot()
-            else:
-                wallet.activate_through_threefold_service()
+            wallet.activate_through_threefold_service()
         except Exception:
             j.clients.stellar.delete(name=name)
             raise j.exceptions.JSException(&#34;Error on wallet activation&#34;)
 
-        trustlines = _NETWORK_KNOWN_TRUSTS[str(wallet.network.name)].copy()
-        for asset_code in trustlines.keys():
-            wallet.add_known_trustline(asset_code)
+        try:
+            wallet.add_known_trustline(&#34;TFT&#34;)
+        except Exception:
+            j.clients.stellar.delete(name=name)
+            raise j.exceptions.JSException(
+                f&#34;Failed to add trustlines to wallet {name}. Any changes made will be reverted.&#34;
+            )
 
         wallet.save()
         return j.data.serializers.json.dumps({&#34;data&#34;: wallet.address})
@@ -188,20 +184,32 @@ Actor = Wallet</code></pre>
             raise j.exceptions.Value(&#34;Wallet does not exist&#34;)
 
         wallet = j.clients.stellar.get(name=name)
-        balances = wallet.get_balance()
-        balances_data = []
-        for item in balances.balances:
-            balances_data.append(
-                {&#34;balance&#34;: item.balance, &#34;asset_code&#34;: item.asset_code, &#34;asset_issuer&#34;: item.asset_issuer}
-            )
+        error = &#34;&#34;
+        ret = {}
+        try:
+            balances = wallet.get_balance()
+            balances_data = []
+            for item in balances.balances:
+                balances_data.append(
+                    {&#34;balance&#34;: item.balance, &#34;asset_code&#34;: item.asset_code, &#34;asset_issuer&#34;: item.asset_issuer}
+                )
 
-        ret = {
-            &#34;address&#34;: wallet.address,
-            &#34;network&#34;: wallet.network.value,
-            &#34;secret&#34;: wallet.secret,
-            &#34;balances&#34;: balances_data,
-        }
-        return j.data.serializers.json.dumps({&#34;data&#34;: ret})
+            qrcode_amount = 100  # user can modify it after scanning QR code
+            qrcode_data = f&#34;TFT:{wallet.address}?amount={qrcode_amount}&amp;message=topup&amp;sender=me&#34;
+            qrcode_image = j.tools.qrcode.base64_get(qrcode_data, scale=2)
+
+            ret = {
+                &#34;address&#34;: wallet.address,
+                &#34;network&#34;: wallet.network.value,
+                &#34;secret&#34;: wallet.secret,
+                &#34;balances&#34;: balances_data,
+                &#34;qrcode&#34;: qrcode_image,
+            }
+        except Exception as e:
+            error = str(e)
+            j.logger.error(error)
+
+        return j.data.serializers.json.dumps({&#34;data&#34;: ret, &#34;error&#34;: error})
 
     @actor_method
     def get_wallets(self) -&gt; str:
@@ -223,19 +231,18 @@ Actor = Wallet</code></pre>
         for balance in wallet.get_balance().balances:
             if balance.asset_code in trustlines:
                 trustlines.pop(balance.asset_code)
-        for asset_code in trustlines.keys():
-            wallet.add_known_trustline(asset_code)
+        if &#34;TFT&#34; in trustlines.keys():
+            wallet.add_known_trustline(&#34;TFT&#34;)
 
         wallet.save()
         return j.data.serializers.json.dumps({&#34;data&#34;: trustlines})
 
     @actor_method
-    def import_wallet(self, name: str, secret: str, network: str) -&gt; str:
+    def import_wallet(self, name: str, secret: str) -&gt; str:
         if name in j.clients.stellar.list_all():
             return j.data.serializers.json.dumps({&#34;error&#34;: &#34;Wallet name already exists&#34;})
-        network = network or &#34;TEST&#34;
         try:
-            wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+            wallet = j.clients.stellar.new(name=name, secret=secret)
         except Exception as e:
             j.clients.stellar.delete(name)
             return j.data.serializers.json.dumps({&#34;error&#34;: str(e)})
@@ -244,7 +251,7 @@ Actor = Wallet</code></pre>
         except:
             j.clients.stellar.delete(name)
             return j.data.serializers.json.dumps(
-                {&#34;error&#34;: &#34;Import failed.Make sure wallet is activated and network matches the wallet&#39;s network.&#34;}
+                {&#34;error&#34;: &#34;Import failed. Make sure wallet is activated on STD network.&#34;}
             )
         wallet.save()
         return j.data.serializers.json.dumps({&#34;data&#34;: wallet.address})
@@ -252,11 +259,6 @@ Actor = Wallet</code></pre>
     @actor_method
     def delete_wallet(self, name: str) -&gt; str:
         j.clients.stellar.delete(name=name)
-        return j.data.serializers.json.dumps({&#34;data&#34;: True})
-
-    @actor_method
-    def create_testnet_funded(self, name: str) -&gt; str:
-        j.clients.stellar.create_testnet_funded_wallet(name=name)
         return j.data.serializers.json.dumps({&#34;data&#34;: True})</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -265,19 +267,6 @@ Actor = Wallet</code></pre>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="jumpscale.packages.admin.actors.wallet.Wallet.create_testnet_funded"><code class="name flex">
-<span>def <span class="ident">create_testnet_funded</span></span>(<span>self, name)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">@actor_method
-def create_testnet_funded(self, name: str) -&gt; str:
-    j.clients.stellar.create_testnet_funded_wallet(name=name)
-    return j.data.serializers.json.dumps({&#34;data&#34;: True})</code></pre>
-</details>
-</dd>
 <dt id="jumpscale.packages.admin.actors.wallet.Wallet.create_wallet"><code class="name flex">
 <span>def <span class="ident">create_wallet</span></span>(<span>self, name)</span>
 </code></dt>
@@ -287,28 +276,23 @@ def create_testnet_funded(self, name: str) -&gt; str:
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
 def create_wallet(self, name: str) -&gt; str:
-    explorer = j.core.identity.me.explorer
-    wallettype = &#34;STD&#34;
-    if &#34;testnet&#34; in explorer.url or &#34;devnet&#34; in explorer.url:
-        wallettype = &#34;TEST&#34;
+    if j.clients.stellar.find(name):
+        raise j.exceptions.Value(f&#34;Wallet {name} already exists&#34;)
 
-    # Why while not if?
-    while j.clients.stellar.find(name):
-        raise j.exceptions.Value(&#34;Name already exists&#34;)
-    wallet = j.clients.stellar.new(name=name, network=wallettype)
-
+    wallet = j.clients.stellar.new(name=name)
     try:
-        if wallettype == &#34;TEST&#34;:
-            wallet.activate_through_friendbot()
-        else:
-            wallet.activate_through_threefold_service()
+        wallet.activate_through_threefold_service()
     except Exception:
         j.clients.stellar.delete(name=name)
         raise j.exceptions.JSException(&#34;Error on wallet activation&#34;)
 
-    trustlines = _NETWORK_KNOWN_TRUSTS[str(wallet.network.name)].copy()
-    for asset_code in trustlines.keys():
-        wallet.add_known_trustline(asset_code)
+    try:
+        wallet.add_known_trustline(&#34;TFT&#34;)
+    except Exception:
+        j.clients.stellar.delete(name=name)
+        raise j.exceptions.JSException(
+            f&#34;Failed to add trustlines to wallet {name}. Any changes made will be reverted.&#34;
+        )
 
     wallet.save()
     return j.data.serializers.json.dumps({&#34;data&#34;: wallet.address})</code></pre>
@@ -340,20 +324,32 @@ def get_wallet_info(self, name: str) -&gt; str:
         raise j.exceptions.Value(&#34;Wallet does not exist&#34;)
 
     wallet = j.clients.stellar.get(name=name)
-    balances = wallet.get_balance()
-    balances_data = []
-    for item in balances.balances:
-        balances_data.append(
-            {&#34;balance&#34;: item.balance, &#34;asset_code&#34;: item.asset_code, &#34;asset_issuer&#34;: item.asset_issuer}
-        )
+    error = &#34;&#34;
+    ret = {}
+    try:
+        balances = wallet.get_balance()
+        balances_data = []
+        for item in balances.balances:
+            balances_data.append(
+                {&#34;balance&#34;: item.balance, &#34;asset_code&#34;: item.asset_code, &#34;asset_issuer&#34;: item.asset_issuer}
+            )
 
-    ret = {
-        &#34;address&#34;: wallet.address,
-        &#34;network&#34;: wallet.network.value,
-        &#34;secret&#34;: wallet.secret,
-        &#34;balances&#34;: balances_data,
-    }
-    return j.data.serializers.json.dumps({&#34;data&#34;: ret})</code></pre>
+        qrcode_amount = 100  # user can modify it after scanning QR code
+        qrcode_data = f&#34;TFT:{wallet.address}?amount={qrcode_amount}&amp;message=topup&amp;sender=me&#34;
+        qrcode_image = j.tools.qrcode.base64_get(qrcode_data, scale=2)
+
+        ret = {
+            &#34;address&#34;: wallet.address,
+            &#34;network&#34;: wallet.network.value,
+            &#34;secret&#34;: wallet.secret,
+            &#34;balances&#34;: balances_data,
+            &#34;qrcode&#34;: qrcode_image,
+        }
+    except Exception as e:
+        error = str(e)
+        j.logger.error(error)
+
+    return j.data.serializers.json.dumps({&#34;data&#34;: ret, &#34;error&#34;: error})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.wallet.Wallet.get_wallets"><code class="name flex">
@@ -375,19 +371,18 @@ def get_wallets(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.wallet.Wallet.import_wallet"><code class="name flex">
-<span>def <span class="ident">import_wallet</span></span>(<span>self, name, secret, network)</span>
+<span>def <span class="ident">import_wallet</span></span>(<span>self, name, secret)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
-def import_wallet(self, name: str, secret: str, network: str) -&gt; str:
+def import_wallet(self, name: str, secret: str) -&gt; str:
     if name in j.clients.stellar.list_all():
         return j.data.serializers.json.dumps({&#34;error&#34;: &#34;Wallet name already exists&#34;})
-    network = network or &#34;TEST&#34;
     try:
-        wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+        wallet = j.clients.stellar.new(name=name, secret=secret)
     except Exception as e:
         j.clients.stellar.delete(name)
         return j.data.serializers.json.dumps({&#34;error&#34;: str(e)})
@@ -396,7 +391,7 @@ def import_wallet(self, name: str, secret: str, network: str) -&gt; str:
     except:
         j.clients.stellar.delete(name)
         return j.data.serializers.json.dumps(
-            {&#34;error&#34;: &#34;Import failed.Make sure wallet is activated and network matches the wallet&#39;s network.&#34;}
+            {&#34;error&#34;: &#34;Import failed. Make sure wallet is activated on STD network.&#34;}
         )
     wallet.save()
     return j.data.serializers.json.dumps({&#34;data&#34;: wallet.address})</code></pre>
@@ -419,8 +414,8 @@ def update_trustlines(self, name: str) -&gt; str:
     for balance in wallet.get_balance().balances:
         if balance.asset_code in trustlines:
             trustlines.pop(balance.asset_code)
-    for asset_code in trustlines.keys():
-        wallet.add_known_trustline(asset_code)
+    if &#34;TFT&#34; in trustlines.keys():
+        wallet.add_known_trustline(&#34;TFT&#34;)
 
     wallet.save()
     return j.data.serializers.json.dumps({&#34;data&#34;: trustlines})</code></pre>
@@ -438,28 +433,23 @@ def update_trustlines(self, name: str) -&gt; str:
 <pre><code class="python">class Wallet(BaseActor):
     @actor_method
     def create_wallet(self, name: str) -&gt; str:
-        explorer = j.core.identity.me.explorer
-        wallettype = &#34;STD&#34;
-        if &#34;testnet&#34; in explorer.url or &#34;devnet&#34; in explorer.url:
-            wallettype = &#34;TEST&#34;
+        if j.clients.stellar.find(name):
+            raise j.exceptions.Value(f&#34;Wallet {name} already exists&#34;)
 
-        # Why while not if?
-        while j.clients.stellar.find(name):
-            raise j.exceptions.Value(&#34;Name already exists&#34;)
-        wallet = j.clients.stellar.new(name=name, network=wallettype)
-
+        wallet = j.clients.stellar.new(name=name)
         try:
-            if wallettype == &#34;TEST&#34;:
-                wallet.activate_through_friendbot()
-            else:
-                wallet.activate_through_threefold_service()
+            wallet.activate_through_threefold_service()
         except Exception:
             j.clients.stellar.delete(name=name)
             raise j.exceptions.JSException(&#34;Error on wallet activation&#34;)
 
-        trustlines = _NETWORK_KNOWN_TRUSTS[str(wallet.network.name)].copy()
-        for asset_code in trustlines.keys():
-            wallet.add_known_trustline(asset_code)
+        try:
+            wallet.add_known_trustline(&#34;TFT&#34;)
+        except Exception:
+            j.clients.stellar.delete(name=name)
+            raise j.exceptions.JSException(
+                f&#34;Failed to add trustlines to wallet {name}. Any changes made will be reverted.&#34;
+            )
 
         wallet.save()
         return j.data.serializers.json.dumps({&#34;data&#34;: wallet.address})
@@ -470,20 +460,32 @@ def update_trustlines(self, name: str) -&gt; str:
             raise j.exceptions.Value(&#34;Wallet does not exist&#34;)
 
         wallet = j.clients.stellar.get(name=name)
-        balances = wallet.get_balance()
-        balances_data = []
-        for item in balances.balances:
-            balances_data.append(
-                {&#34;balance&#34;: item.balance, &#34;asset_code&#34;: item.asset_code, &#34;asset_issuer&#34;: item.asset_issuer}
-            )
+        error = &#34;&#34;
+        ret = {}
+        try:
+            balances = wallet.get_balance()
+            balances_data = []
+            for item in balances.balances:
+                balances_data.append(
+                    {&#34;balance&#34;: item.balance, &#34;asset_code&#34;: item.asset_code, &#34;asset_issuer&#34;: item.asset_issuer}
+                )
 
-        ret = {
-            &#34;address&#34;: wallet.address,
-            &#34;network&#34;: wallet.network.value,
-            &#34;secret&#34;: wallet.secret,
-            &#34;balances&#34;: balances_data,
-        }
-        return j.data.serializers.json.dumps({&#34;data&#34;: ret})
+            qrcode_amount = 100  # user can modify it after scanning QR code
+            qrcode_data = f&#34;TFT:{wallet.address}?amount={qrcode_amount}&amp;message=topup&amp;sender=me&#34;
+            qrcode_image = j.tools.qrcode.base64_get(qrcode_data, scale=2)
+
+            ret = {
+                &#34;address&#34;: wallet.address,
+                &#34;network&#34;: wallet.network.value,
+                &#34;secret&#34;: wallet.secret,
+                &#34;balances&#34;: balances_data,
+                &#34;qrcode&#34;: qrcode_image,
+            }
+        except Exception as e:
+            error = str(e)
+            j.logger.error(error)
+
+        return j.data.serializers.json.dumps({&#34;data&#34;: ret, &#34;error&#34;: error})
 
     @actor_method
     def get_wallets(self) -&gt; str:
@@ -505,19 +507,18 @@ def update_trustlines(self, name: str) -&gt; str:
         for balance in wallet.get_balance().balances:
             if balance.asset_code in trustlines:
                 trustlines.pop(balance.asset_code)
-        for asset_code in trustlines.keys():
-            wallet.add_known_trustline(asset_code)
+        if &#34;TFT&#34; in trustlines.keys():
+            wallet.add_known_trustline(&#34;TFT&#34;)
 
         wallet.save()
         return j.data.serializers.json.dumps({&#34;data&#34;: trustlines})
 
     @actor_method
-    def import_wallet(self, name: str, secret: str, network: str) -&gt; str:
+    def import_wallet(self, name: str, secret: str) -&gt; str:
         if name in j.clients.stellar.list_all():
             return j.data.serializers.json.dumps({&#34;error&#34;: &#34;Wallet name already exists&#34;})
-        network = network or &#34;TEST&#34;
         try:
-            wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+            wallet = j.clients.stellar.new(name=name, secret=secret)
         except Exception as e:
             j.clients.stellar.delete(name)
             return j.data.serializers.json.dumps({&#34;error&#34;: str(e)})
@@ -526,7 +527,7 @@ def update_trustlines(self, name: str) -&gt; str:
         except:
             j.clients.stellar.delete(name)
             return j.data.serializers.json.dumps(
-                {&#34;error&#34;: &#34;Import failed.Make sure wallet is activated and network matches the wallet&#39;s network.&#34;}
+                {&#34;error&#34;: &#34;Import failed. Make sure wallet is activated on STD network.&#34;}
             )
         wallet.save()
         return j.data.serializers.json.dumps({&#34;data&#34;: wallet.address})
@@ -534,11 +535,6 @@ def update_trustlines(self, name: str) -&gt; str:
     @actor_method
     def delete_wallet(self, name: str) -&gt; str:
         j.clients.stellar.delete(name=name)
-        return j.data.serializers.json.dumps({&#34;data&#34;: True})
-
-    @actor_method
-    def create_testnet_funded(self, name: str) -&gt; str:
-        j.clients.stellar.create_testnet_funded_wallet(name=name)
         return j.data.serializers.json.dumps({&#34;data&#34;: True})</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -547,19 +543,6 @@ def update_trustlines(self, name: str) -&gt; str:
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="jumpscale.packages.admin.actors.wallet.Wallet.create_testnet_funded"><code class="name flex">
-<span>def <span class="ident">create_testnet_funded</span></span>(<span>self, name)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">@actor_method
-def create_testnet_funded(self, name: str) -&gt; str:
-    j.clients.stellar.create_testnet_funded_wallet(name=name)
-    return j.data.serializers.json.dumps({&#34;data&#34;: True})</code></pre>
-</details>
-</dd>
 <dt id="jumpscale.packages.admin.actors.wallet.Wallet.create_wallet"><code class="name flex">
 <span>def <span class="ident">create_wallet</span></span>(<span>self, name)</span>
 </code></dt>
@@ -569,28 +552,23 @@ def create_testnet_funded(self, name: str) -&gt; str:
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
 def create_wallet(self, name: str) -&gt; str:
-    explorer = j.core.identity.me.explorer
-    wallettype = &#34;STD&#34;
-    if &#34;testnet&#34; in explorer.url or &#34;devnet&#34; in explorer.url:
-        wallettype = &#34;TEST&#34;
+    if j.clients.stellar.find(name):
+        raise j.exceptions.Value(f&#34;Wallet {name} already exists&#34;)
 
-    # Why while not if?
-    while j.clients.stellar.find(name):
-        raise j.exceptions.Value(&#34;Name already exists&#34;)
-    wallet = j.clients.stellar.new(name=name, network=wallettype)
-
+    wallet = j.clients.stellar.new(name=name)
     try:
-        if wallettype == &#34;TEST&#34;:
-            wallet.activate_through_friendbot()
-        else:
-            wallet.activate_through_threefold_service()
+        wallet.activate_through_threefold_service()
     except Exception:
         j.clients.stellar.delete(name=name)
         raise j.exceptions.JSException(&#34;Error on wallet activation&#34;)
 
-    trustlines = _NETWORK_KNOWN_TRUSTS[str(wallet.network.name)].copy()
-    for asset_code in trustlines.keys():
-        wallet.add_known_trustline(asset_code)
+    try:
+        wallet.add_known_trustline(&#34;TFT&#34;)
+    except Exception:
+        j.clients.stellar.delete(name=name)
+        raise j.exceptions.JSException(
+            f&#34;Failed to add trustlines to wallet {name}. Any changes made will be reverted.&#34;
+        )
 
     wallet.save()
     return j.data.serializers.json.dumps({&#34;data&#34;: wallet.address})</code></pre>
@@ -622,20 +600,32 @@ def get_wallet_info(self, name: str) -&gt; str:
         raise j.exceptions.Value(&#34;Wallet does not exist&#34;)
 
     wallet = j.clients.stellar.get(name=name)
-    balances = wallet.get_balance()
-    balances_data = []
-    for item in balances.balances:
-        balances_data.append(
-            {&#34;balance&#34;: item.balance, &#34;asset_code&#34;: item.asset_code, &#34;asset_issuer&#34;: item.asset_issuer}
-        )
+    error = &#34;&#34;
+    ret = {}
+    try:
+        balances = wallet.get_balance()
+        balances_data = []
+        for item in balances.balances:
+            balances_data.append(
+                {&#34;balance&#34;: item.balance, &#34;asset_code&#34;: item.asset_code, &#34;asset_issuer&#34;: item.asset_issuer}
+            )
 
-    ret = {
-        &#34;address&#34;: wallet.address,
-        &#34;network&#34;: wallet.network.value,
-        &#34;secret&#34;: wallet.secret,
-        &#34;balances&#34;: balances_data,
-    }
-    return j.data.serializers.json.dumps({&#34;data&#34;: ret})</code></pre>
+        qrcode_amount = 100  # user can modify it after scanning QR code
+        qrcode_data = f&#34;TFT:{wallet.address}?amount={qrcode_amount}&amp;message=topup&amp;sender=me&#34;
+        qrcode_image = j.tools.qrcode.base64_get(qrcode_data, scale=2)
+
+        ret = {
+            &#34;address&#34;: wallet.address,
+            &#34;network&#34;: wallet.network.value,
+            &#34;secret&#34;: wallet.secret,
+            &#34;balances&#34;: balances_data,
+            &#34;qrcode&#34;: qrcode_image,
+        }
+    except Exception as e:
+        error = str(e)
+        j.logger.error(error)
+
+    return j.data.serializers.json.dumps({&#34;data&#34;: ret, &#34;error&#34;: error})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.wallet.Wallet.get_wallets"><code class="name flex">
@@ -657,19 +647,18 @@ def get_wallets(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.wallet.Wallet.import_wallet"><code class="name flex">
-<span>def <span class="ident">import_wallet</span></span>(<span>self, name, secret, network)</span>
+<span>def <span class="ident">import_wallet</span></span>(<span>self, name, secret)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
-def import_wallet(self, name: str, secret: str, network: str) -&gt; str:
+def import_wallet(self, name: str, secret: str) -&gt; str:
     if name in j.clients.stellar.list_all():
         return j.data.serializers.json.dumps({&#34;error&#34;: &#34;Wallet name already exists&#34;})
-    network = network or &#34;TEST&#34;
     try:
-        wallet = j.clients.stellar.new(name=name, secret=secret, network=network)
+        wallet = j.clients.stellar.new(name=name, secret=secret)
     except Exception as e:
         j.clients.stellar.delete(name)
         return j.data.serializers.json.dumps({&#34;error&#34;: str(e)})
@@ -678,7 +667,7 @@ def import_wallet(self, name: str, secret: str, network: str) -&gt; str:
     except:
         j.clients.stellar.delete(name)
         return j.data.serializers.json.dumps(
-            {&#34;error&#34;: &#34;Import failed.Make sure wallet is activated and network matches the wallet&#39;s network.&#34;}
+            {&#34;error&#34;: &#34;Import failed. Make sure wallet is activated on STD network.&#34;}
         )
     wallet.save()
     return j.data.serializers.json.dumps({&#34;data&#34;: wallet.address})</code></pre>
@@ -701,8 +690,8 @@ def update_trustlines(self, name: str) -&gt; str:
     for balance in wallet.get_balance().balances:
         if balance.asset_code in trustlines:
             trustlines.pop(balance.asset_code)
-    for asset_code in trustlines.keys():
-        wallet.add_known_trustline(asset_code)
+    if &#34;TFT&#34; in trustlines.keys():
+        wallet.add_known_trustline(&#34;TFT&#34;)
 
     wallet.save()
     return j.data.serializers.json.dumps({&#34;data&#34;: trustlines})</code></pre>
@@ -728,8 +717,7 @@ def update_trustlines(self, name: str) -&gt; str:
 <ul>
 <li>
 <h4><code><a title="jumpscale.packages.admin.actors.wallet.Wallet" href="#jumpscale.packages.admin.actors.wallet.Wallet">Wallet</a></code></h4>
-<ul class="">
-<li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.create_testnet_funded" href="#jumpscale.packages.admin.actors.wallet.Wallet.create_testnet_funded">create_testnet_funded</a></code></li>
+<ul class="two-column">
 <li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.create_wallet" href="#jumpscale.packages.admin.actors.wallet.Wallet.create_wallet">create_wallet</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.delete_wallet" href="#jumpscale.packages.admin.actors.wallet.Wallet.delete_wallet">delete_wallet</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.get_wallet_info" href="#jumpscale.packages.admin.actors.wallet.Wallet.get_wallet_info">get_wallet_info</a></code></li>
@@ -740,8 +728,7 @@ def update_trustlines(self, name: str) -&gt; str:
 </li>
 <li>
 <h4><code><a title="jumpscale.packages.admin.actors.wallet.Wallet" href="#jumpscale.packages.admin.actors.wallet.Wallet">Wallet</a></code></h4>
-<ul class="">
-<li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.create_testnet_funded" href="#jumpscale.packages.admin.actors.wallet.Wallet.create_testnet_funded">create_testnet_funded</a></code></li>
+<ul class="two-column">
 <li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.create_wallet" href="#jumpscale.packages.admin.actors.wallet.Wallet.create_wallet">create_wallet</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.delete_wallet" href="#jumpscale.packages.admin.actors.wallet.Wallet.delete_wallet">delete_wallet</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.wallet.Wallet.get_wallet_info" href="#jumpscale.packages.admin.actors.wallet.Wallet.get_wallet_info">get_wallet_info</a></code></li>

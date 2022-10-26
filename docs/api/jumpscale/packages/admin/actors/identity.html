@@ -26,12 +26,6 @@
 from urllib.parse import urlparse
 from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.packages.backup.actors.marketplace import Backup
-
-
-BACKUP_ACTOR = Backup()
-
-explorers = {&#34;explorer.grid.tf&#34;: &#34;main&#34;, &#34;explorer.testnet.grid.tf&#34;: &#34;testnet&#34;}
 
 
 class Identity(BaseActor):
@@ -39,23 +33,18 @@ class Identity(BaseActor):
     def get_identity(self) -&gt; str:
         data = None
         if j.core.identity.list_all():
-            network = explorers.get(urlparse(j.core.identity.me.explorer.url).netloc, &#34;Unknown&#34;)
             data = {
                 &#34;id&#34;: j.core.identity.me.tid,
                 &#34;name&#34;: j.core.identity.me.tname,
                 &#34;email&#34;: j.core.identity.me.email,
-                &#34;network&#34;: network.capitalize(),
             }
         return j.data.serializers.json.dumps(data)
 
     @actor_method
-    def set_identity(self, label: str, tname: str, email: str, words: str, backup_password: str = None):
+    def set_identity(self, label: str, tname: str, email: str, words: str):
         j.core.identity.get(label, tname=tname, email=email, words=words)
         j.core.identity.set_default(label)
         j.core.config.set(&#34;threebot_connect&#34;, True)
-        if backup_password:
-            BACKUP_ACTOR.init(backup_password, False)
-            BACKUP_ACTOR.restore()
 
     @actor_method
     def list_identities(self) -&gt; str:
@@ -65,9 +54,6 @@ class Identity(BaseActor):
             identities[label] = {&#34;name&#34;: identity.tname, &#34;email&#34;: identity.email}
         return j.data.serializers.json.dumps(identities)
 
-    @actor_method
-    def get_explorer_url(self) -&gt; str:
-        return j.data.serializers.json.dumps({&#34;url&#34;:j.core.identity.me.explorer.url})
 
 Actor = Identity</code></pre>
 </details>
@@ -93,23 +79,18 @@ Actor = Identity</code></pre>
     def get_identity(self) -&gt; str:
         data = None
         if j.core.identity.list_all():
-            network = explorers.get(urlparse(j.core.identity.me.explorer.url).netloc, &#34;Unknown&#34;)
             data = {
                 &#34;id&#34;: j.core.identity.me.tid,
                 &#34;name&#34;: j.core.identity.me.tname,
                 &#34;email&#34;: j.core.identity.me.email,
-                &#34;network&#34;: network.capitalize(),
             }
         return j.data.serializers.json.dumps(data)
 
     @actor_method
-    def set_identity(self, label: str, tname: str, email: str, words: str, backup_password: str = None):
+    def set_identity(self, label: str, tname: str, email: str, words: str):
         j.core.identity.get(label, tname=tname, email=email, words=words)
         j.core.identity.set_default(label)
         j.core.config.set(&#34;threebot_connect&#34;, True)
-        if backup_password:
-            BACKUP_ACTOR.init(backup_password, False)
-            BACKUP_ACTOR.restore()
 
     @actor_method
     def list_identities(self) -&gt; str:
@@ -117,11 +98,7 @@ Actor = Identity</code></pre>
         for label in j.core.identity.list_all():
             identity = j.core.identity.get(label)
             identities[label] = {&#34;name&#34;: identity.tname, &#34;email&#34;: identity.email}
-        return j.data.serializers.json.dumps(identities)
-
-    @actor_method
-    def get_explorer_url(self) -&gt; str:
-        return j.data.serializers.json.dumps({&#34;url&#34;:j.core.identity.me.explorer.url})</code></pre>
+        return j.data.serializers.json.dumps(identities)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -129,18 +106,6 @@ Actor = Identity</code></pre>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="jumpscale.packages.admin.actors.identity.Identity.get_explorer_url"><code class="name flex">
-<span>def <span class="ident">get_explorer_url</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">@actor_method
-def get_explorer_url(self) -&gt; str:
-    return j.data.serializers.json.dumps({&#34;url&#34;:j.core.identity.me.explorer.url})</code></pre>
-</details>
-</dd>
 <dt id="jumpscale.packages.admin.actors.identity.Identity.get_identity"><code class="name flex">
 <span>def <span class="ident">get_identity</span></span>(<span>self)</span>
 </code></dt>
@@ -152,12 +117,10 @@ def get_explorer_url(self) -&gt; str:
 def get_identity(self) -&gt; str:
     data = None
     if j.core.identity.list_all():
-        network = explorers.get(urlparse(j.core.identity.me.explorer.url).netloc, &#34;Unknown&#34;)
         data = {
             &#34;id&#34;: j.core.identity.me.tid,
             &#34;name&#34;: j.core.identity.me.tname,
             &#34;email&#34;: j.core.identity.me.email,
-            &#34;network&#34;: network.capitalize(),
         }
     return j.data.serializers.json.dumps(data)</code></pre>
 </details>
@@ -179,20 +142,17 @@ def list_identities(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.identity.Identity.set_identity"><code class="name flex">
-<span>def <span class="ident">set_identity</span></span>(<span>self, label, tname, email, words, backup_password=None)</span>
+<span>def <span class="ident">set_identity</span></span>(<span>self, label, tname, email, words)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
-def set_identity(self, label: str, tname: str, email: str, words: str, backup_password: str = None):
+def set_identity(self, label: str, tname: str, email: str, words: str):
     j.core.identity.get(label, tname=tname, email=email, words=words)
     j.core.identity.set_default(label)
-    j.core.config.set(&#34;threebot_connect&#34;, True)
-    if backup_password:
-        BACKUP_ACTOR.init(backup_password, False)
-        BACKUP_ACTOR.restore()</code></pre>
+    j.core.config.set(&#34;threebot_connect&#34;, True)</code></pre>
 </details>
 </dd>
 </dl>
@@ -209,23 +169,18 @@ def set_identity(self, label: str, tname: str, email: str, words: str, backup_pa
     def get_identity(self) -&gt; str:
         data = None
         if j.core.identity.list_all():
-            network = explorers.get(urlparse(j.core.identity.me.explorer.url).netloc, &#34;Unknown&#34;)
             data = {
                 &#34;id&#34;: j.core.identity.me.tid,
                 &#34;name&#34;: j.core.identity.me.tname,
                 &#34;email&#34;: j.core.identity.me.email,
-                &#34;network&#34;: network.capitalize(),
             }
         return j.data.serializers.json.dumps(data)
 
     @actor_method
-    def set_identity(self, label: str, tname: str, email: str, words: str, backup_password: str = None):
+    def set_identity(self, label: str, tname: str, email: str, words: str):
         j.core.identity.get(label, tname=tname, email=email, words=words)
         j.core.identity.set_default(label)
         j.core.config.set(&#34;threebot_connect&#34;, True)
-        if backup_password:
-            BACKUP_ACTOR.init(backup_password, False)
-            BACKUP_ACTOR.restore()
 
     @actor_method
     def list_identities(self) -&gt; str:
@@ -233,11 +188,7 @@ def set_identity(self, label: str, tname: str, email: str, words: str, backup_pa
         for label in j.core.identity.list_all():
             identity = j.core.identity.get(label)
             identities[label] = {&#34;name&#34;: identity.tname, &#34;email&#34;: identity.email}
-        return j.data.serializers.json.dumps(identities)
-
-    @actor_method
-    def get_explorer_url(self) -&gt; str:
-        return j.data.serializers.json.dumps({&#34;url&#34;:j.core.identity.me.explorer.url})</code></pre>
+        return j.data.serializers.json.dumps(identities)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -245,18 +196,6 @@ def set_identity(self, label: str, tname: str, email: str, words: str, backup_pa
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="jumpscale.packages.admin.actors.identity.Identity.get_explorer_url"><code class="name flex">
-<span>def <span class="ident">get_explorer_url</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">@actor_method
-def get_explorer_url(self) -&gt; str:
-    return j.data.serializers.json.dumps({&#34;url&#34;:j.core.identity.me.explorer.url})</code></pre>
-</details>
-</dd>
 <dt id="jumpscale.packages.admin.actors.identity.Identity.get_identity"><code class="name flex">
 <span>def <span class="ident">get_identity</span></span>(<span>self)</span>
 </code></dt>
@@ -268,12 +207,10 @@ def get_explorer_url(self) -&gt; str:
 def get_identity(self) -&gt; str:
     data = None
     if j.core.identity.list_all():
-        network = explorers.get(urlparse(j.core.identity.me.explorer.url).netloc, &#34;Unknown&#34;)
         data = {
             &#34;id&#34;: j.core.identity.me.tid,
             &#34;name&#34;: j.core.identity.me.tname,
             &#34;email&#34;: j.core.identity.me.email,
-            &#34;network&#34;: network.capitalize(),
         }
     return j.data.serializers.json.dumps(data)</code></pre>
 </details>
@@ -295,20 +232,17 @@ def list_identities(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.identity.Identity.set_identity"><code class="name flex">
-<span>def <span class="ident">set_identity</span></span>(<span>self, label, tname, email, words, backup_password=None)</span>
+<span>def <span class="ident">set_identity</span></span>(<span>self, label, tname, email, words)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
-def set_identity(self, label: str, tname: str, email: str, words: str, backup_password: str = None):
+def set_identity(self, label: str, tname: str, email: str, words: str):
     j.core.identity.get(label, tname=tname, email=email, words=words)
     j.core.identity.set_default(label)
-    j.core.config.set(&#34;threebot_connect&#34;, True)
-    if backup_password:
-        BACKUP_ACTOR.init(backup_password, False)
-        BACKUP_ACTOR.restore()</code></pre>
+    j.core.config.set(&#34;threebot_connect&#34;, True)</code></pre>
 </details>
 </dd>
 </dl>
@@ -332,7 +266,6 @@ def set_identity(self, label: str, tname: str, email: str, words: str, backup_pa
 <li>
 <h4><code><a title="jumpscale.packages.admin.actors.identity.Identity" href="#jumpscale.packages.admin.actors.identity.Identity">Identity</a></code></h4>
 <ul class="">
-<li><code><a title="jumpscale.packages.admin.actors.identity.Identity.get_explorer_url" href="#jumpscale.packages.admin.actors.identity.Identity.get_explorer_url">get_explorer_url</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.identity.Identity.get_identity" href="#jumpscale.packages.admin.actors.identity.Identity.get_identity">get_identity</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.identity.Identity.list_identities" href="#jumpscale.packages.admin.actors.identity.Identity.list_identities">list_identities</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.identity.Identity.set_identity" href="#jumpscale.packages.admin.actors.identity.Identity.set_identity">set_identity</a></code></li>
@@ -341,7 +274,6 @@ def set_identity(self, label: str, tname: str, email: str, words: str, backup_pa
 <li>
 <h4><code><a title="jumpscale.packages.admin.actors.identity.Identity" href="#jumpscale.packages.admin.actors.identity.Identity">Identity</a></code></h4>
 <ul class="">
-<li><code><a title="jumpscale.packages.admin.actors.identity.Identity.get_explorer_url" href="#jumpscale.packages.admin.actors.identity.Identity.get_explorer_url">get_explorer_url</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.identity.Identity.get_identity" href="#jumpscale.packages.admin.actors.identity.Identity.get_identity">get_identity</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.identity.Identity.list_identities" href="#jumpscale.packages.admin.actors.identity.Identity.list_identities">list_identities</a></code></li>
 <li><code><a title="jumpscale.packages.admin.actors.identity.Identity.set_identity" href="#jumpscale.packages.admin.actors.identity.Identity.set_identity">set_identity</a></code></li>

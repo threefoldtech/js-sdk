@@ -21,7 +21,7 @@
 </header>
 <section id="section-intro">
 <p>A client that gives an interface to the zerotier api</p>
-<pre><code class="python">zcl = j.clients.zerotier.get(&quot;instance&quot;)
+<pre><code class="language-python">zcl = j.clients.zerotier.get(&quot;instance&quot;)
 
 network = zcl.get_network(&quot;network_id&quot;)
 
@@ -190,8 +190,8 @@ class ZerotierClient(Client):
     base_url = fields.String(default=&#34;https://my.zerotier.com/api&#34;)
     token = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._session = None
 
     def _send_request(self, path, method=&#34;get&#34;, data=None, return_json=True):
@@ -656,13 +656,14 @@ that network</p>
 </dd>
 <dt id="jumpscale.clients.zerotier.zerotier.ZerotierClient"><code class="flex name class">
 <span>class <span class="ident">ZerotierClient</span></span>
+<span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -684,8 +685,8 @@ print(p.name, p.age)
     base_url = fields.String(default=&#34;https://my.zerotier.com/api&#34;)
     token = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._session = None
 
     def _send_request(self, path, method=&#34;get&#34;, data=None, return_json=True):

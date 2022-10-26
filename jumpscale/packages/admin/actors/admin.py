@@ -1,10 +1,7 @@
 from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
-from jumpscale.core.exceptions import JSException
 from requests import HTTPError
 import json
-
-explorers = {"main": "explorer.grid.tf", "testnet": "explorer.testnet.grid.tf", "devnet": "explorer.devnet.grid.tf"}
 
 
 class Admin(BaseActor):
@@ -26,21 +23,6 @@ class Admin(BaseActor):
             raise j.exceptions.Value(f"Admin {name} does not exist")
         j.core.identity.me.admins.remove(name)
         j.core.identity.me.save()
-
-    @actor_method
-    def list_explorers(self) -> str:
-        return j.data.serializers.json.dumps({"data": explorers})
-
-    @actor_method
-    def get_explorer(self) -> str:
-        current_url = j.core.identity.me.explorer_url.strip().lower().split("/")[2]
-        if current_url == explorers["testnet"]:
-            explorer_type = "testnet"
-        elif current_url == explorers["main"]:
-            explorer_type = "main"
-        else:
-            return j.data.serializers.json.dumps({"data": {"type": "custom", "url": current_url}})
-        return j.data.serializers.json.dumps({"data": {"type": explorer_type, "url": explorers[explorer_type]}})
 
     @actor_method
     def list_identities(self) -> str:
@@ -80,7 +62,6 @@ class Admin(BaseActor):
                         "name": identity.tname,
                         "email": identity.email,
                         "tid": identity.tid,
-                        "explorer_url": identity.explorer_url,
                         "words": identity.words,
                         "admins": identity.admins,
                     }
@@ -108,15 +89,9 @@ class Admin(BaseActor):
         return j.data.serializers.json.dumps({"data": words})
 
     @actor_method
-    def check_tname_exists(self, tname, explorer_type) -> str:
-        explorer_clients = {
-            "main": j.clients.explorer.get("user_checker_mainnet", f"https://{explorers['main']}/api/v1"),
-            "testnet": j.clients.explorer.get("user_checker_testnet", f"https://{explorers['testnet']}/api/v1"),
-            "devnet": j.clients.explorer.get("user_checker_testnet", f"https://{explorers['testnet']}/api/v1"),
-        }
-        explorer_client = explorer_clients[explorer_type]
+    def check_tname_exists(self, tname) -> str:
         try:
-            explorer_client.users.get(name=tname)
+            j.core.identity.get_user(tname)
             return j.data.serializers.json.dumps({"data": True})
         except j.exceptions.NotFound:
             return j.data.serializers.json.dumps({"data": False})
@@ -128,7 +103,14 @@ class Admin(BaseActor):
         return j.data.serializers.json.dumps({"data": False})
 
     @actor_method
-    def add_identity(self, display_name: str, tname: str, email: str, words: str, explorer_type: str, admins: list) -> str:
+    def add_identity(
+        self,
+        display_name: str,
+        tname: str,
+        email: str,
+        words: str,
+        admins: list,
+    ) -> str:
         checked_admins = []
         for admin in admins:
             if type(admin) is str and not admin.endswith(".3bot"):
@@ -140,12 +122,16 @@ class Admin(BaseActor):
                 "The display name must be a lowercase valid python identitifier (English letters, underscores, and numbers not starting with a number)."
             )
         identity_instance_name = display_name
-        explorer_url = f"https://{explorers[explorer_type]}/api/v1"
         if identity_instance_name in j.core.identity.list_all():
             raise j.exceptions.Value("Identity with the same name already exists")
+
         try:
             new_identity = j.core.identity.new(
-                name=identity_instance_name, tname=tname, email=email, words=words, explorer_url=explorer_url, admins=checked_admins
+                name=identity_instance_name,
+                tname=tname,
+                email=email,
+                words=words,
+                admins=checked_admins,
             )
             new_identity.register()
             new_identity.save()
@@ -154,8 +140,7 @@ class Admin(BaseActor):
             try:
                 raise j.exceptions.Value(j.data.serializers.json.loads(e.response.content)["error"])
             except (KeyError, json.decoder.JSONDecodeError):
-                # Return the original error message in case the explorer returned unexpected
-                # result, or it failed for some reason other than Bad Request error
+                # it failed for some reason other than Bad Request error
                 raise j.exceptions.Value(str(e))
         except Exception as e:
             # register sometimes throws exceptions other than HTTP like Input
@@ -216,18 +201,14 @@ class Admin(BaseActor):
     def get_developer_options(self) -> str:
         test_cert = j.core.config.set_default("TEST_CERT", False)
         over_provision = j.core.config.set_default("OVER_PROVISIONING", False)
-        explorer_logs = j.core.config.set_default("EXPLORER_LOGS", False)
         escalation_emails = j.core.config.set_default("ESCALATION_EMAILS_ENABLED", False)
-        auto_extend_pools = j.core.config.set_default("AUTO_EXTEND_POOLS_ENABLED", True)
         sort_nodes_by_sru = j.core.config.set_default("SORT_NODES_BY_SRU", False)
         return j.data.serializers.json.dumps(
             {
                 "data": {
                     "test_cert": test_cert,
                     "over_provision": over_provision,
-                    "explorer_logs": explorer_logs,
                     "escalation_emails": escalation_emails,
-                    "auto_extend_pools": auto_extend_pools,
                     "sort_nodes_by_sru": sort_nodes_by_sru,
                 }
             }
@@ -238,25 +219,19 @@ class Admin(BaseActor):
         self,
         test_cert: bool,
         over_provision: bool,
-        explorer_logs: bool,
         sort_nodes_by_sru: bool,
         escalation_emails: bool,
-        auto_extend_pools: bool,
     ) -> str:
         j.core.config.set("TEST_CERT", test_cert)
         j.core.config.set("OVER_PROVISIONING", over_provision)
-        j.core.config.set("EXPLORER_LOGS", explorer_logs)
         j.core.config.set("ESCALATION_EMAILS_ENABLED", escalation_emails)
-        j.core.config.set("AUTO_EXTEND_POOLS_ENABLED", auto_extend_pools)
         j.core.config.set("SORT_NODES_BY_SRU", sort_nodes_by_sru)
         return j.data.serializers.json.dumps(
             {
                 "data": {
                     "test_cert": test_cert,
                     "over_provision": over_provision,
-                    "explorer_logs": explorer_logs,
                     "escalation_emails": escalation_emails,
-                    "auto_extend_pools": auto_extend_pools,
                     "sort_nodes_by_sru": sort_nodes_by_sru,
                 }
             }

@@ -22,11 +22,10 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from beaker.middleware import SessionMiddleware
-from bottle import Bottle, abort, request
+<pre><code class="python">from bottle import Bottle, abort, request
 
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required
+from jumpscale.packages.auth.bottle.auth import login_required
 
 app = Bottle()
 
@@ -51,10 +50,7 @@ def chat(package_name, chat_name):
     session = request.environ.get(&#34;beaker.session&#34;, {})
     return env.get_template(&#34;index.html&#34;).render(
         package=package_name, chat=chat_name, username=session.get(&#34;username&#34;, &#34;&#34;), email=session.get(&#34;email&#34;, &#34;&#34;)
-    )
-
-
-app = SessionMiddleware(app, SESSION_OPTS)</code></pre>
+    )</code></pre>
 </details>
 </section>
 <section>

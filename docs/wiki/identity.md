@@ -8,22 +8,17 @@ Multiple identities can be configured. By default if only one is configured it w
 To configure your identity:
 
 ```python
-me = j.core.identity.new(name="default", tname="3BOT_NAME", email="3BOT_EMAIL", words="3BOT_WORDS", explorer_url="EXPLORER_URL")
+me = j.core.identity.new(name="default", tname="3BOT_NAME", email="3BOT_EMAIL", words="3BOT_WORDS")
 ```
 
 Parameters:
 
 - name: Instance name which be used to deal with that identity in local configurations also in the admin dashboard (Should be unique on the system)
-- tname: The 3Bot name you want to register your identity with in the explorer. (Should be unique)
-- email: The 3Bot email you want to register your identity with in the explorer.
-- words: The secret words you want to to register your identity with in the explorer.
+- tname: The 3Bot name you want to register your identity. (Should be unique)
+- email: The 3Bot email you want to register your identity with.
+- words: The secret words you want to to register your identity with.
 
   > Note: you can generate new words with `words = j.data.encryption.generate_mnemonic()`
-
-- explorer_url: The explorer url for the explorer you want to use:
-  - Testnet: `https://explorer.testnet.grid.tf/api/v1/`
-  - Mainnet: `https://explorer.grid.tf/api/v1/`
-  - Devnet: `https://explorer.devnet.grid.tf/api/v1/`
 
 It's really recommended to use tname, email, words from ThreeFold Connect application .
 
@@ -51,8 +46,6 @@ j.core.identity.set_default("othername")
 The tool gets the id as follows:
 
 - If user already registered on the same machine will get directly from config
-- If is a new registration will contact the explorer to gets the user information and verifies it against local config and set the id
-- If a new user will create the user and register it on the explorer and continue like the preceding point
 
 ## Adding admins to the 3Bot
 

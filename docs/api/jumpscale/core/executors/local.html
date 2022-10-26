@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.6.4" />
 <title>jumpscale.core.executors.local API documentation</title>
-<meta name="description" content="Executor Local allows executing commands within specific env on the local machine. using the executor framework you can retrieve the stdout, stderr, …" />
+<meta name="description" content="Local executor allows executing commands within specific env on the local machine. using the executor framework you can retrieve the stdout, stderr, …" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
@@ -20,7 +20,7 @@
 <h1 class="title">Module <code>jumpscale.core.executors.local</code></h1>
 </header>
 <section id="section-intro">
-<p>Executor Local allows executing commands within specific env on the local machine. using the executor framework you can retrieve the stdout, stderr, and the return code as well.</p>
+<p>Local executor allows executing commands within specific env on the local machine. using the executor framework you can retrieve the stdout, stderr, and the return code as well.</p>
 <pre><code>JS-NG&gt; j.core.executors.run_local(&quot;echo $WHOME&quot;, env={'WHOME':'abc'}, ech
      1 o=True)
 echo $WHOME
@@ -39,7 +39,7 @@ Linux
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">&#34;&#34;&#34;
-Executor Local allows executing commands within specific env on the local machine. using the executor framework you can retrieve the stdout, stderr, and the return code as well.
+Local executor allows executing commands within specific env on the local machine. using the executor framework you can retrieve the stdout, stderr, and the return code as well.
 ```
 JS-NG&gt; j.core.executors.run_local(&#34;echo $WHOME&#34;, env={&#39;WHOME&#39;:&#39;abc&#39;}, ech
      1 o=True)
@@ -66,124 +66,100 @@ from .command_builder import cmd_from_args
 
 @cmd_from_args
 def execute(cmd, **command_ctx):
-    &#34;&#34;&#34;
-    :param str shell:
-        Which shell binary to use. Default: ``/bin/bash`` (on Unix;
-        ``COMSPEC`` or ``cmd.exe`` on Windows.)
-    :param bool warn:
-        Whether to warn and continue, instead of raising
-        `.UnexpectedExit`, when the executed command exits with a
-        nonzero status. Default: ``False``.
-        .. note::
-            This setting has no effect on exceptions, which will still be
-            raised, typically bundled in `.ThreadException` objects if they
-            were raised by the IO worker threads.
-            Similarly, `.WatcherError` exceptions raised by
-            `.StreamWatcher` instances will also ignore this setting, and
-            will usually be bundled inside `.Failure` objects (in order to
-            preserve the execution context).
-            Ditto `.CommandTimedOut` - basically, anything that prevents a
-            command from actually getting to &#34;exited with an exit code&#34;
-            ignores this flag.
-    :param hide:
-        Allows the caller to disable ``run``&#39;s default behavior of copying
-        the subprocess&#39; stdout and stderr to the controlling terminal.
-        Specify ``hide=&#39;out&#39;`` (or ``&#39;stdout&#39;``) to hide only the stdout
-        stream, ``hide=&#39;err&#39;`` (or ``&#39;stderr&#39;``) to hide only stderr, or
-        ``hide=&#39;both&#39;`` (or ``True``) to hide both streams.
-        The default value is ``None``, meaning to print everything;
-        ``False`` will also disable hiding.
-        .. note::
-            Stdout and stderr are always captured and stored in the
-            ``Result`` object, regardless of ``hide``&#39;s value.
-        .. note::
-            ``hide=True`` will also override ``echo=True`` if both are
-            given (either as kwargs or via config/CLI).
-    :param bool pty:
-        By default, ``run`` connects directly to the invoked process and
-        reads its stdout/stderr streams. Some programs will buffer (or even
-        behave) differently in this situation compared to using an actual
-        terminal or pseudoterminal (pty). To use a pty instead of the
-        default behavior, specify ``pty=True``.
-        .. warning::
-            Due to their nature, ptys have a single output stream, so the
-            ability to tell stdout apart from stderr is **not possible**
-            when ``pty=True``. As such, all output will appear on
-            ``out_stream`` (see below) and be captured into the ``stdout``
-            result attribute. ``err_stream`` and ``stderr`` will always be
-            empty when ``pty=True``.
-    :param bool fallback:
-        Controls auto-fallback behavior re: problems offering a pty when
-        ``pty=True``. Whether this has any effect depends on the specific
-        `Runner` subclass being invoked. Default: ``True``.
-    :param bool echo:
-        Controls whether `.run` prints the command string to local stdout
-        prior to executing it. Default: ``False``.
-        .. note::
-            ``hide=True`` will override ``echo=True`` if both are given.
-    :param dict env:
-        By default, subprocesses receive a copy of Invoke&#39;s own environment
-        (i.e. ``os.environ``). Supply a dict here to update that child
-        environment.
-        For example, ``run(&#39;command&#39;, env={&#39;PYTHONPATH&#39;:
-        &#39;/some/virtual/env/maybe&#39;})`` would modify the ``PYTHONPATH`` env
-        var, with the rest of the child&#39;s env looking identical to the
-        parent.
-        .. seealso:: ``replace_env`` for changing &#39;update&#39; to &#39;replace&#39;.
-    :param bool replace_env:
-        When ``True``, causes the subprocess to receive the dictionary
-        given to ``env`` as its entire shell environment, instead of
-        updating a copy of ``os.environ`` (which is the default behavior).
-        Default: ``False``.
-    :param str encoding:
-        Override auto-detection of which encoding the subprocess is using
-        for its stdout/stderr streams (which defaults to the return value
-        of `default_encoding`).
-    :param out_stream:
-        A file-like stream object to which the subprocess&#39; standard output
-        should be written. If ``None`` (the default), ``sys.stdout`` will
-        be used.
-    :param err_stream:
-        Same as ``out_stream``, except for standard error, and defaulting
-        to ``sys.stderr``.
-    :param in_stream:
-        A file-like stream object to used as the subprocess&#39; standard
-        input. If ``None`` (the default), ``sys.stdin`` will be used.
-        If ``False``, will disable stdin mirroring entirely (though other
-        functionality which writes to the subprocess&#39; stdin, such as
-        autoresponding, will still function.) Disabling stdin mirroring can
-        help when ``sys.stdin`` is a misbehaving non-stream object, such as
-        under test harnesses or headless command runners.
-    :param watchers:
-        A list of `.StreamWatcher` instances which will be used to scan the
-        program&#39;s ``stdout`` or ``stderr`` and may write into its ``stdin``
-        (typically ``str`` or ``bytes`` objects depending on Python
-        version) in response to patterns or other heuristics.
-        See :doc:`/concepts/watchers` for details on this functionality.
-        Default: ``[]``.
-    :param bool echo_stdin:
-        Whether to write data from ``in_stream`` back to ``out_stream``.
-        In other words, in normal interactive usage, this parameter
-        controls whether Invoke mirrors what you type back to your
-        terminal.
-        By default (when ``None``), this behavior is triggered by the
-        following:
-            * Not using a pty to run the subcommand (i.e. ``pty=False``),
-                as ptys natively echo stdin to stdout on their own;
-            * And when the controlling terminal of Invoke itself (as per
-                ``in_stream``) appears to be a valid terminal device or TTY.
-                (Specifically, when `~invoke.util.isatty` yields a ``True``
-                result when given ``in_stream``.)
-                .. note::
-                    This property tends to be ``False`` when piping another
-                    program&#39;s output into an Invoke session, or when running
-                    Invoke within another program (e.g. running Invoke from
-                    itself).
-        If both of those properties are true, echoing will occur; if either
-        is false, no echoing will be performed.
-        When not ``None``, this parameter will override that auto-detection
-        and force, or disable, echoing.
-    :param timeout:
+    &#34;&#34;&#34;execute `cmd` locally
+
+    Args:
+        cmd: command (str): The shell command to execute.
+
+    Keyword args:
+        command (str): The shell command to execute.
+        shell (str): Which shell binary to use. Default: /bin/bash (on Unix; COMSPEC or cmd.exe on Windows.)
+        warn (bool): Whether to warn and continue, instead of raising UnexpectedExit, when the executed command exits with a nonzero status. Default: False.
+            Note
+            This setting has no effect on exceptions, which will still be raised, typically bundled in ThreadException objects if they were raised by the IO worker threads.
+
+            Similarly, WatcherError exceptions raised by StreamWatcher instances will also ignore this setting, and will usually be bundled inside Failure objects (in order to preserve the execution context).
+
+            Ditto CommandTimedOut - basically, anything that prevents a command from actually getting to “exited with an exit code” ignores this flag.
+
+        hide (bool or NoneType): Allows the caller to disable run’s default behavior of copying the subprocess’ stdout and stderr to the controlling terminal. Specify hide=&#39;out&#39; (or &#39;stdout&#39;) to hide only the stdout stream, hide=&#39;err&#39; (or &#39;stderr&#39;) to hide only stderr, or hide=&#39;both&#39; (or True) to hide both streams.
+            The default value is None, meaning to print everything; False will also disable hiding.
+
+            Note
+            Stdout and stderr are always captured and stored in the Result object, regardless of hide’s value.
+
+            Note
+            hide=True will also override echo=True if both are given (either as kwargs or via config/CLI).
+
+        pty (bool): By default, run connects directly to the invoked process and reads its stdout/stderr streams. Some programs will buffer (or even behave) differently in this situation compared to using an actual terminal or pseudoterminal (pty). To use a pty instead of the default behavior, specify pty=True.
+            Warning
+            Due to their nature, ptys have a single output stream, so the ability to tell stdout apart from stderr is not possible when pty=True. As such, all output will appear on out_stream (see below) and be captured into the stdout result attribute. err_stream and stderr will always be empty when pty=True.
+
+        fallback (bool): Controls auto-fallback behavior re: problems offering a pty when pty=True. Whether this has any effect depends on the specific Runner subclass being invoked. Default: True.
+        asynchronous (bool): When set to True (default False), enables asynchronous behavior, as follows:
+            Connections to the controlling terminal are disabled, meaning you will not see the subprocess output and it will not respond to your keyboard input - similar to hide=True and in_stream=False (though explicitly given (out|err|in)_stream file-like objects will still be honored as normal).
+            run returns immediately after starting the subprocess, and its return value becomes an instance of Promise instead of Result.
+            Promise objects are primarily useful for their join method, which blocks until the subprocess exits (similar to threading APIs) and either returns a final Result or raises an exception, just as a synchronous run would.
+            As with threading and similar APIs, users of asynchronous=True should make sure to join their Promise objects to prevent issues with interpreter shutdown.
+            One easy way to handle such cleanup is to use the Promise as a context manager - it will automatically join at the exit of the context block.
+            New in version 1.4.
+
+        disown (bool): When set to True (default False), returns immediately like asynchronous=True, but does not perform any background work related to that subprocess (it is completely ignored). This allows subprocesses using shell backgrounding or similar techniques (e.g. trailing &amp;, nohup) to persist beyond the lifetime of the Python process running Invoke.
+            Note
+            If you’re unsure whether you want this or asynchronous, you probably want asynchronous!
+
+            Specifically, disown=True has the following behaviors:
+
+            The return value is None instead of a Result or subclass.
+            No I/O worker threads are spun up, so you will have no access to the subprocess’ stdout/stderr, your stdin will not be forwarded, (out|err|in)_stream will be ignored, and features like watchers will not function.
+            No exit code is checked for, so you will not receive any errors if the subprocess fails to exit cleanly.
+            pty=True may not function correctly (subprocesses may not run at all; this seems to be a potential bug in Python’s pty.fork) unless your command line includes tools such as nohup or (the shell builtin) disown.
+            New in version 1.4.
+
+        echo (bool): Controls whether run prints the command string to local stdout prior to executing it. Default: False.
+            Note
+            hide=True will override echo=True if both are given.
+
+        env (dict): By default, subprocesses receive a copy of Invoke’s own environment (i.e. os.environ). Supply a dict here to update that child environment.
+            For example, run(&#39;command&#39;, env={&#39;PYTHONPATH&#39;: &#39;/some/virtual/env/maybe&#39;}) would modify the PYTHONPATH env var, with the rest of the child’s env looking identical to the parent.
+
+            See also
+            replace_env for changing ‘update’ to ‘replace’.
+
+        replace_env (bool): When True, causes the subprocess to receive the dictionary given to env as its entire shell environment, instead of updating a copy of os.environ (which is the default behavior). Default: False.
+        encoding (str): Override auto-detection of which encoding the subprocess is using for its stdout/stderr streams (which defaults to the return value of default_encoding).
+        out_stream: A file-like stream object to which the subprocess’ standard output should be written. If None (the default), sys.stdout will be used.
+        err_stream: Same as out_stream, except for standard error, and defaulting to sys.stderr.
+        in_stream: A file-like stream object to used as the subprocess’ standard input. If None (the default), sys.stdin will be used.
+            If False, will disable stdin mirroring entirely (though other functionality which writes to the subprocess’ stdin, such as autoresponding, will still function.) Disabling stdin mirroring can help when sys.stdin is a misbehaving non-stream object, such as under test harnesses or headless command runners.
+
+        watchers: A list of StreamWatcher instances which will be used to scan the program’s stdout or stderr and may write into its stdin (typically str or bytes objects depending on Python version) in response to patterns or other heuristics.
+            See Automatically responding to program output for details on this functionality.
+            Default: [].
+
+        echo_stdin (bool): Whether to write data from in_stream back to out_stream.
+            In other words, in normal interactive usage, this parameter controls whether Invoke mirrors what you type back to your terminal.
+
+            By default (when None), this behavior is triggered by the following:
+
+            Not using a pty to run the subcommand (i.e. pty=False), as ptys natively echo stdin to stdout on their own;
+            And when the controlling terminal of Invoke itself (as per in_stream) appears to be a valid terminal device or TTY. (Specifically, when isatty yields a True result when given in_stream.)
+            Note
+            This property tends to be False when piping another program’s output into an Invoke session, or when running Invoke within another program (e.g. running Invoke from itself).
+
+            If both of those properties are true, echoing will occur; if either is false, no echoing will be performed.
+
+            When not None, this parameter will override that auto-detection and force, or disable, echoing.
+
+        timeout: Cause the runner to submit an interrupt to the subprocess and raise CommandTimedOut, if the command takes longer than timeout seconds to execute. Defaults to None, meaning no timeout.
+
+    Raises:
+        UnexpectedExit: if the command exited nonzero and warn was False.
+        Failure: if the command didn’t even exit cleanly, e.g. if a StreamWatcher raised WatcherError.
+        ThreadException: (if the background I/O threads encountered exceptions other than WatcherError).
+
+    Returns:
+        tuple: return code, stdout, stderr (from invoke.run `Result`)
     &#34;&#34;&#34;
     ## use formatter to format command
     command_ctx = command_ctx or {}
@@ -211,247 +187,205 @@ def execute(cmd, **command_ctx):
 <span>def <span class="ident">execute</span></span>(<span>cmd, **command_ctx)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>:param str shell:
-Which shell binary to use. Default: <code>/bin/bash</code> (on Unix;
-<code>COMSPEC</code> or <code>cmd.exe</code> on Windows.)
-:param bool warn:
-Whether to warn and continue, instead of raising
-<code>.UnexpectedExit</code>, when the executed command exits with a
-nonzero status. Default: <code>False</code>.
-!!! note "Note"
-This setting has no effect on exceptions, which will still be
-raised, typically bundled in <code>.ThreadException</code> objects if they
-were raised by the IO worker threads.
-Similarly, <code>.WatcherError</code> exceptions raised by
-<code>.StreamWatcher</code> instances will also ignore this setting, and
-will usually be bundled inside <code>.Failure</code> objects (in order to
-preserve the execution context).
-Ditto <code>.CommandTimedOut</code> - basically, anything that prevents a
-command from actually getting to "exited with an exit code"
-ignores this flag.</p>
-<p>:param hide:
-Allows the caller to disable <code>run</code>'s default behavior of copying
-the subprocess' stdout and stderr to the controlling terminal.
-Specify <code>hide='out'</code> (or <code>'stdout'</code>) to hide only the stdout
-stream, <code>hide='err'</code> (or <code>'stderr'</code>) to hide only stderr, or
-<code>hide='both'</code> (or <code>True</code>) to hide both streams.
-The default value is <code>None</code>, meaning to print everything;
-<code>False</code> will also disable hiding.
-!!! note "Note"
-Stdout and stderr are always captured and stored in the
-<code>Result</code> object, regardless of <code>hide</code>'s value.</p>
-<pre><code>!!! note "Note"
-    ``hide=True`` will also override ``echo=True`` if both are
-    given (either as kwargs or via config/CLI).
+<section class="desc"><p>execute <code>cmd</code> locally</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>cmd</code></strong></dt>
+<dd>command (str): The shell command to execute.</dd>
+</dl>
+<p>Keyword args:
+command (str): The shell command to execute.
+shell (str): Which shell binary to use. Default: /bin/bash (on Unix; COMSPEC or cmd.exe on Windows.)
+warn (bool): Whether to warn and continue, instead of raising UnexpectedExit, when the executed command exits with a nonzero status. Default: False.
+Note
+This setting has no effect on exceptions, which will still be raised, typically bundled in ThreadException objects if they were raised by the IO worker threads.</p>
+<pre><code>    Similarly, WatcherError exceptions raised by StreamWatcher instances will also ignore this setting, and will usually be bundled inside Failure objects (in order to preserve the execution context).
+
+    Ditto CommandTimedOut - basically, anything that prevents a command from actually getting to “exited with an exit code” ignores this flag.
+
+hide (bool or NoneType): Allows the caller to disable run’s default behavior of copying the subprocess’ stdout and stderr to the controlling terminal. Specify hide='out' (or 'stdout') to hide only the stdout stream, hide='err' (or 'stderr') to hide only stderr, or hide='both' (or True) to hide both streams.
+    The default value is None, meaning to print everything; False will also disable hiding.
+
+    Note
+    Stdout and stderr are always captured and stored in the Result object, regardless of hide’s value.
+
+    Note
+    hide=True will also override echo=True if both are given (either as kwargs or via config/CLI).
+
+pty (bool): By default, run connects directly to the invoked process and reads its stdout/stderr streams. Some programs will buffer (or even behave) differently in this situation compared to using an actual terminal or pseudoterminal (pty). To use a pty instead of the default behavior, specify pty=True.
+    Warning
+    Due to their nature, ptys have a single output stream, so the ability to tell stdout apart from stderr is not possible when pty=True. As such, all output will appear on out_stream (see below) and be captured into the stdout result attribute. err_stream and stderr will always be empty when pty=True.
+
+fallback (bool): Controls auto-fallback behavior re: problems offering a pty when pty=True. Whether this has any effect depends on the specific Runner subclass being invoked. Default: True.
+asynchronous (bool): When set to True (default False), enables asynchronous behavior, as follows:
+    Connections to the controlling terminal are disabled, meaning you will not see the subprocess output and it will not respond to your keyboard input - similar to hide=True and in_stream=False (though explicitly given (out|err|in)_stream file-like objects will still be honored as normal).
+    run returns immediately after starting the subprocess, and its return value becomes an instance of Promise instead of Result.
+    Promise objects are primarily useful for their join method, which blocks until the subprocess exits (similar to threading APIs) and either returns a final Result or raises an exception, just as a synchronous run would.
+    As with threading and similar APIs, users of asynchronous=True should make sure to join their Promise objects to prevent issues with interpreter shutdown.
+    One easy way to handle such cleanup is to use the Promise as a context manager - it will automatically join at the exit of the context block.
+    New in version 1.4.
+
+disown (bool): When set to True (default False), returns immediately like asynchronous=True, but does not perform any background work related to that subprocess (it is completely ignored). This allows subprocesses using shell backgrounding or similar techniques (e.g. trailing &amp;, nohup) to persist beyond the lifetime of the Python process running Invoke.
+    Note
+    If you’re unsure whether you want this or asynchronous, you probably want asynchronous!
+
+    Specifically, disown=True has the following behaviors:
+
+    The return value is None instead of a Result or subclass.
+    No I/O worker threads are spun up, so you will have no access to the subprocess’ stdout/stderr, your stdin will not be forwarded, (out|err|in)_stream will be ignored, and features like watchers will not function.
+    No exit code is checked for, so you will not receive any errors if the subprocess fails to exit cleanly.
+    pty=True may not function correctly (subprocesses may not run at all; this seems to be a potential bug in Python’s pty.fork) unless your command line includes tools such as nohup or (the shell builtin) disown.
+    New in version 1.4.
+
+echo (bool): Controls whether run prints the command string to local stdout prior to executing it. Default: False.
+    Note
+    hide=True will override echo=True if both are given.
+
+env (dict): By default, subprocesses receive a copy of Invoke’s own environment (i.e. os.environ). Supply a dict here to update that child environment.
+    For example, run('command', env={'PYTHONPATH': '/some/virtual/env/maybe'}) would modify the PYTHONPATH env var, with the rest of the child’s env looking identical to the parent.
+
+    See also
+    replace_env for changing ‘update’ to ‘replace’.
+
+replace_env (bool): When True, causes the subprocess to receive the dictionary given to env as its entire shell environment, instead of updating a copy of os.environ (which is the default behavior). Default: False.
+encoding (str): Override auto-detection of which encoding the subprocess is using for its stdout/stderr streams (which defaults to the return value of default_encoding).
+out_stream: A file-like stream object to which the subprocess’ standard output should be written. If None (the default), sys.stdout will be used.
+err_stream: Same as out_stream, except for standard error, and defaulting to sys.stderr.
+in_stream: A file-like stream object to used as the subprocess’ standard input. If None (the default), sys.stdin will be used.
+    If False, will disable stdin mirroring entirely (though other functionality which writes to the subprocess’ stdin, such as autoresponding, will still function.) Disabling stdin mirroring can help when sys.stdin is a misbehaving non-stream object, such as under test harnesses or headless command runners.
+
+watchers: A list of StreamWatcher instances which will be used to scan the program’s stdout or stderr and may write into its stdin (typically str or bytes objects depending on Python version) in response to patterns or other heuristics.
+    See Automatically responding to program output for details on this functionality.
+    Default: [].
+
+echo_stdin (bool): Whether to write data from in_stream back to out_stream.
+    In other words, in normal interactive usage, this parameter controls whether Invoke mirrors what you type back to your terminal.
+
+    By default (when None), this behavior is triggered by the following:
+
+    Not using a pty to run the subcommand (i.e. pty=False), as ptys natively echo stdin to stdout on their own;
+    And when the controlling terminal of Invoke itself (as per in_stream) appears to be a valid terminal device or TTY. (Specifically, when isatty yields a True result when given in_stream.)
+    Note
+    This property tends to be False when piping another program’s output into an Invoke session, or when running Invoke within another program (e.g. running Invoke from itself).
+
+    If both of those properties are true, echoing will occur; if either is false, no echoing will be performed.
+
+    When not None, this parameter will override that auto-detection and force, or disable, echoing.
+
+timeout: Cause the runner to submit an interrupt to the subprocess and raise CommandTimedOut, if the command takes longer than timeout seconds to execute. Defaults to None, meaning no timeout.
 </code></pre>
-<p>:param bool pty:
-By default, <code>run</code> connects directly to the invoked process and
-reads its stdout/stderr streams. Some programs will buffer (or even
-behave) differently in this situation compared to using an actual
-terminal or pseudoterminal (pty). To use a pty instead of the
-default behavior, specify <code>pty=True</code>.
-!!! warning "Warning"
-Due to their nature, ptys have a single output stream, so the
-ability to tell stdout apart from stderr is <strong>not possible</strong>
-when <code>pty=True</code>. As such, all output will appear on
-<code>out_stream</code> (see below) and be captured into the <code>stdout</code>
-result attribute. <code>err_stream</code> and <code>stderr</code> will always be
-empty when <code>pty=True</code>.</p>
-<p>:param bool fallback:
-Controls auto-fallback behavior re: problems offering a pty when
-<code>pty=True</code>. Whether this has any effect depends on the specific
-<code>Runner</code> subclass being invoked. Default: <code>True</code>.
-:param bool echo:
-Controls whether <code>.run</code> prints the command string to local stdout
-prior to executing it. Default: <code>False</code>.
-!!! note "Note"
-<code>hide=True</code> will override <code>echo=True</code> if both are given.</p>
-<p>:param dict env:
-By default, subprocesses receive a copy of Invoke's own environment
-(i.e. <code>os.environ</code>). Supply a dict here to update that child
-environment.
-For example, <code>run('command', env={'PYTHONPATH':
-'/some/virtual/env/maybe'})</code> would modify the <code>PYTHONPATH</code> env
-var, with the rest of the child's env looking identical to the
-parent.
-!!! seealso "Seealso:&ensp;<code>replace_env</code> for changing 'update' to 'replace'."</p>
-<p>:param bool replace_env:
-When <code>True</code>, causes the subprocess to receive the dictionary
-given to <code>env</code> as its entire shell environment, instead of
-updating a copy of <code>os.environ</code> (which is the default behavior).
-Default: <code>False</code>.
-:param str encoding:
-Override auto-detection of which encoding the subprocess is using
-for its stdout/stderr streams (which defaults to the return value
-of <code>default_encoding</code>).
-:param out_stream:
-A file-like stream object to which the subprocess' standard output
-should be written. If <code>None</code> (the default), <code>sys.stdout</code> will
-be used.
-:param err_stream:
-Same as <code>out_stream</code>, except for standard error, and defaulting
-to <code>sys.stderr</code>.
-:param in_stream:
-A file-like stream object to used as the subprocess' standard
-input. If <code>None</code> (the default), <code>sys.stdin</code> will be used.
-If <code>False</code>, will disable stdin mirroring entirely (though other
-functionality which writes to the subprocess' stdin, such as
-autoresponding, will still function.) Disabling stdin mirroring can
-help when <code>sys.stdin</code> is a misbehaving non-stream object, such as
-under test harnesses or headless command runners.
-:param watchers:
-A list of <code>.StreamWatcher</code> instances which will be used to scan the
-program's <code>stdout</code> or <code>stderr</code> and may write into its <code>stdin</code>
-(typically <code>str</code> or <code>bytes</code> objects depending on Python
-version) in response to patterns or other heuristics.
-See :doc:<code>/concepts/watchers</code> for details on this functionality.
-Default: <code>[]</code>.
-:param bool echo_stdin:
-Whether to write data from <code>in_stream</code> back to <code>out_stream</code>.
-In other words, in normal interactive usage, this parameter
-controls whether Invoke mirrors what you type back to your
-terminal.
-By default (when <code>None</code>), this behavior is triggered by the
-following:
-* Not using a pty to run the subcommand (i.e. <code>pty=False</code>),
-as ptys natively echo stdin to stdout on their own;
-* And when the controlling terminal of Invoke itself (as per
-<code>in_stream</code>) appears to be a valid terminal device or TTY.
-(Specifically, when <code>~invoke.util.isatty</code> yields a <code>True</code>
-result when given <code>in_stream</code>.)
-!!! note "Note"
-This property tends to be <code>False</code> when piping another
-program's output into an Invoke session, or when running
-Invoke within another program (e.g. running Invoke from
-itself).</p>
-<pre><code>If both of those properties are true, echoing will occur; if either
-is false, no echoing will be performed.
-When not ``None``, this parameter will override that auto-detection
-and force, or disable, echoing.
-</code></pre>
-<p>:param timeout:</p></section>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><strong><code>UnexpectedExit</code></strong></dt>
+<dd>if the command exited nonzero and warn was False.</dd>
+<dt><strong><code>Failure</code></strong></dt>
+<dd>if the command didn’t even exit cleanly, e.g. if a StreamWatcher raised WatcherError.</dd>
+<dt><strong><code>ThreadException</code></strong></dt>
+<dd>(if the background I/O threads encountered exceptions other than WatcherError).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>tuple</code></strong></dt>
+<dd>return code, stdout, stderr (from invoke.run <code>Result</code>)</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@cmd_from_args
 def execute(cmd, **command_ctx):
-    &#34;&#34;&#34;
-    :param str shell:
-        Which shell binary to use. Default: ``/bin/bash`` (on Unix;
-        ``COMSPEC`` or ``cmd.exe`` on Windows.)
-    :param bool warn:
-        Whether to warn and continue, instead of raising
-        `.UnexpectedExit`, when the executed command exits with a
-        nonzero status. Default: ``False``.
-        .. note::
-            This setting has no effect on exceptions, which will still be
-            raised, typically bundled in `.ThreadException` objects if they
-            were raised by the IO worker threads.
-            Similarly, `.WatcherError` exceptions raised by
-            `.StreamWatcher` instances will also ignore this setting, and
-            will usually be bundled inside `.Failure` objects (in order to
-            preserve the execution context).
-            Ditto `.CommandTimedOut` - basically, anything that prevents a
-            command from actually getting to &#34;exited with an exit code&#34;
-            ignores this flag.
-    :param hide:
-        Allows the caller to disable ``run``&#39;s default behavior of copying
-        the subprocess&#39; stdout and stderr to the controlling terminal.
-        Specify ``hide=&#39;out&#39;`` (or ``&#39;stdout&#39;``) to hide only the stdout
-        stream, ``hide=&#39;err&#39;`` (or ``&#39;stderr&#39;``) to hide only stderr, or
-        ``hide=&#39;both&#39;`` (or ``True``) to hide both streams.
-        The default value is ``None``, meaning to print everything;
-        ``False`` will also disable hiding.
-        .. note::
-            Stdout and stderr are always captured and stored in the
-            ``Result`` object, regardless of ``hide``&#39;s value.
-        .. note::
-            ``hide=True`` will also override ``echo=True`` if both are
-            given (either as kwargs or via config/CLI).
-    :param bool pty:
-        By default, ``run`` connects directly to the invoked process and
-        reads its stdout/stderr streams. Some programs will buffer (or even
-        behave) differently in this situation compared to using an actual
-        terminal or pseudoterminal (pty). To use a pty instead of the
-        default behavior, specify ``pty=True``.
-        .. warning::
-            Due to their nature, ptys have a single output stream, so the
-            ability to tell stdout apart from stderr is **not possible**
-            when ``pty=True``. As such, all output will appear on
-            ``out_stream`` (see below) and be captured into the ``stdout``
-            result attribute. ``err_stream`` and ``stderr`` will always be
-            empty when ``pty=True``.
-    :param bool fallback:
-        Controls auto-fallback behavior re: problems offering a pty when
-        ``pty=True``. Whether this has any effect depends on the specific
-        `Runner` subclass being invoked. Default: ``True``.
-    :param bool echo:
-        Controls whether `.run` prints the command string to local stdout
-        prior to executing it. Default: ``False``.
-        .. note::
-            ``hide=True`` will override ``echo=True`` if both are given.
-    :param dict env:
-        By default, subprocesses receive a copy of Invoke&#39;s own environment
-        (i.e. ``os.environ``). Supply a dict here to update that child
-        environment.
-        For example, ``run(&#39;command&#39;, env={&#39;PYTHONPATH&#39;:
-        &#39;/some/virtual/env/maybe&#39;})`` would modify the ``PYTHONPATH`` env
-        var, with the rest of the child&#39;s env looking identical to the
-        parent.
-        .. seealso:: ``replace_env`` for changing &#39;update&#39; to &#39;replace&#39;.
-    :param bool replace_env:
-        When ``True``, causes the subprocess to receive the dictionary
-        given to ``env`` as its entire shell environment, instead of
-        updating a copy of ``os.environ`` (which is the default behavior).
-        Default: ``False``.
-    :param str encoding:
-        Override auto-detection of which encoding the subprocess is using
-        for its stdout/stderr streams (which defaults to the return value
-        of `default_encoding`).
-    :param out_stream:
-        A file-like stream object to which the subprocess&#39; standard output
-        should be written. If ``None`` (the default), ``sys.stdout`` will
-        be used.
-    :param err_stream:
-        Same as ``out_stream``, except for standard error, and defaulting
-        to ``sys.stderr``.
-    :param in_stream:
-        A file-like stream object to used as the subprocess&#39; standard
-        input. If ``None`` (the default), ``sys.stdin`` will be used.
-        If ``False``, will disable stdin mirroring entirely (though other
-        functionality which writes to the subprocess&#39; stdin, such as
-        autoresponding, will still function.) Disabling stdin mirroring can
-        help when ``sys.stdin`` is a misbehaving non-stream object, such as
-        under test harnesses or headless command runners.
-    :param watchers:
-        A list of `.StreamWatcher` instances which will be used to scan the
-        program&#39;s ``stdout`` or ``stderr`` and may write into its ``stdin``
-        (typically ``str`` or ``bytes`` objects depending on Python
-        version) in response to patterns or other heuristics.
-        See :doc:`/concepts/watchers` for details on this functionality.
-        Default: ``[]``.
-    :param bool echo_stdin:
-        Whether to write data from ``in_stream`` back to ``out_stream``.
-        In other words, in normal interactive usage, this parameter
-        controls whether Invoke mirrors what you type back to your
-        terminal.
-        By default (when ``None``), this behavior is triggered by the
-        following:
-            * Not using a pty to run the subcommand (i.e. ``pty=False``),
-                as ptys natively echo stdin to stdout on their own;
-            * And when the controlling terminal of Invoke itself (as per
-                ``in_stream``) appears to be a valid terminal device or TTY.
-                (Specifically, when `~invoke.util.isatty` yields a ``True``
-                result when given ``in_stream``.)
-                .. note::
-                    This property tends to be ``False`` when piping another
-                    program&#39;s output into an Invoke session, or when running
-                    Invoke within another program (e.g. running Invoke from
-                    itself).
-        If both of those properties are true, echoing will occur; if either
-        is false, no echoing will be performed.
-        When not ``None``, this parameter will override that auto-detection
-        and force, or disable, echoing.
-    :param timeout:
+    &#34;&#34;&#34;execute `cmd` locally
+
+    Args:
+        cmd: command (str): The shell command to execute.
+
+    Keyword args:
+        command (str): The shell command to execute.
+        shell (str): Which shell binary to use. Default: /bin/bash (on Unix; COMSPEC or cmd.exe on Windows.)
+        warn (bool): Whether to warn and continue, instead of raising UnexpectedExit, when the executed command exits with a nonzero status. Default: False.
+            Note
+            This setting has no effect on exceptions, which will still be raised, typically bundled in ThreadException objects if they were raised by the IO worker threads.
+
+            Similarly, WatcherError exceptions raised by StreamWatcher instances will also ignore this setting, and will usually be bundled inside Failure objects (in order to preserve the execution context).
+
+            Ditto CommandTimedOut - basically, anything that prevents a command from actually getting to “exited with an exit code” ignores this flag.
+
+        hide (bool or NoneType): Allows the caller to disable run’s default behavior of copying the subprocess’ stdout and stderr to the controlling terminal. Specify hide=&#39;out&#39; (or &#39;stdout&#39;) to hide only the stdout stream, hide=&#39;err&#39; (or &#39;stderr&#39;) to hide only stderr, or hide=&#39;both&#39; (or True) to hide both streams.
+            The default value is None, meaning to print everything; False will also disable hiding.
+
+            Note
+            Stdout and stderr are always captured and stored in the Result object, regardless of hide’s value.
+
+            Note
+            hide=True will also override echo=True if both are given (either as kwargs or via config/CLI).
+
+        pty (bool): By default, run connects directly to the invoked process and reads its stdout/stderr streams. Some programs will buffer (or even behave) differently in this situation compared to using an actual terminal or pseudoterminal (pty). To use a pty instead of the default behavior, specify pty=True.
+            Warning
+            Due to their nature, ptys have a single output stream, so the ability to tell stdout apart from stderr is not possible when pty=True. As such, all output will appear on out_stream (see below) and be captured into the stdout result attribute. err_stream and stderr will always be empty when pty=True.
+
+        fallback (bool): Controls auto-fallback behavior re: problems offering a pty when pty=True. Whether this has any effect depends on the specific Runner subclass being invoked. Default: True.
+        asynchronous (bool): When set to True (default False), enables asynchronous behavior, as follows:
+            Connections to the controlling terminal are disabled, meaning you will not see the subprocess output and it will not respond to your keyboard input - similar to hide=True and in_stream=False (though explicitly given (out|err|in)_stream file-like objects will still be honored as normal).
+            run returns immediately after starting the subprocess, and its return value becomes an instance of Promise instead of Result.
+            Promise objects are primarily useful for their join method, which blocks until the subprocess exits (similar to threading APIs) and either returns a final Result or raises an exception, just as a synchronous run would.
+            As with threading and similar APIs, users of asynchronous=True should make sure to join their Promise objects to prevent issues with interpreter shutdown.
+            One easy way to handle such cleanup is to use the Promise as a context manager - it will automatically join at the exit of the context block.
+            New in version 1.4.
+
+        disown (bool): When set to True (default False), returns immediately like asynchronous=True, but does not perform any background work related to that subprocess (it is completely ignored). This allows subprocesses using shell backgrounding or similar techniques (e.g. trailing &amp;, nohup) to persist beyond the lifetime of the Python process running Invoke.
+            Note
+            If you’re unsure whether you want this or asynchronous, you probably want asynchronous!
+
+            Specifically, disown=True has the following behaviors:
+
+            The return value is None instead of a Result or subclass.
+            No I/O worker threads are spun up, so you will have no access to the subprocess’ stdout/stderr, your stdin will not be forwarded, (out|err|in)_stream will be ignored, and features like watchers will not function.
+            No exit code is checked for, so you will not receive any errors if the subprocess fails to exit cleanly.
+            pty=True may not function correctly (subprocesses may not run at all; this seems to be a potential bug in Python’s pty.fork) unless your command line includes tools such as nohup or (the shell builtin) disown.
+            New in version 1.4.
+
+        echo (bool): Controls whether run prints the command string to local stdout prior to executing it. Default: False.
+            Note
+            hide=True will override echo=True if both are given.
+
+        env (dict): By default, subprocesses receive a copy of Invoke’s own environment (i.e. os.environ). Supply a dict here to update that child environment.
+            For example, run(&#39;command&#39;, env={&#39;PYTHONPATH&#39;: &#39;/some/virtual/env/maybe&#39;}) would modify the PYTHONPATH env var, with the rest of the child’s env looking identical to the parent.
+
+            See also
+            replace_env for changing ‘update’ to ‘replace’.
+
+        replace_env (bool): When True, causes the subprocess to receive the dictionary given to env as its entire shell environment, instead of updating a copy of os.environ (which is the default behavior). Default: False.
+        encoding (str): Override auto-detection of which encoding the subprocess is using for its stdout/stderr streams (which defaults to the return value of default_encoding).
+        out_stream: A file-like stream object to which the subprocess’ standard output should be written. If None (the default), sys.stdout will be used.
+        err_stream: Same as out_stream, except for standard error, and defaulting to sys.stderr.
+        in_stream: A file-like stream object to used as the subprocess’ standard input. If None (the default), sys.stdin will be used.
+            If False, will disable stdin mirroring entirely (though other functionality which writes to the subprocess’ stdin, such as autoresponding, will still function.) Disabling stdin mirroring can help when sys.stdin is a misbehaving non-stream object, such as under test harnesses or headless command runners.
+
+        watchers: A list of StreamWatcher instances which will be used to scan the program’s stdout or stderr and may write into its stdin (typically str or bytes objects depending on Python version) in response to patterns or other heuristics.
+            See Automatically responding to program output for details on this functionality.
+            Default: [].
+
+        echo_stdin (bool): Whether to write data from in_stream back to out_stream.
+            In other words, in normal interactive usage, this parameter controls whether Invoke mirrors what you type back to your terminal.
+
+            By default (when None), this behavior is triggered by the following:
+
+            Not using a pty to run the subcommand (i.e. pty=False), as ptys natively echo stdin to stdout on their own;
+            And when the controlling terminal of Invoke itself (as per in_stream) appears to be a valid terminal device or TTY. (Specifically, when isatty yields a True result when given in_stream.)
+            Note
+            This property tends to be False when piping another program’s output into an Invoke session, or when running Invoke within another program (e.g. running Invoke from itself).
+
+            If both of those properties are true, echoing will occur; if either is false, no echoing will be performed.
+
+            When not None, this parameter will override that auto-detection and force, or disable, echoing.
+
+        timeout: Cause the runner to submit an interrupt to the subprocess and raise CommandTimedOut, if the command takes longer than timeout seconds to execute. Defaults to None, meaning no timeout.
+
+    Raises:
+        UnexpectedExit: if the command exited nonzero and warn was False.
+        Failure: if the command didn’t even exit cleanly, e.g. if a StreamWatcher raised WatcherError.
+        ThreadException: (if the background I/O threads encountered exceptions other than WatcherError).
+
+    Returns:
+        tuple: return code, stdout, stderr (from invoke.run `Result`)
     &#34;&#34;&#34;
     ## use formatter to format command
     command_ctx = command_ctx or {}

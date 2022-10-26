@@ -58,24 +58,62 @@ class ErrorHandler:
             frame = frame.tb_next
         return stacktrace
 
-    def _handle_exception(self, ttype, tvalue, tb, level=40, die=False, log=True, category=&#34;&#34;, data=None):
-        timestamp = j.data.time.now().timestamp
+    def get_traceback(self, exc_info=None):
+        &#34;&#34;&#34;Get a trackback information as a dict, suitable to used with error/alert handlers
+
+        if `exe_info` is not passed, `sys.exc_info()` will be used instead.
+
+        Example traceback information:
+
+        ```
+        {
+            &#39;process_id&#39;: 20840,
+            &#39;raw&#39;: &#39;Traceback (most recent call last):\n  File &#34;&lt;stdin&gt;&#34;, line 1, in &lt;module&gt;\nValueError: a is not valid&#39;,
+            &#39;straceback&#39;: [
+                {
+                    &#39;code&#39;: &#39;&#39;,
+                    &#39;context&#39;: &#39;&lt;module&gt;&#39;,
+                    &#39;filename&#39;: &#39;&lt;stdin&gt;&#39;,
+                    &#39;filepath&#39;: &#39;&lt;stdin&gt;&#39;,
+                    &#39;linenr&#39;: 1
+                }
+            ]
+        }
+        ```
+
+        Args:
+            exc_info (tuple, optional): exception information as a tuple (ttype, tvalue, tb). Defaults to None.
+
+        Returns:
+            dict: raw and stacktrace information as a dict, alongside process id
+        &#34;&#34;&#34;
+        if exc_info:
+            ttype, tvalue, tb = exc_info
+        else:
+            ttype, tvalue, tb = sys.exc_info()
+
         stacktrace = self._construct_stacktrace(tb)
-        message = self._format_lines(traceback.format_exception_only(ttype, tvalue))
         traceback_text = self._format_lines(traceback.format_exception(ttype, tvalue, tb))
 
+        return {&#34;raw&#34;: traceback_text, &#34;stacktrace&#34;: stacktrace, &#34;process_id&#34;: j.application.process_id}
+
+    def _handle_exception(self, ttype, tvalue, tb, level=40, die=False, log=True, category=&#34;&#34;, data=None):
+        exc_info = (ttype, tvalue, tb)
+        timestamp = j.data.time.now().timestamp
+        message = self._format_lines(traceback.format_exception_only(ttype, tvalue))
+
         err_dict = {
-            &#34;appname&#34;: j.application.appname,
+            &#34;app_name&#34;: j.logger.default_app_name,
             &#34;level&#34;: level,
             &#34;message&#34;: message,
             &#34;timestamp&#34;: timestamp,
             &#34;category&#34;: category or &#34;exception&#34;,
             &#34;data&#34;: data,
-            &#34;traceback&#34;: {&#34;raw&#34;: traceback_text, &#34;stacktrace&#34;: stacktrace, &#34;process_id&#34;: j.application.process_id},
+            &#34;traceback&#34;: self.get_traceback(exc_info),
         }
 
         if log:
-            exception = (ttype, tvalue, tb)
+            exception = exc_info
             j.logger.exception(message=message, category=category, data=data, level=level, exception=exception)
 
         for handler_func, handler_level in self.handlers:
@@ -170,24 +208,62 @@ class ErrorHandler:
             frame = frame.tb_next
         return stacktrace
 
-    def _handle_exception(self, ttype, tvalue, tb, level=40, die=False, log=True, category=&#34;&#34;, data=None):
-        timestamp = j.data.time.now().timestamp
+    def get_traceback(self, exc_info=None):
+        &#34;&#34;&#34;Get a trackback information as a dict, suitable to used with error/alert handlers
+
+        if `exe_info` is not passed, `sys.exc_info()` will be used instead.
+
+        Example traceback information:
+
+        ```
+        {
+            &#39;process_id&#39;: 20840,
+            &#39;raw&#39;: &#39;Traceback (most recent call last):\n  File &#34;&lt;stdin&gt;&#34;, line 1, in &lt;module&gt;\nValueError: a is not valid&#39;,
+            &#39;straceback&#39;: [
+                {
+                    &#39;code&#39;: &#39;&#39;,
+                    &#39;context&#39;: &#39;&lt;module&gt;&#39;,
+                    &#39;filename&#39;: &#39;&lt;stdin&gt;&#39;,
+                    &#39;filepath&#39;: &#39;&lt;stdin&gt;&#39;,
+                    &#39;linenr&#39;: 1
+                }
+            ]
+        }
+        ```
+
+        Args:
+            exc_info (tuple, optional): exception information as a tuple (ttype, tvalue, tb). Defaults to None.
+
+        Returns:
+            dict: raw and stacktrace information as a dict, alongside process id
+        &#34;&#34;&#34;
+        if exc_info:
+            ttype, tvalue, tb = exc_info
+        else:
+            ttype, tvalue, tb = sys.exc_info()
+
         stacktrace = self._construct_stacktrace(tb)
-        message = self._format_lines(traceback.format_exception_only(ttype, tvalue))
         traceback_text = self._format_lines(traceback.format_exception(ttype, tvalue, tb))
 
+        return {&#34;raw&#34;: traceback_text, &#34;stacktrace&#34;: stacktrace, &#34;process_id&#34;: j.application.process_id}
+
+    def _handle_exception(self, ttype, tvalue, tb, level=40, die=False, log=True, category=&#34;&#34;, data=None):
+        exc_info = (ttype, tvalue, tb)
+        timestamp = j.data.time.now().timestamp
+        message = self._format_lines(traceback.format_exception_only(ttype, tvalue))
+
         err_dict = {
-            &#34;appname&#34;: j.application.appname,
+            &#34;app_name&#34;: j.logger.default_app_name,
             &#34;level&#34;: level,
             &#34;message&#34;: message,
             &#34;timestamp&#34;: timestamp,
             &#34;category&#34;: category or &#34;exception&#34;,
             &#34;data&#34;: data,
-            &#34;traceback&#34;: {&#34;raw&#34;: traceback_text, &#34;stacktrace&#34;: stacktrace, &#34;process_id&#34;: j.application.process_id},
+            &#34;traceback&#34;: self.get_traceback(exc_info),
         }
 
         if log:
-            exception = (ttype, tvalue, tb)
+            exception = exc_info
             j.logger.exception(message=message, category=category, data=data, level=level, exception=exception)
 
         for handler_func, handler_level in self.handlers:
@@ -248,6 +324,81 @@ class ErrorHandler:
 <pre><code class="python">def excepthook(self, ttype, tvalue, tb):
     &#34;&#34;&#34;exception hook handler&#34;&#34;&#34;
     self._handle_exception(ttype, tvalue, tb)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.errorhandler.errorhandler.ErrorHandler.get_traceback"><code class="name flex">
+<span>def <span class="ident">get_traceback</span></span>(<span>self, exc_info=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get a trackback information as a dict, suitable to used with error/alert handlers</p>
+<pre><code>    if `exe_info` is not passed, `sys.exc_info()` will be used instead.
+
+    Example traceback information:
+
+    ```
+    {
+        'process_id': 20840,
+        'raw': 'Traceback (most recent call last):
+</code></pre>
+<p>File "<stdin>", line 1, in <module>
+ValueError: a is not valid',
+'straceback': [
+{
+'code': '',
+'context': '<module>',
+'filename': '<stdin>',
+'filepath': '<stdin>',
+'linenr': 1
+}
+]
+}
+```</p>
+<pre><code>    Args:
+        exc_info (tuple, optional): exception information as a tuple (ttype, tvalue, tb). Defaults to None.
+
+    Returns:
+        dict: raw and stacktrace information as a dict, alongside process id
+</code></pre></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_traceback(self, exc_info=None):
+    &#34;&#34;&#34;Get a trackback information as a dict, suitable to used with error/alert handlers
+
+    if `exe_info` is not passed, `sys.exc_info()` will be used instead.
+
+    Example traceback information:
+
+    ```
+    {
+        &#39;process_id&#39;: 20840,
+        &#39;raw&#39;: &#39;Traceback (most recent call last):\n  File &#34;&lt;stdin&gt;&#34;, line 1, in &lt;module&gt;\nValueError: a is not valid&#39;,
+        &#39;straceback&#39;: [
+            {
+                &#39;code&#39;: &#39;&#39;,
+                &#39;context&#39;: &#39;&lt;module&gt;&#39;,
+                &#39;filename&#39;: &#39;&lt;stdin&gt;&#39;,
+                &#39;filepath&#39;: &#39;&lt;stdin&gt;&#39;,
+                &#39;linenr&#39;: 1
+            }
+        ]
+    }
+    ```
+
+    Args:
+        exc_info (tuple, optional): exception information as a tuple (ttype, tvalue, tb). Defaults to None.
+
+    Returns:
+        dict: raw and stacktrace information as a dict, alongside process id
+    &#34;&#34;&#34;
+    if exc_info:
+        ttype, tvalue, tb = exc_info
+    else:
+        ttype, tvalue, tb = sys.exc_info()
+
+    stacktrace = self._construct_stacktrace(tb)
+    traceback_text = self._format_lines(traceback.format_exception(ttype, tvalue, tb))
+
+    return {&#34;raw&#34;: traceback_text, &#34;stacktrace&#34;: stacktrace, &#34;process_id&#34;: j.application.process_id}</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.tools.errorhandler.errorhandler.ErrorHandler.handle_exception"><code class="name flex">
@@ -334,6 +485,7 @@ level {int} &ndash; exception level (default: {40})</p></section>
 <h4><code><a title="jumpscale.tools.errorhandler.errorhandler.ErrorHandler" href="#jumpscale.tools.errorhandler.errorhandler.ErrorHandler">ErrorHandler</a></code></h4>
 <ul class="">
 <li><code><a title="jumpscale.tools.errorhandler.errorhandler.ErrorHandler.excepthook" href="#jumpscale.tools.errorhandler.errorhandler.ErrorHandler.excepthook">excepthook</a></code></li>
+<li><code><a title="jumpscale.tools.errorhandler.errorhandler.ErrorHandler.get_traceback" href="#jumpscale.tools.errorhandler.errorhandler.ErrorHandler.get_traceback">get_traceback</a></code></li>
 <li><code><a title="jumpscale.tools.errorhandler.errorhandler.ErrorHandler.handle_exception" href="#jumpscale.tools.errorhandler.errorhandler.ErrorHandler.handle_exception">handle_exception</a></code></li>
 <li><code><a title="jumpscale.tools.errorhandler.errorhandler.ErrorHandler.register_handler" href="#jumpscale.tools.errorhandler.errorhandler.ErrorHandler.register_handler">register_handler</a></code></li>
 </ul>

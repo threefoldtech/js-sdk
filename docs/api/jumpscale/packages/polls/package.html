@@ -23,17 +23,15 @@
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">from jumpscale.loader import j
+
+
 class polls:
     def install(self, **kwargs):
         if &#34;polls_receive&#34; not in j.clients.stellar.list_all():
             secret = kwargs.get(&#34;secret&#34;, None)
-            network = kwargs.get(&#34;network&#34;, &#34;TEST&#34;)
-            wallet = j.clients.stellar.new(&#34;polls_receive&#34;, secret=secret, network=network)
+            wallet = j.clients.stellar.new(&#34;polls_receive&#34;, secret=secret)
             if not secret:
-                if network == &#34;TEST&#34;:
-                    wallet.activate_through_friendbot()
-                else:
-                    wallet.activate_through_threefold_service()
+                wallet.activate_through_threefold_service()
             wallet.save()</code></pre>
 </details>
 </section>
@@ -58,13 +56,9 @@ class polls:
     def install(self, **kwargs):
         if &#34;polls_receive&#34; not in j.clients.stellar.list_all():
             secret = kwargs.get(&#34;secret&#34;, None)
-            network = kwargs.get(&#34;network&#34;, &#34;TEST&#34;)
-            wallet = j.clients.stellar.new(&#34;polls_receive&#34;, secret=secret, network=network)
+            wallet = j.clients.stellar.new(&#34;polls_receive&#34;, secret=secret)
             if not secret:
-                if network == &#34;TEST&#34;:
-                    wallet.activate_through_friendbot()
-                else:
-                    wallet.activate_through_threefold_service()
+                wallet.activate_through_threefold_service()
             wallet.save()</code></pre>
 </details>
 <h3>Methods</h3>
@@ -79,13 +73,9 @@ class polls:
 <pre><code class="python">def install(self, **kwargs):
     if &#34;polls_receive&#34; not in j.clients.stellar.list_all():
         secret = kwargs.get(&#34;secret&#34;, None)
-        network = kwargs.get(&#34;network&#34;, &#34;TEST&#34;)
-        wallet = j.clients.stellar.new(&#34;polls_receive&#34;, secret=secret, network=network)
+        wallet = j.clients.stellar.new(&#34;polls_receive&#34;, secret=secret)
         if not secret:
-            if network == &#34;TEST&#34;:
-                wallet.activate_through_friendbot()
-            else:
-                wallet.activate_through_threefold_service()
+            wallet.activate_through_threefold_service()
         wallet.save()</code></pre>
 </details>
 </dd>

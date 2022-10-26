@@ -1364,7 +1364,12 @@ value (str)</p>
         &#34;&#34;&#34;
         # print(f&#34;from str-&gt; value {value}&#34;)
         # print(f&#34;subtype {self.subtype}&#34;)
-        return object()</code></pre>
+        return object()
+        # if isinstance(self.subtype, JSObject):
+        #     print(&#34;returning noww&#34;)
+        #     return object()
+        # else:
+        #     return self._deep_parse(ast.literal_eval(value))</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -1432,7 +1437,12 @@ value (str)</p>
     &#34;&#34;&#34;
     # print(f&#34;from str-&gt; value {value}&#34;)
     # print(f&#34;subtype {self.subtype}&#34;)
-    return object()</code></pre>
+    return object()
+    # if isinstance(self.subtype, JSObject):
+    #     print(&#34;returning noww&#34;)
+    #     return object()
+    # else:
+    #     return self._deep_parse(ast.literal_eval(value))</code></pre>
 </details>
 </dd>
 </dl>

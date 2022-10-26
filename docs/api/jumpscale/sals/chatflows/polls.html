@@ -108,7 +108,7 @@ class Poll(GedisChatBot):
                 required=True,
             )
 
-            qr_code_content = j.sals.zos._escrow_to_qrcode(
+            qr_code_content = j.sals.zos.get()._escrow_to_qrcode(
                 escrow_address=self.wallet.address,
                 escrow_asset=currency,
                 total_amount=amount,
@@ -442,7 +442,7 @@ just inherit from this class and override poll_name and QUESTIONS in your chatfl
                 required=True,
             )
 
-            qr_code_content = j.sals.zos._escrow_to_qrcode(
+            qr_code_content = j.sals.zos.get()._escrow_to_qrcode(
                 escrow_address=self.wallet.address,
                 escrow_asset=currency,
                 total_amount=amount,
@@ -676,10 +676,10 @@ just inherit from this class and override poll_name and QUESTIONS in your chatfl
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="jumpscale.packages.polls.chats.threefold.TFPoll" href="../../packages/polls/chats/threefold.html#jumpscale.packages.polls.chats.threefold.TFPoll">TFPoll</a></li>
-<li><a title="jumpscale.packages.polls.chats.example2.Example2" href="../../packages/polls/chats/example2.html#jumpscale.packages.polls.chats.example2.Example2">Example2</a></li>
-<li><a title="jumpscale.packages.polls.chats.foo.Foo" href="../../packages/polls/chats/foo.html#jumpscale.packages.polls.chats.foo.Foo">Foo</a></li>
 <li><a title="jumpscale.packages.polls.chats.new.New" href="../../packages/polls/chats/new.html#jumpscale.packages.polls.chats.new.New">New</a></li>
+<li><a title="jumpscale.packages.polls.chats.example2.Example2" href="../../packages/polls/chats/example2.html#jumpscale.packages.polls.chats.example2.Example2">Example2</a></li>
+<li><a title="jumpscale.packages.polls.chats.threefold.TFPoll" href="../../packages/polls/chats/threefold.html#jumpscale.packages.polls.chats.threefold.TFPoll">TFPoll</a></li>
+<li><a title="jumpscale.packages.polls.chats.foo.Foo" href="../../packages/polls/chats/foo.html#jumpscale.packages.polls.chats.foo.Foo">Foo</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>

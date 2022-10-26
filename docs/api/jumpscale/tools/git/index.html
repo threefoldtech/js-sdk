@@ -33,6 +33,7 @@ import re
 from jumpscale.loader import j
 
 SSH_URL_MATCH = &#34;^(git@)(?P&lt;netloc&gt;.*?)(:|/)(?P&lt;path&gt;.*?)/?$&#34;
+HTTP_REPO_URL = r&#34;^(https://)?(?P&lt;provider&gt;.+)(?P&lt;suffix&gt;\..+)\/(?P&lt;account&gt;.+)\/(?P&lt;repo&gt;.+)/?$&#34;
 
 
 def rewrite_git_https_url_to_ssh(url):
@@ -221,11 +222,30 @@ def find_git_path(path, die=True):
     :raises Exception when no git path can be found
     &#34;&#34;&#34;
     while path != &#34;&#34;:
-        if j.sal.fs.exists(path=j.sal.fs.joinPaths(path, &#34;.git&#34;)):
+        if j.sals.fs.exists(path=j.sals.fs.join_paths(path, &#34;.git&#34;)):
             return path
-        path = j.sal.fs.getParent(path)
+        path = j.sals.fs.parent(path)
     if die:
-        raise j.exceptions.Input(&#34;Cannot find git path in:%s&#34; % path)</code></pre>
+        raise j.exceptions.Input(&#34;Cannot find git path in:%s&#34; % path)
+
+
+def get_latest_remote_tag(repo_path):
+    &#34;&#34;&#34;
+    retrive the latest tag of a remote upstream repository
+
+    Args:
+        repo_path (str): path to the local git repository
+
+    Returns:
+        str: the latest tag of the remote repository
+    &#34;&#34;&#34;
+    rc, out, err = j.sals.process.execute(
+        &#34;git ls-remote --tags --refs | sort -t &#39;/&#39; -k 3 -V | tail -n1 | sed &#39;s/.*\///&#39;&#34;, cwd=repo_path
+    )
+    if rc != 0:
+        raise j.exceptions.Runtime(f&#34;Failed to fetch latest remote release. {err}&#34;)
+    latest_remote_tag = out.rstrip(&#34;\n&#34;)
+    return latest_remote_tag</code></pre>
 </details>
 </section>
 <section>
@@ -389,11 +409,47 @@ def find_git_path(path, die=True):
     :raises Exception when no git path can be found
     &#34;&#34;&#34;
     while path != &#34;&#34;:
-        if j.sal.fs.exists(path=j.sal.fs.joinPaths(path, &#34;.git&#34;)):
+        if j.sals.fs.exists(path=j.sals.fs.join_paths(path, &#34;.git&#34;)):
             return path
-        path = j.sal.fs.getParent(path)
+        path = j.sals.fs.parent(path)
     if die:
         raise j.exceptions.Input(&#34;Cannot find git path in:%s&#34; % path)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.git.get_latest_remote_tag"><code class="name flex">
+<span>def <span class="ident">get_latest_remote_tag</span></span>(<span>repo_path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>retrive the latest tag of a remote upstream repository</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>repo_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>path to the local git repository</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>str</code></strong></dt>
+<dd>the latest tag of the remote repository</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_latest_remote_tag(repo_path):
+    &#34;&#34;&#34;
+    retrive the latest tag of a remote upstream repository
+
+    Args:
+        repo_path (str): path to the local git repository
+
+    Returns:
+        str: the latest tag of the remote repository
+    &#34;&#34;&#34;
+    rc, out, err = j.sals.process.execute(
+        &#34;git ls-remote --tags --refs | sort -t &#39;/&#39; -k 3 -V | tail -n1 | sed &#39;s/.*\///&#39;&#34;, cwd=repo_path
+    )
+    if rc != 0:
+        raise j.exceptions.Runtime(f&#34;Failed to fetch latest remote release. {err}&#34;)
+    latest_remote_tag = out.rstrip(&#34;\n&#34;)
+    return latest_remote_tag</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.tools.git.get_path_from_url"><code class="name flex">
@@ -584,6 +640,7 @@ def find_git_path(path, die=True):
 <li><code><a title="jumpscale.tools.git.ensure_repo" href="#jumpscale.tools.git.ensure_repo">ensure_repo</a></code></li>
 <li><code><a title="jumpscale.tools.git.find" href="#jumpscale.tools.git.find">find</a></code></li>
 <li><code><a title="jumpscale.tools.git.find_git_path" href="#jumpscale.tools.git.find_git_path">find_git_path</a></code></li>
+<li><code><a title="jumpscale.tools.git.get_latest_remote_tag" href="#jumpscale.tools.git.get_latest_remote_tag">get_latest_remote_tag</a></code></li>
 <li><code><a title="jumpscale.tools.git.get_path_from_url" href="#jumpscale.tools.git.get_path_from_url">get_path_from_url</a></code></li>
 <li><code><a title="jumpscale.tools.git.giturl_parse" href="#jumpscale.tools.git.giturl_parse">giturl_parse</a></code></li>
 <li><code><a title="jumpscale.tools.git.pull_repo" href="#jumpscale.tools.git.pull_repo">pull_repo</a></code></li>

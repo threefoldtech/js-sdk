@@ -8,7 +8,6 @@ import tempfile
 import subprocess
 
 from jumpscale.loader import j
-from jumpscale.threesdk.identitymanager import IdentityManager
 from jumpscale.sals.nginx.nginx import PORTS
 from jumpscale.packages.admin.actors.wallet import Wallet
 
@@ -75,11 +74,10 @@ def start(identity=None, background=False, local=False, cert=True, development=F
     please pass the optional arguments
 
     usage: threebot start
-    or: threebot start --identity <identity> --explorer <explorer>
+    or: threebot start --identity <identity>
 
     Args:
         identity (str, optional): threebot name. Defaults to None.
-        explorer (str, optional): which explorer network to use: mainnet, testnet, devnet. Defaults to None.
     """
     if j.config.get("ANNOUNCED") is None:
         j.config.set("ANNOUNCED", False)
@@ -102,14 +100,12 @@ def start(identity=None, background=False, local=False, cert=True, development=F
             sys.exit(1)
 
     if not development and not j.core.identity.list_all():
-        identity_data = IdentityManager()
-        identity_info = identity_data.ask_identity()
+        identity_info = j.core.identity.ask()
         me = j.core.identity.new(
             "default",
             tname=identity_info.identity,
             email=identity_info.email,
             words=identity_info.words,
-            explorer_url=f"https://{identity_info.explorer}/api/v1",
         )
         me.register()
         me.save()
@@ -161,8 +157,7 @@ def start(identity=None, background=False, local=False, cert=True, development=F
 
 @click.command()
 def stop():
-    """stops threebot server
-    """
+    """stops threebot server"""
     threebot_pids = j.sals.process.get_pids("threebot")
     if len(threebot_pids) > 1:  # Check if threebot was started in foreground
         # Kill all other processes other than `threebot stop`
@@ -180,8 +175,7 @@ def stop():
 
 @click.command()
 def status():
-    """return the status of threebot server
-    """
+    """return the status of threebot server"""
     if j.servers.threebot.get().is_running():
         j.tools.console.printcolors("Server is {GREEN}running{RESET}")
     else:
@@ -199,8 +193,7 @@ def status():
 )
 @click.pass_context
 def restart(ctx, identity=None, background=False, local=False, development=False, domain=None, email=None):
-    """restart threebot server
-    """
+    """restart threebot server"""
     ctx.invoke(stop)
     ctx.invoke(
         start,
@@ -216,8 +209,7 @@ def restart(ctx, identity=None, background=False, local=False, development=False
 @click.command()
 @click.option("--all", default=False, is_flag=True, help="delete all of jumpscale config")
 def clean(all=False):
-    """deletes previous configurations of jumpscale
-    """
+    """deletes previous configurations of jumpscale"""
     config_root = j.core.config.config_root
 
     if all:

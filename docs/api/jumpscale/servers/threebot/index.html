@@ -24,6 +24,7 @@
 <summary>Source code</summary>
 <pre><code class="python">from jumpscale.core.base import StoredFactory
 from jumpscale.sals.nginx.nginx import PORTS
+from jumpscale.entry_points.threebot import create_wallets_if_not_exists
 
 
 class ThreebotServerFactory(StoredFactory):
@@ -46,14 +47,15 @@ class ThreebotServerFactory(StoredFactory):
         &#34;&#34;&#34;
         return super().get(&#34;default&#34;, *args, **kwargs)
 
-    def start_default(self, wait=False, local=False, domain=None, email=None):
+    def start_default(self, wait=False, local=False, domain=None, email=None, cert=True):
         PORTS.init_default_ports(local)
         server = self.get(&#34;default&#34;)
         if not server.domain:
             server.domain = domain
             server.email = email
         server.save()
-        server.start(wait=wait)
+        create_wallets_if_not_exists()
+        server.start(wait=wait, cert=cert)
 
 
 def export_module_as():
@@ -137,14 +139,15 @@ to store all instance configurations.</p>
         &#34;&#34;&#34;
         return super().get(&#34;default&#34;, *args, **kwargs)
 
-    def start_default(self, wait=False, local=False, domain=None, email=None):
+    def start_default(self, wait=False, local=False, domain=None, email=None, cert=True):
         PORTS.init_default_ports(local)
         server = self.get(&#34;default&#34;)
         if not server.domain:
             server.domain = domain
             server.email = email
         server.save()
-        server.start(wait=wait)</code></pre>
+        create_wallets_if_not_exists()
+        server.start(wait=wait, cert=cert)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -195,20 +198,21 @@ to store all instance configurations.</p>
 </details>
 </dd>
 <dt id="jumpscale.servers.threebot.ThreebotServerFactory.start_default"><code class="name flex">
-<span>def <span class="ident">start_default</span></span>(<span>self, wait=False, local=False, domain=None, email=None)</span>
+<span>def <span class="ident">start_default</span></span>(<span>self, wait=False, local=False, domain=None, email=None, cert=True)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def start_default(self, wait=False, local=False, domain=None, email=None):
+<pre><code class="python">def start_default(self, wait=False, local=False, domain=None, email=None, cert=True):
     PORTS.init_default_ports(local)
     server = self.get(&#34;default&#34;)
     if not server.domain:
         server.domain = domain
         server.email = email
     server.save()
-    server.start(wait=wait)</code></pre>
+    create_wallets_if_not_exists()
+    server.start(wait=wait, cert=cert)</code></pre>
 </details>
 </dd>
 </dl>

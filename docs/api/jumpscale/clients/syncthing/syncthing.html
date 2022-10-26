@@ -32,8 +32,8 @@ class SyncthingClient(Client):
     port = fields.Integer()
     apikey = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.__url = None
         self.__session = None
         self.__config = None
@@ -125,14 +125,7 @@ class SyncthingClient(Client):
             return self.set_config(self.config)
 
     def add_folder(
-        self,
-        name,
-        path,
-        ignore_perms=False,
-        read_only=False,
-        rescan_intervals=10,
-        devices=None,
-        overwrite=False,
+        self, name, path, ignore_perms=False, read_only=False, rescan_intervals=10, devices=None, overwrite=False,
     ):
         folders = self.get_folders()
         idx = self._get_folder(name)
@@ -166,9 +159,7 @@ class SyncthingClient(Client):
         folders.append(folder)
         return self.set_config(self.config)
 
-    def add_device(
-        self, name, device_id, introducer=False, compression=&#34;always&#34;, overwrite=False
-    ):
+    def add_device(self, name, device_id, introducer=False, compression=&#34;always&#34;, overwrite=False):
         devices = self.get_devices()
         idx = self._get_device(name)
         if idx:
@@ -199,13 +190,14 @@ class SyncthingClient(Client):
 <dl>
 <dt id="jumpscale.clients.syncthing.syncthing.SyncthingClient"><code class="flex name class">
 <span>class <span class="ident">SyncthingClient</span></span>
+<span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -228,8 +220,8 @@ print(p.name, p.age)
     port = fields.Integer()
     apikey = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.__url = None
         self.__session = None
         self.__config = None
@@ -321,14 +313,7 @@ print(p.name, p.age)
             return self.set_config(self.config)
 
     def add_folder(
-        self,
-        name,
-        path,
-        ignore_perms=False,
-        read_only=False,
-        rescan_intervals=10,
-        devices=None,
-        overwrite=False,
+        self, name, path, ignore_perms=False, read_only=False, rescan_intervals=10, devices=None, overwrite=False,
     ):
         folders = self.get_folders()
         idx = self._get_folder(name)
@@ -362,9 +347,7 @@ print(p.name, p.age)
         folders.append(folder)
         return self.set_config(self.config)
 
-    def add_device(
-        self, name, device_id, introducer=False, compression=&#34;always&#34;, overwrite=False
-    ):
+    def add_device(self, name, device_id, introducer=False, compression=&#34;always&#34;, overwrite=False):
         devices = self.get_devices()
         idx = self._get_device(name)
         if idx:
@@ -517,9 +500,7 @@ def url(self):
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def add_device(
-    self, name, device_id, introducer=False, compression=&#34;always&#34;, overwrite=False
-):
+<pre><code class="python">def add_device(self, name, device_id, introducer=False, compression=&#34;always&#34;, overwrite=False):
     devices = self.get_devices()
     idx = self._get_device(name)
     if idx:
@@ -547,14 +528,7 @@ def url(self):
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_folder(
-    self,
-    name,
-    path,
-    ignore_perms=False,
-    read_only=False,
-    rescan_intervals=10,
-    devices=None,
-    overwrite=False,
+    self, name, path, ignore_perms=False, read_only=False, rescan_intervals=10, devices=None, overwrite=False,
 ):
     folders = self.get_folders()
     idx = self._get_folder(name)

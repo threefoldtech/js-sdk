@@ -29,7 +29,7 @@ import os
 class codeserver:
     def __init__(self):
         self.bin_path = j.sals.fs.join_paths(j.core.dirs.BINDIR, &#34;code-server&#34;)
-        self.script_path = j.sals.fs.join_paths(os.path.dirname(__file__), &#34;codeserver-install.sh&#34;)
+        self.script_path = j.sals.fs.join_paths(os.path.dirname(__file__), &#34;codeserver_install.sh&#34;)
         self._started = False
 
     @property
@@ -88,7 +88,7 @@ class codeserver:
 <pre><code class="python">class codeserver:
     def __init__(self):
         self.bin_path = j.sals.fs.join_paths(j.core.dirs.BINDIR, &#34;code-server&#34;)
-        self.script_path = j.sals.fs.join_paths(os.path.dirname(__file__), &#34;codeserver-install.sh&#34;)
+        self.script_path = j.sals.fs.join_paths(os.path.dirname(__file__), &#34;codeserver_install.sh&#34;)
         self._started = False
 
     @property

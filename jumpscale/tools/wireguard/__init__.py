@@ -10,7 +10,6 @@ def generate_zos_keys(node_public_key):
 
     Args:
         node_public_key (str): hex encoded public key of 0-OS node.
-                                  This is the format you find in the explorer
 
     Returns:
         tuple: tuple containing 3 fields (private key, private key encrypted, public key)

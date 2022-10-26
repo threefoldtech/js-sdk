@@ -20,10 +20,3 @@ class BaseTests(TestCase):
     @staticmethod
     def info(message):
         j.logger.info(message)
-
-    @staticmethod
-    def get_farm_name():
-        if "devnet" in j.core.identity.me.explorer_url:
-            return "lochristi_dev_lab"
-        else:
-            return "freefarm"

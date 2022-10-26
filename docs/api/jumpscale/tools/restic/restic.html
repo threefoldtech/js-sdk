@@ -25,25 +25,25 @@
 <h2 id="prerequisites">prerequisites</h2>
 <p>Make sure to isntall restic(<a href="https://restic.readthedocs.io/en/latest/020_installation.html">https://restic.readthedocs.io/en/latest/020_installation.html</a>)
 On linux it can be installed as follows:</p>
-<pre><code class="bash">apt-get install restic
+<pre><code class="language-bash">apt-get install restic
 </code></pre>
 <h2 id="usage">Usage</h2>
 <h3 id="basic-usage">Basic usage</h3>
-<pre><code class="python">instance = j.clients.restic.get(&quot;instance&quot;)
+<pre><code class="language-python">instance = j.clients.restic.get(&quot;instance&quot;)
 instance.repo = /path/to/repo  # Where restic will store its data can be local or SFTP or rest check &lt;https://restic.readthedocs.io/en/latest/030_preparing_a_new_repo.html&gt;
 instance.password = pass  # Password for the repo needed to access the data after init
 instance.init_repo()
 </code></pre>
 <h3 id="other-backends">Other Backends</h3>
 <p>To use backend such as minio you will need to set extra environment for accessing the servers.</p>
-<pre><code class="python">instance.extra_env = {'AWS_ACCESS_KEY_ID': 'KEY',
+<pre><code class="language-python">instance.extra_env = {'AWS_ACCESS_KEY_ID': 'KEY',
                       'AWS_SECRET_ACCESS_KEY': 'SECRET'}
 </code></pre>
 <h3 id="backing-up">Backing up</h3>
-<pre><code class="python">instance.backup(&quot;/my/path&quot;)
+<pre><code class="language-python">instance.backup(&quot;/my/path&quot;)
 </code></pre>
 <h3 id="listing-snapshots">Listing snapshots</h3>
-<pre><code class="python">instance.list_snapshots()
+<pre><code class="language-python">instance.list_snapshots()
 [{'time': '2020-07-15T13:44:05.767265958Z',
   'tree': '93254cf97720d264d362c9b8d91889643e45886fe0d6b80027d2cef3910bd43d',
   'paths': ['/tmp/stc'],
@@ -53,11 +53,11 @@ instance.init_repo()
   'short_id': 'e3330cf2'}]
 </code></pre>
 <h3 id="restoring">Restoring</h3>
-<pre><code class="python">instance.restore(&quot;/path/to/store&quot;, &quot;e3330cf26ff4ada6c80868c08626f38fa2fc0185b0510c1bb7c5fa880bc67d0c&quot;)  # Will restore specified snapshot to path
+<pre><code class="language-python">instance.restore(&quot;/path/to/store&quot;, &quot;e3330cf26ff4ada6c80868c08626f38fa2fc0185b0510c1bb7c5fa880bc67d0c&quot;)  # Will restore specified snapshot to path
 instance.restore(&quot;/path/to/store&quot;, latest=True, path=&quot;/tmp/stc&quot;, host=&quot;jsng&quot;)  # Will return latest snapshot with the specified filters
 </code></pre>
 <h3 id="pruning-data">Pruning data</h3>
-<pre><code class="python">instance.forget(keep_last=10)  # Will prune all snapshots and keep the last 10 taken only
+<pre><code class="language-python">instance.forget(keep_last=10)  # Will prune all snapshots and keep the last 10 taken only
 </code></pre>
 <details class="source">
 <summary>Source code</summary>
@@ -154,8 +154,32 @@ restic check &amp;
 wait $!
 &#34;&#34;&#34;
 
+WATCHDOG_SCRIPT = &#34;&#34;&#34;
+epoch=$(date +%s)
+
+export RESTIC_REPOSITORY={repo}
+export RESTIC_PASSWORD={password}
+export AWS_ACCESS_KEY_ID={AWS_ACCESS_KEY_ID}
+export AWS_SECRET_ACCESS_KEY={AWS_SECRET_ACCESS_KEY}
+
+
+latest_backup=`restic snapshots --last -c -q | sed -n 3p |cut -d &#34; &#34; -f3`
+latest_backup_epoch=`date &#34;+%s&#34; -d &#34;$latest_backup&#34;`
+wait $!
+
+current_date=`date +&#34;%s&#34;`
+
+if [[ $(( (current_date - latest_backup_epoch) / 86400 )) &gt; 2 ]]
+then
+    echo &#34;No backups is being taken since 2 days, sending escalation mail...&#34;
+    jsng &#39;j.clients.mail.escalation_instance.send(&#34;{ESCALATION_MAIL}&#34;, subject=&#34;{THREEBOT_NAME} 3Bot backups warning&#34;, message=&#34;We noticed that there were no backups taken since 2 days for {THREEBOT_NAME} 3Bot. Please check the support&#34;)&#39;
+fi
+
+&#34;&#34;&#34;
+
 
 class ResticRepo(Base):
+
     repo = fields.String(required=True)
     password = fields.Secret(required=True)
     extra_env = fields.Typed(dict, default={})
@@ -172,10 +196,9 @@ class ResticRepo(Base):
 
     @property
     def env(self):
-        if not self._env:
-            self.validate()
-            self._env = os.environ.copy()
-            self._env.update({&#34;RESTIC_PASSWORD&#34;: self.password, &#34;RESTIC_REPOSITORY&#34;: self.repo}, **self.extra_env)
+        self.validate()
+        self._env = os.environ.copy()
+        self._env.update({&#34;RESTIC_PASSWORD&#34;: self.password, &#34;RESTIC_REPOSITORY&#34;: self.repo}, **self.extra_env)
         return self._env
 
     def _run_cmd(self, cmd, check=True):
@@ -191,28 +214,39 @@ class ResticRepo(Base):
         if proc.returncode &gt; 0:
             self._run_cmd([&#34;restic&#34;, &#34;init&#34;])
 
-    def backup(self, path, tags=None):
-        &#34;&#34;&#34;Backup a path to the repo
+    def backup(self, path, tags=None, exclude=None):
+        &#34;&#34;&#34;Backup a path to the repo.
 
         Args:
-            path (str): local path to backup
-            tags (list): list of tags to set to the backup
+            path (str or list of str): Local path/s to backup.
+            tags (list): List of tags to set to the backup.
+            exclude (list of str): This instructs restic to exclude files matching a given pattern/s.
         &#34;&#34;&#34;
+        if not path:
+            raise ValueError(&#34;Please specify path/s to backup&#34;)
+        cmd = [&#34;restic&#34;, &#34;backup&#34;]
         tags = tags or []
-        cmd = [&#34;restic&#34;, &#34;backup&#34;, path]
         for tag in tags:
             cmd.extend([&#34;--tag&#34;, tag])
+        if exclude:
+            for pattern in exclude:
+                cmd.extend([f&#34;--exclude={pattern}&#34;])
+        if isinstance(path, list):
+            cmd.extend(path)
+        else:
+            cmd.extend([path])
         self._run_cmd(cmd)
 
-    def restore(self, target_path, snapshot_id=None, latest=True, path=None, host=None):
-        &#34;&#34;&#34;restores a snapshot
+    def restore(self, target_path, snapshot_id=None, latest=True, path=None, host=None, tags=None):
+        &#34;&#34;&#34;Restores a snapshot.
 
         Args:
-            target_path (str): path to restore to
-            snapshot_id (str, optional): id of the snapshot. Defaults to None.
+            target_path (str): a path to restore to
+            snapshot_id (str, optional): Id of the snapshot. Defaults to None.
             latest (bool, optional): if True will use latest snapshot. Defaults to True.
             path (str, optional): Filter on the path when using latest. Defaults to None.
             host (str, optional): Filter on the hostname when using latest. Defaults to None.
+            tags (list, optional): List of tags to filter on.
         &#34;&#34;&#34;
         cmd = [&#34;restic&#34;, &#34;--target&#34;, target_path, &#34;restore&#34;]
         if snapshot_id:
@@ -224,17 +258,20 @@ class ResticRepo(Base):
                 args.extend([&#34;--path&#34;, path])
             if host:
                 args.extend([&#34;--host&#34;, host])
+            if tags:
+                for tag in tags:
+                    cmd.extend([&#34;--tag&#34;, tag])
             self._run_cmd(cmd + args)
         else:
             raise ValueError(&#34;Please specify either `snapshot_id` or `latest` flag&#34;)
 
     def list_snapshots(self, tags=None, last=False, path=None):
-        &#34;&#34;&#34;List all snapshots in the repo
+        &#34;&#34;&#34;List all snapshots in the repo.
 
         Args:
-            tags (list): list of tags to filter on
-            last (bool): if True will get last snapshot only while respecting the other filters
-            path (str): path to filter on
+            tags (list, optional): a list of tags to filter on. Defaults to None.
+            last (bool): If True will get last snapshot only while respecting the other filters. Defaults to False.
+            path (str): a path to filter on. Defaults to None.
 
         Returns
             list : all snapshots as dicts
@@ -251,16 +288,26 @@ class ResticRepo(Base):
         proc = self._run_cmd(cmd)
         return json.loads(proc.stdout)
 
-    def forget(self, keep_last=10, prune=True):
-        &#34;&#34;&#34;Deletes data in the repo
+    def forget(self, keep_last=10, prune=True, snapshots=None, tags=None):
+        &#34;&#34;&#34;Remove snapshots and Optionally remove the data that was referenced by those snapshots.
+        During a prune operation, the repository is locked and backups cannot be completed.
 
         Args:
             keep_last (str, optional): How many items to keep. Defaults to 10.
-            prune (bool, optional): Whether to prune the data or not. Defaults to True.
+            prune (bool, optional): Whether to actually remove the data or not. Defaults to True.
+            snapshots (list, optional): a list of specifics snapshot ids to forget. if given, the value of keep_last parm will be ignored. Defaults to None.
+            tags (list, optional): if given, Only the snapshots which have specified tags are considered. Defaults to None.
         &#34;&#34;&#34;
-        cmd = [&#34;restic&#34;, &#34;forget&#34;, &#34;--keep-last&#34;, str(keep_last)]
+        cmd = [&#34;restic&#34;, &#34;forget&#34;]
+        if tags:
+            for tag in tags:
+                cmd.extend([&#34;--tag&#34;, tag])
+        if keep_last and not snapshots:  # will be ignored in case if passing snapshot id/s. this is a restic behaviour.
+            cmd.extend([&#34;--keep-last&#34;, str(keep_last)])
         if prune:
             cmd.append(&#34;--prune&#34;)
+        if snapshots:
+            cmd.extend(snapshots)
         self._run_cmd(cmd)
 
     def _get_script_path(self, path):
@@ -271,11 +318,11 @@ class ResticRepo(Base):
         return proc.stdout.decode()
 
     def auto_backup(self, path, keep_last=20):
-        &#34;&#34;&#34;Runs a cron job that backups the repo and prunes the last specified backups
+        &#34;&#34;&#34;Runs a cron job that backups the repo and prunes the last specified backups.
 
         Args:
-            path (str): local path to backup
-            keep_last (int, optional): How many items to keep in every forgot opertaion. Defaults to 20.
+            path (str): Local path to backup.
+            keep_last (int, optional): How many items to keep in every forgot operation. Defaults to 20.
         &#34;&#34;&#34;
         self._check_install(&#34;crontab&#34;)
         script_path = self._get_script_path(path)
@@ -295,20 +342,20 @@ class ResticRepo(Base):
         &#34;&#34;&#34;Checks if auto backup for the specified path is running or not
 
         Args:
-            path (str): local path to backup in the cron job
+            path (str): Local path to backup in the cron job.
 
         Returns:
-            bool: Whether it is running or not
+            bool: Whether it is running or not.
         &#34;&#34;&#34;
         script_path = self._get_script_path(path)
         cronjobs = self._get_crons_jobs()
         return cronjobs.find(script_path) &gt;= 0
 
     def disable_auto_backup(self, path):
-        &#34;&#34;&#34;Removes cron jon based on the path being backed
+        &#34;&#34;&#34;Removes cron jon based on the path being backed.
 
         Args:
-            path (str): local path to backup in the cron job
+            path (str): Local path to backup in the cron job.
         &#34;&#34;&#34;
         script_path = self._get_script_path(path)
         cronjobs = self._get_crons_jobs()
@@ -320,7 +367,49 @@ class ResticRepo(Base):
         cron_cmd = &#34;\n&#34;.join(other_crons) + &#34;\n&#34;
         proc_res = proc.communicate(input=cron_cmd.encode())
         if proc.returncode &gt; 0:
-            raise Runtime(f&#34;Couldn&#39;t remove cron job, failed with {proc_res[1]}&#34;)</code></pre>
+            raise Runtime(f&#34;Couldn&#39;t remove cron job, failed with {proc_res[1]}&#34;)
+
+    def backup_watchdog_running(self, script_path) -&gt; bool:
+        &#34;&#34;&#34;Watches a cronjob to watch backups using last snapshot time.
+
+        Args:
+            script_path (str): a path to the script to run the cronjob.
+        Returns:
+            bool: True if the backup watchdog running otherwise False
+        &#34;&#34;&#34;
+        script_path = self._get_script_path(script_path)
+        cronjobs = self._get_crons_jobs()
+        return cronjobs.find(script_path) &gt;= 0
+
+    def start_watch_backup(self, path):
+        &#34;&#34;&#34;Runs a cron job that backups the repo and prunes the last specified backups.
+
+        Args:
+            path (str): Local path to backup.
+            keep_last (int, optional): How many items to keep in every forgot operation. Defaults to 20.
+        &#34;&#34;&#34;
+        self._check_install(&#34;crontab&#34;)
+        script_path = self._get_script_path(path)
+        cronjobs = self._get_crons_jobs()
+        if not self.backup_watchdog_running(path):  # Check if cron job already running
+            cron_script = WATCHDOG_SCRIPT.format(
+                repo=self.repo,
+                password=self.password,
+                path=path,
+                AWS_SECRET_ACCESS_KEY=self.extra_env.get(&#34;AWS_SECRET_ACCESS_KEY&#34;),
+                AWS_ACCESS_KEY_ID=self.extra_env.get(&#34;AWS_ACCESS_KEY_ID&#34;),
+                THREEBOT_NAME=os.environ.get(&#34;THREEBOT_NAME&#34;),
+                ESCALATION_MAIL=os.environ.get(&#34;ESCALATION_MAIL&#34;),
+            )
+
+            with open(script_path, &#34;w&#34;) as rfd:
+                rfd.write(cron_script)
+
+            cron_cmd = cronjobs + f&#34;0 0 */2 * * bash {script_path} \n&#34;
+            proc = subprocess.Popen([&#34;crontab&#34;, &#34;-&#34;], stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc_res = proc.communicate(input=cron_cmd.encode())
+            if proc.returncode &gt; 0:
+                raise Runtime(f&#34;Couldn&#39;t start cron job, failed with {proc_res[1]}&#34;)</code></pre>
 </details>
 </section>
 <section>
@@ -341,7 +430,7 @@ class ResticRepo(Base):
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -360,6 +449,7 @@ print(p.name, p.age)
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class ResticRepo(Base):
+
     repo = fields.String(required=True)
     password = fields.Secret(required=True)
     extra_env = fields.Typed(dict, default={})
@@ -376,10 +466,9 @@ print(p.name, p.age)
 
     @property
     def env(self):
-        if not self._env:
-            self.validate()
-            self._env = os.environ.copy()
-            self._env.update({&#34;RESTIC_PASSWORD&#34;: self.password, &#34;RESTIC_REPOSITORY&#34;: self.repo}, **self.extra_env)
+        self.validate()
+        self._env = os.environ.copy()
+        self._env.update({&#34;RESTIC_PASSWORD&#34;: self.password, &#34;RESTIC_REPOSITORY&#34;: self.repo}, **self.extra_env)
         return self._env
 
     def _run_cmd(self, cmd, check=True):
@@ -395,28 +484,39 @@ print(p.name, p.age)
         if proc.returncode &gt; 0:
             self._run_cmd([&#34;restic&#34;, &#34;init&#34;])
 
-    def backup(self, path, tags=None):
-        &#34;&#34;&#34;Backup a path to the repo
+    def backup(self, path, tags=None, exclude=None):
+        &#34;&#34;&#34;Backup a path to the repo.
 
         Args:
-            path (str): local path to backup
-            tags (list): list of tags to set to the backup
+            path (str or list of str): Local path/s to backup.
+            tags (list): List of tags to set to the backup.
+            exclude (list of str): This instructs restic to exclude files matching a given pattern/s.
         &#34;&#34;&#34;
+        if not path:
+            raise ValueError(&#34;Please specify path/s to backup&#34;)
+        cmd = [&#34;restic&#34;, &#34;backup&#34;]
         tags = tags or []
-        cmd = [&#34;restic&#34;, &#34;backup&#34;, path]
         for tag in tags:
             cmd.extend([&#34;--tag&#34;, tag])
+        if exclude:
+            for pattern in exclude:
+                cmd.extend([f&#34;--exclude={pattern}&#34;])
+        if isinstance(path, list):
+            cmd.extend(path)
+        else:
+            cmd.extend([path])
         self._run_cmd(cmd)
 
-    def restore(self, target_path, snapshot_id=None, latest=True, path=None, host=None):
-        &#34;&#34;&#34;restores a snapshot
+    def restore(self, target_path, snapshot_id=None, latest=True, path=None, host=None, tags=None):
+        &#34;&#34;&#34;Restores a snapshot.
 
         Args:
-            target_path (str): path to restore to
-            snapshot_id (str, optional): id of the snapshot. Defaults to None.
+            target_path (str): a path to restore to
+            snapshot_id (str, optional): Id of the snapshot. Defaults to None.
             latest (bool, optional): if True will use latest snapshot. Defaults to True.
             path (str, optional): Filter on the path when using latest. Defaults to None.
             host (str, optional): Filter on the hostname when using latest. Defaults to None.
+            tags (list, optional): List of tags to filter on.
         &#34;&#34;&#34;
         cmd = [&#34;restic&#34;, &#34;--target&#34;, target_path, &#34;restore&#34;]
         if snapshot_id:
@@ -428,17 +528,20 @@ print(p.name, p.age)
                 args.extend([&#34;--path&#34;, path])
             if host:
                 args.extend([&#34;--host&#34;, host])
+            if tags:
+                for tag in tags:
+                    cmd.extend([&#34;--tag&#34;, tag])
             self._run_cmd(cmd + args)
         else:
             raise ValueError(&#34;Please specify either `snapshot_id` or `latest` flag&#34;)
 
     def list_snapshots(self, tags=None, last=False, path=None):
-        &#34;&#34;&#34;List all snapshots in the repo
+        &#34;&#34;&#34;List all snapshots in the repo.
 
         Args:
-            tags (list): list of tags to filter on
-            last (bool): if True will get last snapshot only while respecting the other filters
-            path (str): path to filter on
+            tags (list, optional): a list of tags to filter on. Defaults to None.
+            last (bool): If True will get last snapshot only while respecting the other filters. Defaults to False.
+            path (str): a path to filter on. Defaults to None.
 
         Returns
             list : all snapshots as dicts
@@ -455,16 +558,26 @@ print(p.name, p.age)
         proc = self._run_cmd(cmd)
         return json.loads(proc.stdout)
 
-    def forget(self, keep_last=10, prune=True):
-        &#34;&#34;&#34;Deletes data in the repo
+    def forget(self, keep_last=10, prune=True, snapshots=None, tags=None):
+        &#34;&#34;&#34;Remove snapshots and Optionally remove the data that was referenced by those snapshots.
+        During a prune operation, the repository is locked and backups cannot be completed.
 
         Args:
             keep_last (str, optional): How many items to keep. Defaults to 10.
-            prune (bool, optional): Whether to prune the data or not. Defaults to True.
+            prune (bool, optional): Whether to actually remove the data or not. Defaults to True.
+            snapshots (list, optional): a list of specifics snapshot ids to forget. if given, the value of keep_last parm will be ignored. Defaults to None.
+            tags (list, optional): if given, Only the snapshots which have specified tags are considered. Defaults to None.
         &#34;&#34;&#34;
-        cmd = [&#34;restic&#34;, &#34;forget&#34;, &#34;--keep-last&#34;, str(keep_last)]
+        cmd = [&#34;restic&#34;, &#34;forget&#34;]
+        if tags:
+            for tag in tags:
+                cmd.extend([&#34;--tag&#34;, tag])
+        if keep_last and not snapshots:  # will be ignored in case if passing snapshot id/s. this is a restic behaviour.
+            cmd.extend([&#34;--keep-last&#34;, str(keep_last)])
         if prune:
             cmd.append(&#34;--prune&#34;)
+        if snapshots:
+            cmd.extend(snapshots)
         self._run_cmd(cmd)
 
     def _get_script_path(self, path):
@@ -475,11 +588,11 @@ print(p.name, p.age)
         return proc.stdout.decode()
 
     def auto_backup(self, path, keep_last=20):
-        &#34;&#34;&#34;Runs a cron job that backups the repo and prunes the last specified backups
+        &#34;&#34;&#34;Runs a cron job that backups the repo and prunes the last specified backups.
 
         Args:
-            path (str): local path to backup
-            keep_last (int, optional): How many items to keep in every forgot opertaion. Defaults to 20.
+            path (str): Local path to backup.
+            keep_last (int, optional): How many items to keep in every forgot operation. Defaults to 20.
         &#34;&#34;&#34;
         self._check_install(&#34;crontab&#34;)
         script_path = self._get_script_path(path)
@@ -499,20 +612,20 @@ print(p.name, p.age)
         &#34;&#34;&#34;Checks if auto backup for the specified path is running or not
 
         Args:
-            path (str): local path to backup in the cron job
+            path (str): Local path to backup in the cron job.
 
         Returns:
-            bool: Whether it is running or not
+            bool: Whether it is running or not.
         &#34;&#34;&#34;
         script_path = self._get_script_path(path)
         cronjobs = self._get_crons_jobs()
         return cronjobs.find(script_path) &gt;= 0
 
     def disable_auto_backup(self, path):
-        &#34;&#34;&#34;Removes cron jon based on the path being backed
+        &#34;&#34;&#34;Removes cron jon based on the path being backed.
 
         Args:
-            path (str): local path to backup in the cron job
+            path (str): Local path to backup in the cron job.
         &#34;&#34;&#34;
         script_path = self._get_script_path(path)
         cronjobs = self._get_crons_jobs()
@@ -524,7 +637,49 @@ print(p.name, p.age)
         cron_cmd = &#34;\n&#34;.join(other_crons) + &#34;\n&#34;
         proc_res = proc.communicate(input=cron_cmd.encode())
         if proc.returncode &gt; 0:
-            raise Runtime(f&#34;Couldn&#39;t remove cron job, failed with {proc_res[1]}&#34;)</code></pre>
+            raise Runtime(f&#34;Couldn&#39;t remove cron job, failed with {proc_res[1]}&#34;)
+
+    def backup_watchdog_running(self, script_path) -&gt; bool:
+        &#34;&#34;&#34;Watches a cronjob to watch backups using last snapshot time.
+
+        Args:
+            script_path (str): a path to the script to run the cronjob.
+        Returns:
+            bool: True if the backup watchdog running otherwise False
+        &#34;&#34;&#34;
+        script_path = self._get_script_path(script_path)
+        cronjobs = self._get_crons_jobs()
+        return cronjobs.find(script_path) &gt;= 0
+
+    def start_watch_backup(self, path):
+        &#34;&#34;&#34;Runs a cron job that backups the repo and prunes the last specified backups.
+
+        Args:
+            path (str): Local path to backup.
+            keep_last (int, optional): How many items to keep in every forgot operation. Defaults to 20.
+        &#34;&#34;&#34;
+        self._check_install(&#34;crontab&#34;)
+        script_path = self._get_script_path(path)
+        cronjobs = self._get_crons_jobs()
+        if not self.backup_watchdog_running(path):  # Check if cron job already running
+            cron_script = WATCHDOG_SCRIPT.format(
+                repo=self.repo,
+                password=self.password,
+                path=path,
+                AWS_SECRET_ACCESS_KEY=self.extra_env.get(&#34;AWS_SECRET_ACCESS_KEY&#34;),
+                AWS_ACCESS_KEY_ID=self.extra_env.get(&#34;AWS_ACCESS_KEY_ID&#34;),
+                THREEBOT_NAME=os.environ.get(&#34;THREEBOT_NAME&#34;),
+                ESCALATION_MAIL=os.environ.get(&#34;ESCALATION_MAIL&#34;),
+            )
+
+            with open(script_path, &#34;w&#34;) as rfd:
+                rfd.write(cron_script)
+
+            cron_cmd = cronjobs + f&#34;0 0 */2 * * bash {script_path} \n&#34;
+            proc = subprocess.Popen([&#34;crontab&#34;, &#34;-&#34;], stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc_res = proc.communicate(input=cron_cmd.encode())
+            if proc.returncode &gt; 0:
+                raise Runtime(f&#34;Couldn&#39;t start cron job, failed with {proc_res[1]}&#34;)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -540,10 +695,9 @@ print(p.name, p.age)
 <summary>Source code</summary>
 <pre><code class="python">@property
 def env(self):
-    if not self._env:
-        self.validate()
-        self._env = os.environ.copy()
-        self._env.update({&#34;RESTIC_PASSWORD&#34;: self.password, &#34;RESTIC_REPOSITORY&#34;: self.repo}, **self.extra_env)
+    self.validate()
+    self._env = os.environ.copy()
+    self._env.update({&#34;RESTIC_PASSWORD&#34;: self.password, &#34;RESTIC_REPOSITORY&#34;: self.repo}, **self.extra_env)
     return self._env</code></pre>
 </details>
 </dd>
@@ -629,22 +783,22 @@ and will get the default value if not</p>
 <span>def <span class="ident">auto_backup</span></span>(<span>self, path, keep_last=20)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Runs a cron job that backups the repo and prunes the last specified backups</p>
+<section class="desc"><p>Runs a cron job that backups the repo and prunes the last specified backups.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
-<dd>local path to backup</dd>
+<dd>Local path to backup.</dd>
 <dt><strong><code>keep_last</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>How many items to keep in every forgot opertaion. Defaults to 20.</dd>
+<dd>How many items to keep in every forgot operation. Defaults to 20.</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def auto_backup(self, path, keep_last=20):
-    &#34;&#34;&#34;Runs a cron job that backups the repo and prunes the last specified backups
+    &#34;&#34;&#34;Runs a cron job that backups the repo and prunes the last specified backups.
 
     Args:
-        path (str): local path to backup
-        keep_last (int, optional): How many items to keep in every forgot opertaion. Defaults to 20.
+        path (str): Local path to backup.
+        keep_last (int, optional): How many items to keep in every forgot operation. Defaults to 20.
     &#34;&#34;&#34;
     self._check_install(&#34;crontab&#34;)
     script_path = self._get_script_path(path)
@@ -669,12 +823,12 @@ and will get the default value if not</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
-<dd>local path to backup in the cron job</dd>
+<dd>Local path to backup in the cron job.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><strong><code>bool</code></strong></dt>
-<dd>Whether it is running or not</dd>
+<dd>Whether it is running or not.</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
@@ -682,10 +836,10 @@ and will get the default value if not</p>
     &#34;&#34;&#34;Checks if auto backup for the specified path is running or not
 
     Args:
-        path (str): local path to backup in the cron job
+        path (str): Local path to backup in the cron job.
 
     Returns:
-        bool: Whether it is running or not
+        bool: Whether it is running or not.
     &#34;&#34;&#34;
     script_path = self._get_script_path(path)
     cronjobs = self._get_crons_jobs()
@@ -693,50 +847,92 @@ and will get the default value if not</p>
 </details>
 </dd>
 <dt id="jumpscale.tools.restic.restic.ResticRepo.backup"><code class="name flex">
-<span>def <span class="ident">backup</span></span>(<span>self, path, tags=None)</span>
+<span>def <span class="ident">backup</span></span>(<span>self, path, tags=None, exclude=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Backup a path to the repo</p>
+<section class="desc"><p>Backup a path to the repo.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
-<dd>local path to backup</dd>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code> or <code>list</code> of <code>str</code></dt>
+<dd>Local path/s to backup.</dd>
 <dt><strong><code>tags</code></strong> :&ensp;<code>list</code></dt>
-<dd>list of tags to set to the backup</dd>
+<dd>List of tags to set to the backup.</dd>
+<dt><strong><code>exclude</code></strong> :&ensp;<code>list</code> of <code>str</code></dt>
+<dd>This instructs restic to exclude files matching a given pattern/s.</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def backup(self, path, tags=None):
-    &#34;&#34;&#34;Backup a path to the repo
+<pre><code class="python">def backup(self, path, tags=None, exclude=None):
+    &#34;&#34;&#34;Backup a path to the repo.
 
     Args:
-        path (str): local path to backup
-        tags (list): list of tags to set to the backup
+        path (str or list of str): Local path/s to backup.
+        tags (list): List of tags to set to the backup.
+        exclude (list of str): This instructs restic to exclude files matching a given pattern/s.
     &#34;&#34;&#34;
+    if not path:
+        raise ValueError(&#34;Please specify path/s to backup&#34;)
+    cmd = [&#34;restic&#34;, &#34;backup&#34;]
     tags = tags or []
-    cmd = [&#34;restic&#34;, &#34;backup&#34;, path]
     for tag in tags:
         cmd.extend([&#34;--tag&#34;, tag])
+    if exclude:
+        for pattern in exclude:
+            cmd.extend([f&#34;--exclude={pattern}&#34;])
+    if isinstance(path, list):
+        cmd.extend(path)
+    else:
+        cmd.extend([path])
     self._run_cmd(cmd)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.restic.restic.ResticRepo.backup_watchdog_running"><code class="name flex">
+<span>def <span class="ident">backup_watchdog_running</span></span>(<span>self, script_path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Watches a cronjob to watch backups using last snapshot time.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>script_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>a path to the script to run the cronjob.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>bool</code></strong></dt>
+<dd>True if the backup watchdog running otherwise False</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def backup_watchdog_running(self, script_path) -&gt; bool:
+    &#34;&#34;&#34;Watches a cronjob to watch backups using last snapshot time.
+
+    Args:
+        script_path (str): a path to the script to run the cronjob.
+    Returns:
+        bool: True if the backup watchdog running otherwise False
+    &#34;&#34;&#34;
+    script_path = self._get_script_path(script_path)
+    cronjobs = self._get_crons_jobs()
+    return cronjobs.find(script_path) &gt;= 0</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.tools.restic.restic.ResticRepo.disable_auto_backup"><code class="name flex">
 <span>def <span class="ident">disable_auto_backup</span></span>(<span>self, path)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Removes cron jon based on the path being backed</p>
+<section class="desc"><p>Removes cron jon based on the path being backed.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
-<dd>local path to backup in the cron job</dd>
+<dd>Local path to backup in the cron job.</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def disable_auto_backup(self, path):
-    &#34;&#34;&#34;Removes cron jon based on the path being backed
+    &#34;&#34;&#34;Removes cron jon based on the path being backed.
 
     Args:
-        path (str): local path to backup in the cron job
+        path (str): Local path to backup in the cron job.
     &#34;&#34;&#34;
     script_path = self._get_script_path(path)
     cronjobs = self._get_crons_jobs()
@@ -752,29 +948,44 @@ and will get the default value if not</p>
 </details>
 </dd>
 <dt id="jumpscale.tools.restic.restic.ResticRepo.forget"><code class="name flex">
-<span>def <span class="ident">forget</span></span>(<span>self, keep_last=10, prune=True)</span>
+<span>def <span class="ident">forget</span></span>(<span>self, keep_last=10, prune=True, snapshots=None, tags=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Deletes data in the repo</p>
+<section class="desc"><p>Remove snapshots and Optionally remove the data that was referenced by those snapshots.
+During a prune operation, the repository is locked and backups cannot be completed.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>keep_last</code></strong> :&ensp;<code>str</code>, optional</dt>
 <dd>How many items to keep. Defaults to 10.</dd>
 <dt><strong><code>prune</code></strong> :&ensp;<code>bool</code>, optional</dt>
-<dd>Whether to prune the data or not. Defaults to True.</dd>
+<dd>Whether to actually remove the data or not. Defaults to True.</dd>
+<dt><strong><code>snapshots</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>a list of specifics snapshot ids to forget. if given, the value of keep_last parm will be ignored. Defaults to None.</dd>
+<dt><strong><code>tags</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>if given, Only the snapshots which have specified tags are considered. Defaults to None.</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def forget(self, keep_last=10, prune=True):
-    &#34;&#34;&#34;Deletes data in the repo
+<pre><code class="python">def forget(self, keep_last=10, prune=True, snapshots=None, tags=None):
+    &#34;&#34;&#34;Remove snapshots and Optionally remove the data that was referenced by those snapshots.
+    During a prune operation, the repository is locked and backups cannot be completed.
 
     Args:
         keep_last (str, optional): How many items to keep. Defaults to 10.
-        prune (bool, optional): Whether to prune the data or not. Defaults to True.
+        prune (bool, optional): Whether to actually remove the data or not. Defaults to True.
+        snapshots (list, optional): a list of specifics snapshot ids to forget. if given, the value of keep_last parm will be ignored. Defaults to None.
+        tags (list, optional): if given, Only the snapshots which have specified tags are considered. Defaults to None.
     &#34;&#34;&#34;
-    cmd = [&#34;restic&#34;, &#34;forget&#34;, &#34;--keep-last&#34;, str(keep_last)]
+    cmd = [&#34;restic&#34;, &#34;forget&#34;]
+    if tags:
+        for tag in tags:
+            cmd.extend([&#34;--tag&#34;, tag])
+    if keep_last and not snapshots:  # will be ignored in case if passing snapshot id/s. this is a restic behaviour.
+        cmd.extend([&#34;--keep-last&#34;, str(keep_last)])
     if prune:
         cmd.append(&#34;--prune&#34;)
+    if snapshots:
+        cmd.extend(snapshots)
     self._run_cmd(cmd)</code></pre>
 </details>
 </dd>
@@ -797,27 +1008,27 @@ and will get the default value if not</p>
 <span>def <span class="ident">list_snapshots</span></span>(<span>self, tags=None, last=False, path=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>List all snapshots in the repo</p>
+<section class="desc"><p>List all snapshots in the repo.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>tags</code></strong> :&ensp;<code>list</code></dt>
-<dd>list of tags to filter on</dd>
+<dt><strong><code>tags</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>a list of tags to filter on. Defaults to None.</dd>
 <dt><strong><code>last</code></strong> :&ensp;<code>bool</code></dt>
-<dd>if True will get last snapshot only while respecting the other filters</dd>
+<dd>If True will get last snapshot only while respecting the other filters. Defaults to False.</dd>
 <dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
-<dd>path to filter on</dd>
+<dd>a path to filter on. Defaults to None.</dd>
 <dt><strong><code>Returns</code></strong></dt>
 <dd>list : all snapshots as dicts</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def list_snapshots(self, tags=None, last=False, path=None):
-    &#34;&#34;&#34;List all snapshots in the repo
+    &#34;&#34;&#34;List all snapshots in the repo.
 
     Args:
-        tags (list): list of tags to filter on
-        last (bool): if True will get last snapshot only while respecting the other filters
-        path (str): path to filter on
+        tags (list, optional): a list of tags to filter on. Defaults to None.
+        last (bool): If True will get last snapshot only while respecting the other filters. Defaults to False.
+        path (str): a path to filter on. Defaults to None.
 
     Returns
         list : all snapshots as dicts
@@ -836,34 +1047,37 @@ and will get the default value if not</p>
 </details>
 </dd>
 <dt id="jumpscale.tools.restic.restic.ResticRepo.restore"><code class="name flex">
-<span>def <span class="ident">restore</span></span>(<span>self, target_path, snapshot_id=None, latest=True, path=None, host=None)</span>
+<span>def <span class="ident">restore</span></span>(<span>self, target_path, snapshot_id=None, latest=True, path=None, host=None, tags=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>restores a snapshot</p>
+<section class="desc"><p>Restores a snapshot.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>target_path</code></strong> :&ensp;<code>str</code></dt>
-<dd>path to restore to</dd>
+<dd>a path to restore to</dd>
 <dt><strong><code>snapshot_id</code></strong> :&ensp;<code>str</code>, optional</dt>
-<dd>id of the snapshot. Defaults to None.</dd>
+<dd>Id of the snapshot. Defaults to None.</dd>
 <dt><strong><code>latest</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>if True will use latest snapshot. Defaults to True.</dd>
 <dt><strong><code>path</code></strong> :&ensp;<code>str</code>, optional</dt>
 <dd>Filter on the path when using latest. Defaults to None.</dd>
 <dt><strong><code>host</code></strong> :&ensp;<code>str</code>, optional</dt>
 <dd>Filter on the hostname when using latest. Defaults to None.</dd>
+<dt><strong><code>tags</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>List of tags to filter on.</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def restore(self, target_path, snapshot_id=None, latest=True, path=None, host=None):
-    &#34;&#34;&#34;restores a snapshot
+<pre><code class="python">def restore(self, target_path, snapshot_id=None, latest=True, path=None, host=None, tags=None):
+    &#34;&#34;&#34;Restores a snapshot.
 
     Args:
-        target_path (str): path to restore to
-        snapshot_id (str, optional): id of the snapshot. Defaults to None.
+        target_path (str): a path to restore to
+        snapshot_id (str, optional): Id of the snapshot. Defaults to None.
         latest (bool, optional): if True will use latest snapshot. Defaults to True.
         path (str, optional): Filter on the path when using latest. Defaults to None.
         host (str, optional): Filter on the hostname when using latest. Defaults to None.
+        tags (list, optional): List of tags to filter on.
     &#34;&#34;&#34;
     cmd = [&#34;restic&#34;, &#34;--target&#34;, target_path, &#34;restore&#34;]
     if snapshot_id:
@@ -875,9 +1089,57 @@ and will get the default value if not</p>
             args.extend([&#34;--path&#34;, path])
         if host:
             args.extend([&#34;--host&#34;, host])
+        if tags:
+            for tag in tags:
+                cmd.extend([&#34;--tag&#34;, tag])
         self._run_cmd(cmd + args)
     else:
         raise ValueError(&#34;Please specify either `snapshot_id` or `latest` flag&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.tools.restic.restic.ResticRepo.start_watch_backup"><code class="name flex">
+<span>def <span class="ident">start_watch_backup</span></span>(<span>self, path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Runs a cron job that backups the repo and prunes the last specified backups.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>Local path to backup.</dd>
+<dt><strong><code>keep_last</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>How many items to keep in every forgot operation. Defaults to 20.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def start_watch_backup(self, path):
+    &#34;&#34;&#34;Runs a cron job that backups the repo and prunes the last specified backups.
+
+    Args:
+        path (str): Local path to backup.
+        keep_last (int, optional): How many items to keep in every forgot operation. Defaults to 20.
+    &#34;&#34;&#34;
+    self._check_install(&#34;crontab&#34;)
+    script_path = self._get_script_path(path)
+    cronjobs = self._get_crons_jobs()
+    if not self.backup_watchdog_running(path):  # Check if cron job already running
+        cron_script = WATCHDOG_SCRIPT.format(
+            repo=self.repo,
+            password=self.password,
+            path=path,
+            AWS_SECRET_ACCESS_KEY=self.extra_env.get(&#34;AWS_SECRET_ACCESS_KEY&#34;),
+            AWS_ACCESS_KEY_ID=self.extra_env.get(&#34;AWS_ACCESS_KEY_ID&#34;),
+            THREEBOT_NAME=os.environ.get(&#34;THREEBOT_NAME&#34;),
+            ESCALATION_MAIL=os.environ.get(&#34;ESCALATION_MAIL&#34;),
+        )
+
+        with open(script_path, &#34;w&#34;) as rfd:
+            rfd.write(cron_script)
+
+        cron_cmd = cronjobs + f&#34;0 0 */2 * * bash {script_path} \n&#34;
+        proc = subprocess.Popen([&#34;crontab&#34;, &#34;-&#34;], stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc_res = proc.communicate(input=cron_cmd.encode())
+        if proc.returncode &gt; 0:
+            raise Runtime(f&#34;Couldn&#39;t start cron job, failed with {proc_res[1]}&#34;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -924,10 +1186,11 @@ and will get the default value if not</p>
 <ul>
 <li>
 <h4><code><a title="jumpscale.tools.restic.restic.ResticRepo" href="#jumpscale.tools.restic.restic.ResticRepo">ResticRepo</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="jumpscale.tools.restic.restic.ResticRepo.auto_backup" href="#jumpscale.tools.restic.restic.ResticRepo.auto_backup">auto_backup</a></code></li>
 <li><code><a title="jumpscale.tools.restic.restic.ResticRepo.auto_backup_running" href="#jumpscale.tools.restic.restic.ResticRepo.auto_backup_running">auto_backup_running</a></code></li>
 <li><code><a title="jumpscale.tools.restic.restic.ResticRepo.backup" href="#jumpscale.tools.restic.restic.ResticRepo.backup">backup</a></code></li>
+<li><code><a title="jumpscale.tools.restic.restic.ResticRepo.backup_watchdog_running" href="#jumpscale.tools.restic.restic.ResticRepo.backup_watchdog_running">backup_watchdog_running</a></code></li>
 <li><code><a title="jumpscale.tools.restic.restic.ResticRepo.disable_auto_backup" href="#jumpscale.tools.restic.restic.ResticRepo.disable_auto_backup">disable_auto_backup</a></code></li>
 <li><code><a title="jumpscale.tools.restic.restic.ResticRepo.env" href="#jumpscale.tools.restic.restic.ResticRepo.env">env</a></code></li>
 <li><code><a title="jumpscale.tools.restic.restic.ResticRepo.extra_env" href="#jumpscale.tools.restic.restic.ResticRepo.extra_env">extra_env</a></code></li>
@@ -937,6 +1200,7 @@ and will get the default value if not</p>
 <li><code><a title="jumpscale.tools.restic.restic.ResticRepo.password" href="#jumpscale.tools.restic.restic.ResticRepo.password">password</a></code></li>
 <li><code><a title="jumpscale.tools.restic.restic.ResticRepo.repo" href="#jumpscale.tools.restic.restic.ResticRepo.repo">repo</a></code></li>
 <li><code><a title="jumpscale.tools.restic.restic.ResticRepo.restore" href="#jumpscale.tools.restic.restic.ResticRepo.restore">restore</a></code></li>
+<li><code><a title="jumpscale.tools.restic.restic.ResticRepo.start_watch_backup" href="#jumpscale.tools.restic.restic.ResticRepo.start_watch_backup">start_watch_backup</a></code></li>
 </ul>
 </li>
 </ul>

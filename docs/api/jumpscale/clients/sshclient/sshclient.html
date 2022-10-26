@@ -22,7 +22,7 @@
 <section id="section-intro">
 <p>SSHClient modules helps connecting and executing commands to a remote machine.</p>
 <h2 id="create-ssh-key">Create SSH Key</h2>
-<pre><code class="python">JS-NG&gt; xmonader = j.clients.sshkey.new(&quot;xmonader&quot;)
+<pre><code class="language-python">JS-NG&gt; xmonader = j.clients.sshkey.new(&quot;xmonader&quot;)
 JS-NG&gt; xmonader.private_key_path = &quot;/home/xmonader/.ssh/id_rsa&quot;
 JS-NG&gt;
 
@@ -167,7 +167,7 @@ forward agent or not (default True)
 connect_timeout (int): timeout (default 10 seconds)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 

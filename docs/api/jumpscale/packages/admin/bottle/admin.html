@@ -22,15 +22,15 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from beaker.middleware import SessionMiddleware
-from bottle import Bottle, request, HTTPResponse
+<pre><code class="python">from bottle import Bottle, request, HTTPResponse, static_file
 
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, login_required, get_user_info
+from jumpscale.packages.auth.bottle.auth import login_required, get_user_info
 from jumpscale.packages.admin.bottle.models import UserEntry
 from jumpscale.core.base import StoredFactory
 
 app = Bottle()
+
 
 @app.route(&#34;/api/allowed&#34;, method=&#34;GET&#34;)
 @login_required
@@ -68,7 +68,41 @@ def accept():
         )
 
 
-app = SessionMiddleware(app, SESSION_OPTS)</code></pre>
+@app.route(&#34;/api/announced&#34;, method=&#34;GET&#34;)
+@login_required
+def announced():
+    result = bool(j.config.get(&#34;ANNOUNCED&#34;))
+
+    return HTTPResponse(
+        j.data.serializers.json.dumps({&#34;announced&#34;: result}), status=200, headers={&#34;Content-Type&#34;: &#34;application/json&#34;}
+    )
+
+
+@app.route(&#34;/api/announce&#34;, method=&#34;GET&#34;)
+@login_required
+def announce():
+    j.config.set(&#34;ANNOUNCED&#34;, True)
+    return HTTPResponse(
+        j.data.serializers.json.dumps({&#34;announced&#34;: True}), status=200, headers={&#34;Content-Type&#34;: &#34;application/json&#34;}
+    )
+
+
+@app.route(&#34;/api/heartbeat&#34;, method=&#34;GET&#34;)
+def heartbeat():
+    return HTTPResponse(status=200)
+
+
+@app.route(&#34;/api/export&#34;)
+@login_required
+def export():
+    filename = j.tools.export.export_threebot_state()
+    exporttime = j.data.time.now().format(&#34;YYYY-MM-DDTHH-mm-ssZZ&#34;)
+    return static_file(
+        j.sals.fs.basename(filename),
+        root=j.sals.fs.dirname(filename),
+        download=f&#34;export-{exporttime}.tar.gz&#34;,
+        mimetype=&#34;application/gzip&#34;,
+    )</code></pre>
 </details>
 </section>
 <section>
@@ -128,6 +162,71 @@ def allowed():
     return j.data.serializers.json.dumps({&#34;allowed&#34;: False})</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.packages.admin.bottle.admin.announce"><code class="name flex">
+<span>def <span class="ident">announce</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@app.route(&#34;/api/announce&#34;, method=&#34;GET&#34;)
+@login_required
+def announce():
+    j.config.set(&#34;ANNOUNCED&#34;, True)
+    return HTTPResponse(
+        j.data.serializers.json.dumps({&#34;announced&#34;: True}), status=200, headers={&#34;Content-Type&#34;: &#34;application/json&#34;}
+    )</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.admin.bottle.admin.announced"><code class="name flex">
+<span>def <span class="ident">announced</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@app.route(&#34;/api/announced&#34;, method=&#34;GET&#34;)
+@login_required
+def announced():
+    result = bool(j.config.get(&#34;ANNOUNCED&#34;))
+
+    return HTTPResponse(
+        j.data.serializers.json.dumps({&#34;announced&#34;: result}), status=200, headers={&#34;Content-Type&#34;: &#34;application/json&#34;}
+    )</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.admin.bottle.admin.export"><code class="name flex">
+<span>def <span class="ident">export</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@app.route(&#34;/api/export&#34;)
+@login_required
+def export():
+    filename = j.tools.export.export_threebot_state()
+    exporttime = j.data.time.now().format(&#34;YYYY-MM-DDTHH-mm-ssZZ&#34;)
+    return static_file(
+        j.sals.fs.basename(filename),
+        root=j.sals.fs.dirname(filename),
+        download=f&#34;export-{exporttime}.tar.gz&#34;,
+        mimetype=&#34;application/gzip&#34;,
+    )</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.admin.bottle.admin.heartbeat"><code class="name flex">
+<span>def <span class="ident">heartbeat</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@app.route(&#34;/api/heartbeat&#34;, method=&#34;GET&#34;)
+def heartbeat():
+    return HTTPResponse(status=200)</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -145,9 +244,13 @@ def allowed():
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="jumpscale.packages.admin.bottle.admin.accept" href="#jumpscale.packages.admin.bottle.admin.accept">accept</a></code></li>
 <li><code><a title="jumpscale.packages.admin.bottle.admin.allowed" href="#jumpscale.packages.admin.bottle.admin.allowed">allowed</a></code></li>
+<li><code><a title="jumpscale.packages.admin.bottle.admin.announce" href="#jumpscale.packages.admin.bottle.admin.announce">announce</a></code></li>
+<li><code><a title="jumpscale.packages.admin.bottle.admin.announced" href="#jumpscale.packages.admin.bottle.admin.announced">announced</a></code></li>
+<li><code><a title="jumpscale.packages.admin.bottle.admin.export" href="#jumpscale.packages.admin.bottle.admin.export">export</a></code></li>
+<li><code><a title="jumpscale.packages.admin.bottle.admin.heartbeat" href="#jumpscale.packages.admin.bottle.admin.heartbeat">heartbeat</a></code></li>
 </ul>
 </li>
 </ul>

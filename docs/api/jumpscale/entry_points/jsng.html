@@ -31,13 +31,15 @@ import pathlib
 import sys
 
 from jumpscale.loader import j  # noqa:
-from jumpscale.core.config.config import get_config
+from jumpscale.core.config import get_config, get_current_version
+
 
 BASE_CONFIG_DIR = os.path.join(os.environ.get(&#34;HOME&#34;, &#34;/root&#34;), &#34;.jsng&#34;)
 HISTORY_FILENAME = os.path.join(BASE_CONFIG_DIR, &#34;history.txt&#34;)
 
 
 @click.command()
+@click.version_option(get_current_version())
 @click.argument(&#34;command&#34;, required=False)
 def run(command):
     &#34;&#34;&#34;Executes the passed command and initiates a jsng shell if no command is passed.&#34;&#34;&#34;
@@ -47,13 +49,15 @@ def run(command):
         config = get_config()
         if config[&#34;shell&#34;] == &#34;ipython&#34;:
             from IPython import embed
+
             sys.exit(embed(colors=&#34;neutral&#34;))
         else:
             from jumpscale.shell import ptconfig
             from ptpython.repl import embed
+
             sys.exit(embed(globals(), locals(), configure=ptconfig, history_filename=HISTORY_FILENAME))
     else:
-        sys.exit(print(eval(command)))</code></pre>
+        sys.exit(print(exec(command)))</code></pre>
 </details>
 </section>
 <section>

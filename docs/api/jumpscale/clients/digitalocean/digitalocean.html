@@ -29,51 +29,51 @@ ssh.private_key_path = "/home/rafy/.ssh/id_rsa"
 ssh.load_from_file_system()
 '''</p>
 <h2 id="create-digital-ocean-client-and-set-your-token-and-load-your-sshkey">Create Digital Ocean client and set your token and load your sshkey</h2>
-<pre><code class="python">dg = j.clients.digitalocean.get(&quot;testDG&quot;)
+<pre><code class="language-python">dg = j.clients.digitalocean.get(&quot;testDG&quot;)
 dg.token = &quot;&quot;
 </code></pre>
 <h2 id="set-sshclient-you-have-created">Set sshclient you have created</h2>
-<pre><code class="python">dg.set_default_sshkey(ssh)
+<pre><code class="language-python">dg.set_default_sshkey(ssh)
 </code></pre>
 <h2 id="use-digital-ocean-client">Use Digital Ocean client</h2>
 <h3 id="create-and-deploy-project-to-digital-ocean">Create and deploy Project to Digital Ocean</h3>
 <h4 id="create-project-name-must-not-contian-spaces-or-start-with-number">Create Project (name must not contian spaces or start with number)</h4>
-<pre><code class="python"> project = dg.projects.new(&quot;test_DG_client&quot;)
+<pre><code class="language-python"> project = dg.projects.new(&quot;test_DG_client&quot;)
 </code></pre>
 <h4 id="set-the-name-you-want-to-deploy-with-on-digital-ocean">Set the name you want to deploy with on Digital Ocean</h4>
-<pre><code class="python">project.set_digital_ocean_name(&quot;test project DO client&quot;)
+<pre><code class="language-python">project.set_digital_ocean_name(&quot;test project DO client&quot;)
 </code></pre>
 <h4 id="deploy-the-project-you-have-to-specific-the-purpose">Deploy the project (you have to specific the purpose)</h4>
-<pre><code class="python">project.deploy(purpose=&quot;testing digital ocean client&quot;)
+<pre><code class="language-python">project.deploy(purpose=&quot;testing digital ocean client&quot;)
 </code></pre>
 <h4 id="deploy-the-project-as-default-one-so-the-new-droplets-will-be-automatically-added-to-your-default-project">Deploy the project as default one so the new droplets will be automatically added to your default project</h4>
-<pre><code class="python">project.deploy(purpose=&quot;testing digital ocean client&quot;,is_default=True) 
+<pre><code class="language-python">project.deploy(purpose=&quot;testing digital ocean client&quot;,is_default=True)
 </code></pre>
 <h4 id="delete-the-project-from-digital-ocean">Delete the project from Digital Ocean</h4>
-<pre><code class="python">project.delete_remote()
+<pre><code class="language-python">project.delete_remote()
 </code></pre>
 <h3 id="create-and-deploy-droplet-to-digital-ocean">Create and deploy Droplet to Digital Ocean</h3>
 <h4 id="create-droplet-name-must-not-contian-spaces-or-start-with-number">Create Droplet (name must not contian spaces or start with number)</h4>
-<pre><code class="python">droplet = dg.droplets.new(&quot;test_droplet_dg&quot;)
+<pre><code class="language-python">droplet = dg.droplets.new(&quot;test_droplet_dg&quot;)
 </code></pre>
 <h4 id="set-the-name-you-want-to-deploy-with-on-digital-ocean_1">Set the name you want to deploy with on Digital Ocean</h4>
-<pre><code class="python">droplet.set_digital_ocean_name(&quot;droplet-test-DO&quot;)
+<pre><code class="language-python">droplet.set_digital_ocean_name(&quot;droplet-test-DO&quot;)
 </code></pre>
 <h4 id="deploy-the-droplet">Deploy the Droplet</h4>
 <p>The droplet will be deployed to you your default project</p>
-<pre><code class="python">droplet.deploy()
+<pre><code class="language-python">droplet.deploy()
 </code></pre>
 <p>You can specify the project that you want the deploy the droplet to </p>
-<pre><code class="python">droplet.deploy(project_name=&quot;test project DO client&quot;)
+<pre><code class="language-python">droplet.deploy(project_name=&quot;test project DO client&quot;)
 </code></pre>
 <h4 id="delete-the-droplet-from-digital-ocean">Delete the Droplet from Digital Ocean</h4>
-<pre><code class="python">droplet.delete_remote()
+<pre><code class="language-python">droplet.delete_remote()
 </code></pre>
 <h3 id="get-digital-ocean-regions">Get digital ocean regions</h3>
-<pre><code class="python">dg.regions
+<pre><code class="language-python">dg.regions
 </code></pre>
 <h3 id="get-digital-ocean-images">Get digital ocean images</h3>
-<pre><code class="python">dg.images
+<pre><code class="language-python">dg.images
 </code></pre>
 <p>In the below examples, I have supposed that you followed the above steps
 and you got digital ocean client with the name (dg)</p>
@@ -114,7 +114,7 @@ project.deploy(purpose=&#34;testing digital ocean client&#34;)
 ```
 #### Deploy the project as default one so the new droplets will be automatically added to your default project
 ``` python
-project.deploy(purpose=&#34;testing digital ocean client&#34;,is_default=True) 
+project.deploy(purpose=&#34;testing digital ocean client&#34;,is_default=True)
 ```
 #### Delete the project from Digital Ocean
 ``` python
@@ -136,7 +136,7 @@ The droplet will be deployed to you your default project
 ```python
 droplet.deploy()
 ```
-You can specify the project that you want the deploy the droplet to 
+You can specify the project that you want the deploy the droplet to
 ```python
 droplet.deploy(project_name=&#34;test project DO client&#34;)
 ```
@@ -769,7 +769,7 @@ class DigitalOcean(Client):
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -1554,7 +1554,7 @@ default_sshkey (SSHKeyClient) : sshkey client you have created</p></section>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -2258,7 +2258,7 @@ dg.droplets.shutdown_all()</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 

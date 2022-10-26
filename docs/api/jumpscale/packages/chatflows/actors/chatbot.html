@@ -39,17 +39,16 @@ class ChatFlows(BaseActor):
 
     @actor_method
     def new(self, package: str, chat: str, client_ip: str, query_params: dict = None) -&gt; dict:
-        package = self.chats.get(package)
-        if not package:
+        package_object = self.chats.get(package)
+        if not package_object:
             raise j.exceptions.Value(f&#34;Package {package} not found&#34;)
 
-        chatflow = package.get(chat)
+        chatflow = package_object.get(chat)
         if not chatflow:
             raise j.exceptions.Value(f&#34;Chat {chat} not found&#34;)
 
         if query_params is None:
             query_params = {}
-
         obj = chatflow(**query_params)
         self.sessions[obj.session_id] = obj
         return {&#34;sessionId&#34;: obj.session_id, &#34;title&#34;: obj.title}
@@ -99,7 +98,7 @@ class ChatFlows(BaseActor):
         for syspath in paths:
             absolute_sys_path = os.path.abspath(syspath)
             if absolute_path.startswith(absolute_sys_path):
-                parts = absolute_path[len(absolute_sys_path) + 1: -3].split(os.path.sep)
+                parts = absolute_path[len(absolute_sys_path) + 1 : -3].split(os.path.sep)
                 if &#34;__init__&#34; in parts:
                     parts.remove(&#34;__init__&#34;)
                 module_name = &#34;.&#34;.join(parts)
@@ -155,17 +154,16 @@ Actor = ChatFlows</code></pre>
 
     @actor_method
     def new(self, package: str, chat: str, client_ip: str, query_params: dict = None) -&gt; dict:
-        package = self.chats.get(package)
-        if not package:
+        package_object = self.chats.get(package)
+        if not package_object:
             raise j.exceptions.Value(f&#34;Package {package} not found&#34;)
 
-        chatflow = package.get(chat)
+        chatflow = package_object.get(chat)
         if not chatflow:
             raise j.exceptions.Value(f&#34;Chat {chat} not found&#34;)
 
         if query_params is None:
             query_params = {}
-
         obj = chatflow(**query_params)
         self.sessions[obj.session_id] = obj
         return {&#34;sessionId&#34;: obj.session_id, &#34;title&#34;: obj.title}
@@ -215,7 +213,7 @@ Actor = ChatFlows</code></pre>
         for syspath in paths:
             absolute_sys_path = os.path.abspath(syspath)
             if absolute_path.startswith(absolute_sys_path):
-                parts = absolute_path[len(absolute_sys_path) + 1: -3].split(os.path.sep)
+                parts = absolute_path[len(absolute_sys_path) + 1 : -3].split(os.path.sep)
                 if &#34;__init__&#34; in parts:
                     parts.remove(&#34;__init__&#34;)
                 module_name = &#34;.&#34;.join(parts)
@@ -321,17 +319,16 @@ def load(self, path: str):
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
 def new(self, package: str, chat: str, client_ip: str, query_params: dict = None) -&gt; dict:
-    package = self.chats.get(package)
-    if not package:
+    package_object = self.chats.get(package)
+    if not package_object:
         raise j.exceptions.Value(f&#34;Package {package} not found&#34;)
 
-    chatflow = package.get(chat)
+    chatflow = package_object.get(chat)
     if not chatflow:
         raise j.exceptions.Value(f&#34;Chat {chat} not found&#34;)
 
     if query_params is None:
         query_params = {}
-
     obj = chatflow(**query_params)
     self.sessions[obj.session_id] = obj
     return {&#34;sessionId&#34;: obj.session_id, &#34;title&#34;: obj.title}</code></pre>
@@ -392,17 +389,16 @@ def validate(self, session_id: str) -&gt; dict:
 
     @actor_method
     def new(self, package: str, chat: str, client_ip: str, query_params: dict = None) -&gt; dict:
-        package = self.chats.get(package)
-        if not package:
+        package_object = self.chats.get(package)
+        if not package_object:
             raise j.exceptions.Value(f&#34;Package {package} not found&#34;)
 
-        chatflow = package.get(chat)
+        chatflow = package_object.get(chat)
         if not chatflow:
             raise j.exceptions.Value(f&#34;Chat {chat} not found&#34;)
 
         if query_params is None:
             query_params = {}
-
         obj = chatflow(**query_params)
         self.sessions[obj.session_id] = obj
         return {&#34;sessionId&#34;: obj.session_id, &#34;title&#34;: obj.title}
@@ -452,7 +448,7 @@ def validate(self, session_id: str) -&gt; dict:
         for syspath in paths:
             absolute_sys_path = os.path.abspath(syspath)
             if absolute_path.startswith(absolute_sys_path):
-                parts = absolute_path[len(absolute_sys_path) + 1: -3].split(os.path.sep)
+                parts = absolute_path[len(absolute_sys_path) + 1 : -3].split(os.path.sep)
                 if &#34;__init__&#34; in parts:
                     parts.remove(&#34;__init__&#34;)
                 module_name = &#34;.&#34;.join(parts)
@@ -558,17 +554,16 @@ def load(self, path: str):
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
 def new(self, package: str, chat: str, client_ip: str, query_params: dict = None) -&gt; dict:
-    package = self.chats.get(package)
-    if not package:
+    package_object = self.chats.get(package)
+    if not package_object:
         raise j.exceptions.Value(f&#34;Package {package} not found&#34;)
 
-    chatflow = package.get(chat)
+    chatflow = package_object.get(chat)
     if not chatflow:
         raise j.exceptions.Value(f&#34;Chat {chat} not found&#34;)
 
     if query_params is None:
         query_params = {}
-
     obj = chatflow(**query_params)
     self.sessions[obj.session_id] = obj
     return {&#34;sessionId&#34;: obj.session_id, &#34;title&#34;: obj.title}</code></pre>

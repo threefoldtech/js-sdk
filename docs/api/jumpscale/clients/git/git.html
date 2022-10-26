@@ -31,8 +31,8 @@ from jumpscale.loader import j
 class GitClient(Client):
     path = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.__repo = None
 
     @property
@@ -109,13 +109,14 @@ class GitClient(Client):
 <dl>
 <dt id="jumpscale.clients.git.git.GitClient"><code class="flex name class">
 <span>class <span class="ident">GitClient</span></span>
+<span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -136,8 +137,8 @@ print(p.name, p.age)
 <pre><code class="python">class GitClient(Client):
     path = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.__repo = None
 
     @property

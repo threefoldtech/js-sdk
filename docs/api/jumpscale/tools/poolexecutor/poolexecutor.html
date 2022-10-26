@@ -35,7 +35,7 @@ class Job:
 class PoolExecutor:
     def __init__(self):
         self.jobs = []
-    
+
     def __enter__(self):
         return self
 
@@ -56,7 +56,7 @@ class PoolExecutor:
         else:
             self.jobs = []
             return greenlets
-    
+
     def results(self, greenlets):
         return [greenlet.value for greenlet in greenlets]
 
@@ -68,7 +68,7 @@ class PoolExecutor:
 
     #         gs = p.run()
     #         p.results(gs)
-    
+
     #     def sleepf(howlong, name=&#34;fun&#34;):
     #         print(&#34;{} is sleeping for {}&#34;.format(name, howlong))
     #         for i in range(howlong):
@@ -161,7 +161,7 @@ class PoolExecutor:
 <pre><code class="python">class PoolExecutor:
     def __init__(self):
         self.jobs = []
-    
+
     def __enter__(self):
         return self
 
@@ -182,9 +182,75 @@ class PoolExecutor:
         else:
             self.jobs = []
             return greenlets
-    
+
     def results(self, greenlets):
-        return [greenlet.value for greenlet in greenlets]</code></pre>
+        return [greenlet.value for greenlet in greenlets]
+
+
+    # def test_simple(self):
+    #     with j.tools.poolexecutor.PoolExecutor() as p:
+    #         for i in range(5):
+    #             p.task_add(sleepf, i, name=&#34;fun{}&#34;.format(i))
+
+    #         gs = p.run()
+    #         p.results(gs)
+
+    #     def sleepf(howlong, name=&#34;fun&#34;):
+    #         print(&#34;{} is sleeping for {}&#34;.format(name, howlong))
+    #         for i in range(howlong):
+    #             print(&#34;{} is sleeping slept for {}&#34;.format(name, howlong - i))
+    #             gevent.sleep(i)
+
+    #     for i in range(5):
+    #         self.task_add(sleepf, i, name=&#34;fun{}&#34;.format(i))
+
+    #     self.run()
+
+    # def test_with_errors(self):
+
+    #     def sleepf(howlong, name=&#34;fun&#34;):
+    #         print(&#34;{} is sleeping for {}&#34;.format(name, howlong))
+    #         for i in range(howlong):
+    #             print(&#34;{} is sleeping slept for {}&#34;.format(name, howlong - i))
+    #             gevent.sleep(i)
+
+    #     def sleepf_with_error(howlong, name=&#34;fun&#34;):
+    #         print(&#34;{} is sleeping for {}&#34;.format(name, howlong))
+    #         for i in range(howlong):
+    #             print(&#34;{} is sleeping slept for {}&#34;.format(name, howlong - i))
+    #             gevent.sleep(i)
+    #         raise RuntimeError(&#34;error here in sleepf_with_error&#34;)
+
+    #     for i in range(5):
+    #         self.task_add(sleepf, i, name=&#34;fun{}&#34;.format(i))
+
+    #     self.task_add(sleepf_with_error, i, name=&#34;error_fun&#34;)
+
+    #     try:
+    #         self.run()
+    #     except:
+    #         print(&#34;run has a function that raises and we caught it.&#34;)
+
+    # def test_with_results(self):
+
+    #     def sleepf(howlong, name=&#34;fun&#34;):
+    #         print(&#34;{} is sleeping for {}&#34;.format(name, howlong))
+    #         for i in range(howlong):
+    #             print(&#34;{} is sleeping slept for {}&#34;.format(name, howlong - i))
+    #             gevent.sleep(i)
+    #         return 7
+
+    #     for i in range(5):
+    #         self.task_add(sleepf, i, name=&#34;fun{}&#34;.format(i))
+
+    #     greenlets = self.run()
+    #     results = [greenlet.value for greenlet in greenlets]
+    #     assert all(map(lambda x: x == 7, results)) == True
+    #     print(results)
+
+    # def test(self):
+    #     for f in [self.test_simple, self.test_with_results, self.test_with_errors]:
+    #         f()</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>

@@ -35,6 +35,7 @@ from email.mime.text import MIMEText
 from jumpscale.clients.base import Client
 from jumpscale.core.base import fields
 
+
 class MailClient(Client):
     name = fields.String()
     smtp_server = fields.String()
@@ -43,12 +44,12 @@ class MailClient(Client):
     password = fields.String()
     sender_email = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
     def is_ssl(self):
-        self.smtp_port in [465, 587]
+        return self.smtp_port in [465, 587]
 
     def send(self, recipients, sender=&#34;&#34;, subject=&#34;&#34;, message=&#34;&#34;, files=None, mimetype=None):
         &#34;&#34;&#34; Send an email to the recipients from the sender containing the message required and any attached files given by the paths in files
@@ -71,7 +72,7 @@ class MailClient(Client):
             recipients = [recipients]
         server = smtplib.SMTP(self.smtp_server, self.smtp_port)
         server.ehlo()
-        if self._ssl:
+        if self.is_ssl:
             server.starttls()
         if self.login:
             server.login(self.login, self.password)
@@ -136,13 +137,14 @@ class MailClient(Client):
 <dl>
 <dt id="jumpscale.clients.mail.mail.MailClient"><code class="flex name class">
 <span>class <span class="ident">MailClient</span></span>
+<span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -168,12 +170,12 @@ print(p.name, p.age)
     password = fields.String()
     sender_email = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
     def is_ssl(self):
-        self.smtp_port in [465, 587]
+        return self.smtp_port in [465, 587]
 
     def send(self, recipients, sender=&#34;&#34;, subject=&#34;&#34;, message=&#34;&#34;, files=None, mimetype=None):
         &#34;&#34;&#34; Send an email to the recipients from the sender containing the message required and any attached files given by the paths in files
@@ -196,7 +198,7 @@ print(p.name, p.age)
             recipients = [recipients]
         server = smtplib.SMTP(self.smtp_server, self.smtp_port)
         server.ehlo()
-        if self._ssl:
+        if self.is_ssl:
             server.starttls()
         if self.login:
             server.login(self.login, self.password)
@@ -264,7 +266,7 @@ print(p.name, p.age)
 <summary>Source code</summary>
 <pre><code class="python">@property
 def is_ssl(self):
-    self.smtp_port in [465, 587]</code></pre>
+    return self.smtp_port in [465, 587]</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.clients.mail.mail.MailClient.login"><code class="name">var <span class="ident">login</span></code></dt>
@@ -460,7 +462,7 @@ and will get the default value if not</p>
         recipients = [recipients]
     server = smtplib.SMTP(self.smtp_server, self.smtp_port)
     server.ehlo()
-    if self._ssl:
+    if self.is_ssl:
         server.starttls()
     if self.login:
         server.login(self.login, self.password)

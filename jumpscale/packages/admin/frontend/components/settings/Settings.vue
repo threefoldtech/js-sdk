@@ -317,7 +317,6 @@ module.exports = {
       configurations: null,
       testCert: false,
       overProvision: false,
-      explorerLogs: false,
       escalationEmailsEnabled: false,
       autoExtendPools: false,
       sortNodesBySru: false,
@@ -472,7 +471,6 @@ module.exports = {
           let developerOptions = JSON.parse(response.data).data;
           this.testCert = developerOptions["test_cert"];
           this.overProvision = developerOptions["over_provision"];
-          this.explorerLogs = developerOptions["explorer_logs"];
           this.escalationEmailsEnabled = developerOptions["escalation_emails"];
           this.autoExtendPools = developerOptions["auto_extend_pools"];
           this.sortNodesBySru = developerOptions["sort_nodes_by_sru"];
@@ -486,7 +484,6 @@ module.exports = {
         .setDeveloperOptions(
           this.testCert,
           this.overProvision,
-          this.explorerLogs,
           this.escalationEmailsEnabled,
           this.autoExtendPools,
           this.sortNodesBySru

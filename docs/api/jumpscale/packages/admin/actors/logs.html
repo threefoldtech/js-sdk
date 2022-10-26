@@ -29,17 +29,17 @@ from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 class Logs(BaseActor):
     @actor_method
     def list_apps(self) -&gt; str:
-        apps = [&#34;init&#34;] + [app.decode() for app in j.core.db.smembers(&#34;applications&#34;)]
+        apps = list(j.logger.get_app_names())
         return j.data.serializers.json.dumps({&#34;data&#34;: apps})
 
     @actor_method
-    def list_logs(self, appname: str = &#34;init&#34;) -&gt; str:
-        logs = list(j.logger.redis.tail(appname=appname))
+    def list_logs(self, app_name: str = j.logger.default_app_name) -&gt; str:
+        logs = list(j.logger.redis.tail(app_name=app_name))
         return j.data.serializers.json.dumps({&#34;data&#34;: logs})
 
     @actor_method
-    def remove_records(self, appname: str = None):
-        j.logger.redis.remove_all_records(appname=appname)
+    def remove_records(self, app_name: str = None):
+        j.logger.redis.remove_all_records(app_name=app_name)
 
 
 Actor = Logs</code></pre>
@@ -64,17 +64,17 @@ Actor = Logs</code></pre>
 <pre><code class="python">class Logs(BaseActor):
     @actor_method
     def list_apps(self) -&gt; str:
-        apps = [&#34;init&#34;] + [app.decode() for app in j.core.db.smembers(&#34;applications&#34;)]
+        apps = list(j.logger.get_app_names())
         return j.data.serializers.json.dumps({&#34;data&#34;: apps})
 
     @actor_method
-    def list_logs(self, appname: str = &#34;init&#34;) -&gt; str:
-        logs = list(j.logger.redis.tail(appname=appname))
+    def list_logs(self, app_name: str = j.logger.default_app_name) -&gt; str:
+        logs = list(j.logger.redis.tail(app_name=app_name))
         return j.data.serializers.json.dumps({&#34;data&#34;: logs})
 
     @actor_method
-    def remove_records(self, appname: str = None):
-        j.logger.redis.remove_all_records(appname=appname)</code></pre>
+    def remove_records(self, app_name: str = None):
+        j.logger.redis.remove_all_records(app_name=app_name)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -91,33 +91,33 @@ Actor = Logs</code></pre>
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
 def list_apps(self) -&gt; str:
-    apps = [&#34;init&#34;] + [app.decode() for app in j.core.db.smembers(&#34;applications&#34;)]
+    apps = list(j.logger.get_app_names())
     return j.data.serializers.json.dumps({&#34;data&#34;: apps})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.logs.Logs.list_logs"><code class="name flex">
-<span>def <span class="ident">list_logs</span></span>(<span>self, appname=&#39;init&#39;)</span>
+<span>def <span class="ident">list_logs</span></span>(<span>self, app_name=&#39;init&#39;)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
-def list_logs(self, appname: str = &#34;init&#34;) -&gt; str:
-    logs = list(j.logger.redis.tail(appname=appname))
+def list_logs(self, app_name: str = j.logger.default_app_name) -&gt; str:
+    logs = list(j.logger.redis.tail(app_name=app_name))
     return j.data.serializers.json.dumps({&#34;data&#34;: logs})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.logs.Logs.remove_records"><code class="name flex">
-<span>def <span class="ident">remove_records</span></span>(<span>self, appname=None)</span>
+<span>def <span class="ident">remove_records</span></span>(<span>self, app_name=None)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
-def remove_records(self, appname: str = None):
-    j.logger.redis.remove_all_records(appname=appname)</code></pre>
+def remove_records(self, app_name: str = None):
+    j.logger.redis.remove_all_records(app_name=app_name)</code></pre>
 </details>
 </dd>
 </dl>
@@ -132,17 +132,17 @@ def remove_records(self, appname: str = None):
 <pre><code class="python">class Logs(BaseActor):
     @actor_method
     def list_apps(self) -&gt; str:
-        apps = [&#34;init&#34;] + [app.decode() for app in j.core.db.smembers(&#34;applications&#34;)]
+        apps = list(j.logger.get_app_names())
         return j.data.serializers.json.dumps({&#34;data&#34;: apps})
 
     @actor_method
-    def list_logs(self, appname: str = &#34;init&#34;) -&gt; str:
-        logs = list(j.logger.redis.tail(appname=appname))
+    def list_logs(self, app_name: str = j.logger.default_app_name) -&gt; str:
+        logs = list(j.logger.redis.tail(app_name=app_name))
         return j.data.serializers.json.dumps({&#34;data&#34;: logs})
 
     @actor_method
-    def remove_records(self, appname: str = None):
-        j.logger.redis.remove_all_records(appname=appname)</code></pre>
+    def remove_records(self, app_name: str = None):
+        j.logger.redis.remove_all_records(app_name=app_name)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -159,33 +159,33 @@ def remove_records(self, appname: str = None):
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
 def list_apps(self) -&gt; str:
-    apps = [&#34;init&#34;] + [app.decode() for app in j.core.db.smembers(&#34;applications&#34;)]
+    apps = list(j.logger.get_app_names())
     return j.data.serializers.json.dumps({&#34;data&#34;: apps})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.logs.Logs.list_logs"><code class="name flex">
-<span>def <span class="ident">list_logs</span></span>(<span>self, appname=&#39;init&#39;)</span>
+<span>def <span class="ident">list_logs</span></span>(<span>self, app_name=&#39;init&#39;)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
-def list_logs(self, appname: str = &#34;init&#34;) -&gt; str:
-    logs = list(j.logger.redis.tail(appname=appname))
+def list_logs(self, app_name: str = j.logger.default_app_name) -&gt; str:
+    logs = list(j.logger.redis.tail(app_name=app_name))
     return j.data.serializers.json.dumps({&#34;data&#34;: logs})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.logs.Logs.remove_records"><code class="name flex">
-<span>def <span class="ident">remove_records</span></span>(<span>self, appname=None)</span>
+<span>def <span class="ident">remove_records</span></span>(<span>self, app_name=None)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@actor_method
-def remove_records(self, appname: str = None):
-    j.logger.redis.remove_all_records(appname=appname)</code></pre>
+def remove_records(self, app_name: str = None):
+    j.logger.redis.remove_all_records(app_name=app_name)</code></pre>
 </details>
 </dd>
 </dl>

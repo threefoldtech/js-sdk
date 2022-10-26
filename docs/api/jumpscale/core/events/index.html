@@ -24,7 +24,7 @@
 <p>The modules is based on <a href="https://github.com/xmonader/events.">https://github.com/xmonader/events.</a></p>
 <p>Events can be of any type (class), there are two ways for listening to an event:</p>
 <p>Using decorators:</p>
-<pre><code class="python">from jumpscale.core.base import events
+<pre><code class="language-python">from jumpscale.core.base import events
 
 class ImportantEvent:
     def __init__(self):
@@ -36,7 +36,7 @@ def handle_event(ev):
     print(ev.name)
 </code></pre>
 <p>Or using it in your classes, just inherit from <code>events.Handler</code> and implement <code>handle</code> method.</p>
-<pre><code class="python3">class Impl(events.Handler):
+<pre><code class="language-python3">class Impl(events.Handler):
     def __init__(self):
         events.add_listeners(self, ImprotantEvent)
 

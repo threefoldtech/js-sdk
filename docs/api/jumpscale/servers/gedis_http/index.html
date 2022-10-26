@@ -35,12 +35,16 @@ from jumpscale.core.base import StoredFactory
 class GedisHTTPServer(Base):
     host = fields.String(default=&#34;127.0.0.1&#34;)
     port = fields.Integer(default=8000)
+    allow_cors = fields.Boolean(default=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._app = Bottle()
         self._client = None
-        self._app.route(&#34;/&lt;package&gt;/&lt;actor&gt;/&lt;method&gt;&#34;, [&#34;GET&#34;, &#34;POST&#34;], self.handler)
+        http_methods = [&#34;GET&#34;, &#34;POST&#34;]
+        if self.allow_cors:
+            http_methods.extend([&#34;OPTIONS&#34;, &#34;PUT&#34;, &#34;DELETE&#34;])
+        self._app.route(&#34;/&lt;package&gt;/&lt;actor&gt;/&lt;method&gt;&#34;, http_methods, self.enable_cors(self.handler, self.allow_cors))
 
     @property
     def client(self):
@@ -53,6 +57,24 @@ class GedisHTTPServer(Base):
         response.status = code
         response.content_type = &#34;application/json&#34;
         return json.dumps(content)
+
+    def enable_cors(self, fn, allow_cors=True):
+        def _enable_cors(*args, **kwargs):
+            # set CORS headers
+            response.headers[&#34;Access-Control-Allow-Origin&#34;] = &#34;*&#34;
+            response.headers[&#34;Access-Control-Allow-Methods&#34;] = &#34;GET, POST, PUT, OPTIONS, DELETE&#34;
+            response.headers[
+                &#34;Access-Control-Allow-Headers&#34;
+            ] = &#34;Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token&#34;
+
+            if request.method != &#34;OPTIONS&#34;:
+                # actual request; reply with the actual response
+                return fn(*args, **kwargs)
+
+        if allow_cors:
+            return _enable_cors
+        else:
+            return fn
 
     def handler(self, package, actor, method):
         actors = self.client.actors
@@ -124,7 +146,7 @@ def export_module_as():
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -145,12 +167,16 @@ print(p.name, p.age)
 <pre><code class="python">class GedisHTTPServer(Base):
     host = fields.String(default=&#34;127.0.0.1&#34;)
     port = fields.Integer(default=8000)
+    allow_cors = fields.Boolean(default=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._app = Bottle()
         self._client = None
-        self._app.route(&#34;/&lt;package&gt;/&lt;actor&gt;/&lt;method&gt;&#34;, [&#34;GET&#34;, &#34;POST&#34;], self.handler)
+        http_methods = [&#34;GET&#34;, &#34;POST&#34;]
+        if self.allow_cors:
+            http_methods.extend([&#34;OPTIONS&#34;, &#34;PUT&#34;, &#34;DELETE&#34;])
+        self._app.route(&#34;/&lt;package&gt;/&lt;actor&gt;/&lt;method&gt;&#34;, http_methods, self.enable_cors(self.handler, self.allow_cors))
 
     @property
     def client(self):
@@ -163,6 +189,24 @@ print(p.name, p.age)
         response.status = code
         response.content_type = &#34;application/json&#34;
         return json.dumps(content)
+
+    def enable_cors(self, fn, allow_cors=True):
+        def _enable_cors(*args, **kwargs):
+            # set CORS headers
+            response.headers[&#34;Access-Control-Allow-Origin&#34;] = &#34;*&#34;
+            response.headers[&#34;Access-Control-Allow-Methods&#34;] = &#34;GET, POST, PUT, OPTIONS, DELETE&#34;
+            response.headers[
+                &#34;Access-Control-Allow-Headers&#34;
+            ] = &#34;Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token&#34;
+
+            if request.method != &#34;OPTIONS&#34;:
+                # actual request; reply with the actual response
+                return fn(*args, **kwargs)
+
+        if allow_cors:
+            return _enable_cors
+        else:
+            return fn
 
     def handler(self, package, actor, method):
         actors = self.client.actors
@@ -204,6 +248,31 @@ print(p.name, p.age)
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="jumpscale.servers.gedis_http.GedisHTTPServer.allow_cors"><code class="name">var <span class="ident">allow_cors</span></code></dt>
+<dd>
+<section class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>any</code></strong></dt>
+<dd>the field value</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.servers.gedis_http.GedisHTTPServer.client"><code class="name">var <span class="ident">client</span></code></dt>
 <dd>
 <section class="desc"></section>
@@ -280,6 +349,32 @@ and will get the default value if not</p>
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="jumpscale.servers.gedis_http.GedisHTTPServer.enable_cors"><code class="name flex">
+<span>def <span class="ident">enable_cors</span></span>(<span>self, fn, allow_cors=True)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def enable_cors(self, fn, allow_cors=True):
+    def _enable_cors(*args, **kwargs):
+        # set CORS headers
+        response.headers[&#34;Access-Control-Allow-Origin&#34;] = &#34;*&#34;
+        response.headers[&#34;Access-Control-Allow-Methods&#34;] = &#34;GET, POST, PUT, OPTIONS, DELETE&#34;
+        response.headers[
+            &#34;Access-Control-Allow-Headers&#34;
+        ] = &#34;Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token&#34;
+
+        if request.method != &#34;OPTIONS&#34;:
+            # actual request; reply with the actual response
+            return fn(*args, **kwargs)
+
+    if allow_cors:
+        return _enable_cors
+    else:
+        return fn</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.servers.gedis_http.GedisHTTPServer.handler"><code class="name flex">
 <span>def <span class="ident">handler</span></span>(<span>self, package, actor, method)</span>
 </code></dt>
@@ -366,7 +461,9 @@ and will get the default value if not</p>
 <li>
 <h4><code><a title="jumpscale.servers.gedis_http.GedisHTTPServer" href="#jumpscale.servers.gedis_http.GedisHTTPServer">GedisHTTPServer</a></code></h4>
 <ul class="two-column">
+<li><code><a title="jumpscale.servers.gedis_http.GedisHTTPServer.allow_cors" href="#jumpscale.servers.gedis_http.GedisHTTPServer.allow_cors">allow_cors</a></code></li>
 <li><code><a title="jumpscale.servers.gedis_http.GedisHTTPServer.client" href="#jumpscale.servers.gedis_http.GedisHTTPServer.client">client</a></code></li>
+<li><code><a title="jumpscale.servers.gedis_http.GedisHTTPServer.enable_cors" href="#jumpscale.servers.gedis_http.GedisHTTPServer.enable_cors">enable_cors</a></code></li>
 <li><code><a title="jumpscale.servers.gedis_http.GedisHTTPServer.gevent_server" href="#jumpscale.servers.gedis_http.GedisHTTPServer.gevent_server">gevent_server</a></code></li>
 <li><code><a title="jumpscale.servers.gedis_http.GedisHTTPServer.handler" href="#jumpscale.servers.gedis_http.GedisHTTPServer.handler">handler</a></code></li>
 <li><code><a title="jumpscale.servers.gedis_http.GedisHTTPServer.host" href="#jumpscale.servers.gedis_http.GedisHTTPServer.host">host</a></code></li>

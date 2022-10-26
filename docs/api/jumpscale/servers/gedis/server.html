@@ -32,7 +32,6 @@ from functools import partial
 from io import BytesIO
 from signal import SIGKILL, SIGTERM
 import json
-import better_exceptions
 import gevent
 from gevent.pool import Pool
 from gevent import time
@@ -40,7 +39,7 @@ from gevent.server import StreamServer
 from jumpscale.core.base import Base, fields
 from jumpscale.loader import j
 from redis.connection import DefaultParser, Encoder
-from redis.exceptions import ConnectionError
+from redis.exceptions import ConnectionError, TimeoutError
 from .baseactor import BaseActor
 from .systemactor import CoreActor, SystemActor
 
@@ -213,12 +212,6 @@ class GedisServer(Base):
     def start(self):
         &#34;&#34;&#34;Starts the server
         &#34;&#34;&#34;
-        j.application.start(&#34;gedis&#34;)
-
-        # handle signals
-        for signal_type in (SIGTERM, SIGKILL):
-            gevent.signal(signal_type, self.stop)
-
         # register system actor if enabled
         if self.enable_system_actor:
             self._register_actor(&#34;system&#34;, self._system_actor)
@@ -234,6 +227,8 @@ class GedisServer(Base):
         self._server = StreamServer((self.host, self.port), self._on_connection, spawn=Pool())
         self._server.reuse_addr = True
         self._server.start()
+
+        j.logger.info(f&#34;Gedis server is started at {self.host}:{self.port}...&#34;)
 
     def stop(self):
         &#34;&#34;&#34;Stops the server
@@ -253,13 +248,15 @@ class GedisServer(Base):
             response[&#34;result&#34;] = method(*args, **kwargs)
 
         except Exception as e:
+            j.logger.exception(f&#34;error while executing {method}&#34;, exception=e)
+
             response[&#34;error&#34;] = str(e)
             response[&#34;error_type&#34;] = EXCEPTIONS_MAP.get(e.__class__, GedisErrorTypes.ACTOR_ERROR.value)
 
         return response
 
     def _on_connection(self, socket, address):
-        j.logger.info(&#34;New connection from {}&#34;, address)
+        j.logger.debug(f&#34;New connection from {address}&#34;)
         parser = DefaultParser(65536)
         connection = RedisConnectionAdapter(socket)
         try:
@@ -289,8 +286,8 @@ class GedisServer(Base):
                             response[&#34;error_type&#34;] = GedisErrorTypes.NOT_FOUND.value
 
                         else:
-                            j.logger.info(
-                                &#34;Executing method {} from actor {} to client {}&#34;, method_name, actor_name, address
+                            j.logger.debug(
+                                f&#34;Executing method {method_name} from actor {actor_name} to client {address}&#34;
                             )
 
                             if request:
@@ -302,8 +299,10 @@ class GedisServer(Base):
                             result = self._execute(method, args, kwargs)
                             response.update(result)
 
-                except ConnectionError:
-                    j.logger.info(&#34;Client {} closed the connection&#34;, address)
+                except (TimeoutError, ConnectionError):
+                    j.logger.debug(f&#34;Client {address} closed the connection/or timeout&#34;, address)
+                    parser.on_disconnect()
+                    return
 
                 except Exception as exception:
                     j.logger.exception(&#34;internal error&#34;, exception=exception)
@@ -312,8 +311,6 @@ class GedisServer(Base):
 
                 response[&#34;success&#34;] = response[&#34;error&#34;] is None
                 encoder.encode(json.dumps(response, default=serialize))
-
-            parser.on_disconnect()
 
         except BrokenPipeError:
             pass</code></pre>
@@ -413,7 +410,7 @@ class GedisServer(Base):
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -483,12 +480,6 @@ print(p.name, p.age)
     def start(self):
         &#34;&#34;&#34;Starts the server
         &#34;&#34;&#34;
-        j.application.start(&#34;gedis&#34;)
-
-        # handle signals
-        for signal_type in (SIGTERM, SIGKILL):
-            gevent.signal(signal_type, self.stop)
-
         # register system actor if enabled
         if self.enable_system_actor:
             self._register_actor(&#34;system&#34;, self._system_actor)
@@ -504,6 +495,8 @@ print(p.name, p.age)
         self._server = StreamServer((self.host, self.port), self._on_connection, spawn=Pool())
         self._server.reuse_addr = True
         self._server.start()
+
+        j.logger.info(f&#34;Gedis server is started at {self.host}:{self.port}...&#34;)
 
     def stop(self):
         &#34;&#34;&#34;Stops the server
@@ -523,13 +516,15 @@ print(p.name, p.age)
             response[&#34;result&#34;] = method(*args, **kwargs)
 
         except Exception as e:
+            j.logger.exception(f&#34;error while executing {method}&#34;, exception=e)
+
             response[&#34;error&#34;] = str(e)
             response[&#34;error_type&#34;] = EXCEPTIONS_MAP.get(e.__class__, GedisErrorTypes.ACTOR_ERROR.value)
 
         return response
 
     def _on_connection(self, socket, address):
-        j.logger.info(&#34;New connection from {}&#34;, address)
+        j.logger.debug(f&#34;New connection from {address}&#34;)
         parser = DefaultParser(65536)
         connection = RedisConnectionAdapter(socket)
         try:
@@ -559,8 +554,8 @@ print(p.name, p.age)
                             response[&#34;error_type&#34;] = GedisErrorTypes.NOT_FOUND.value
 
                         else:
-                            j.logger.info(
-                                &#34;Executing method {} from actor {} to client {}&#34;, method_name, actor_name, address
+                            j.logger.debug(
+                                f&#34;Executing method {method_name} from actor {actor_name} to client {address}&#34;
                             )
 
                             if request:
@@ -572,8 +567,10 @@ print(p.name, p.age)
                             result = self._execute(method, args, kwargs)
                             response.update(result)
 
-                except ConnectionError:
-                    j.logger.info(&#34;Client {} closed the connection&#34;, address)
+                except (TimeoutError, ConnectionError):
+                    j.logger.debug(f&#34;Client {address} closed the connection/or timeout&#34;, address)
+                    parser.on_disconnect()
+                    return
 
                 except Exception as exception:
                     j.logger.exception(&#34;internal error&#34;, exception=exception)
@@ -582,8 +579,6 @@ print(p.name, p.age)
 
                 response[&#34;success&#34;] = response[&#34;error&#34;] is None
                 encoder.encode(json.dumps(response, default=serialize))
-
-            parser.on_disconnect()
 
         except BrokenPipeError:
             pass</code></pre>
@@ -783,12 +778,6 @@ actor_path {str} &ndash; Actor absolute path</p>
 <pre><code class="python">def start(self):
     &#34;&#34;&#34;Starts the server
     &#34;&#34;&#34;
-    j.application.start(&#34;gedis&#34;)
-
-    # handle signals
-    for signal_type in (SIGTERM, SIGKILL):
-        gevent.signal(signal_type, self.stop)
-
     # register system actor if enabled
     if self.enable_system_actor:
         self._register_actor(&#34;system&#34;, self._system_actor)
@@ -803,7 +792,9 @@ actor_path {str} &ndash; Actor absolute path</p>
     # start the server
     self._server = StreamServer((self.host, self.port), self._on_connection, spawn=Pool())
     self._server.reuse_addr = True
-    self._server.start()</code></pre>
+    self._server.start()
+
+    j.logger.info(f&#34;Gedis server is started at {self.host}:{self.port}...&#34;)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.servers.gedis.server.GedisServer.stop"><code class="name flex">

@@ -29,6 +29,9 @@ import json
 
 from abc import ABC, abstractmethod
 
+from loguru._get_frame import get_frame
+
+from jumpscale.core.exceptions import Value
 from jumpscale.loader import j
 
 
@@ -40,6 +43,9 @@ LEVELS = {
     50: &#34;CRITICAL&#34;,
 }
 
+# init is kept as a name for backward compatibility
+DEFAULT_APP_NAME = &#34;init&#34;
+
 
 class LogHandler(ABC):
     &#34;&#34;&#34;the interface every cutom log handler should implement&#34;&#34;&#34;
@@ -50,69 +56,201 @@ class LogHandler(ABC):
 
 
 class Logger:
-    def __init__(self, appname: str = &#34;init&#34;):
-        &#34;&#34;&#34;Logger init method
-        &#34;&#34;&#34;
-        self._logger = loguru.logger.bind(appname=appname)
-        self._appname = appname
+    def __init__(self):
+        self._default_app_name = DEFAULT_APP_NAME
+        self._logger = loguru.logger.bind(app_name=self._default_app_name)
 
     @property
-    def appname(self):
-        return self._appname
-
-    def set_appname(self, appname):
-        self._appname = appname
-        self._logger = self._logger.bind(appname=appname)
+    def default_app_name(self):
+        return self._default_app_name
 
     def add_handler(self, *args, **kwargs):
-        &#34;&#34;&#34;Add handler to the logger
+        &#34;&#34;&#34;
+        Add handler to the logger
+
         takes the same parameters of loguru.logger.add
         &#34;&#34;&#34;
-        self._logger.add(*args, **kwargs)
+        return self._logger.add(*args, **kwargs)
 
     def add_custom_handler(self, name: str, handler: LogHandler, *args, **kwargs):
-        &#34;&#34;&#34;Add custom log handler
+        &#34;&#34;&#34;
+        Add custom log handler
 
         Arguments:
-            handler {LogHandler} -- handler function
+            handler (LogHandler): handler function
         &#34;&#34;&#34;
         setattr(self, name, handler)
-        self._logger.add(handler._handle, **kwargs)
+        return self._logger.add(handler._handle, **kwargs)
+
+    def remove_handler(self, handler_id: int):
+        &#34;&#34;&#34;
+        Remove loguru handler by id
+
+        The pre-configured handler has the id of `0`
+
+        Args:
+            handler_id (int): handler id that was returned by `add_handler` method
+        &#34;&#34;&#34;
+        self._logger.remove(handler_id)
 
     def _log(self, level, message, *args, category, data, exception=None):
         self._logger.opt(depth=2, exception=exception).bind(category=category, data=data).log(level, message, *args)
 
     def debug(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-        &#34;&#34;&#34;Log debug message
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Log debug message&#34;&#34;&#34;
         self._log(&#34;DEBUG&#34;, message, *args, category=category, data=data)
 
     def info(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-        &#34;&#34;&#34;Log info message
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Log info message&#34;&#34;&#34;
         self._log(&#34;INFO&#34;, message, *args, category=category, data=data)
 
     def warning(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-        &#34;&#34;&#34;Log warning message
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Log warning message&#34;&#34;&#34;
         self._log(&#34;WARNING&#34;, message, *args, category=category, data=data)
 
     def error(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-        &#34;&#34;&#34;Log error message
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Log error message&#34;&#34;&#34;
         self._log(&#34;ERROR&#34;, message, *args, category=category, data=data)
 
     def critical(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-        &#34;&#34;&#34;Log critical message
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Log critical message&#34;&#34;&#34;
         self._log(&#34;CRITICAL&#34;, message, *args, category=category, data=data)
 
     def exception(
         self, message, *args, category: str = &#34;&#34;, data: dict = None, level: int = 40, exception: Exception = None
     ):
-        &#34;&#34;&#34;Log exception message
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Log exception message&#34;&#34;&#34;
         self._log(LEVELS.get(level, 40), message, *args, category=category, data=data, exception=exception)
+
+
+class MainLogger(Logger):
+    def __init__(self):
+        super().__init__()
+
+        # mapping between module -&gt; app_name
+        self._module_apps = {}
+        self._apps_rkey = &#34;applications&#34;
+        # patch the logger to update app name per module
+        self._logger = self._logger.patch(self._update_app_name)
+
+    def _get_caller_module(self):
+        # from loguru/_logger.py
+        frame = get_frame(2)
+
+        try:
+            module_name = frame.f_globals[&#34;__name__&#34;]
+        except KeyError:
+            module_name = None
+
+        return module_name
+
+    def _add_app(self, app_name):
+        if j.core.db.is_running():
+            j.core.db.sadd(self._apps_rkey, app_name)
+
+    def _remove_app(self, app_name):
+        if j.core.db.is_running():
+            j.core.db.srem(self._apps_rkey, app_name)
+
+    def register(self, app_name, module_name=None):
+        &#34;&#34;&#34;
+        Register and bind given module (and sub-modules) logs with a given app name
+
+        Will also add the app to `applications` set in redis.
+
+        If `module_name` is not passed or empty, it would be the caller module name.
+
+        Args:
+            app_name (str): app name
+            module_name (str, optional): module name. Defaults to None.
+        &#34;&#34;&#34;
+        if not app_name:
+            raise Value(f&#34;invalid app name &#39;{app_name}&#39;&#34;)
+
+        if not module_name:
+            module_name = self._get_caller_module()
+
+        self._module_apps[module_name] = app_name
+        self._add_app(app_name)
+
+        self.info(f&#34;Logging from &#39;{module_name}&#39; is now bound to &#39;{app_name}&#39; app&#34;)
+
+    def unregister(self, module_name=None):
+        &#34;&#34;&#34;
+        Unregister a module from log binding with the app name.
+
+        Will also remove the app from `applications` set in redis.
+
+        If `module_name` is not passed or empty, it would be the caller module name.
+
+        Args:
+            module_name (str, optional): module name. Defaults to None.
+        &#34;&#34;&#34;
+        if not module_name:
+            module_name = self._get_caller_module()
+
+        if module_name in self._module_apps:
+            app_name = self._module_apps[module_name]
+            del self._module_apps[module_name]
+            self._remove_app(app_name)
+            self.info(f&#34;Logging from &#39;{module_name}&#39; is now unbound to &#39;{app_name}&#39; app&#34;)
+
+    def get_app_names(self):
+        &#34;&#34;&#34;
+        Get a set of all registered app names
+
+        If redis is running, it would get them from `applications` set.
+
+        Returns:
+            set: available app names
+        &#34;&#34;&#34;
+        apps = {DEFAULT_APP_NAME}
+
+        if not j.core.db.is_running():
+            apps.update(self._module_apps.values())
+        else:
+            apps.update([app.decode() for app in j.core.db.smembers(&#34;applications&#34;)])
+
+        return apps
+
+    def _get_app_name(self, module, sub_module=None):
+        &#34;&#34;&#34;Get app name for a given module
+
+        Args:
+            module (str): module name (e.g. jumpscale.servers.gedis)
+            sub_module (str, optional): will match the same app name if given (e.g. jumpscale.servers.gedis.helpers). Defaults to None.
+
+        Returns:
+            str: app name
+        &#34;&#34;&#34;
+        if module in self._module_apps:
+            value = self._module_apps[module]
+
+            # add sub-module if provided too for faster search
+            if sub_module and sub_module != module:
+                self._module_apps[sub_module] = value
+
+            return value
+
+        # go up 1 level
+        new_module, _, _ = module.rpartition(&#34;.&#34;)
+        # no parent_module, cannot go up anymore
+        if not new_module:
+            return &#34;&#34;
+
+        # do the search again
+        return self._get_app_name(new_module, module)
+
+    def _update_app_name(self, record):
+        &#34;&#34;&#34;
+        Update app_name in record[&#34;extra&#34;] if found in module -&gt; app_name mapping
+
+        Args:
+            record (dict): loguru record
+        &#34;&#34;&#34;
+        app_name = self._get_app_name(record[&#34;name&#34;])
+        if app_name:
+            record[&#34;extra&#34;][&#34;app_name&#34;] = app_name
 
 
 class RedisLogHandler(LogHandler):
@@ -126,10 +264,6 @@ class RedisLogHandler(LogHandler):
 
         if self._dump_dir:
             j.sals.fs.mkdirs(self._dump_dir)
-
-    @property
-    def _appname(self):
-        return j.core.application.appname
 
     @property
     def _db(self):
@@ -154,18 +288,19 @@ class RedisLogHandler(LogHandler):
         index = (identifier % self.max_size) - 1
         return part, index
 
-    def _dump_records(self, appname, path):
+    def _dump_records(self, app_name, path):
         j.sals.fs.mkdir(j.sals.fs.parent(path))
-        records = self._db.lrange(self._rkey % appname, 0, self.max_size - 1)
+        records = self._db.lrange(self._rkey % app_name, 0, self.max_size - 1)
         j.sals.fs.write_bytes(path, msgpack.dumps(records))
 
     def _process_message(self, message):
         record = json.loads(message)[&#34;record&#34;]
-        appname = record[&#34;extra&#34;][&#34;appname&#34;]
-        record_id = self._db.incr(self._rkey_incr % appname)
+        app_name = record[&#34;extra&#34;][&#34;app_name&#34;]
+        record_id = self._db.incr(self._rkey_incr % app_name)
         return dict(
             id=record_id,
-            appname=appname,
+            app_name=app_name,
+            module=record[&#34;name&#34;],
             message=record[&#34;message&#34;],
             level=record[&#34;level&#34;][&#34;no&#34;],
             linenr=record[&#34;line&#34;],
@@ -178,8 +313,8 @@ class RedisLogHandler(LogHandler):
             data=record[&#34;extra&#34;].get(&#34;data&#34;, {}),
         )
 
-    def _clean_up(self, appname):
-        self._db.ltrim(self._rkey % appname, self.max_size, -1)
+    def _clean_up(self, app_name):
+        self._db.ltrim(self._rkey % app_name, self.max_size, -1)
 
     def _handle(self, message: str, **kwargs):
         &#34;&#34;&#34;Logging handler
@@ -191,86 +326,86 @@ class RedisLogHandler(LogHandler):
             return
 
         record = self._process_message(message)
-        appname = record[&#34;appname&#34;]
+        app_name = record[&#34;app_name&#34;]
 
-        rkey = self._rkey % appname
+        rkey = self._rkey % app_name
         self._db.rpush(rkey, json.dumps(record))
 
         if self._db.llen(rkey) &gt; self.max_size:
             if self.dump:
                 part, _ = self._map_identifier(record[&#34;id&#34;] - 1)
-                path = j.sals.fs.join_paths(self.dump_dir, appname, &#34;%s.msgpack&#34; % part)
-                self._dump_records(appname, path)
+                path = j.sals.fs.join_paths(self.dump_dir, app_name, &#34;%s.msgpack&#34; % part)
+                self._dump_records(app_name, path)
 
-            self._clean_up(appname)
+            self._clean_up(app_name)
 
-    def records_count(self, appname: str = &#34;init&#34;) -&gt; int:
+    def records_count(self, app_name: str = DEFAULT_APP_NAME) -&gt; int:
         &#34;&#34;&#34;Gets total number of the records of the app
 
         Arguments:
-            appname {str} -- app name
+            app_name (str): app name
 
         Returns:
             init -- total number of the records
         &#34;&#34;&#34;
-        count = self._db.get(self._rkey_incr % appname)
+        count = self._db.get(self._rkey_incr % app_name)
         if count:
             return int(count)
         return 0
 
-    def record_get(self, identifier: int, appname: str = &#34;init&#34;) -&gt; dict:
+    def record_get(self, identifier: int, app_name: str = DEFAULT_APP_NAME) -&gt; dict:
         &#34;&#34;&#34;Get app log record by its identifier
 
         Arguments:
             identifier {int} -- record identifier
-            appname {str} -- app name
+            app_name {str} -- app name
 
         Returns:
-            dict -- requested log record
+            dict: requested log record
         &#34;&#34;&#34;
-        count = self.records_count(appname)
+        count = self.records_count(app_name)
         part, index = self._map_identifier(identifier)
 
         if identifier &gt; count:
             return
 
         if part &gt; count - self.max_size:
-            record = self._db.lindex(self._rkey % appname, index)
+            record = self._db.lindex(self._rkey % app_name, index)
             return json.loads(record)
 
         if self.dump:
-            path = j.sals.fs.join_paths(self.dump_dir, appname, &#34;%s.msgpack&#34; % part)
+            path = j.sals.fs.join_paths(self.dump_dir, app_name, &#34;%s.msgpack&#34; % part)
             if j.sals.fs.exists(path):
                 records = msgpack.loads(j.sals.fs.read_bytes(path))
                 if records and len(records) &gt; index:
                     return json.loads(records[index])
 
-    def remove_all_records(self, appname: str):
+    def remove_all_records(self, app_name: str):
         &#34;&#34;&#34;Delete all app&#39;s log records
 
         Arguments:
-            appname {str} -- app name
+            app_name (str): app name
         &#34;&#34;&#34;
-        self._db.delete(self._rkey % appname, self._rkey_incr % appname)
-        path = j.sals.fs.join_paths(self.dump_dir, appname)
+        self._db.delete(self._rkey % app_name, self._rkey_incr % app_name)
+        path = j.sals.fs.join_paths(self.dump_dir, app_name)
 
         if self.dump:
             j.sals.fs.rmtree(path)
 
-    def tail(self, appname: str = &#34;init&#34;, limit: int = None) -&gt; iter:
+    def tail(self, app_name: str = DEFAULT_APP_NAME, limit: int = None) -&gt; iter:
         &#34;&#34;&#34;Tail records
 
         Keyword Arguments:
-            appname (str) -- appname (default: {&#34;&#34;})
-            limit (int) -- max number of record to be returned (default: {None})
+            app_name (str): app name.
+            limit (int, optional): max number of record to be returned per page (default: max size)
 
         Yields:
-            iter -- iterator of the requested logs
+            iter: iterator of the requested logs
         &#34;&#34;&#34;
         if limit:
             limit = limit - 1
 
-        records = self._db.lrange(self._rkey % appname, 0, limit or -1)
+        records = self._db.lrange(self._rkey % app_name, 0, limit or -1)
         for record in records:
             yield json.loads(record)</code></pre>
 </details>
@@ -310,87 +445,92 @@ class RedisLogHandler(LogHandler):
 </dd>
 <dt id="jumpscale.core.logging.logging.Logger"><code class="flex name class">
 <span>class <span class="ident">Logger</span></span>
-<span>(</span><span>appname='init')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Logger init method</p></section>
+<section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">class Logger:
-    def __init__(self, appname: str = &#34;init&#34;):
-        &#34;&#34;&#34;Logger init method
-        &#34;&#34;&#34;
-        self._logger = loguru.logger.bind(appname=appname)
-        self._appname = appname
+    def __init__(self):
+        self._default_app_name = DEFAULT_APP_NAME
+        self._logger = loguru.logger.bind(app_name=self._default_app_name)
 
     @property
-    def appname(self):
-        return self._appname
-
-    def set_appname(self, appname):
-        self._appname = appname
-        self._logger = self._logger.bind(appname=appname)
+    def default_app_name(self):
+        return self._default_app_name
 
     def add_handler(self, *args, **kwargs):
-        &#34;&#34;&#34;Add handler to the logger
+        &#34;&#34;&#34;
+        Add handler to the logger
+
         takes the same parameters of loguru.logger.add
         &#34;&#34;&#34;
-        self._logger.add(*args, **kwargs)
+        return self._logger.add(*args, **kwargs)
 
     def add_custom_handler(self, name: str, handler: LogHandler, *args, **kwargs):
-        &#34;&#34;&#34;Add custom log handler
+        &#34;&#34;&#34;
+        Add custom log handler
 
         Arguments:
-            handler {LogHandler} -- handler function
+            handler (LogHandler): handler function
         &#34;&#34;&#34;
         setattr(self, name, handler)
-        self._logger.add(handler._handle, **kwargs)
+        return self._logger.add(handler._handle, **kwargs)
+
+    def remove_handler(self, handler_id: int):
+        &#34;&#34;&#34;
+        Remove loguru handler by id
+
+        The pre-configured handler has the id of `0`
+
+        Args:
+            handler_id (int): handler id that was returned by `add_handler` method
+        &#34;&#34;&#34;
+        self._logger.remove(handler_id)
 
     def _log(self, level, message, *args, category, data, exception=None):
         self._logger.opt(depth=2, exception=exception).bind(category=category, data=data).log(level, message, *args)
 
     def debug(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-        &#34;&#34;&#34;Log debug message
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Log debug message&#34;&#34;&#34;
         self._log(&#34;DEBUG&#34;, message, *args, category=category, data=data)
 
     def info(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-        &#34;&#34;&#34;Log info message
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Log info message&#34;&#34;&#34;
         self._log(&#34;INFO&#34;, message, *args, category=category, data=data)
 
     def warning(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-        &#34;&#34;&#34;Log warning message
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Log warning message&#34;&#34;&#34;
         self._log(&#34;WARNING&#34;, message, *args, category=category, data=data)
 
     def error(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-        &#34;&#34;&#34;Log error message
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Log error message&#34;&#34;&#34;
         self._log(&#34;ERROR&#34;, message, *args, category=category, data=data)
 
     def critical(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-        &#34;&#34;&#34;Log critical message
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Log critical message&#34;&#34;&#34;
         self._log(&#34;CRITICAL&#34;, message, *args, category=category, data=data)
 
     def exception(
         self, message, *args, category: str = &#34;&#34;, data: dict = None, level: int = 40, exception: Exception = None
     ):
-        &#34;&#34;&#34;Log exception message
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Log exception message&#34;&#34;&#34;
         self._log(LEVELS.get(level, 40), message, *args, category=category, data=data, exception=exception)</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="jumpscale.core.logging.logging.MainLogger" href="#jumpscale.core.logging.logging.MainLogger">MainLogger</a></li>
+</ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="jumpscale.core.logging.logging.Logger.appname"><code class="name">var <span class="ident">appname</span></code></dt>
+<dt id="jumpscale.core.logging.logging.Logger.default_app_name"><code class="name">var <span class="ident">default_app_name</span></code></dt>
 <dd>
 <section class="desc"></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">@property
-def appname(self):
-    return self._appname</code></pre>
+def default_app_name(self):
+    return self._default_app_name</code></pre>
 </details>
 </dd>
 </dl>
@@ -402,32 +542,38 @@ def appname(self):
 <dd>
 <section class="desc"><p>Add custom log handler</p>
 <h2 id="arguments">Arguments</h2>
-<p>handler {LogHandler} &ndash; handler function</p></section>
+<dl>
+<dt><strong><code>handler</code></strong> :&ensp;<a title="jumpscale.core.logging.logging.LogHandler" href="#jumpscale.core.logging.logging.LogHandler"><code>LogHandler</code></a></dt>
+<dd>handler function</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_custom_handler(self, name: str, handler: LogHandler, *args, **kwargs):
-    &#34;&#34;&#34;Add custom log handler
+    &#34;&#34;&#34;
+    Add custom log handler
 
     Arguments:
-        handler {LogHandler} -- handler function
+        handler (LogHandler): handler function
     &#34;&#34;&#34;
     setattr(self, name, handler)
-    self._logger.add(handler._handle, **kwargs)</code></pre>
+    return self._logger.add(handler._handle, **kwargs)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.core.logging.logging.Logger.add_handler"><code class="name flex">
 <span>def <span class="ident">add_handler</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Add handler to the logger
-takes the same parameters of loguru.logger.add</p></section>
+<section class="desc"><p>Add handler to the logger</p>
+<p>takes the same parameters of loguru.logger.add</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def add_handler(self, *args, **kwargs):
-    &#34;&#34;&#34;Add handler to the logger
+    &#34;&#34;&#34;
+    Add handler to the logger
+
     takes the same parameters of loguru.logger.add
     &#34;&#34;&#34;
-    self._logger.add(*args, **kwargs)</code></pre>
+    return self._logger.add(*args, **kwargs)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.core.logging.logging.Logger.critical"><code class="name flex">
@@ -438,8 +584,7 @@ takes the same parameters of loguru.logger.add</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def critical(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-    &#34;&#34;&#34;Log critical message
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Log critical message&#34;&#34;&#34;
     self._log(&#34;CRITICAL&#34;, message, *args, category=category, data=data)</code></pre>
 </details>
 </dd>
@@ -451,8 +596,7 @@ takes the same parameters of loguru.logger.add</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def debug(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-    &#34;&#34;&#34;Log debug message
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Log debug message&#34;&#34;&#34;
     self._log(&#34;DEBUG&#34;, message, *args, category=category, data=data)</code></pre>
 </details>
 </dd>
@@ -464,8 +608,7 @@ takes the same parameters of loguru.logger.add</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def error(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-    &#34;&#34;&#34;Log error message
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Log error message&#34;&#34;&#34;
     self._log(&#34;ERROR&#34;, message, *args, category=category, data=data)</code></pre>
 </details>
 </dd>
@@ -479,8 +622,7 @@ takes the same parameters of loguru.logger.add</p></section>
 <pre><code class="python">def exception(
     self, message, *args, category: str = &#34;&#34;, data: dict = None, level: int = 40, exception: Exception = None
 ):
-    &#34;&#34;&#34;Log exception message
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Log exception message&#34;&#34;&#34;
     self._log(LEVELS.get(level, 40), message, *args, category=category, data=data, exception=exception)</code></pre>
 </details>
 </dd>
@@ -492,21 +634,33 @@ takes the same parameters of loguru.logger.add</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def info(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-    &#34;&#34;&#34;Log info message
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Log info message&#34;&#34;&#34;
     self._log(&#34;INFO&#34;, message, *args, category=category, data=data)</code></pre>
 </details>
 </dd>
-<dt id="jumpscale.core.logging.logging.Logger.set_appname"><code class="name flex">
-<span>def <span class="ident">set_appname</span></span>(<span>self, appname)</span>
+<dt id="jumpscale.core.logging.logging.Logger.remove_handler"><code class="name flex">
+<span>def <span class="ident">remove_handler</span></span>(<span>self, handler_id)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<section class="desc"><p>Remove loguru handler by id</p>
+<p>The pre-configured handler has the id of <code>0</code></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>handler_id</code></strong> :&ensp;<code>int</code></dt>
+<dd>handler id that was returned by <code>add_handler</code> method</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def set_appname(self, appname):
-    self._appname = appname
-    self._logger = self._logger.bind(appname=appname)</code></pre>
+<pre><code class="python">def remove_handler(self, handler_id: int):
+    &#34;&#34;&#34;
+    Remove loguru handler by id
+
+    The pre-configured handler has the id of `0`
+
+    Args:
+        handler_id (int): handler id that was returned by `add_handler` method
+    &#34;&#34;&#34;
+    self._logger.remove(handler_id)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.core.logging.logging.Logger.warning"><code class="name flex">
@@ -517,12 +671,278 @@ takes the same parameters of loguru.logger.add</p></section>
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def warning(self, message, *args, category: str = &#34;&#34;, data: dict = None):
-    &#34;&#34;&#34;Log warning message
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Log warning message&#34;&#34;&#34;
     self._log(&#34;WARNING&#34;, message, *args, category=category, data=data)</code></pre>
 </details>
 </dd>
 </dl>
+</dd>
+<dt id="jumpscale.core.logging.logging.MainLogger"><code class="flex name class">
+<span>class <span class="ident">MainLogger</span></span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">class MainLogger(Logger):
+    def __init__(self):
+        super().__init__()
+
+        # mapping between module -&gt; app_name
+        self._module_apps = {}
+        self._apps_rkey = &#34;applications&#34;
+        # patch the logger to update app name per module
+        self._logger = self._logger.patch(self._update_app_name)
+
+    def _get_caller_module(self):
+        # from loguru/_logger.py
+        frame = get_frame(2)
+
+        try:
+            module_name = frame.f_globals[&#34;__name__&#34;]
+        except KeyError:
+            module_name = None
+
+        return module_name
+
+    def _add_app(self, app_name):
+        if j.core.db.is_running():
+            j.core.db.sadd(self._apps_rkey, app_name)
+
+    def _remove_app(self, app_name):
+        if j.core.db.is_running():
+            j.core.db.srem(self._apps_rkey, app_name)
+
+    def register(self, app_name, module_name=None):
+        &#34;&#34;&#34;
+        Register and bind given module (and sub-modules) logs with a given app name
+
+        Will also add the app to `applications` set in redis.
+
+        If `module_name` is not passed or empty, it would be the caller module name.
+
+        Args:
+            app_name (str): app name
+            module_name (str, optional): module name. Defaults to None.
+        &#34;&#34;&#34;
+        if not app_name:
+            raise Value(f&#34;invalid app name &#39;{app_name}&#39;&#34;)
+
+        if not module_name:
+            module_name = self._get_caller_module()
+
+        self._module_apps[module_name] = app_name
+        self._add_app(app_name)
+
+        self.info(f&#34;Logging from &#39;{module_name}&#39; is now bound to &#39;{app_name}&#39; app&#34;)
+
+    def unregister(self, module_name=None):
+        &#34;&#34;&#34;
+        Unregister a module from log binding with the app name.
+
+        Will also remove the app from `applications` set in redis.
+
+        If `module_name` is not passed or empty, it would be the caller module name.
+
+        Args:
+            module_name (str, optional): module name. Defaults to None.
+        &#34;&#34;&#34;
+        if not module_name:
+            module_name = self._get_caller_module()
+
+        if module_name in self._module_apps:
+            app_name = self._module_apps[module_name]
+            del self._module_apps[module_name]
+            self._remove_app(app_name)
+            self.info(f&#34;Logging from &#39;{module_name}&#39; is now unbound to &#39;{app_name}&#39; app&#34;)
+
+    def get_app_names(self):
+        &#34;&#34;&#34;
+        Get a set of all registered app names
+
+        If redis is running, it would get them from `applications` set.
+
+        Returns:
+            set: available app names
+        &#34;&#34;&#34;
+        apps = {DEFAULT_APP_NAME}
+
+        if not j.core.db.is_running():
+            apps.update(self._module_apps.values())
+        else:
+            apps.update([app.decode() for app in j.core.db.smembers(&#34;applications&#34;)])
+
+        return apps
+
+    def _get_app_name(self, module, sub_module=None):
+        &#34;&#34;&#34;Get app name for a given module
+
+        Args:
+            module (str): module name (e.g. jumpscale.servers.gedis)
+            sub_module (str, optional): will match the same app name if given (e.g. jumpscale.servers.gedis.helpers). Defaults to None.
+
+        Returns:
+            str: app name
+        &#34;&#34;&#34;
+        if module in self._module_apps:
+            value = self._module_apps[module]
+
+            # add sub-module if provided too for faster search
+            if sub_module and sub_module != module:
+                self._module_apps[sub_module] = value
+
+            return value
+
+        # go up 1 level
+        new_module, _, _ = module.rpartition(&#34;.&#34;)
+        # no parent_module, cannot go up anymore
+        if not new_module:
+            return &#34;&#34;
+
+        # do the search again
+        return self._get_app_name(new_module, module)
+
+    def _update_app_name(self, record):
+        &#34;&#34;&#34;
+        Update app_name in record[&#34;extra&#34;] if found in module -&gt; app_name mapping
+
+        Args:
+            record (dict): loguru record
+        &#34;&#34;&#34;
+        app_name = self._get_app_name(record[&#34;name&#34;])
+        if app_name:
+            record[&#34;extra&#34;][&#34;app_name&#34;] = app_name</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.core.logging.logging.Logger" href="#jumpscale.core.logging.logging.Logger">Logger</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="jumpscale.core.logging.logging.MainLogger.get_app_names"><code class="name flex">
+<span>def <span class="ident">get_app_names</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get a set of all registered app names</p>
+<p>If redis is running, it would get them from <code>applications</code> set.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>set</code></strong></dt>
+<dd>available app names</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_app_names(self):
+    &#34;&#34;&#34;
+    Get a set of all registered app names
+
+    If redis is running, it would get them from `applications` set.
+
+    Returns:
+        set: available app names
+    &#34;&#34;&#34;
+    apps = {DEFAULT_APP_NAME}
+
+    if not j.core.db.is_running():
+        apps.update(self._module_apps.values())
+    else:
+        apps.update([app.decode() for app in j.core.db.smembers(&#34;applications&#34;)])
+
+    return apps</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.logging.logging.MainLogger.register"><code class="name flex">
+<span>def <span class="ident">register</span></span>(<span>self, app_name, module_name=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Register and bind given module (and sub-modules) logs with a given app name</p>
+<p>Will also add the app to <code>applications</code> set in redis.</p>
+<p>If <code>module_name</code> is not passed or empty, it would be the caller module name.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>app_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>app name</dd>
+<dt><strong><code>module_name</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>module name. Defaults to None.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def register(self, app_name, module_name=None):
+    &#34;&#34;&#34;
+    Register and bind given module (and sub-modules) logs with a given app name
+
+    Will also add the app to `applications` set in redis.
+
+    If `module_name` is not passed or empty, it would be the caller module name.
+
+    Args:
+        app_name (str): app name
+        module_name (str, optional): module name. Defaults to None.
+    &#34;&#34;&#34;
+    if not app_name:
+        raise Value(f&#34;invalid app name &#39;{app_name}&#39;&#34;)
+
+    if not module_name:
+        module_name = self._get_caller_module()
+
+    self._module_apps[module_name] = app_name
+    self._add_app(app_name)
+
+    self.info(f&#34;Logging from &#39;{module_name}&#39; is now bound to &#39;{app_name}&#39; app&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.core.logging.logging.MainLogger.unregister"><code class="name flex">
+<span>def <span class="ident">unregister</span></span>(<span>self, module_name=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Unregister a module from log binding with the app name.</p>
+<p>Will also remove the app from <code>applications</code> set in redis.</p>
+<p>If <code>module_name</code> is not passed or empty, it would be the caller module name.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>module_name</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>module name. Defaults to None.</dd>
+</dl></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def unregister(self, module_name=None):
+    &#34;&#34;&#34;
+    Unregister a module from log binding with the app name.
+
+    Will also remove the app from `applications` set in redis.
+
+    If `module_name` is not passed or empty, it would be the caller module name.
+
+    Args:
+        module_name (str, optional): module name. Defaults to None.
+    &#34;&#34;&#34;
+    if not module_name:
+        module_name = self._get_caller_module()
+
+    if module_name in self._module_apps:
+        app_name = self._module_apps[module_name]
+        del self._module_apps[module_name]
+        self._remove_app(app_name)
+        self.info(f&#34;Logging from &#39;{module_name}&#39; is now unbound to &#39;{app_name}&#39; app&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.core.logging.logging.Logger" href="#jumpscale.core.logging.logging.Logger">Logger</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.core.logging.logging.Logger.add_custom_handler" href="#jumpscale.core.logging.logging.Logger.add_custom_handler">add_custom_handler</a></code></li>
+<li><code><a title="jumpscale.core.logging.logging.Logger.add_handler" href="#jumpscale.core.logging.logging.Logger.add_handler">add_handler</a></code></li>
+<li><code><a title="jumpscale.core.logging.logging.Logger.critical" href="#jumpscale.core.logging.logging.Logger.critical">critical</a></code></li>
+<li><code><a title="jumpscale.core.logging.logging.Logger.debug" href="#jumpscale.core.logging.logging.Logger.debug">debug</a></code></li>
+<li><code><a title="jumpscale.core.logging.logging.Logger.error" href="#jumpscale.core.logging.logging.Logger.error">error</a></code></li>
+<li><code><a title="jumpscale.core.logging.logging.Logger.exception" href="#jumpscale.core.logging.logging.Logger.exception">exception</a></code></li>
+<li><code><a title="jumpscale.core.logging.logging.Logger.info" href="#jumpscale.core.logging.logging.Logger.info">info</a></code></li>
+<li><code><a title="jumpscale.core.logging.logging.Logger.remove_handler" href="#jumpscale.core.logging.logging.Logger.remove_handler">remove_handler</a></code></li>
+<li><code><a title="jumpscale.core.logging.logging.Logger.warning" href="#jumpscale.core.logging.logging.Logger.warning">warning</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="jumpscale.core.logging.logging.RedisLogHandler"><code class="flex name class">
 <span>class <span class="ident">RedisLogHandler</span></span>
@@ -543,10 +963,6 @@ takes the same parameters of loguru.logger.add</p></section>
 
         if self._dump_dir:
             j.sals.fs.mkdirs(self._dump_dir)
-
-    @property
-    def _appname(self):
-        return j.core.application.appname
 
     @property
     def _db(self):
@@ -571,18 +987,19 @@ takes the same parameters of loguru.logger.add</p></section>
         index = (identifier % self.max_size) - 1
         return part, index
 
-    def _dump_records(self, appname, path):
+    def _dump_records(self, app_name, path):
         j.sals.fs.mkdir(j.sals.fs.parent(path))
-        records = self._db.lrange(self._rkey % appname, 0, self.max_size - 1)
+        records = self._db.lrange(self._rkey % app_name, 0, self.max_size - 1)
         j.sals.fs.write_bytes(path, msgpack.dumps(records))
 
     def _process_message(self, message):
         record = json.loads(message)[&#34;record&#34;]
-        appname = record[&#34;extra&#34;][&#34;appname&#34;]
-        record_id = self._db.incr(self._rkey_incr % appname)
+        app_name = record[&#34;extra&#34;][&#34;app_name&#34;]
+        record_id = self._db.incr(self._rkey_incr % app_name)
         return dict(
             id=record_id,
-            appname=appname,
+            app_name=app_name,
+            module=record[&#34;name&#34;],
             message=record[&#34;message&#34;],
             level=record[&#34;level&#34;][&#34;no&#34;],
             linenr=record[&#34;line&#34;],
@@ -595,8 +1012,8 @@ takes the same parameters of loguru.logger.add</p></section>
             data=record[&#34;extra&#34;].get(&#34;data&#34;, {}),
         )
 
-    def _clean_up(self, appname):
-        self._db.ltrim(self._rkey % appname, self.max_size, -1)
+    def _clean_up(self, app_name):
+        self._db.ltrim(self._rkey % app_name, self.max_size, -1)
 
     def _handle(self, message: str, **kwargs):
         &#34;&#34;&#34;Logging handler
@@ -608,86 +1025,86 @@ takes the same parameters of loguru.logger.add</p></section>
             return
 
         record = self._process_message(message)
-        appname = record[&#34;appname&#34;]
+        app_name = record[&#34;app_name&#34;]
 
-        rkey = self._rkey % appname
+        rkey = self._rkey % app_name
         self._db.rpush(rkey, json.dumps(record))
 
         if self._db.llen(rkey) &gt; self.max_size:
             if self.dump:
                 part, _ = self._map_identifier(record[&#34;id&#34;] - 1)
-                path = j.sals.fs.join_paths(self.dump_dir, appname, &#34;%s.msgpack&#34; % part)
-                self._dump_records(appname, path)
+                path = j.sals.fs.join_paths(self.dump_dir, app_name, &#34;%s.msgpack&#34; % part)
+                self._dump_records(app_name, path)
 
-            self._clean_up(appname)
+            self._clean_up(app_name)
 
-    def records_count(self, appname: str = &#34;init&#34;) -&gt; int:
+    def records_count(self, app_name: str = DEFAULT_APP_NAME) -&gt; int:
         &#34;&#34;&#34;Gets total number of the records of the app
 
         Arguments:
-            appname {str} -- app name
+            app_name (str): app name
 
         Returns:
             init -- total number of the records
         &#34;&#34;&#34;
-        count = self._db.get(self._rkey_incr % appname)
+        count = self._db.get(self._rkey_incr % app_name)
         if count:
             return int(count)
         return 0
 
-    def record_get(self, identifier: int, appname: str = &#34;init&#34;) -&gt; dict:
+    def record_get(self, identifier: int, app_name: str = DEFAULT_APP_NAME) -&gt; dict:
         &#34;&#34;&#34;Get app log record by its identifier
 
         Arguments:
             identifier {int} -- record identifier
-            appname {str} -- app name
+            app_name {str} -- app name
 
         Returns:
-            dict -- requested log record
+            dict: requested log record
         &#34;&#34;&#34;
-        count = self.records_count(appname)
+        count = self.records_count(app_name)
         part, index = self._map_identifier(identifier)
 
         if identifier &gt; count:
             return
 
         if part &gt; count - self.max_size:
-            record = self._db.lindex(self._rkey % appname, index)
+            record = self._db.lindex(self._rkey % app_name, index)
             return json.loads(record)
 
         if self.dump:
-            path = j.sals.fs.join_paths(self.dump_dir, appname, &#34;%s.msgpack&#34; % part)
+            path = j.sals.fs.join_paths(self.dump_dir, app_name, &#34;%s.msgpack&#34; % part)
             if j.sals.fs.exists(path):
                 records = msgpack.loads(j.sals.fs.read_bytes(path))
                 if records and len(records) &gt; index:
                     return json.loads(records[index])
 
-    def remove_all_records(self, appname: str):
+    def remove_all_records(self, app_name: str):
         &#34;&#34;&#34;Delete all app&#39;s log records
 
         Arguments:
-            appname {str} -- app name
+            app_name (str): app name
         &#34;&#34;&#34;
-        self._db.delete(self._rkey % appname, self._rkey_incr % appname)
-        path = j.sals.fs.join_paths(self.dump_dir, appname)
+        self._db.delete(self._rkey % app_name, self._rkey_incr % app_name)
+        path = j.sals.fs.join_paths(self.dump_dir, app_name)
 
         if self.dump:
             j.sals.fs.rmtree(path)
 
-    def tail(self, appname: str = &#34;init&#34;, limit: int = None) -&gt; iter:
+    def tail(self, app_name: str = DEFAULT_APP_NAME, limit: int = None) -&gt; iter:
         &#34;&#34;&#34;Tail records
 
         Keyword Arguments:
-            appname (str) -- appname (default: {&#34;&#34;})
-            limit (int) -- max number of record to be returned (default: {None})
+            app_name (str): app name.
+            limit (int, optional): max number of record to be returned per page (default: max size)
 
         Yields:
-            iter -- iterator of the requested logs
+            iter: iterator of the requested logs
         &#34;&#34;&#34;
         if limit:
             limit = limit - 1
 
-        records = self._db.lrange(self._rkey % appname, 0, limit or -1)
+        records = self._db.lrange(self._rkey % app_name, 0, limit or -1)
         for record in records:
             yield json.loads(record)</code></pre>
 </details>
@@ -732,42 +1149,42 @@ def max_size(self):
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.core.logging.logging.RedisLogHandler.record_get"><code class="name flex">
-<span>def <span class="ident">record_get</span></span>(<span>self, identifier, appname=&#39;init&#39;)</span>
+<span>def <span class="ident">record_get</span></span>(<span>self, identifier, app_name=&#39;init&#39;)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Get app log record by its identifier</p>
 <h2 id="arguments">Arguments</h2>
 <p>identifier {int} &ndash; record identifier
-appname {str} &ndash; app name</p>
+app_name {str} &ndash; app name</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>dict</code> &ndash; <code>requested</code> <code>log</code> <code>record</code></dt>
-<dd>&nbsp;</dd>
+<dt><strong><code>dict</code></strong></dt>
+<dd>requested log record</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def record_get(self, identifier: int, appname: str = &#34;init&#34;) -&gt; dict:
+<pre><code class="python">def record_get(self, identifier: int, app_name: str = DEFAULT_APP_NAME) -&gt; dict:
     &#34;&#34;&#34;Get app log record by its identifier
 
     Arguments:
         identifier {int} -- record identifier
-        appname {str} -- app name
+        app_name {str} -- app name
 
     Returns:
-        dict -- requested log record
+        dict: requested log record
     &#34;&#34;&#34;
-    count = self.records_count(appname)
+    count = self.records_count(app_name)
     part, index = self._map_identifier(identifier)
 
     if identifier &gt; count:
         return
 
     if part &gt; count - self.max_size:
-        record = self._db.lindex(self._rkey % appname, index)
+        record = self._db.lindex(self._rkey % app_name, index)
         return json.loads(record)
 
     if self.dump:
-        path = j.sals.fs.join_paths(self.dump_dir, appname, &#34;%s.msgpack&#34; % part)
+        path = j.sals.fs.join_paths(self.dump_dir, app_name, &#34;%s.msgpack&#34; % part)
         if j.sals.fs.exists(path):
             records = msgpack.loads(j.sals.fs.read_bytes(path))
             if records and len(records) &gt; index:
@@ -775,12 +1192,15 @@ appname {str} &ndash; app name</p>
 </details>
 </dd>
 <dt id="jumpscale.core.logging.logging.RedisLogHandler.records_count"><code class="name flex">
-<span>def <span class="ident">records_count</span></span>(<span>self, appname=&#39;init&#39;)</span>
+<span>def <span class="ident">records_count</span></span>(<span>self, app_name=&#39;init&#39;)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Gets total number of the records of the app</p>
 <h2 id="arguments">Arguments</h2>
-<p>appname {str} &ndash; app name</p>
+<dl>
+<dt><strong><code>app_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>app name</dd>
+</dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>init</code> &ndash; <code>total</code> <code>number</code> of <code>the</code> <code>records</code></dt>
@@ -788,72 +1208,75 @@ appname {str} &ndash; app name</p>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def records_count(self, appname: str = &#34;init&#34;) -&gt; int:
+<pre><code class="python">def records_count(self, app_name: str = DEFAULT_APP_NAME) -&gt; int:
     &#34;&#34;&#34;Gets total number of the records of the app
 
     Arguments:
-        appname {str} -- app name
+        app_name (str): app name
 
     Returns:
         init -- total number of the records
     &#34;&#34;&#34;
-    count = self._db.get(self._rkey_incr % appname)
+    count = self._db.get(self._rkey_incr % app_name)
     if count:
         return int(count)
     return 0</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.core.logging.logging.RedisLogHandler.remove_all_records"><code class="name flex">
-<span>def <span class="ident">remove_all_records</span></span>(<span>self, appname)</span>
+<span>def <span class="ident">remove_all_records</span></span>(<span>self, app_name)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Delete all app's log records</p>
 <h2 id="arguments">Arguments</h2>
-<p>appname {str} &ndash; app name</p></section>
+<dl>
+<dt><strong><code>app_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>app name</dd>
+</dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def remove_all_records(self, appname: str):
+<pre><code class="python">def remove_all_records(self, app_name: str):
     &#34;&#34;&#34;Delete all app&#39;s log records
 
     Arguments:
-        appname {str} -- app name
+        app_name (str): app name
     &#34;&#34;&#34;
-    self._db.delete(self._rkey % appname, self._rkey_incr % appname)
-    path = j.sals.fs.join_paths(self.dump_dir, appname)
+    self._db.delete(self._rkey % app_name, self._rkey_incr % app_name)
+    path = j.sals.fs.join_paths(self.dump_dir, app_name)
 
     if self.dump:
         j.sals.fs.rmtree(path)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.core.logging.logging.RedisLogHandler.tail"><code class="name flex">
-<span>def <span class="ident">tail</span></span>(<span>self, appname=&#39;init&#39;, limit=None)</span>
+<span>def <span class="ident">tail</span></span>(<span>self, app_name=&#39;init&#39;, limit=None)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>Tail records</p>
 <p>Keyword Arguments:
-appname (str) &ndash; appname (default: {""})
-limit (int) &ndash; max number of record to be returned (default: {None})</p>
+app_name (str): app name.
+limit (int, optional): max number of record to be returned per page (default: max size)</p>
 <h2 id="yields">Yields</h2>
 <dl>
-<dt><code>iter</code> &ndash; <code>iterator</code> of <code>the</code> <code>requested</code> <code>logs</code></dt>
-<dd>&nbsp;</dd>
+<dt><strong><code>iter</code></strong></dt>
+<dd>iterator of the requested logs</dd>
 </dl></section>
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">def tail(self, appname: str = &#34;init&#34;, limit: int = None) -&gt; iter:
+<pre><code class="python">def tail(self, app_name: str = DEFAULT_APP_NAME, limit: int = None) -&gt; iter:
     &#34;&#34;&#34;Tail records
 
     Keyword Arguments:
-        appname (str) -- appname (default: {&#34;&#34;})
-        limit (int) -- max number of record to be returned (default: {None})
+        app_name (str): app name.
+        limit (int, optional): max number of record to be returned per page (default: max size)
 
     Yields:
-        iter -- iterator of the requested logs
+        iter: iterator of the requested logs
     &#34;&#34;&#34;
     if limit:
         limit = limit - 1
 
-    records = self._db.lrange(self._rkey % appname, 0, limit or -1)
+    records = self._db.lrange(self._rkey % app_name, 0, limit or -1)
     for record in records:
         yield json.loads(record)</code></pre>
 </details>
@@ -884,14 +1307,22 @@ limit (int) &ndash; max number of record to be returned (default: {None})</p>
 <ul class="two-column">
 <li><code><a title="jumpscale.core.logging.logging.Logger.add_custom_handler" href="#jumpscale.core.logging.logging.Logger.add_custom_handler">add_custom_handler</a></code></li>
 <li><code><a title="jumpscale.core.logging.logging.Logger.add_handler" href="#jumpscale.core.logging.logging.Logger.add_handler">add_handler</a></code></li>
-<li><code><a title="jumpscale.core.logging.logging.Logger.appname" href="#jumpscale.core.logging.logging.Logger.appname">appname</a></code></li>
 <li><code><a title="jumpscale.core.logging.logging.Logger.critical" href="#jumpscale.core.logging.logging.Logger.critical">critical</a></code></li>
 <li><code><a title="jumpscale.core.logging.logging.Logger.debug" href="#jumpscale.core.logging.logging.Logger.debug">debug</a></code></li>
+<li><code><a title="jumpscale.core.logging.logging.Logger.default_app_name" href="#jumpscale.core.logging.logging.Logger.default_app_name">default_app_name</a></code></li>
 <li><code><a title="jumpscale.core.logging.logging.Logger.error" href="#jumpscale.core.logging.logging.Logger.error">error</a></code></li>
 <li><code><a title="jumpscale.core.logging.logging.Logger.exception" href="#jumpscale.core.logging.logging.Logger.exception">exception</a></code></li>
 <li><code><a title="jumpscale.core.logging.logging.Logger.info" href="#jumpscale.core.logging.logging.Logger.info">info</a></code></li>
-<li><code><a title="jumpscale.core.logging.logging.Logger.set_appname" href="#jumpscale.core.logging.logging.Logger.set_appname">set_appname</a></code></li>
+<li><code><a title="jumpscale.core.logging.logging.Logger.remove_handler" href="#jumpscale.core.logging.logging.Logger.remove_handler">remove_handler</a></code></li>
 <li><code><a title="jumpscale.core.logging.logging.Logger.warning" href="#jumpscale.core.logging.logging.Logger.warning">warning</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.core.logging.logging.MainLogger" href="#jumpscale.core.logging.logging.MainLogger">MainLogger</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.core.logging.logging.MainLogger.get_app_names" href="#jumpscale.core.logging.logging.MainLogger.get_app_names">get_app_names</a></code></li>
+<li><code><a title="jumpscale.core.logging.logging.MainLogger.register" href="#jumpscale.core.logging.logging.MainLogger.register">register</a></code></li>
+<li><code><a title="jumpscale.core.logging.logging.MainLogger.unregister" href="#jumpscale.core.logging.logging.MainLogger.unregister">unregister</a></code></li>
 </ul>
 </li>
 <li>

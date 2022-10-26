@@ -36,8 +36,8 @@ from jumpscale.core.base import fields
 class SendGridClient(Client):
     apikey = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def build_attachment(self, filepath, typ=&#34;application/pdf&#34;):
         &#34;&#34;&#34;
@@ -87,13 +87,14 @@ class SendGridClient(Client):
 <dl>
 <dt id="jumpscale.clients.sendgrid.sendgrid.SendGridClient"><code class="flex name class">
 <span>class <span class="ident">SendGridClient</span></span>
+<span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
 <section class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -114,8 +115,8 @@ print(p.name, p.age)
 <pre><code class="python">class SendGridClient(Client):
     apikey = fields.String()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def build_attachment(self, filepath, typ=&#34;application/pdf&#34;):
         &#34;&#34;&#34;

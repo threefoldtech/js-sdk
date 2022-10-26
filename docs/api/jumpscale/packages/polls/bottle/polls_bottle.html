@@ -22,11 +22,10 @@
 <section id="section-intro">
 <details class="source">
 <summary>Source code</summary>
-<pre><code class="python">from beaker.middleware import SessionMiddleware
-from bottle import Bottle
+<pre><code class="python">from bottle import Bottle
 
 from jumpscale.loader import j
-from jumpscale.packages.auth.bottle.auth import SESSION_OPTS, admin_only, login_required
+from jumpscale.packages.auth.bottle.auth import admin_only, login_required
 from jumpscale.packages.polls.chats.threefold import VOTES
 from jumpscale.sals.chatflows.polls import all_users
 
@@ -66,10 +65,7 @@ def names():
         tname = j.data.text.removeprefix(voter_name, &#34;threefold_&#34;)
         data[&#34;names&#34;].append(voter.extra_data.get(&#34;full_name&#34;, tname))
     data[&#34;-Number of voters&#34;] = all_users.count
-    return data
-
-
-app = SessionMiddleware(app, SESSION_OPTS)</code></pre>
+    return data</code></pre>
 </details>
 </section>
 <section>

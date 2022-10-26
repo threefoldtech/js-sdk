@@ -24,23 +24,26 @@
 <summary>Source code</summary>
 <pre><code class="python">from functools import wraps
 from json import JSONDecodeError
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote, unquote
 
 import nacl
 import requests
-from beaker.middleware import SessionMiddleware
-from bottle import Bottle, abort, redirect, request, response
+from bottle import Bottle, request, abort, redirect, response
 from nacl.public import Box
 from nacl.signing import VerifyKey
 
 from jumpscale.loader import j
 
-SESSION_OPTS = {&#34;session.type&#34;: &#34;file&#34;, &#34;session.data_dir&#34;: f&#34;{j.core.dirs.VARDIR}/data&#34;, &#34;session.auto&#34;: True}
 REDIRECT_URL = &#34;https://login.threefold.me&#34;
 CALLBACK_URL = &#34;/auth/3bot_callback&#34;
 LOGIN_URL = &#34;/auth/login&#34;
 
 app = Bottle()
+
+
+@app.hook(&#34;before_request&#34;)
+def setup_request():
+    request.session = request.environ.get(&#34;beaker.session&#34;, {})
 
 
 templates_path = j.sals.fs.join_paths(j.sals.fs.dirname(__file__), &#34;templates&#34;)
@@ -54,9 +57,9 @@ def login():
     Returns:
         Renders the template of login page
     &#34;&#34;&#34;
-    session = request.environ.get(&#34;beaker.session&#34;)
+    session = request.environ.get(&#34;beaker.session&#34;, {})
     provider = request.query.get(&#34;provider&#34;)
-    next_url = request.query.get(&#34;next_url&#34;, session.get(&#34;next_url&#34;))
+    next_url = quote(request.query.get(&#34;next_url&#34;, session.get(&#34;next_url&#34;, &#34;/&#34;)))
 
     if provider and provider == &#34;3bot&#34;:
         state = j.data.idgenerator.chars(20)
@@ -66,7 +69,7 @@ def login():
         params = {
             &#34;state&#34;: state,
             &#34;appid&#34;: app_id,
-            &#34;scope&#34;: j.data.serializers.json.dumps({&#34;user&#34;: True, &#34;email&#34;: True}),
+            &#34;scope&#34;: j.data.serializers.json.dumps({&#34;user&#34;: True, &#34;email&#34;: True, &#34;walletAddress&#34;: True}),
             &#34;redirecturl&#34;: CALLBACK_URL,
             &#34;publickey&#34;: j.core.identity.me.nacl.public_key.encode(encoder=nacl.encoding.Base64Encoder),
         }
@@ -155,22 +158,18 @@ def callback():
     )
 
     if res.status_code != 200:
-        return abort(400, &#34;Email is not verified&#34;)
+        next_url = request.query.get(&#34;next_url&#34;, &#34;/auth/logout&#34;)
+        return env.get_template(&#34;email_not_verified.html&#34;).render(next_url=next_url)
 
+    username = username.lower()  # workaround usernames that are returned by signed attempt with camel cases
     session[&#34;username&#34;] = username
     session[&#34;email&#34;] = email
     session[&#34;authorized&#34;] = True
     session[&#34;signedAttempt&#34;] = signedData
-    try:
-        tid = j.sals.reservation_chatflow.reservation_chatflow.validate_user({&#34;username&#34;: username, &#34;email&#34;: email}).id
-        session[&#34;tid&#34;] = tid
-        session[&#34;explorer&#34;] = j.core.identity.me.explorer_url
-    except Exception as e:
-        j.logger.warning(
-            f&#34;Error in validating user: {username} with email: {email} in explorer: {j.core.identity.me.explorer_url}\n from {str(e)}&#34;
-        )
+    if result.get(&#34;walletAddressData&#34;):
+        session[&#34;walletAddress&#34;] = result.get(&#34;walletAddressData&#34;).get(&#34;address&#34;)
 
-    return redirect(session.get(&#34;next_url&#34;, &#34;/&#34;))
+    return redirect(unquote(session.get(&#34;next_url&#34;, &#34;/&#34;)))
 
 
 @app.route(&#34;/logout&#34;)
@@ -198,8 +197,25 @@ def access_denied():
         Renders access denied page
     &#34;&#34;&#34;
     email = request.environ.get(&#34;beaker.session&#34;).get(&#34;email&#34;)
-    next_url = request.query.get(&#34;next_url&#34;)
+    next_url = request.query.get(&#34;next_url&#34;, &#34;/auth/logout&#34;)
     return env.get_template(&#34;access_denied.html&#34;).render(email=email, next_url=next_url)
+
+
+@app.route(&#34;/auto_login&#34;)
+def auto_login():
+    &#34;&#34;&#34;Auto login is used for testing for skipping login and use the current user&#39;s info instead.
+
+    Returns:
+        Redirect to the admin dashboard.
+    &#34;&#34;&#34;
+    if j.core.config.get(&#34;AUTO_LOGIN&#34;):
+        session = request.environ.get(&#34;beaker.session&#34;, {})
+        session[&#34;username&#34;] = j.core.identity.me.tname
+        session[&#34;email&#34;] = j.core.identity.me.email
+        session[&#34;authorized&#34;] = True
+        session[&#34;walletAddress&#34;] = &#34;&#34;
+
+    return redirect(&#34;/admin&#34;)
 
 
 def get_user_info():
@@ -209,32 +225,26 @@ def get_user_info():
         [JSON string]: [user information session]
     &#34;&#34;&#34;
 
-    def _valid(tname, temail, explorer_url):
+    def _valid(tname, temail):
+        if not j.core.identity.is_configured:
+            return False
         if tname != j.core.identity.me.tname:
             return False
         if temail != j.core.identity.me.email:
-            return False
-        if explorer_url != j.core.identity.me.explorer_url:
             return False
         return True
 
     session = request.environ.get(&#34;beaker.session&#34;, {})
     tname = session.get(&#34;username&#34;, &#34;&#34;)
     temail = session.get(&#34;email&#34;, &#34;&#34;)
-    tid = session.get(&#34;tid&#34;)
-    explorer_url = session.get(&#34;explorer&#34;)
+    tid = session.get(&#34;tid&#34;, 0)
+    wallet_address = session.get(&#34;walletAddress&#34;, &#34;&#34;)
+
     # update tid in session when the identity changes
-    if not _valid(tname, temail, explorer_url):
+    devmode = not j.core.identity.is_configured
+    if not devmode and not _valid(tname, temail):
         session[&#34;tid&#34;] = None
-        session[&#34;explorer&#34;] = j.core.identity.me.explorer_url
-        try:
-            session[&#34;tid&#34;] = j.sals.reservation_chatflow.reservation_chatflow.validate_user(
-                {&#34;username&#34;: tname, &#34;email&#34;: temail}
-            ).id
-        except Exception as e:
-            j.logger.warning(
-                f&#34;Error in validating user: {tname} with email: {temail} in explorer: {j.core.identity.me.explorer_url}\n from {str(e)}&#34;
-            )
+
     session.get(&#34;signedAttempt&#34;, &#34;&#34;)
     response.content_type = &#34;application/json&#34;
     return j.data.serializers.json.dumps(
@@ -243,6 +253,7 @@ def get_user_info():
             &#34;email&#34;: temail.lower(),
             &#34;tid&#34;: tid,
             &#34;devmode&#34;: not j.core.config.get_config().get(&#34;threebot_connect&#34;, True),
+            &#34;walletAddress&#34;: wallet_address,
         }
     )
 
@@ -256,8 +267,11 @@ def is_admin(tname):
     Returns:
         [Bool]: [True if the user is an admin]
     &#34;&#34;&#34;
-    threebot_me = j.core.identity.me
-    return threebot_me.tname == tname or tname in threebot_me.admins
+    if j.core.identity.is_configured:
+        threebot_me = j.core.identity.me
+        return threebot_me.tname == tname or tname in threebot_me.admins
+    else:
+        return True
 
 
 def authenticated(handler):
@@ -268,8 +282,8 @@ def authenticated(handler):
     &#34;&#34;&#34;
 
     def decorator(*args, **kwargs):
-        session = request.environ.get(&#34;beaker.session&#34;)
-        if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
+        session = request.environ.get(&#34;beaker.session&#34;, {})
+        if j.core.config.get_config().get(&#34;threebot_connect&#34;, True) and j.core.identity.is_configured:
             if not session.get(&#34;authorized&#34;, False):
                 return abort(401)
         return handler(*args, **kwargs)
@@ -319,6 +333,40 @@ def is_authorized():
     return get_user_info()
 
 
+@app.route(&#34;/package_authorized/&lt;package_name&gt;&#34;)
+@authenticated
+def is_package_authorized(package_name):
+    &#34;&#34;&#34;
+    get user information if it is authorized user in the package config
+
+    Returns:
+        [JSON string]: [user information session]
+    &#34;&#34;&#34;
+    authorized_users = get_package_admins(package_name)
+    user_info = get_user_info()
+    user_dict = j.data.serializers.json.loads(user_info)
+    username = user_dict[&#34;username&#34;]
+    # if the package doesn&#39;t include admins then allow any authenticated user
+    if authorized_users and not any([username in authorized_users, username in j.core.identity.me.admins]):
+        return abort(403)
+    return user_info
+
+
+def package_authorized(package_name):
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            authorized_users = get_package_admins(package_name)
+            session = request.environ.get(&#34;beaker.session&#34;)
+            username = session.get(&#34;username&#34;)
+            if authorized_users and not any([username in authorized_users, username in j.core.identity.me.admins]):
+                return abort(403)
+            return function(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 def login_required(func):
     &#34;&#34;&#34;Decorator for the methods we want to secure
 
@@ -328,7 +376,7 @@ def login_required(func):
 
     @wraps(func)
     def decorator(*args, **kwargs):
-        session = request.environ.get(&#34;beaker.session&#34;)
+        session = request.environ.get(&#34;beaker.session&#34;, {})
         if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
             if not session.get(&#34;authorized&#34;, False):
                 session[&#34;next_url&#34;] = request.url
@@ -338,7 +386,19 @@ def login_required(func):
     return decorator
 
 
-app = SessionMiddleware(app, SESSION_OPTS)</code></pre>
+def add_package_user(package_name, username):
+    package = j.servers.threebot.default.packages.get(package_name)
+    if not package:
+        raise j.exceptions.Validation(f&#34;can&#39;t add admin to non installed package {package_name}&#34;)
+    package.admins.append(username)
+    j.servers.threebot.default.packages.save()
+
+
+def get_package_admins(package_name):
+    package = j.servers.threebot.default.packages.get(package_name)
+    if not package:
+        raise j.exceptions.Validation(f&#34;package {package_name} is not installed&#34;)
+    return package.admins</code></pre>
 </details>
 </section>
 <section>
@@ -368,8 +428,23 @@ def access_denied():
         Renders access denied page
     &#34;&#34;&#34;
     email = request.environ.get(&#34;beaker.session&#34;).get(&#34;email&#34;)
-    next_url = request.query.get(&#34;next_url&#34;)
+    next_url = request.query.get(&#34;next_url&#34;, &#34;/auth/logout&#34;)
     return env.get_template(&#34;access_denied.html&#34;).render(email=email, next_url=next_url)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.add_package_user"><code class="name flex">
+<span>def <span class="ident">add_package_user</span></span>(<span>package_name, username)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def add_package_user(package_name, username):
+    package = j.servers.threebot.default.packages.get(package_name)
+    if not package:
+        raise j.exceptions.Validation(f&#34;can&#39;t add admin to non installed package {package_name}&#34;)
+    package.admins.append(username)
+    j.servers.threebot.default.packages.save()</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.auth.bottle.auth.admin_only"><code class="name flex">
@@ -417,13 +492,39 @@ def access_denied():
     &#34;&#34;&#34;
 
     def decorator(*args, **kwargs):
-        session = request.environ.get(&#34;beaker.session&#34;)
-        if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
+        session = request.environ.get(&#34;beaker.session&#34;, {})
+        if j.core.config.get_config().get(&#34;threebot_connect&#34;, True) and j.core.identity.is_configured:
             if not session.get(&#34;authorized&#34;, False):
                 return abort(401)
         return handler(*args, **kwargs)
 
     return decorator</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.auto_login"><code class="name flex">
+<span>def <span class="ident">auto_login</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Auto login is used for testing for skipping login and use the current user's info instead.</p>
+<h2 id="returns">Returns</h2>
+<p>Redirect to the admin dashboard.</p></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@app.route(&#34;/auto_login&#34;)
+def auto_login():
+    &#34;&#34;&#34;Auto login is used for testing for skipping login and use the current user&#39;s info instead.
+
+    Returns:
+        Redirect to the admin dashboard.
+    &#34;&#34;&#34;
+    if j.core.config.get(&#34;AUTO_LOGIN&#34;):
+        session = request.environ.get(&#34;beaker.session&#34;, {})
+        session[&#34;username&#34;] = j.core.identity.me.tname
+        session[&#34;email&#34;] = j.core.identity.me.email
+        session[&#34;authorized&#34;] = True
+        session[&#34;walletAddress&#34;] = &#34;&#34;
+
+    return redirect(&#34;/admin&#34;)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.auth.bottle.auth.callback"><code class="name flex">
@@ -517,22 +618,32 @@ def callback():
     )
 
     if res.status_code != 200:
-        return abort(400, &#34;Email is not verified&#34;)
+        next_url = request.query.get(&#34;next_url&#34;, &#34;/auth/logout&#34;)
+        return env.get_template(&#34;email_not_verified.html&#34;).render(next_url=next_url)
 
+    username = username.lower()  # workaround usernames that are returned by signed attempt with camel cases
     session[&#34;username&#34;] = username
     session[&#34;email&#34;] = email
     session[&#34;authorized&#34;] = True
     session[&#34;signedAttempt&#34;] = signedData
-    try:
-        tid = j.sals.reservation_chatflow.reservation_chatflow.validate_user({&#34;username&#34;: username, &#34;email&#34;: email}).id
-        session[&#34;tid&#34;] = tid
-        session[&#34;explorer&#34;] = j.core.identity.me.explorer_url
-    except Exception as e:
-        j.logger.warning(
-            f&#34;Error in validating user: {username} with email: {email} in explorer: {j.core.identity.me.explorer_url}\n from {str(e)}&#34;
-        )
+    if result.get(&#34;walletAddressData&#34;):
+        session[&#34;walletAddress&#34;] = result.get(&#34;walletAddressData&#34;).get(&#34;address&#34;)
 
-    return redirect(session.get(&#34;next_url&#34;, &#34;/&#34;))</code></pre>
+    return redirect(unquote(session.get(&#34;next_url&#34;, &#34;/&#34;)))</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.get_package_admins"><code class="name flex">
+<span>def <span class="ident">get_package_admins</span></span>(<span>package_name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def get_package_admins(package_name):
+    package = j.servers.threebot.default.packages.get(package_name)
+    if not package:
+        raise j.exceptions.Validation(f&#34;package {package_name} is not installed&#34;)
+    return package.admins</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.auth.bottle.auth.get_user_info"><code class="name flex">
@@ -551,32 +662,26 @@ def callback():
         [JSON string]: [user information session]
     &#34;&#34;&#34;
 
-    def _valid(tname, temail, explorer_url):
+    def _valid(tname, temail):
+        if not j.core.identity.is_configured:
+            return False
         if tname != j.core.identity.me.tname:
             return False
         if temail != j.core.identity.me.email:
-            return False
-        if explorer_url != j.core.identity.me.explorer_url:
             return False
         return True
 
     session = request.environ.get(&#34;beaker.session&#34;, {})
     tname = session.get(&#34;username&#34;, &#34;&#34;)
     temail = session.get(&#34;email&#34;, &#34;&#34;)
-    tid = session.get(&#34;tid&#34;)
-    explorer_url = session.get(&#34;explorer&#34;)
+    tid = session.get(&#34;tid&#34;, 0)
+    wallet_address = session.get(&#34;walletAddress&#34;, &#34;&#34;)
+
     # update tid in session when the identity changes
-    if not _valid(tname, temail, explorer_url):
+    devmode = not j.core.identity.is_configured
+    if not devmode and not _valid(tname, temail):
         session[&#34;tid&#34;] = None
-        session[&#34;explorer&#34;] = j.core.identity.me.explorer_url
-        try:
-            session[&#34;tid&#34;] = j.sals.reservation_chatflow.reservation_chatflow.validate_user(
-                {&#34;username&#34;: tname, &#34;email&#34;: temail}
-            ).id
-        except Exception as e:
-            j.logger.warning(
-                f&#34;Error in validating user: {tname} with email: {temail} in explorer: {j.core.identity.me.explorer_url}\n from {str(e)}&#34;
-            )
+
     session.get(&#34;signedAttempt&#34;, &#34;&#34;)
     response.content_type = &#34;application/json&#34;
     return j.data.serializers.json.dumps(
@@ -585,6 +690,7 @@ def callback():
             &#34;email&#34;: temail.lower(),
             &#34;tid&#34;: tid,
             &#34;devmode&#34;: not j.core.config.get_config().get(&#34;threebot_connect&#34;, True),
+            &#34;walletAddress&#34;: wallet_address,
         }
     )</code></pre>
 </details>
@@ -612,8 +718,11 @@ def callback():
     Returns:
         [Bool]: [True if the user is an admin]
     &#34;&#34;&#34;
-    threebot_me = j.core.identity.me
-    return threebot_me.tname == tname or tname in threebot_me.admins</code></pre>
+    if j.core.identity.is_configured:
+        threebot_me = j.core.identity.me
+        return threebot_me.tname == tname or tname in threebot_me.admins
+    else:
+        return True</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.auth.bottle.auth.is_authenticated"><code class="name flex">
@@ -624,8 +733,8 @@ def callback():
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def decorator(*args, **kwargs):
-    session = request.environ.get(&#34;beaker.session&#34;)
-    if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
+    session = request.environ.get(&#34;beaker.session&#34;, {})
+    if j.core.config.get_config().get(&#34;threebot_connect&#34;, True) and j.core.identity.is_configured:
         if not session.get(&#34;authorized&#34;, False):
             return abort(401)
     return handler(*args, **kwargs)</code></pre>
@@ -639,8 +748,23 @@ def callback():
 <details class="source">
 <summary>Source code</summary>
 <pre><code class="python">def decorator(*args, **kwargs):
-    session = request.environ.get(&#34;beaker.session&#34;)
-    if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
+    session = request.environ.get(&#34;beaker.session&#34;, {})
+    if j.core.config.get_config().get(&#34;threebot_connect&#34;, True) and j.core.identity.is_configured:
+        if not session.get(&#34;authorized&#34;, False):
+            return abort(401)
+    return handler(*args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.is_package_authorized"><code class="name flex">
+<span>def <span class="ident">is_package_authorized</span></span>(<span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def decorator(*args, **kwargs):
+    session = request.environ.get(&#34;beaker.session&#34;, {})
+    if j.core.config.get_config().get(&#34;threebot_connect&#34;, True) and j.core.identity.is_configured:
         if not session.get(&#34;authorized&#34;, False):
             return abort(401)
     return handler(*args, **kwargs)</code></pre>
@@ -665,9 +789,9 @@ def login():
     Returns:
         Renders the template of login page
     &#34;&#34;&#34;
-    session = request.environ.get(&#34;beaker.session&#34;)
+    session = request.environ.get(&#34;beaker.session&#34;, {})
     provider = request.query.get(&#34;provider&#34;)
-    next_url = request.query.get(&#34;next_url&#34;, session.get(&#34;next_url&#34;))
+    next_url = quote(request.query.get(&#34;next_url&#34;, session.get(&#34;next_url&#34;, &#34;/&#34;)))
 
     if provider and provider == &#34;3bot&#34;:
         state = j.data.idgenerator.chars(20)
@@ -677,7 +801,7 @@ def login():
         params = {
             &#34;state&#34;: state,
             &#34;appid&#34;: app_id,
-            &#34;scope&#34;: j.data.serializers.json.dumps({&#34;user&#34;: True, &#34;email&#34;: True}),
+            &#34;scope&#34;: j.data.serializers.json.dumps({&#34;user&#34;: True, &#34;email&#34;: True, &#34;walletAddress&#34;: True}),
             &#34;redirecturl&#34;: CALLBACK_URL,
             &#34;publickey&#34;: j.core.identity.me.nacl.public_key.encode(encoder=nacl.encoding.Base64Encoder),
         }
@@ -705,7 +829,7 @@ def login():
 
     @wraps(func)
     def decorator(*args, **kwargs):
-        session = request.environ.get(&#34;beaker.session&#34;)
+        session = request.environ.get(&#34;beaker.session&#34;, {})
         if j.core.config.get_config().get(&#34;threebot_connect&#34;, True):
             if not session.get(&#34;authorized&#34;, False):
                 session[&#34;next_url&#34;] = request.url
@@ -744,6 +868,40 @@ def logout():
     return redirect(f&#34;{LOGIN_URL}?next_url={next_url}&#34;)</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.packages.auth.bottle.auth.package_authorized"><code class="name flex">
+<span>def <span class="ident">package_authorized</span></span>(<span>package_name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">def package_authorized(package_name):
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            authorized_users = get_package_admins(package_name)
+            session = request.environ.get(&#34;beaker.session&#34;)
+            username = session.get(&#34;username&#34;)
+            if authorized_users and not any([username in authorized_users, username in j.core.identity.me.admins]):
+                return abort(403)
+            return function(*args, **kwargs)
+
+        return wrapper
+
+    return decorator</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.packages.auth.bottle.auth.setup_request"><code class="name flex">
+<span>def <span class="ident">setup_request</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+<details class="source">
+<summary>Source code</summary>
+<pre><code class="python">@app.hook(&#34;before_request&#34;)
+def setup_request():
+    request.session = request.environ.get(&#34;beaker.session&#34;, {})</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -761,18 +919,24 @@ def logout():
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="jumpscale.packages.auth.bottle.auth.access_denied" href="#jumpscale.packages.auth.bottle.auth.access_denied">access_denied</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.add_package_user" href="#jumpscale.packages.auth.bottle.auth.add_package_user">add_package_user</a></code></li>
 <li><code><a title="jumpscale.packages.auth.bottle.auth.admin_only" href="#jumpscale.packages.auth.bottle.auth.admin_only">admin_only</a></code></li>
 <li><code><a title="jumpscale.packages.auth.bottle.auth.authenticated" href="#jumpscale.packages.auth.bottle.auth.authenticated">authenticated</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.auto_login" href="#jumpscale.packages.auth.bottle.auth.auto_login">auto_login</a></code></li>
 <li><code><a title="jumpscale.packages.auth.bottle.auth.callback" href="#jumpscale.packages.auth.bottle.auth.callback">callback</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.get_package_admins" href="#jumpscale.packages.auth.bottle.auth.get_package_admins">get_package_admins</a></code></li>
 <li><code><a title="jumpscale.packages.auth.bottle.auth.get_user_info" href="#jumpscale.packages.auth.bottle.auth.get_user_info">get_user_info</a></code></li>
 <li><code><a title="jumpscale.packages.auth.bottle.auth.is_admin" href="#jumpscale.packages.auth.bottle.auth.is_admin">is_admin</a></code></li>
 <li><code><a title="jumpscale.packages.auth.bottle.auth.is_authenticated" href="#jumpscale.packages.auth.bottle.auth.is_authenticated">is_authenticated</a></code></li>
 <li><code><a title="jumpscale.packages.auth.bottle.auth.is_authorized" href="#jumpscale.packages.auth.bottle.auth.is_authorized">is_authorized</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.is_package_authorized" href="#jumpscale.packages.auth.bottle.auth.is_package_authorized">is_package_authorized</a></code></li>
 <li><code><a title="jumpscale.packages.auth.bottle.auth.login" href="#jumpscale.packages.auth.bottle.auth.login">login</a></code></li>
 <li><code><a title="jumpscale.packages.auth.bottle.auth.login_required" href="#jumpscale.packages.auth.bottle.auth.login_required">login_required</a></code></li>
 <li><code><a title="jumpscale.packages.auth.bottle.auth.logout" href="#jumpscale.packages.auth.bottle.auth.logout">logout</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.package_authorized" href="#jumpscale.packages.auth.bottle.auth.package_authorized">package_authorized</a></code></li>
+<li><code><a title="jumpscale.packages.auth.bottle.auth.setup_request" href="#jumpscale.packages.auth.bottle.auth.setup_request">setup_request</a></code></li>
 </ul>
 </li>
 </ul>
