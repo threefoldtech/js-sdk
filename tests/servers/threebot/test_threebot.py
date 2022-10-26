@@ -163,27 +163,29 @@ class Test3BotServer(BaseTests):
         - Try to delete non exists package, and make sure that the error has been raised.
         """
         self.info("Add a package")
-        from jumpscale.packages import farmmanagement
+        from jumpscale.packages import stellar_stats as target_package
 
-        path = j.sals.fs.dirname(farmmanagement.__file__)
+        target_name = target_package.__name__.split(".")[-1]
+        path = j.sals.fs.dirname(target_package.__file__)
 
-        farm_management = j.servers.threebot.default.packages.add(path)
-        farm_management_dir = {
-            "farmmanagement": {
-                "name": "farmmanagement",
-                "path": path,
-                "giturl": None,
-                "kwargs": {},
-                "admins": [],
-                "ui_name": "farmmanagement",
-            }
-        }
-
-        self.assertEqual(farm_management, farm_management_dir)
+        target_info = j.servers.threebot.default.packages.add(path)
+        self.assertEqual(
+            target_info,
+            {
+                target_name: {
+                    "name": target_name,
+                    "path": path,
+                    "giturl": None,
+                    "kwargs": {},
+                    "admins": [],
+                    "ui_name": target_name,
+                }
+            },
+        )
 
         self.info("Check that the package has been added")
         packages_list = j.servers.threebot.default.packages.list_all()
-        self.assertIn("farmmanagement", packages_list)
+        self.assertIn(target_name, packages_list)
 
         self.info("Try to add wrong package, and check that there is an error")
         with self.assertRaises(Exception) as error:
@@ -191,11 +193,11 @@ class Test3BotServer(BaseTests):
             self.assertIn("No such file or directory : 'test_wrong_package/package.toml'", error.exception.args[0])
 
         self.info("Delete a package")
-        j.servers.threebot.default.packages.delete("farmmanagement")
+        j.servers.threebot.default.packages.delete(target_name)
 
         self.info("Check that the package is deleted correctly")
         packages_list = j.servers.threebot.default.packages.list_all()
-        self.assertNotIn("farmmanagement", packages_list)
+        self.assertNotIn(target_name, packages_list)
 
         self.info("Try to delete non exists package, and make sure that the error has been raised")
         with self.assertRaises(Exception) as error:
