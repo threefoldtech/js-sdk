@@ -96,6 +96,7 @@ class Identity(Base):
         if self.tname not in self.admins:
             self.admins.append(self.tname)
         self._tid = random_int(1, 100000000)
+        return self._tid
 
     def set_default(self):
         from jumpscale.loader import j

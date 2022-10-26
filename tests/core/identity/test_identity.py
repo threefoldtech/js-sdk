@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 from jumpscale.loader import j
 import os
 
@@ -86,6 +86,7 @@ class TestIdentity(TestCase):
 
         self.assertIsNone(j.core.identity.find(self.instance_name))
 
+    @skip("registration now jus gets a random id")
     def test004_register_fake_identity(self):
         """Test case for delete my identity.
 
