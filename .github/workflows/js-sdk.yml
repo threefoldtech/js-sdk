@@ -34,10 +34,10 @@ jobs:
             python-version: '3.10'
             experimental: true
             name: Experimental build - latest Ubuntu
-          - os: ubuntu-22.04
-            python-version: 3.11
-            experimental: true
-            name: Experimental build - latest Python
+          # - os: ubuntu-22.04
+          #   python-version: 3.11
+          #   experimental: true
+          #   name: Experimental build - latest Python
     steps:
       - uses: actions/checkout@master
       - name: Set up Python ${{ matrix.python-version }}
