@@ -32,7 +32,7 @@ jobs:
         include:
           - os: ubuntu-22.04
             python-version: '3.10'
-            experimental: true
+            experimental: false
             name: Experimental build - latest Ubuntu
           # - os: ubuntu-22.04
           #   python-version: 3.11
