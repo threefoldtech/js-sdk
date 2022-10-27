@@ -220,47 +220,47 @@ python-versions = "*"
 
 [[package]]
 name = "certbot"
-version = "1.11.0"
+version = "1.31.0"
 description = "ACME client"
 category = "main"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
+python-versions = ">=3.7"
 
 [package.dependencies]
-acme = ">=1.8.0"
+acme = ">=1.31.0"
 ConfigArgParse = ">=0.9.3"
-configobj = "*"
-cryptography = ">=1.2.3"
+configobj = ">=5.0.6"
+cryptography = ">=2.5.0"
 distro = ">=1.0.1"
-josepy = ">=1.1.0"
-parsedatetime = ">=1.3"
+josepy = ">=1.13.0"
+parsedatetime = ">=2.4"
 pyrfc3339 = "*"
-pytz = "*"
-pywin32 = {version = ">=227", markers = "sys_platform == \"win32\""}
-setuptools = "*"
+pytz = ">=2019.3"
+pywin32 = {version = ">=300", markers = "sys_platform == \"win32\""}
+setuptools = ">=41.6.0"
 "zope.component" = "*"
 "zope.interface" = "*"
 
 [package.extras]
-dev = ["coverage", "pytest", "pytest-cov", "pytest-xdist", "tox", "twine", "wheel"]
-dev3 = ["PyGithub", "astroid", "azure-devops", "ipdb", "mypy", "pylint"]
-docs = ["Sphinx (>=1.2)", "repoze.sphinx.autointerface", "sphinx-rtd-theme"]
+all = ["Sphinx (>=1.2)", "azure-devops", "coverage", "ipdb", "mypy", "pip", "poetry (>=1.2.0a1)", "pylint", "pytest", "pytest-cov", "pytest-xdist", "setuptools", "sphinx-rtd-theme", "tox", "twine", "types-mock", "types-pyOpenSSL", "types-pyRFC3339", "types-pytz", "types-requests", "types-setuptools", "types-six", "typing-extensions", "wheel"]
+dev = ["azure-devops", "ipdb", "poetry (>=1.2.0a1)", "twine"]
+docs = ["Sphinx (>=1.2)", "sphinx-rtd-theme"]
+test = ["coverage", "mypy", "pip", "pylint", "pytest", "pytest-cov", "pytest-xdist", "setuptools", "tox", "types-mock", "types-pyOpenSSL", "types-pyRFC3339", "types-pytz", "types-requests", "types-setuptools", "types-six", "typing-extensions", "wheel"]
 
 [[package]]
 name = "certbot-nginx"
-version = "1.5.0"
+version = "1.31.0"
 description = "Nginx plugin for Certbot"
 category = "main"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+python-versions = ">=3.7"
 
 [package.dependencies]
-acme = ">=1.4.0"
-certbot = ">=1.4.0"
-PyOpenSSL = "*"
-pyparsing = ">=1.5.5"
-setuptools = "*"
-"zope.interface" = "*"
+acme = ">=1.31.0"
+certbot = ">=1.31.0"
+PyOpenSSL = ">=17.5.0"
+pyparsing = ">=2.2.1"
+setuptools = ">=41.6.0"
 
 [[package]]
 name = "certifi"
@@ -451,14 +451,14 @@ IDNA = ["idna (>=2.1)"]
 
 [[package]]
 name = "docker"
-version = "4.4.4"
+version = "4.2.2"
 description = "A Python library for the Docker Engine API."
 category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.dependencies]
-pywin32 = {version = "227", markers = "sys_platform == \"win32\""}
+pypiwin32 = {version = "223", markers = "sys_platform == \"win32\" and python_version >= \"3.6\""}
 requests = ">=2.14.2,<2.18.0 || >2.18.0"
 six = ">=1.4.0"
 websocket-client = ">=0.32.0"
@@ -1360,6 +1360,17 @@ python-versions = ">=3.6.8"
 diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
+name = "pypiwin32"
+version = "223"
+description = ""
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+pywin32 = ">=223"
+
+[[package]]
 name = "pypng"
 version = "0.0.20"
 description = "Pure Python PNG image encoder/decoder"
@@ -1489,7 +1500,7 @@ python-versions = "*"
 
 [[package]]
 name = "pywin32"
-version = "227"
+version = "304"
 description = "Python for Window Extensions"
 category = "main"
 optional = false
@@ -1901,7 +1912,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<4.0"
-content-hash = "814b99dbbd81ba663b0b83f41c361c268fbfa2e0bfcb1395bb256f61b70761ac"
+content-hash = "4f643fd9c109e38b7d293fa2fcb509359f880d175ca59b85a04fd4e86d43b5fb"
 
 [metadata.files]
 acme = [
@@ -2095,12 +2106,12 @@ bottle = [
     {file = "bottle-0.12.23.tar.gz", hash = "sha256:683de3aa399fb26e87b274dbcf70b1a651385d459131716387abdc3792e04167"},
 ]
 certbot = [
-    {file = "certbot-1.11.0-py2.py3-none-any.whl", hash = "sha256:b7faa66c40a1ce5a31bfc8668d8feb5d2db6f7af9e791079a6d95c77b6593bf4"},
-    {file = "certbot-1.11.0.tar.gz", hash = "sha256:6b0ce04e55379aff0a47f873fa05c084538ad0f4a9b79f33108dbb0a7a668b43"},
+    {file = "certbot-1.31.0-py3-none-any.whl", hash = "sha256:dc8c86d1b56dd3ca35139967f05ed6a9264fda8107d2783f24f42868e8ae54af"},
+    {file = "certbot-1.31.0.tar.gz", hash = "sha256:29af531d33aaa87c8104864cd31ac2af541f0ec973a7252d7f7f5b15e10479db"},
 ]
 certbot-nginx = [
-    {file = "certbot-nginx-1.5.0.tar.gz", hash = "sha256:b38f101588af6d2b8ea7c2e3334f249afbe14461a85add2f1420091d860df983"},
-    {file = "certbot_nginx-1.5.0-py2.py3-none-any.whl", hash = "sha256:3d27fd02ebe15b07ce5fa9525ceeda82aa5fdc45aa064729434faff0442d1f91"},
+    {file = "certbot-nginx-1.31.0.tar.gz", hash = "sha256:8f109c5e14061bcffba8c4c6c7341c8bc814756c00461e32136e556abe638510"},
+    {file = "certbot_nginx-1.31.0-py3-none-any.whl", hash = "sha256:48fe179cc8ed5ed6a6ab4676158cf5158200266a1f235f42c4d8598ebecde80c"},
 ]
 certifi = [
     {file = "certifi-2019.11.28-py2.py3-none-any.whl", hash = "sha256:017c25db2a153ce562900032d5bc68e9f191e44e9a0f762f373977de9df1fbb3"},
@@ -2290,8 +2301,8 @@ dnspython = [
     {file = "dnspython-1.16.0.zip", hash = "sha256:36c5e8e38d4369a08b6780b7f27d790a292b2b08eea01607865bf0936c558e01"},
 ]
 docker = [
-    {file = "docker-4.4.4-py2.py3-none-any.whl", hash = "sha256:f3607d5695be025fa405a12aca2e5df702a57db63790c73b927eb6a94aac60af"},
-    {file = "docker-4.4.4.tar.gz", hash = "sha256:d3393c878f575d3a9ca3b94471a3c89a6d960b35feb92f033c0de36cc9d934db"},
+    {file = "docker-4.2.2-py2.py3-none-any.whl", hash = "sha256:03a46400c4080cb6f7aa997f881ddd84fef855499ece219d75fbdb53289c17ab"},
+    {file = "docker-4.2.2.tar.gz", hash = "sha256:26eebadce7e298f55b76a88c4f8802476c5eaddbdbe38dbc6cce8781c47c9b54"},
 ]
 docopt = [
     {file = "docopt-0.6.2.tar.gz", hash = "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491"},
@@ -2925,6 +2936,10 @@ pyparsing = [
     {file = "pyparsing-3.0.9-py3-none-any.whl", hash = "sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"},
     {file = "pyparsing-3.0.9.tar.gz", hash = "sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb"},
 ]
+pypiwin32 = [
+    {file = "pypiwin32-223-py3-none-any.whl", hash = "sha256:67adf399debc1d5d14dffc1ab5acacb800da569754fafdc576b2a039485aa775"},
+    {file = "pypiwin32-223.tar.gz", hash = "sha256:71be40c1fbd28594214ecaecb58e7aa8b708eabfa0125c8a109ebd51edbd776a"},
+]
 pypng = [
     {file = "pypng-0.0.20-py3-none-any.whl", hash = "sha256:1f9c9cc24030459abbb2813a62b2bbcdb43ad0867e2f2232a302655308b3d25f"},
     {file = "pypng-0.0.20.tar.gz", hash = "sha256:1032833440c91bafee38a42c38c02d00431b24c42927feb3e63b104d8550170b"},
@@ -2970,18 +2985,20 @@ pytz = [
     {file = "pytz-2022.4.tar.gz", hash = "sha256:48ce799d83b6f8aab2020e369b627446696619e79645419610b9facd909b3174"},
 ]
 pywin32 = [
-    {file = "pywin32-227-cp27-cp27m-win32.whl", hash = "sha256:371fcc39416d736401f0274dd64c2302728c9e034808e37381b5e1b22be4a6b0"},
-    {file = "pywin32-227-cp27-cp27m-win_amd64.whl", hash = "sha256:4cdad3e84191194ea6d0dd1b1b9bdda574ff563177d2adf2b4efec2a244fa116"},
-    {file = "pywin32-227-cp35-cp35m-win32.whl", hash = "sha256:f4c5be1a293bae0076d93c88f37ee8da68136744588bc5e2be2f299a34ceb7aa"},
-    {file = "pywin32-227-cp35-cp35m-win_amd64.whl", hash = "sha256:a929a4af626e530383a579431b70e512e736e9588106715215bf685a3ea508d4"},
-    {file = "pywin32-227-cp36-cp36m-win32.whl", hash = "sha256:300a2db938e98c3e7e2093e4491439e62287d0d493fe07cce110db070b54c0be"},
-    {file = "pywin32-227-cp36-cp36m-win_amd64.whl", hash = "sha256:9b31e009564fb95db160f154e2aa195ed66bcc4c058ed72850d047141b36f3a2"},
-    {file = "pywin32-227-cp37-cp37m-win32.whl", hash = "sha256:47a3c7551376a865dd8d095a98deba954a98f326c6fe3c72d8726ca6e6b15507"},
-    {file = "pywin32-227-cp37-cp37m-win_amd64.whl", hash = "sha256:31f88a89139cb2adc40f8f0e65ee56a8c585f629974f9e07622ba80199057511"},
-    {file = "pywin32-227-cp38-cp38-win32.whl", hash = "sha256:7f18199fbf29ca99dff10e1f09451582ae9e372a892ff03a28528a24d55875bc"},
-    {file = "pywin32-227-cp38-cp38-win_amd64.whl", hash = "sha256:7c1ae32c489dc012930787f06244426f8356e129184a02c25aef163917ce158e"},
-    {file = "pywin32-227-cp39-cp39-win32.whl", hash = "sha256:c054c52ba46e7eb6b7d7dfae4dbd987a1bb48ee86debe3f245a2884ece46e295"},
-    {file = "pywin32-227-cp39-cp39-win_amd64.whl", hash = "sha256:f27cec5e7f588c3d1051651830ecc00294f90728d19c3bf6916e6dba93ea357c"},
+    {file = "pywin32-304-cp310-cp310-win32.whl", hash = "sha256:3c7bacf5e24298c86314f03fa20e16558a4e4138fc34615d7de4070c23e65af3"},
+    {file = "pywin32-304-cp310-cp310-win_amd64.whl", hash = "sha256:4f32145913a2447736dad62495199a8e280a77a0ca662daa2332acf849f0be48"},
+    {file = "pywin32-304-cp310-cp310-win_arm64.whl", hash = "sha256:d3ee45adff48e0551d1aa60d2ec066fec006083b791f5c3527c40cd8aefac71f"},
+    {file = "pywin32-304-cp311-cp311-win32.whl", hash = "sha256:30c53d6ce44c12a316a06c153ea74152d3b1342610f1b99d40ba2795e5af0269"},
+    {file = "pywin32-304-cp311-cp311-win_amd64.whl", hash = "sha256:7ffa0c0fa4ae4077e8b8aa73800540ef8c24530057768c3ac57c609f99a14fd4"},
+    {file = "pywin32-304-cp311-cp311-win_arm64.whl", hash = "sha256:cbbe34dad39bdbaa2889a424d28752f1b4971939b14b1bb48cbf0182a3bcfc43"},
+    {file = "pywin32-304-cp36-cp36m-win32.whl", hash = "sha256:be253e7b14bc601718f014d2832e4c18a5b023cbe72db826da63df76b77507a1"},
+    {file = "pywin32-304-cp36-cp36m-win_amd64.whl", hash = "sha256:de9827c23321dcf43d2f288f09f3b6d772fee11e809015bdae9e69fe13213988"},
+    {file = "pywin32-304-cp37-cp37m-win32.whl", hash = "sha256:f64c0377cf01b61bd5e76c25e1480ca8ab3b73f0c4add50538d332afdf8f69c5"},
+    {file = "pywin32-304-cp37-cp37m-win_amd64.whl", hash = "sha256:bb2ea2aa81e96eee6a6b79d87e1d1648d3f8b87f9a64499e0b92b30d141e76df"},
+    {file = "pywin32-304-cp38-cp38-win32.whl", hash = "sha256:94037b5259701988954931333aafd39cf897e990852115656b014ce72e052e96"},
+    {file = "pywin32-304-cp38-cp38-win_amd64.whl", hash = "sha256:ead865a2e179b30fb717831f73cf4373401fc62fbc3455a0889a7ddac848f83e"},
+    {file = "pywin32-304-cp39-cp39-win32.whl", hash = "sha256:25746d841201fd9f96b648a248f731c1dec851c9a08b8e33da8b56148e4c65cc"},
+    {file = "pywin32-304-cp39-cp39-win_amd64.whl", hash = "sha256:d24a3382f013b21aa24a5cfbfad5a2cd9926610c0affde3e8ab5b3d7dbcf4ac9"},
 ]
 PyYAML = [
     {file = "PyYAML-5.4.1-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:3b2b1824fe7112845700f815ff6a489360226a5609b96ec2190a45e62a9fc922"},
