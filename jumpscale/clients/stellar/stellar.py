@@ -157,7 +157,7 @@ class Stellar(Client):
             address = self.address
         escrow_accounts = []
         accounts_endpoint = self._get_horizon_server().accounts()
-        accounts_endpoint.signer(address)
+        accounts_endpoint.for_signer(address)
         old_cursor = "old"
         new_cursor = ""
         while new_cursor != old_cursor:
