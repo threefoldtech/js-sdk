@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.clients.taiga.taiga API documentation</title>
 <meta name="description" content="Taiga client …" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -150,7 +152,9 @@ project_object.move_issue(issue_id_or_issue_object, project_id_or_project_object
 <h3 id="resources-urls">Resources urls</h3>
 <p>All of resources e.g (user, issue, user_story, circle, task) have <code>url, as_md and as_yaml</code> properties</p>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">&#34;&#34;&#34;
 # Taiga client
 
@@ -1557,7 +1561,7 @@ class TaigaClient(Client):
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
@@ -1576,9 +1580,11 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class TaigaClient(Client):
     def credential_updated(self, value):
         self._api = None
@@ -2736,9 +2742,11 @@ print(p.name, p.age)
 <dl>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.api"><code class="name">var <span class="ident">api</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def api(self):
     if not self._api:
@@ -2755,16 +2763,18 @@ def api(self):
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.host"><code class="name">var <span class="ident">host</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -2780,16 +2790,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.password"><code class="name">var <span class="ident">password</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -2805,16 +2817,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.token"><code class="name">var <span class="ident">token</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -2830,16 +2844,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.username"><code class="name">var <span class="ident">username</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -2857,10 +2873,10 @@ and will get the default value if not</p>
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.create_new_funnel_circle"><code class="name flex">
-<span>def <span class="ident">create_new_funnel_circle</span></span>(<span>self, name, description=&#39;&#39;, **attrs)</span>
+<span>def <span class="ident">create_new_funnel_circle</span></span>(<span>self, name, description='', **attrs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Creates a new funnel circle. using sprints &amp; timeline (does not use kanban)</p>
+<div class="desc"><p>Creates a new funnel circle. using sprints &amp; timeline (does not use kanban)</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
@@ -2869,9 +2885,14 @@ and will get the default value if not</p>
 <dd>circle description. Defaults to "".</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>[FunnelCircle]: funnel circle</p></section>
+<dl>
+<dt><code>[FunnelCircle]</code></dt>
+<dd>funnel circle</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def create_new_funnel_circle(self, name, description=&#34;&#34;, **attrs):
     &#34;&#34;&#34;Creates a new funnel circle. using sprints &amp; timeline (does not use kanban)
 
@@ -2935,10 +2956,10 @@ and will get the default value if not</p>
 </details>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.create_new_project_circle"><code class="name flex">
-<span>def <span class="ident">create_new_project_circle</span></span>(<span>self, name, description=&#39;&#39;, **attrs)</span>
+<span>def <span class="ident">create_new_project_circle</span></span>(<span>self, name, description='', **attrs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Creates a new project circle.</p>
+<div class="desc"><p>Creates a new project circle.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
@@ -2947,9 +2968,14 @@ and will get the default value if not</p>
 <dd>circle description. Defaults to "".</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>[ProjectCircle]: Project circle</p></section>
+<dl>
+<dt><code>[ProjectCircle]</code></dt>
+<dd>Project circle</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def create_new_project_circle(
     self, name, description=&#34;&#34;, **attrs,
 ):
@@ -3014,33 +3040,38 @@ and will get the default value if not</p>
 </details>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.create_new_team_circle"><code class="name flex">
-<span>def <span class="ident">create_new_team_circle</span></span>(<span>self, name, description=&#39;&#39;, **attrs)</span>
+<span>def <span class="ident">create_new_team_circle</span></span>(<span>self, name, description='', **attrs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Creates a new team circle. using sprints &amp; timeline (does not use kanban)</p>
+<div class="desc"><p>Creates a new team circle. using sprints &amp; timeline (does not use kanban)</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>circle name</dd>
 <dt><strong><code>description</code></strong> :&ensp;<code>str</code>, optional</dt>
 <dd>circle description. Defaults to "".</dd>
-<dt><strong><code>severities</code></strong> :&ensp;<code>List</code>[<code>str</code>], optional</dt>
+<dt><strong><code>severities</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>list of strings to represent severities. Defaults to None.</dd>
-<dt><strong><code>issues_statuses</code></strong> :&ensp;<code>List</code>[<code>str</code>], optional</dt>
+<dt><strong><code>issues_statuses</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>list of strings to represent issues_stauses. Defaults to None.</dd>
-<dt><strong><code>priorities</code></strong> :&ensp;<code>List</code>[<code>str</code>], optional</dt>
+<dt><strong><code>priorities</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>list of strings to represent priorities. Defaults to None.</dd>
-<dt><strong><code>issues_types</code></strong> :&ensp;<code>List</code>[<code>str</code>], optional</dt>
+<dt><strong><code>issues_types</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>list of strings to represent issues types. Defaults to None.</dd>
-<dt><strong><code>user_stories_statuses</code></strong> :&ensp;<code>List</code>[<code>str</code>], optional</dt>
+<dt><strong><code>user_stories_statuses</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>list of strings to represent user stories. Defaults to None.</dd>
-<dt><strong><code>tasks_statuses</code></strong> :&ensp;<code>List</code>[<code>str</code>], optional</dt>
+<dt><strong><code>tasks_statuses</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>list of strings to represent task statuses. Defaults to None.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>[TeamCircle]: team circle</p></section>
+<dl>
+<dt><code>[TeamCircle]</code></dt>
+<dd>team circle</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def create_new_team_circle(self, name, description=&#34;&#34;, **attrs):
     &#34;&#34;&#34;Creates a new team circle. using sprints &amp; timeline (does not use kanban)
 
@@ -3112,18 +3143,20 @@ and will get the default value if not</p>
 <span>def <span class="ident">credential_updated</span></span>(<span>self, value)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def credential_updated(self, value):
     self._api = None</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.export_as_md"><code class="name flex">
-<span>def <span class="ident">export_as_md</span></span>(<span>self, wiki_path=&#39;/tmp/taigawiki&#39;, modified_only=True, full_info=False)</span>
+<span>def <span class="ident">export_as_md</span></span>(<span>self, wiki_path='/tmp/taigawiki', modified_only: bool = True, full_info=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>export taiga instance into a wiki
+<div class="desc"><p>export taiga instance into a wiki
 showing users and circles
 HINT: Using full_info will take longer time</p>
 <h2 id="args">Args</h2>
@@ -3134,9 +3167,11 @@ HINT: Using full_info will take longer time</p>
 <dd>write modified objects only. Defaults to True</dd>
 <dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
 <dd>export object with full info. Defaults to False</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def export_as_md(self, wiki_path=&#34;/tmp/taigawiki&#34;, modified_only: bool = True, full_info=False):
     &#34;&#34;&#34;export taiga instance into a wiki  showing users and circles
     HINT: Using full_info will take longer time
@@ -3171,10 +3206,10 @@ HINT: Using full_info will take longer time</p>
 </details>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.export_as_md_periodically"><code class="name flex">
-<span>def <span class="ident">export_as_md_periodically</span></span>(<span>self, wiki_path=&#39;/tmp/taigawiki&#39;, period=300, modified_only=True, full_info=False)</span>
+<span>def <span class="ident">export_as_md_periodically</span></span>(<span>self, wiki_path='/tmp/taigawiki', period: int = 300, modified_only: bool = True, full_info=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>export taiga instance into a wiki
+<div class="desc"><p>export taiga instance into a wiki
 showing users and circles periodically
 HINT: Using full_info will take longer time</p>
 <h2 id="args">Args</h2>
@@ -3187,9 +3222,11 @@ HINT: Using full_info will take longer time</p>
 <dd>write modified objects only.. Defaults to True.</dd>
 <dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
 <dd>export object with full info. Defaults to False</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def export_as_md_periodically(
     self, wiki_path=&#34;/tmp/taigawiki&#34;, period: int = 300, modified_only: bool = True, full_info=False
 ):
@@ -3212,10 +3249,10 @@ HINT: Using full_info will take longer time</p>
 </details>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.export_as_yaml"><code class="name flex">
-<span>def <span class="ident">export_as_yaml</span></span>(<span>self, export_dir=&#39;/tmp/export_dir&#39;, full_info=False)</span>
+<span>def <span class="ident">export_as_yaml</span></span>(<span>self, export_dir='/tmp/export_dir', full_info=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>export taiga instance [Circle, Story, Issue, Task , User] into a yaml files
+<div class="desc"><p>export taiga instance [Circle, Story, Issue, Task , User] into a yaml files
 HINT: Using full_info will take longer time</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -3223,9 +3260,11 @@ HINT: Using full_info will take longer time</p>
 <dd>[description]. Defaults to "/tmp/export_dir".</dd>
 <dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
 <dd>export object with full info. Defaults to False</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def export_as_yaml(self, export_dir=&#34;/tmp/export_dir&#34;, full_info=False):
     &#34;&#34;&#34;export taiga instance [Circle, Story, Issue, Task , User] into a yaml files
     HINT: Using full_info will take longer time
@@ -3277,10 +3316,10 @@ HINT: Using full_info will take longer time</p>
 </details>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.export_circles_as_md"><code class="name flex">
-<span>def <span class="ident">export_circles_as_md</span></span>(<span>self, wikipath=&#39;/tmp/taigawiki&#39;, modified_only=True, full_info=False)</span>
+<span>def <span class="ident">export_circles_as_md</span></span>(<span>self, wikipath='/tmp/taigawiki', modified_only=True, full_info=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>export circles into {wikipath}/src/circles
+<div class="desc"><p>export circles into {wikipath}/src/circles
 HINT: Using full_info will take longer time</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -3288,9 +3327,11 @@ HINT: Using full_info will take longer time</p>
 <dd>wiki path. Defaults to "/tmp/taigawiki".</dd>
 <dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
 <dd>export object with full info. Defaults to False</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def export_circles_as_md(self, wikipath=&#34;/tmp/taigawiki&#34;, modified_only=True, full_info=False):
     &#34;&#34;&#34;export circles into {wikipath}/src/circles
     HINT: Using full_info will take longer time
@@ -3324,10 +3365,10 @@ HINT: Using full_info will take longer time</p>
 </details>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.export_users_as_md"><code class="name flex">
-<span>def <span class="ident">export_users_as_md</span></span>(<span>self, wikipath=&#39;/tmp/taigawiki&#39;, modified_only=True, full_info=False)</span>
+<span>def <span class="ident">export_users_as_md</span></span>(<span>self, wikipath='/tmp/taigawiki', modified_only=True, full_info=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>export users into {wikipath}/src/users
+<div class="desc"><p>export users into {wikipath}/src/users
 HINT: Using full_info will take longer time</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -3337,9 +3378,11 @@ HINT: Using full_info will take longer time</p>
 <dd>export moidified objects only</dd>
 <dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
 <dd>export object with full info. Defaults to False</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def export_users_as_md(self, wikipath=&#34;/tmp/taigawiki&#34;, modified_only=True, full_info=False):
     &#34;&#34;&#34;export users into {wikipath}/src/users
     HINT: Using full_info will take longer time
@@ -3376,7 +3419,7 @@ HINT: Using full_info will take longer time</p>
 <span>def <span class="ident">get_circles_issues</span></span>(<span>self, project_id)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get all issues in a circle/project</p>
+<div class="desc"><p>Get all issues in a circle/project</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>project_id</code></strong> :&ensp;<code>int</code></dt>
@@ -3384,11 +3427,13 @@ HINT: Using full_info will take longer time</p>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><code>j.exceptions.NotFound</code>: <code>if</code> <code>couldn't</code> <code>find</code> <code>circle</code> <code>with</code> <code>specified</code> <code>id</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<dt><code>j.exceptions.NotFound</code></dt>
+<dd>if couldn't find circle with specified id</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_circles_issues(self, project_id):
     &#34;&#34;&#34;Get all issues in a circle/project
 
@@ -3418,7 +3463,7 @@ HINT: Using full_info will take longer time</p>
 <span>def <span class="ident">get_issue_by_id</span></span>(<span>self, issue_id)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get issue</p>
+<div class="desc"><p>Get issue</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>issue_id</code></strong></dt>
@@ -3426,11 +3471,13 @@ HINT: Using full_info will take longer time</p>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>Issue</code> <code>object</code>: <code>issue</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<dt><code>Issue object</code></dt>
+<dd>issue</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_issue_by_id(self, issue_id):
     &#34;&#34;&#34;Get issue
     Args:
@@ -3446,7 +3493,7 @@ HINT: Using full_info will take longer time</p>
 <span>def <span class="ident">get_issue_custom_fields</span></span>(<span>self, id)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get Issue Custom fields</p>
+<div class="desc"><p>Get Issue Custom fields</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>id</code></strong> :&ensp;<code>int</code></dt>
@@ -3454,11 +3501,13 @@ HINT: Using full_info will take longer time</p>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>List</code></strong></dt>
+<dt><code>List</code></dt>
 <dd>List of dictionaries {name: "custom field name", value: {values as dict}}</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_issue_custom_fields(self, id):
     &#34;&#34;&#34;Get Issue Custom fields
 
@@ -3488,7 +3537,7 @@ HINT: Using full_info will take longer time</p>
 <span>def <span class="ident">get_story_custom_fields</span></span>(<span>self, id)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get User_Story Custom fields</p>
+<div class="desc"><p>Get User_Story Custom fields</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>id</code></strong> :&ensp;<code>int</code></dt>
@@ -3496,11 +3545,13 @@ HINT: Using full_info will take longer time</p>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>List</code></strong></dt>
+<dt><code>List</code></dt>
 <dd>List of dictionaries {name: "custom field name", value: {values as dict}}</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_story_custom_fields(self, id):
     &#34;&#34;&#34;Get User_Story Custom fields
 
@@ -3530,14 +3581,16 @@ HINT: Using full_info will take longer time</p>
 <span>def <span class="ident">get_user_circles</span></span>(<span>self, username)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get circles owned by user</p>
+<div class="desc"><p>Get circles owned by user</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
 <dd>Name of the user</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_user_circles(self, username):
     &#34;&#34;&#34;Get circles owned by user
 
@@ -3557,14 +3610,16 @@ HINT: Using full_info will take longer time</p>
 <span>def <span class="ident">get_user_stories</span></span>(<span>self, username)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get all stories of a user</p>
+<div class="desc"><p>Get all stories of a user</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
 <dd>Name of the user</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_user_stories(self, username):
     &#34;&#34;&#34;Get all stories of a user
 
@@ -3586,14 +3641,16 @@ HINT: Using full_info will take longer time</p>
 <span>def <span class="ident">get_user_tasks</span></span>(<span>self, username)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get all tasks of a user</p>
+<div class="desc"><p>Get all tasks of a user</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>username</code></strong> :&ensp;<code>str</code></dt>
 <dd>Name of the user</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_user_tasks(self, username):
     &#34;&#34;&#34;Get all tasks of a user
 
@@ -3613,17 +3670,19 @@ HINT: Using full_info will take longer time</p>
 </details>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.import_from_yaml"><code class="name flex">
-<span>def <span class="ident">import_from_yaml</span></span>(<span>self, import_dir=&#39;/tmp/export_dir&#39;)</span>
+<span>def <span class="ident">import_from_yaml</span></span>(<span>self, import_dir='/tmp/export_dir')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Import Circle with all stories, issues and tasks from yaml files</p>
+<div class="desc"><p>Import Circle with all stories, issues and tasks from yaml files</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>import_dir</code></strong> :&ensp;<code>str</code></dt>
 <dd>import directory path. Defaults to "/tmp/export_dir".</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def import_from_yaml(self, import_dir=&#34;/tmp/export_dir&#34;):
     &#34;&#34;&#34;Import Circle with all stories, issues and tasks from yaml files
 
@@ -3768,16 +3827,22 @@ HINT: Using full_info will take longer time</p>
 <span>def <span class="ident">list_all_active_projects</span></span>(<span>self, full_info=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>List all projects not starting with "ARHCIVE"
+<div class="desc"><p>List all projects not starting with "ARHCIVE"
 HINT: Using full_info will take a longer time</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>full_info</code></strong> :&ensp;<code>bool</code></dt>
 <dd>[description]. Defaults to False.</dd>
 </dl>
-<h2 id="returns">Returns</h2></section>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>[type]</code></dt>
+<dd>[description]</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_all_active_projects(self, full_info=False):
     &#34;&#34;&#34;
     List all projects not starting with &#34;ARHCIVE&#34;
@@ -3796,10 +3861,10 @@ HINT: Using full_info will take a longer time</p>
 </details>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_all_issues"><code class="name flex">
-<span>def <span class="ident">list_all_issues</span></span>(<span>self, username=&#39;&#39;, full_info=False)</span>
+<span>def <span class="ident">list_all_issues</span></span>(<span>self, username='', full_info=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>List all issues for specific user if you didn't pass user_id will list all the issues
+<div class="desc"><p>List all issues for specific user if you didn't pass user_id will list all the issues
 HINT: Using full_info will take a longer time</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -3810,11 +3875,13 @@ HINT: Using full_info will take a longer time</p>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>List</code></strong></dt>
+<dt><code>List</code></dt>
 <dd>List of taiga.models.models.Issue.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_all_issues(self, username=&#34;&#34;, full_info=False):
     &#34;&#34;&#34;
     List all issues for specific user if you didn&#39;t pass user_id will list all the issues
@@ -3844,14 +3911,16 @@ HINT: Using full_info will take a longer time</p>
 <span>def <span class="ident">list_all_milestones</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>List all milestones</p>
+<div class="desc"><p>List all milestones</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>List</code></strong></dt>
+<dt><code>List</code></dt>
 <dd>List of taiga.models.models.Milestone.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_all_milestones(self):
     &#34;&#34;&#34;
     List all milestones
@@ -3866,17 +3935,19 @@ HINT: Using full_info will take a longer time</p>
 <span>def <span class="ident">list_all_projects</span></span>(<span>self, full_info=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>List all projects
+<div class="desc"><p>List all projects
 HINT: Using full_info will take a longer time</p>
 <h2 id="args">Args</h2>
 <p>full_info(bool): flag used to get object with full info. Defaults to False.</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>List</code></strong></dt>
+<dt><code>List</code></dt>
 <dd>List of taiga.models.models.Project.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_all_projects(self, full_info=False):
     &#34;&#34;&#34;
     List all projects
@@ -3895,10 +3966,10 @@ HINT: Using full_info will take a longer time</p>
 </details>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_all_tasks"><code class="name flex">
-<span>def <span class="ident">list_all_tasks</span></span>(<span>self, username=&#39;&#39;, full_info=False)</span>
+<span>def <span class="ident">list_all_tasks</span></span>(<span>self, username='', full_info=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>List all tasks for specific user if you didn't pass user_id will list all the tasks
+<div class="desc"><p>List all tasks for specific user if you didn't pass user_id will list all the tasks
 HINT: Using full_info will take a longer time</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -3909,11 +3980,13 @@ HINT: Using full_info will take a longer time</p>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>List</code></strong></dt>
+<dt><code>List</code></dt>
 <dd>List of taiga.models.models.Task.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_all_tasks(self, username=&#34;&#34;, full_info=False):
     &#34;&#34;&#34;
     List all tasks for specific user if you didn&#39;t pass user_id will list all the tasks
@@ -3940,10 +4013,10 @@ HINT: Using full_info will take a longer time</p>
 </details>
 </dd>
 <dt id="jumpscale.clients.taiga.taiga.TaigaClient.list_all_user_stories"><code class="name flex">
-<span>def <span class="ident">list_all_user_stories</span></span>(<span>self, username=&#39;&#39;, full_info=False)</span>
+<span>def <span class="ident">list_all_user_stories</span></span>(<span>self, username='', full_info=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>List all user stories for specific user if you didn't pass user_id will list all the available user stories
+<div class="desc"><p>List all user stories for specific user if you didn't pass user_id will list all the available user stories
 HINT: Using full_info will take a longer time</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -3953,11 +4026,13 @@ HINT: Using full_info will take a longer time</p>
 <p>full_info(bool): flag used to get object with full info. Defaults to False</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>List</code></strong></dt>
+<dt><code>List</code></dt>
 <dd>List of CircleStory.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_all_user_stories(self, username=&#34;&#34;, full_info=False):
     &#34;&#34;&#34;
     List all user stories for specific user if you didn&#39;t pass user_id will list all the available user stories
@@ -3992,7 +4067,7 @@ HINT: Using full_info will take a longer time</p>
 <span>def <span class="ident">list_all_users</span></span>(<span>self, full_info=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>List all user stories for specific user if you didn't pass user_id will list all the available user stories
+<div class="desc"><p>List all user stories for specific user if you didn't pass user_id will list all the available user stories
 HINT: Using full_info will take a longer time</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -4002,11 +4077,13 @@ HINT: Using full_info will take a longer time</p>
 <p>full_info(bool): flag used to get object with full info. Defaults to False</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>List</code></strong></dt>
+<dt><code>List</code></dt>
 <dd>List of CircleUser.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_all_users(self, full_info=False):
     &#34;&#34;&#34;
     List all user stories for specific user if you didn&#39;t pass user_id will list all the available user stories
@@ -4031,9 +4108,11 @@ HINT: Using full_info will take a longer time</p>
 <span>def <span class="ident">list_funnel_circles</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_funnel_circles(self):
     return [FunnelCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith(&#34;FUNNEL_&#34;))]</code></pre>
 </details>
@@ -4042,9 +4121,11 @@ HINT: Using full_info will take a longer time</p>
 <span>def <span class="ident">list_project_circles</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_project_circles(self):
     return [ProjectCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith(&#34;PROJECT_&#34;))]</code></pre>
 </details>
@@ -4053,9 +4134,11 @@ HINT: Using full_info will take a longer time</p>
 <span>def <span class="ident">list_projects_by</span></span>(<span>self, fn=&lt;function TaigaClient.&lt;lambda&gt;&gt;, full_info=False)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_projects_by(self, fn=lambda x: True, full_info=False):
     return [p for p in self.list_all_projects(full_info=full_info) if fn(p)]</code></pre>
 </details>
@@ -4064,9 +4147,11 @@ HINT: Using full_info will take a longer time</p>
 <span>def <span class="ident">list_team_circles</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_team_circles(self):
     return [TeamCircle(self, p) for p in self.list_projects_by(lambda x: x.name.startswith(&#34;TEAM_&#34;))]</code></pre>
 </details>
@@ -4075,7 +4160,7 @@ HINT: Using full_info will take a longer time</p>
 <span>def <span class="ident">move_story_to_circle</span></span>(<span>self, story_id, project_id)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Moves a story to another circle/project</p>
+<div class="desc"><p>Moves a story to another circle/project</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>story_id</code></strong> :&ensp;<code>int</code></dt>
@@ -4085,20 +4170,22 @@ HINT: Using full_info will take a longer time</p>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><code>j.exceptions.NotFound</code>: <code>No</code> <code>user</code> <code>story</code> <code>with</code> <code>specified</code> <code>id</code> <code>found</code></dt>
-<dd>&nbsp;</dd>
-<dt><code>j.exceptions.NotFound</code>: <code>No</code> <code>project</code> <code>with</code> <code>specified</code> <code>id</code> <code>found</code></dt>
-<dd>&nbsp;</dd>
-<dt><code>j.exceptions.Runtime</code>: [<code>description</code>]</dt>
-<dd>&nbsp;</dd>
+<dt><code>j.exceptions.NotFound</code></dt>
+<dd>No user story with specified id found</dd>
+<dt><code>j.exceptions.NotFound</code></dt>
+<dd>No project with specified id found</dd>
+<dt><code>j.exceptions.Runtime</code></dt>
+<dd>[description]</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>int</code></strong></dt>
+<dt><code>int</code></dt>
 <dd>New id of the migrated user story</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def move_story_to_circle(self, story_id, project_id):
     &#34;&#34;&#34;Moves a story to another circle/project
 
@@ -4179,7 +4266,7 @@ HINT: Using full_info will take a longer time</p>
 <span>def <span class="ident">validate_custom_fields</span></span>(<span>self, attributes)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Validate custom fields values to match our requirements</p>
+<div class="desc"><p>Validate custom fields values to match our requirements</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>attributes</code></strong> :&ensp;<code>List</code></dt>
@@ -4187,16 +4274,18 @@ HINT: Using full_info will take a longer time</p>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><code>j.exceptions.Validation</code>: <code>Raise</code> <code>validation</code> <code>exception</code> <code>if</code> <code>any</code> <code>input</code> <code>not</code> <code>valid</code></dt>
-<dd>&nbsp;</dd>
+<dt><code>j.exceptions.Validation</code></dt>
+<dd>Raise validation exception if any input not valid</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>Return True if no exception raised and print logs</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def validate_custom_fields(self, attributes):
     &#34;&#34;&#34;Validate custom fields values to match our requirements
 
@@ -4404,9 +4493,7 @@ issue</a></li>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

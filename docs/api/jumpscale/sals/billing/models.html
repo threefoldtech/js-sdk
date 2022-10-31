@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.sals.billing.models API documentation</title>
 <meta name="description" content="" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -21,7 +23,9 @@
 </header>
 <section id="section-intro">
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">from jumpscale.core.base import Base, fields, StoredFactory
 import datetime
 from jumpscale.loader import j
@@ -289,7 +293,7 @@ REFUND_FACTORY.always_reload = True</code></pre>
 <span>(</span><span>parent_=None, instance_name_=None, **values)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
@@ -308,9 +312,11 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class Payment(Base):
     payment_id = fields.String()
     wallet_name = fields.String(required=True)
@@ -390,16 +396,18 @@ print(p.name, p.age)
 <dl>
 <dt id="jumpscale.sals.billing.models.Payment.amount"><code class="name">var <span class="ident">amount</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -415,16 +423,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.Payment.created_at"><code class="name">var <span class="ident">created_at</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -440,16 +450,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.Payment.deadline"><code class="name">var <span class="ident">deadline</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -465,16 +477,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.Payment.description"><code class="name">var <span class="ident">description</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -490,16 +504,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.Payment.memo_text"><code class="name">var <span class="ident">memo_text</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -515,16 +531,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.Payment.payment_id"><code class="name">var <span class="ident">payment_id</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -540,16 +558,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.Payment.refund_extra"><code class="name">var <span class="ident">refund_extra</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -565,16 +585,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.Payment.result"><code class="name">var <span class="ident">result</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -590,9 +612,11 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.Payment.wallet"><code class="name">var <span class="ident">wallet</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def wallet(self):
     return j.clients.stellar.get(self.wallet_name)</code></pre>
@@ -600,16 +624,18 @@ def wallet(self):
 </dd>
 <dt id="jumpscale.sals.billing.models.Payment.wallet_name"><code class="name">var <span class="ident">wallet_name</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -630,9 +656,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">is_finished</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def is_finished(self):
     if self.deadline.timestamp() &lt; j.data.time.utcnow().timestamp or self.result.success:
         return True
@@ -644,9 +672,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">update_status</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def update_status(self):
     if self.is_finished():
         return
@@ -714,7 +744,7 @@ and will get the default value if not</p>
 <span>(</span><span>type_, name_=None, parent_instance_=None, parent_factory_=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Stored factories are a custom type of <code>Factory</code>, which uses current configured store backend
+<div class="desc"><p>Stored factories are a custom type of <code>Factory</code>, which uses current configured store backend
 to store all instance configurations.</p>
 <p>get a new stored factory given the type to create and store instances for.</p>
 <p>Any factory can have a name, parent <code>Base</code> instance and a parent factory.</p>
@@ -729,9 +759,11 @@ to store all instance configurations.</p>
 <dd>a parent <code>Base</code> instance. Defaults to None.</dd>
 <dt><strong><code>parent_factory_</code></strong> :&ensp;<code>Factory</code>, optional</dt>
 <dd>a parent <code>Factory</code>. Defaults to None.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class PaymentFactory(StoredFactory):
     def find_by_id(self, payment_id):
         instance_name = f&#34;payment_{payment_id}&#34;
@@ -778,9 +810,11 @@ to store all instance configurations.</p>
 <span>def <span class="ident">find_by_id</span></span>(<span>self, payment_id)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def find_by_id(self, payment_id):
     instance_name = f&#34;payment_{payment_id}&#34;
     return self.find(instance_name)</code></pre>
@@ -790,9 +824,11 @@ to store all instance configurations.</p>
 <span>def <span class="ident">list_active_payments</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_active_payments(self):
     for name in self.list_all():
         payment = self.find(name)
@@ -804,9 +840,11 @@ to store all instance configurations.</p>
 <span>def <span class="ident">list_extra_paid_payments</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_extra_paid_payments(self):
     _, _, payments = self.find_many(refund_extra=True)
     for payment in payments:
@@ -818,9 +856,11 @@ to store all instance configurations.</p>
 <span>def <span class="ident">list_failed_payments</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_failed_payments(self):
     for name in self.list_all():
         payment = self.find(name)
@@ -859,7 +899,7 @@ to store all instance configurations.</p>
 <span>(</span><span>parent_=None, instance_name_=None, **values)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
@@ -878,9 +918,11 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class PaymentResult(Base):
     success = fields.Boolean(default=False)
     extra_paid = fields.Boolean(default=False)
@@ -925,16 +967,18 @@ print(p.name, p.age)
 <dl>
 <dt id="jumpscale.sals.billing.models.PaymentResult.extra_paid"><code class="name">var <span class="ident">extra_paid</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -950,16 +994,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.PaymentResult.success"><code class="name">var <span class="ident">success</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -975,16 +1021,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.PaymentResult.transactions"><code class="name">var <span class="ident">transactions</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1005,9 +1053,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">refund_extra</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def refund_extra(self):
     if self.extra_paid and self.parent.refund_extra:
         for transaction in self.transactions:
@@ -1056,7 +1106,7 @@ and will get the default value if not</p>
 <span>(</span><span>parent_=None, instance_name_=None, **values)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
@@ -1075,9 +1125,11 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class PaymentTransaction(Base):
     transaction_hash = fields.String(required=True)
     transaction_refund = fields.Object(PaymentTransactionRefund)
@@ -1129,16 +1181,18 @@ print(p.name, p.age)
 <dl>
 <dt id="jumpscale.sals.billing.models.PaymentTransaction.success"><code class="name">var <span class="ident">success</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1154,16 +1208,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.PaymentTransaction.transaction_hash"><code class="name">var <span class="ident">transaction_hash</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1179,16 +1235,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.PaymentTransaction.transaction_refund"><code class="name">var <span class="ident">transaction_refund</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1209,9 +1267,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">get_amount</span></span>(<span>self, wallet)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_amount(self, wallet):
     try:
         effects = wallet.get_transaction_effects(self.transaction_hash)
@@ -1230,9 +1290,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">refund</span></span>(<span>self, wallet)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def refund(self, wallet):
     if self.transaction_refund.success:
         return True
@@ -1275,7 +1337,7 @@ and will get the default value if not</p>
 <span>(</span><span>parent_=None, instance_name_=None, **values)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
@@ -1294,9 +1356,11 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class PaymentTransactionRefund(Base):
     refund_transaction_hash = fields.String()
     success = fields.Boolean(default=False)</code></pre>
@@ -1310,16 +1374,18 @@ print(p.name, p.age)
 <dl>
 <dt id="jumpscale.sals.billing.models.PaymentTransactionRefund.refund_transaction_hash"><code class="name">var <span class="ident">refund_transaction_hash</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1335,16 +1401,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.PaymentTransactionRefund.success"><code class="name">var <span class="ident">success</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1375,7 +1443,7 @@ and will get the default value if not</p>
 <span>(</span><span>type_, name_=None, parent_instance_=None, parent_factory_=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Stored factories are a custom type of <code>Factory</code>, which uses current configured store backend
+<div class="desc"><p>Stored factories are a custom type of <code>Factory</code>, which uses current configured store backend
 to store all instance configurations.</p>
 <p>get a new stored factory given the type to create and store instances for.</p>
 <p>Any factory can have a name, parent <code>Base</code> instance and a parent factory.</p>
@@ -1390,9 +1458,11 @@ to store all instance configurations.</p>
 <dd>a parent <code>Base</code> instance. Defaults to None.</dd>
 <dt><strong><code>parent_factory_</code></strong> :&ensp;<code>Factory</code>, optional</dt>
 <dd>a parent <code>Factory</code>. Defaults to None.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class RefundFactory(StoredFactory):
     def list_active_requests(self):
         _, _, refunds = self.find_many(success=False)
@@ -1414,9 +1484,11 @@ to store all instance configurations.</p>
 <span>def <span class="ident">list_active_requests</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_active_requests(self):
     _, _, refunds = self.find_many(success=False)
     return refunds</code></pre>
@@ -1446,7 +1518,7 @@ to store all instance configurations.</p>
 <span>(</span><span>parent_=None, instance_name_=None, **values)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
@@ -1465,9 +1537,11 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class RefundRequest(Base):
     payment_id = fields.String(required=True)
     success = fields.Boolean(default=False)
@@ -1521,16 +1595,18 @@ print(p.name, p.age)
 <dl>
 <dt id="jumpscale.sals.billing.models.RefundRequest.amount"><code class="name">var <span class="ident">amount</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1546,16 +1622,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.RefundRequest.last_tried"><code class="name">var <span class="ident">last_tried</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1571,16 +1649,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.RefundRequest.payment_id"><code class="name">var <span class="ident">payment_id</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1596,16 +1676,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.RefundRequest.refund_transaction_hash"><code class="name">var <span class="ident">refund_transaction_hash</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1621,16 +1703,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.billing.models.RefundRequest.success"><code class="name">var <span class="ident">success</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1651,9 +1735,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">apply</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def apply(self):
     payment = PAYMENT_FACTORY.find_by_id(self.payment_id)
     if not payment.is_finished():
@@ -1795,9 +1881,7 @@ and will get the default value if not</p>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

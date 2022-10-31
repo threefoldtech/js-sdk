@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.sals.nettools API documentation</title>
 <meta name="description" content="This module contains a collection of functions which help in manage network connections and interfaces …" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -28,7 +30,9 @@ into an actual IPv4/v6 address, depending on the results from DNS resolution and
 For deterministic behavior use a numeric address in host portion.
 <a href="https://docs.python.org/3/library/socket.html">https://docs.python.org/3/library/socket.html</a></p>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">&#34;&#34;&#34;This module contains a collection of functions which help in manage network connections and interfaces.
 
 General Note on python socket operations:
@@ -722,10 +726,10 @@ def get_free_port(ipv6: Optional[bool] = False, udp: Optional[bool] = False, ret
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="jumpscale.sals.nettools.check_url_reachable"><code class="name flex">
-<span>def <span class="ident">check_url_reachable</span></span>(<span>url, timeout=5, verify=True, fake_user_agent=True)</span>
+<span>def <span class="ident">check_url_reachable</span></span>(<span>url: str, timeout: Optional[int] = 5, verify: Optional[bool] = True, fake_user_agent: Optional[bool] = True) ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Check that given url is reachable</p>
+<div class="desc"><p>Check that given url is reachable</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
@@ -739,16 +743,18 @@ def get_free_port(ipv6: Optional[bool] = False, udp: Optional[bool] = False, ret
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>ValueError</code></strong></dt>
+<dt><code>ValueError</code></dt>
 <dd>raises if not correct url</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if the test succeeds, False otherwise</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def check_url_reachable(
     url: str, timeout: Optional[int] = 5, verify: Optional[bool] = True, fake_user_agent: Optional[bool] = True
 ) -&gt; bool:
@@ -793,10 +799,10 @@ def get_free_port(ipv6: Optional[bool] = False, udp: Optional[bool] = False, ret
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.download"><code class="name flex">
-<span>def <span class="ident">download</span></span>(<span>url, localpath=&#39;&#39;, username=None, passwd=None, overwrite=True, append_to_home=False, name_from_url=True)</span>
+<span>def <span class="ident">download</span></span>(<span>url: str, localpath: Optional[str] = '', username: Optional[str] = None, passwd: Optional[str] = None, overwrite: Optional[bool] = True, append_to_home: Optional[bool] = False, name_from_url: Optional[bool] = True)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Download a url to a file or a directory, supported protocols: http, https, ftp, file</p>
+<div class="desc"><p>Download a url to a file or a directory, supported protocols: http, https, ftp, file</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
@@ -820,20 +826,20 @@ the file name from the url or fallback to auto generated name. Defaults to True.
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>PermissionError</code></strong></dt>
+<dt><code>PermissionError</code></dt>
 <dd>[description]</dd>
-<dt><strong><code>FileNotFoundError</code></strong></dt>
+<dt><code>FileNotFoundError</code></dt>
 <dd>[description]</dd>
-<dt><strong><code>FileExistsError</code></strong></dt>
+<dt><code>FileExistsError</code></dt>
 <dd>[description]</dd>
-<dt><strong><code>ValueError</code></strong></dt>
+<dt><code>ValueError</code></dt>
 <dd>[description]</dd>
-<dt><strong><code>URLError</code></strong></dt>
+<dt><code>URLError</code></dt>
 <dd>[description]</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>namedtuple</code></strong></dt>
+<dt><code>namedtuple</code></dt>
 <dd>namedtuple('DownloadResult', ['localpath', 'content', content_length])
 - localpath (pathlib.Path)
 - content (bytes): only if localpath is None else it will be None always
@@ -847,11 +853,13 @@ the file name from the url or fallback to auto generated name. Defaults to True.
 <h2 id="examples">Examples</h2>
 <h1 id="use-default-values-for-args-will-download-the-url-to-cwd-and-get-the-name-from-the-url">use default values for args will download the url to cwd and get the name from the url,</h1>
 <h1 id="if-the-file-already-exists-it-will-overwritten">if the file already exists, it will overwritten.</h1>
-<pre><code>&gt;&gt;&gt; nettools.download('https://www.7-zip.org/a/7z1900-extra.7z')
+<pre><code class="language-python-repl">&gt;&gt;&gt; nettools.download('https://www.7-zip.org/a/7z1900-extra.7z')
 DownloadResult(localpath=PosixPath('/home/sameh/projects/js-ng/7z1900-extra.7z'), content=None, content_length='929117')
-</code></pre></section>
+</code></pre></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def download(
     url: str,
     localpath: Optional[str] = &#34;&#34;,
@@ -977,10 +985,10 @@ DownloadResult(localpath=PosixPath('/home/sameh/projects/js-ng/7z1900-extra.7z')
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_default_ip_config"><code class="name flex">
-<span>def <span class="ident">get_default_ip_config</span></span>(<span>ip=&#39;8.8.8.8&#39;)</span>
+<span>def <span class="ident">get_default_ip_config</span></span>(<span>ip: Optional[str] = '8.8.8.8') ‑> tuple</span>
 </code></dt>
 <dd>
-<section class="desc"><p>get default nic and address, by default, the one exposed to internet</p>
+<div class="desc"><p>get default nic and address, by default, the one exposed to internet</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>ip</code></strong> :&ensp;<code>str</code></dt>
@@ -988,18 +996,20 @@ DownloadResult(localpath=PosixPath('/home/sameh/projects/js-ng/7z1900-extra.7z')
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>ValueError</code></strong></dt>
+<dt><code>ValueError</code></dt>
 <dd>if address does not represent a valid IPv4 or IPv6 address.</dd>
-<dt><strong><code>RuntimeError</code></strong></dt>
+<dt><code>RuntimeError</code></dt>
 <dd>if can't connect</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>tuple</code></strong></dt>
+<dt><code>tuple</code></dt>
 <dd>default nic name and its ip address</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_default_ip_config(ip: Optional[str] = &#34;8.8.8.8&#34;) -&gt; tuple:
     &#34;&#34;&#34;get default nic and address, by default, the one exposed to internet
 
@@ -1028,10 +1038,10 @@ DownloadResult(localpath=PosixPath('/home/sameh/projects/js-ng/7z1900-extra.7z')
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_free_port"><code class="name flex">
-<span>def <span class="ident">get_free_port</span></span>(<span>ipv6=False, udp=False, return_socket=False)</span>
+<span>def <span class="ident">get_free_port</span></span>(<span>ipv6: Optional[bool] = False, udp: Optional[bool] = False, return_socket: Optional[bool] = False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Bind an ipv4 or ipv6 socket to port 0 to make OS pick a random, free and
+<div class="desc"><p>Bind an ipv4 or ipv6 socket to port 0 to make OS pick a random, free and
 available port from 1024 to 65535.</p>
 <p>you can optionally choose to reuse the socket by set return_socket to True (preferred to
 To prevent race conditions from occurring) but then it is your responsibility to close
@@ -1048,27 +1058,29 @@ by default you got tcp port, but setting udp to True will set socket type to UDP
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>int</code></strong></dt>
+<dt><code>int</code></dt>
 <dd>returns a random free port from 1024 to 65535 range.</dd>
+<dt><code>Optional[socket]</code></dt>
+<dd>in the case of return_socket set to True, socket will be returned alongside the port in a tuple.</dd>
 </dl>
-<p>Optional[socket]: in the case of return_socket set to True, socket will be returned alongside the port in a tuple.</p>
 <h2 id="example">Example</h2>
 <h1 id="get-a-free-tcp-port-that-currently-not-binded-to-127001">get a free TCP port that currently not binded to 127.0.0.1</h1>
-<pre><code>&gt;&gt;&gt; port = get_free_port()
+<pre><code class="language-python-repl">&gt;&gt;&gt; port = get_free_port()
 # get a free UDP port that currently not binded to 127.0.0.1
 &gt;&gt;&gt; port = get_free_port(udp=True)
 # get a free TCP port that currently not binded to ::1
 &gt;&gt;&gt; port = get_free_port(ipv6=True)
 # get a free TCP port that currently not binded to 127.0.0.1
-</code></pre>
-<h1 id="and-reuse-the-socket-instead-of-creating-a-socket-and-bind-it-to-selected-port">and reuse the socket instead of creating a socket and bind it to selected port</h1>
-<pre><code>&gt;&gt;&gt; port, sock = get_free_port(return_socket=True)
+# and reuse the socket instead of creating a socket and bind it to selected port
+&gt;&gt;&gt; port, sock = get_free_port(return_socket=True)
 &gt;&gt;&gt; sock.listen()
 ..
 &gt;&gt;&gt; sock.close()
-</code></pre></section>
+</code></pre></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_free_port(ipv6: Optional[bool] = False, udp: Optional[bool] = False, return_socket: Optional[bool] = False):
     &#34;&#34;&#34;Bind an ipv4 or ipv6 socket to port 0 to make OS pick a random, free and
     available port from 1024 to 65535.
@@ -1117,10 +1129,10 @@ by default you got tcp port, but setting udp to True will set socket type to UDP
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_host_by_name"><code class="name flex">
-<span>def <span class="ident">get_host_by_name</span></span>(<span>dnsHostname)</span>
+<span>def <span class="ident">get_host_by_name</span></span>(<span>dnsHostname: str) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"><p>get host address by its name</p>
+<div class="desc"><p>get host address by its name</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>dnsHostname</code></strong> :&ensp;<code>str</code></dt>
@@ -1128,11 +1140,13 @@ by default you got tcp port, but setting udp to True will set socket type to UDP
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>host address</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_host_by_name(dnsHostname: str) -&gt; str:  # pragma: no cover - we&#39;re just proxying
     &#34;&#34;&#34;get host address by its name
 
@@ -1146,17 +1160,19 @@ by default you got tcp port, but setting udp to True will set socket type to UDP
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_host_name"><code class="name flex">
-<span>def <span class="ident">get_host_name</span></span>(<span>)</span>
+<span>def <span class="ident">get_host_name</span></span>(<span>) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get hostname of the machine</p>
+<div class="desc"><p>Get hostname of the machine</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>host name</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_host_name() -&gt; str:  # pragma: no cover - we&#39;re just proxying
     &#34;&#34;&#34;Get hostname of the machine
 
@@ -1167,10 +1183,10 @@ by default you got tcp port, but setting udp to True will set socket type to UDP
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_mac_address"><code class="name flex">
-<span>def <span class="ident">get_mac_address</span></span>(<span>interface)</span>
+<span>def <span class="ident">get_mac_address</span></span>(<span>interface: str) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Return the MAC address of this interface</p>
+<div class="desc"><p>Return the MAC address of this interface</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>interface</code></strong> :&ensp;<code>str</code></dt>
@@ -1178,11 +1194,13 @@ by default you got tcp port, but setting udp to True will set socket type to UDP
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>mac of the interface</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_mac_address(interface: str) -&gt; str:
     &#34;&#34;&#34;Return the MAC address of this interface
 
@@ -1196,10 +1214,10 @@ by default you got tcp port, but setting udp to True will set socket type to UDP
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_network_info"><code class="name flex">
-<span>def <span class="ident">get_network_info</span></span>(<span>device=None)</span>
+<span>def <span class="ident">get_network_info</span></span>(<span>device: Optional[str] = None) ‑> list</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get network info</p>
+<div class="desc"><p>Get network info</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>device</code></strong> :&ensp;<code>str</code>, optional</dt>
@@ -1207,23 +1225,25 @@ by default you got tcp port, but setting udp to True will set socket type to UDP
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>Runtime</code></strong></dt>
+<dt><code>Runtime</code></dt>
 <dd>if it could not find the specified device</dd>
-<dt><strong><code>NotImplementedError</code></strong></dt>
+<dt><code>NotImplementedError</code></dt>
 <dd>if the function runs on unsupported OS</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>Dict</code>, or <code>list</code> of <code>dicts</code> <code>if</code> <code>device</code> <code>arg</code> <code>used</code>: <code>network</code> <code>info</code></dt>
-<dd>&nbsp;</dd>
+<dt><code>Dict,</code> or <code>list</code> of <code>dicts if device arg used</code></dt>
+<dd>network info</dd>
 </dl>
 <p>[{'ip': [('127.0.0.1', 8)], 'ip6': [('::1', 128)], 'mac': '00:00:00:00:00:00', 'name': 'lo'},
 {'ip': [('192.168.1.6', 24)],
 'ip6': [('fdb4:f58e:3c34:300:91f0:9c76:e1fb:d060', 64), &hellip;],
 'mac': 'd8:9c:67:2a:f2:53',
-'name': 'wlp3s0'}, &hellip;]</p></section>
+'name': 'wlp3s0'}, &hellip;]</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_network_info(device: Optional[str] = None) -&gt; list:
     &#34;&#34;&#34;Get network info
 
@@ -1293,17 +1313,19 @@ by default you got tcp port, but setting udp to True will set socket type to UDP
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_nic_names"><code class="name flex">
-<span>def <span class="ident">get_nic_names</span></span>(<span>)</span>
+<span>def <span class="ident">get_nic_names</span></span>(<span>) ‑> list</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get Nics on this machine</p>
+<div class="desc"><p>Get Nics on this machine</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>list</code></strong></dt>
+<dt><code>list</code></dt>
 <dd>list of all availabe nics</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_nic_names() -&gt; list:
     &#34;&#34;&#34;Get Nics on this machine
 
@@ -1314,10 +1336,10 @@ by default you got tcp port, but setting udp to True will set socket type to UDP
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_nic_type"><code class="name flex">
-<span>def <span class="ident">get_nic_type</span></span>(<span>interface)</span>
+<span>def <span class="ident">get_nic_type</span></span>(<span>interface: str) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get Nic Type on a certain interface</p>
+<div class="desc"><p>Get Nic Type on a certain interface</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>interface</code></strong> :&ensp;<code>str</code></dt>
@@ -1325,18 +1347,20 @@ by default you got tcp port, but setting udp to True will set socket type to UDP
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>Runtime</code></strong></dt>
+<dt><code>Runtime</code></dt>
 <dd>if ethtool not installed on the system</dd>
-<dt><strong><code>Value</code></strong></dt>
+<dt><code>Value</code></dt>
 <dd>if interface given is invalid</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>type of the interface</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_nic_type(interface: str) -&gt; str:
     &#34;&#34;&#34;Get Nic Type on a certain interface
 
@@ -1399,10 +1423,10 @@ by default you got tcp port, but setting udp to True will set socket type to UDP
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_reachable_ip_address"><code class="name flex">
-<span>def <span class="ident">get_reachable_ip_address</span></span>(<span>ip, port=0)</span>
+<span>def <span class="ident">get_reachable_ip_address</span></span>(<span>ip: str, port: Optional[int] = 0) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"><p>figures out what source address would be used if some traffic were to be sent out to specified ip.
+<div class="desc"><p>figures out what source address would be used if some traffic were to be sent out to specified ip.
 compatible with both IPv4 and IPv6.</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -1413,18 +1437,20 @@ compatible with both IPv4 and IPv6.</p>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>ValueError</code></strong></dt>
+<dt><code>ValueError</code></dt>
 <dd>if address does not represent a valid IPv4 or IPv6 address, or port is invalid.</dd>
-<dt><strong><code>RuntimeError</code></strong></dt>
+<dt><code>RuntimeError</code></dt>
 <dd>if can't connect</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>ip that can connect to the specified ip</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_reachable_ip_address(ip: str, port: Optional[int] = 0) -&gt; str:
     &#34;&#34;&#34;figures out what source address would be used if some traffic were to be sent out to specified ip.
     compatible with both IPv4 and IPv6.
@@ -1462,10 +1488,10 @@ compatible with both IPv4 and IPv6.</p>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.is_nic_connected"><code class="name flex">
-<span>def <span class="ident">is_nic_connected</span></span>(<span>interface)</span>
+<span>def <span class="ident">is_nic_connected</span></span>(<span>interface: str) ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>check if interface is connected</p>
+<div class="desc"><p>check if interface is connected</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>interface</code></strong> :&ensp;<code>str</code></dt>
@@ -1473,11 +1499,13 @@ compatible with both IPv4 and IPv6.</p>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>whether it is connected or not</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def is_nic_connected(interface: str) -&gt; bool:
     &#34;&#34;&#34;check if interface is connected
 
@@ -1507,26 +1535,28 @@ compatible with both IPv4 and IPv6.</p>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.netrange_get"><code class="name flex">
-<span>def <span class="ident">netrange_get</span></span>(<span>device, skip_begin=10, skip_end=10)</span>
+<span>def <span class="ident">netrange_get</span></span>(<span>device: str, skip_begin: Optional[int] = 10, skip_end: Optional[int] = 10) ‑> tuple</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get ($fromip,$topip) from range attached to device, skip the mentioned ip addresses.</p>
+<div class="desc"><p>Get ($fromip,$topip) from range attached to device, skip the mentioned ip addresses.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>device</code></strong> :&ensp;<code>str</code></dt>
 <dd>[description]</dd>
-<dt><strong><code>skip_begin</code></strong> :&ensp;<code>Optional</code>[<code>int</code>], optional</dt>
+<dt><strong><code>skip_begin</code></strong> :&ensp;<code>Optional[int]</code>, optional</dt>
 <dd>ips to skip from the begining of the range, Defaults to 10.</dd>
-<dt><strong><code>skip_end</code></strong> :&ensp;<code>Optional</code>[<code>int</code>], optional</dt>
+<dt><strong><code>skip_end</code></strong> :&ensp;<code>Optional[int]</code>, optional</dt>
 <dd>ips to skip from the end of the range, Defaults to 10.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>tuple</code></strong></dt>
+<dt><code>tuple</code></dt>
 <dd>ip range for this device</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def netrange_get(device: str, skip_begin: Optional[int] = 10, skip_end: Optional[int] = 10) -&gt; tuple:
     &#34;&#34;&#34;Get ($fromip,$topip) from range attached to device, skip the mentioned ip addresses.
 
@@ -1543,10 +1573,10 @@ compatible with both IPv4 and IPv6.</p>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.ping_machine"><code class="name flex">
-<span>def <span class="ident">ping_machine</span></span>(<span>ip, timeout=60, allowhostname=True)</span>
+<span>def <span class="ident">ping_machine</span></span>(<span>ip: str, timeout: Optional[int] = 60, allowhostname: Optional[bool] = True) ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ping a machine to check if it's up/running and accessible
+<div class="desc"><p>Ping a machine to check if it's up/running and accessible
 Note: Any well-behaved device on an LAN or WAN is free to ignore nearly any traffic,
 so PINGs, port scans, and the like are all unreliable.</p>
 <h2 id="args">Args</h2>
@@ -1560,18 +1590,20 @@ so PINGs, port scans, and the like are all unreliable.</p>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>ValueError</code></strong></dt>
+<dt><code>ValueError</code></dt>
 <dd>if ip is Invalid ip address</dd>
-<dt><strong><code>NotImplementedError</code></strong></dt>
+<dt><code>NotImplementedError</code></dt>
 <dd>if the function runs on unsupported system</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if machine is pingable, False otherwise</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def ping_machine(ip: str, timeout: Optional[int] = 60, allowhostname: Optional[bool] = True) -&gt; bool:
     &#34;&#34;&#34;Ping a machine to check if it&#39;s up/running and accessible
     Note: Any well-behaved device on an LAN or WAN is free to ignore nearly any traffic,
@@ -1612,14 +1644,18 @@ so PINGs, port scans, and the like are all unreliable.</p>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.tcp_connection_test"><code class="name flex">
-<span>def <span class="ident">tcp_connection_test</span></span>(<span>ipaddr, port, timeout=None)</span>
+<span>def <span class="ident">tcp_connection_test</span></span>(<span>ipaddr: str, port: int, timeout: Optional[int] = None) ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>tests tcp connection on specified port, compatible with both IPv4 and IPv6.
+<div class="desc"><p>tests tcp connection on specified port, compatible with both IPv4 and IPv6.
 ensures that each side of the connection is reachable in the network.</p>
 <h2 id="raises">Raises</h2>
-<p>socket.gaierror: raised for address-related errors.
-socket.herror: raised for address-related errors.</p>
+<dl>
+<dt><code>socket.gaierror</code></dt>
+<dd>raised for address-related errors.</dd>
+<dt><code>socket.herror</code></dt>
+<dd>raised for address-related errors.</dd>
+</dl>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>ipaddr</code></strong> :&ensp;<code>str</code></dt>
@@ -1631,11 +1667,13 @@ socket.herror: raised for address-related errors.</p>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if the test succeeds, False otherwise</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def tcp_connection_test(ipaddr: str, port: int, timeout: Optional[int] = None) -&gt; bool:
     &#34;&#34;&#34;tests tcp connection on specified port, compatible with both IPv4 and IPv6.
     ensures that each side of the connection is reachable in the network.
@@ -1660,10 +1698,10 @@ socket.herror: raised for address-related errors.</p>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.udp_connection_test"><code class="name flex">
-<span>def <span class="ident">udp_connection_test</span></span>(<span>ipaddr, port, timeout=1, message=b&#39;&#39;)</span>
+<span>def <span class="ident">udp_connection_test</span></span>(<span>ipaddr: str, port: int, timeout: Optional[int] = 1, message: Optional[bytes] = b'') ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>tests udp connection on specified port by sending specified message and expecting
+<div class="desc"><p>tests udp connection on specified port by sending specified message and expecting
 to receive at least one byte from the socket as an indicator of connection success</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -1678,16 +1716,18 @@ to receive at least one byte from the socket as an indicator of connection succe
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>ValueError</code></strong></dt>
+<dt><code>ValueError</code></dt>
 <dd>raises if invalid ip address was used</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if the test succeeds, False otherwise</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def udp_connection_test(ipaddr: str, port: int, timeout: Optional[int] = 1, message: Optional[bytes] = b&#34;&#34;) -&gt; bool:
     &#34;&#34;&#34;tests udp connection on specified port by sending specified message and expecting
     to receive at least one byte from the socket as an indicator of connection success
@@ -1724,10 +1764,10 @@ to receive at least one byte from the socket as an indicator of connection succe
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.wait_connection_test"><code class="name flex">
-<span>def <span class="ident">wait_connection_test</span></span>(<span>ipaddr, port, timeout=6)</span>
+<span>def <span class="ident">wait_connection_test</span></span>(<span>ipaddr: str, port: int, timeout: Optional[int] = 6) ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Will wait until port listens on the specified address or <code>timeout</code> sec elapsed</p>
+<div class="desc"><p>Will wait until port listens on the specified address or <code>timeout</code> sec elapsed</p>
 <p>under the hood the function will try to connect every <code>interval</code> sec, if waiting time <code>timeout</code> set
 to value &lt;= 2, <code>interval</code> is 1 sec, otherwise 2.</p>
 <h2 id="args">Args</h2>
@@ -1742,11 +1782,13 @@ due to the way the function works, it makes sense to choose an even number. Defa
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if the test succeeds, False otherwise</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def wait_connection_test(ipaddr: str, port: int, timeout: Optional[int] = 6) -&gt; bool:
     &#34;&#34;&#34;Will wait until port listens on the specified address or `timeout` sec elapsed
 
@@ -1777,10 +1819,10 @@ due to the way the function works, it makes sense to choose an even number. Defa
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.wait_http_test"><code class="name flex">
-<span>def <span class="ident">wait_http_test</span></span>(<span>url, timeout=60, verify=True, interval_time=2)</span>
+<span>def <span class="ident">wait_http_test</span></span>(<span>url: str, timeout: Optional[int] = 60, verify: Optional[bool] = True, interval_time: Optional[int] = 2) ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Will keep try to reach specified url every {interval_time} sec until url become reachable or {timeout} sec elapsed</p>
+<div class="desc"><p>Will keep try to reach specified url every {interval_time} sec until url become reachable or {timeout} sec elapsed</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
@@ -1794,16 +1836,18 @@ due to the way the function works, it makes sense to choose an even number. Defa
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>ValueError</code></strong></dt>
+<dt><code>ValueError</code></dt>
 <dd>raises if not correct url</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>true if the test succeeds</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def wait_http_test(
     url: str, timeout: Optional[int] = 60, verify: Optional[bool] = True, interval_time: Optional[int] = 2
 ) -&gt; bool:
@@ -1875,9 +1919,7 @@ due to the way the function works, it makes sense to choose an even number. Defa
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.sals.process API documentation</title>
 <meta name="description" content="This module execute process on system and manage them …" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -23,91 +25,88 @@
 <p>This module execute process on system and manage them</p>
 <p>below are some examples of the functions included in this module (not all inclusive.):</p>
 <h2 id="examples">Examples</h2>
-<p>```</p>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>from jumpscale.loader import j
-import signal</p>
-</blockquote>
-</blockquote>
-</blockquote>
-<h1 id="to-create-a-process">to create a process</h1>
-<pre><code>&gt;&gt;&gt; rc, out, err = j.sals.process.execute("ls", cwd="/tmp", showout=True)
-# this executes ls command on dir "/tmp" showing output from stdout
+<pre><code>```python-repl
+&gt;&gt;&gt; from jumpscale.loader import j
+&gt;&gt;&gt; import signal
 </code></pre>
-<h1 id="rc-contains-exit-status">rc -&gt; contains exit status</h1>
-<h1 id="out-the-actual-output">out -&gt; the actual output</h1>
-<h1 id="err-in-case-an-error-happened-this-var-will-contains-the-error-msg">err -&gt; in case an error happened this var will contains the error msg</h1>
+<h1 id="to-create-a-process">to create a process</h1>
+<pre><code class="language-python-repl">&gt;&gt;&gt; rc, out, err = j.sals.process.execute(&quot;ls&quot;, cwd=&quot;/tmp&quot;, showout=True)
+# this executes ls command on dir &quot;/tmp&quot; showing output from stdout
+# rc -&gt; contains exit status
+# out -&gt; the actual output
+# err -&gt; in case an error happened this var will contains the error msg
+</code></pre>
 <h1 id="checks-if-a-process-with-this-pid-is-exists-in-the-current-process-list">checks if a process with this pid is exists in the current process list</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.is_alive(10022)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.is_alive(10022)
 </code></pre>
 <h1 id="checks-if-a-specific-command-is-available-on-the-system">Checks if a specific command is available on the system</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.is_installed('top')
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.is_installed('top')
 </code></pre>
 <h1 id="kill-a-process-with-pid-10022-with-sigterm">kill a process with pid 10022 with SIGTERM</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.kill(10022)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.kill(10022)
 </code></pre>
 <h1 id="kill-a-process-with-pid-10022-with-sigterm-wait-3-seconds-for-it-to-disappear-then-if-still-alive-kill-it-with-sigkill">kill a process with pid 10022 with SIGTERM, wait 3 seconds for it to disappear, then if still alive kill it with SIGKILL</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.kill(10022, timeout=3, sure_kill=True)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.kill(10022, timeout=3, sure_kill=True)
 </code></pre>
 <h1 id="check-if-there-is-any-running-process-that-match-the-given-name">Check if there is any running process that match the given name.</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.ps_find('python3')
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.ps_find('python3')
 </code></pre>
 <h1 id="gets-pid-of-the-process-listenning-on-port-tcp-8000-ipv4-localhost-address">gets pid of the process listenning on port TCP 8000 ipv4 localhost address</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.get_pid_by_port(8000)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.get_pid_by_port(8000)
 </code></pre>
 <h1 id="gets-pid-of-the-process-listenning-on-port-udp-8000-ipv6-localhost-address">gets pid of the process listenning on port UDP 8000 ipv6 localhost address</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.get_pid_by_port(8000, ipv6=True, udp=True)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.get_pid_by_port(8000, ipv6=True, udp=True)
 </code></pre>
 <h1 id="returns-the-psutilprocess-object-that-is-listening-on-the-given-port">Returns the psutil.Process object that is listening on the given port</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.get_process_by_port(8000, ipv6=True, udp=True)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.get_process_by_port(8000, ipv6=True, udp=True)
 </code></pre>
 <h1 id="get-pids-of-process-by-a-filter-string-and-sort-by-cpu-utilization-descendingly">Get pids of process by a filter string and sort by cpu utilization descendingly</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.get_pids_filtered_sorted('chrome', sort='%cpu', desc=True)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.get_pids_filtered_sorted('chrome', sort='%cpu', desc=True)
 </code></pre>
 <h1 id="return-a-list-of-processes-ids-matching-the-given-name">Return a list of processes ID(s) matching the given name.</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.get_pids('code')
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.get_pids('code')
 </code></pre>
 <h1 id="return-a-list-of-processes-ids-matching-the-given-name-including-the-result-of-matching-againest-the-full-command-line">Return a list of processes ID(s) matching the given name, including the result of matching againest the full command line.</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.get_pids('http.server', full_cmd_line=True)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.get_pids('http.server', full_cmd_line=True)
 </code></pre>
 <h1 id="return-a-list-of-processes-ids-matching-the-given-name-including-any-zombie-processes">Return a list of processes ID(s) matching the given name, including any zombie processes</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.get_pids('python3', include_zombie=False)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.get_pids('python3', include_zombie=False)
 </code></pre>
 <h1 id="get-processes-info-about-top-3-processes-which-consumed-the-most-memory">get processes info about top 3 processes which consumed the most memory</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.get_processes_info(limit=3)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.get_processes_info(limit=3)
 </code></pre>
 <h1 id="get-processes-info-about-top-3-processes-which-consumed-the-most-cpu-time">get processes info about top 3 processes which consumed the most cpu time</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.get_processes_info(sort='cpu_time', limit=3)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.get_processes_info(sort='cpu_time', limit=3)
 </code></pre>
 <h1 id="get-processes-info-about-last-process-started">get processes info about last process started</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.get_processes_info(sort='create_time', limit=1)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.get_processes_info(sort='create_time', limit=1)
 </code></pre>
 <h1 id="get-processes-info-sorted-by-pid-ascending-limited-to-10-processes">get processes info sorted by pid ascending limited to 10 processes</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.get_processes_info(sort='pid', limit=10, desc=False)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.get_processes_info(sort='pid', limit=10, desc=False)
 </code></pre>
 <h1 id="kill-a-process-and-its-children-including-grandchildren-with-sigterm-and-fallback-to-sigkill-when-needed">Kill a process and its children (including grandchildren) with SIGTERM and fallback to SIGKILL when needed</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.kill_proc_tree(20778, sure_kill=True)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.kill_proc_tree(20778, sure_kill=True)
 </code></pre>
 <h1 id="send-sigterm-to-all-processes-spawned-by-a-given-process-but-leave-the-process-itself">send SIGTERM to all processes spawned by a given process, but leave the process itself.</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.kill_proc_tree(20778, include_parent=False)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.kill_proc_tree(20778, include_parent=False)
 </code></pre>
 <h1 id="terminate-a-list-of-processes-with-a-given-list-of-pids-fallback-to-sigkill-after-1-seconds">Terminate a list of processes with a given list of pids, fallback to SIGKILL after 1 seconds.</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.kill_all_pids([3067, 7888, 10221], timeout=1, sure_kill=True)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.kill_all_pids([3067, 7888, 10221], timeout=1, sure_kill=True)
 </code></pre>
 <h1 id="terminate-a-process-that-listen-to-a-given-tcp-port-on-ipv4-address">terminate a process that listen to a given tcp port on ipv4 address</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.kill_process_by_port(8000)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.kill_process_by_port(8000)
 </code></pre>
 <h1 id="terminate-a-process-that-listen-to-a-given-udp-port-on-ipv6-address-fallback-to-sigkill-after-3-sec">terminate a process that listen to a given udp port on ipv6 address, fallback to SIGKILL after 3 sec</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.kill_process_by_port(8000, udp=True, ipv6=True, timeout=3, sure_kill=True)
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.kill_process_by_port(8000, udp=True, ipv6=True, timeout=3, sure_kill=True)
 </code></pre>
 <h1 id="terminate-all-processes-owned-by-a-given-user-name-fallback-to-sigkill-when-needed">Terminate all processes owned by a given user name, fallback to SIGKILL when needed</h1>
-<pre><code>&gt;&gt;&gt; j.sals.process.kill_user_processes('sameh', sure_kill=True)
-```
+<pre><code class="language-python-repl">&gt;&gt;&gt; j.sals.process.kill_user_processes('sameh', sure_kill=True)
 </code></pre>
+<p>```</p>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">&#34;&#34;&#34;This module execute process on system and manage them
 
 below are some examples of the functions included in this module (not all inclusive.):
@@ -1159,7 +1158,7 @@ def in_host():
 <span>def <span class="ident">check_process_for_pid</span></span>(<span>pid, process_name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Check whether a given pid actually does belong to a given process name.</p>
+<div class="desc"><p>Check whether a given pid actually does belong to a given process name.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>pid</code></strong> :&ensp;<code>int</code></dt>
@@ -1169,11 +1168,13 @@ def in_host():
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if process_name matched process name of the pid, False otherwise.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def check_process_for_pid(pid, process_name):
     &#34;&#34;&#34;Check whether a given pid actually does belong to a given process name.
 
@@ -1195,7 +1196,7 @@ def in_host():
 <span>def <span class="ident">check_running</span></span>(<span>process_name, min=1)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Check if there are a specific number of running processes that match the given name.</p>
+<div class="desc"><p>Check if there are a specific number of running processes that match the given name.</p>
 <p>Function will check string against Process.name(), Process.exe() and Process.cmdline().</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -1206,11 +1207,13 @@ def in_host():
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>true if process is running, otherwise False</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def check_running(process_name, min=1):
     &#34;&#34;&#34;Check if there are a specific number of running processes that match the given name.
 
@@ -1231,7 +1234,7 @@ def in_host():
 <span>def <span class="ident">check_start</span></span>(<span>cmd, filterstr, n_instances=1, retry=1, timeout=2, delay=0.5)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Run command (possibly multiple times) and check if it is started based on filterstr</p>
+<div class="desc"><p>Run command (possibly multiple times) and check if it is started based on filterstr</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>cmd</code></strong> :&ensp;<code>str</code> or <code>list</code> of <code>str</code></dt>
@@ -1248,9 +1251,14 @@ def in_host():
 <dd>how long the function should delay the checking process after the process finished or timeout exceeded (in case the first process started another one).</dd>
 </dl>
 <h2 id="raises">Raises</h2>
-<p>j.exceptions.Runtime: will be raised if we didn't reach number of required instances.</p></section>
+<dl>
+<dt><code>j.exceptions.Runtime</code></dt>
+<dd>will be raised if we didn't reach number of required instances.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def check_start(cmd, filterstr, n_instances=1, retry=1, timeout=2, delay=0.5):
     &#34;&#34;&#34;Run command (possibly multiple times) and check if it is started based on filterstr
 
@@ -1294,7 +1302,7 @@ def in_host():
 <span>def <span class="ident">check_stop</span></span>(<span>cmd, filterstr, retry=1, n_instances=0, timeout=2, delay=0.5)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Executes a stop command (possibly multiple times) and check if it is already stopped based on filterstr</p>
+<div class="desc"><p>Executes a stop command (possibly multiple times) and check if it is already stopped based on filterstr</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>cmd</code></strong> :&ensp;<code>str</code></dt>
@@ -1312,11 +1320,13 @@ def in_host():
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><code>j.exceptions.Runtime</code>: <code>if</code> <code>number</code> of <code>instances</code> <code>not</code> <code>matched</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<dt><code>j.exceptions.Runtime</code></dt>
+<dd>if number of instances not matched</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def check_stop(cmd, filterstr, retry=1, n_instances=0, timeout=2, delay=0.5):
     &#34;&#34;&#34;Executes a stop command (possibly multiple times) and check if it is already stopped based on filterstr
 
@@ -1361,10 +1371,10 @@ def in_host():
 </details>
 </dd>
 <dt id="jumpscale.sals.process.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>cmd, showout=False, cwd=None, shell=&#39;/bin/bash&#39;, timeout=600, asynchronous=False, env=None, replace_env=False, die=False)</span>
+<span>def <span class="ident">execute</span></span>(<span>cmd, showout=False, cwd=None, shell='/bin/bash', timeout=600, asynchronous=False, env=None, replace_env=False, die=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Execute a command.</p>
+<div class="desc"><p>Execute a command.</p>
 <p>Accepts command as a list too, with auto-escaping.</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -1389,11 +1399,13 @@ def in_host():
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>tuple</code></strong></dt>
+<dt><code>tuple</code></dt>
 <dd>tuple[return_code: int, stdout: str, stderr: str]</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def execute(
     cmd,
     showout=False,
@@ -1440,11 +1452,16 @@ def in_host():
 <span>def <span class="ident">get_defunct_processes</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Gets defunct (zombie) processes.</p>
+<div class="desc"><p>Gets defunct (zombie) processes.</p>
 <h2 id="returns">Returns</h2>
-<p>list of int: List of processes ID(s).</p></section>
+<dl>
+<dt><code>list</code> of <code>int</code></dt>
+<dd>List of processes ID(s).</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_defunct_processes():
     &#34;&#34;&#34;Gets defunct (zombie) processes.
 
@@ -1465,22 +1482,28 @@ def in_host():
 <span>def <span class="ident">get_environ</span></span>(<span>pid)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Gets env vars for a specific process based on pid</p>
+<div class="desc"><p>Gets env vars for a specific process based on pid</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>pid</code></strong> :&ensp;<code>int</code></dt>
 <dd>process pid</dd>
 </dl>
 <h2 id="raises">Raises</h2>
-<p>j.exceptions.NotFound: if the process is no longer exists.
-j.exceptions.Permission: if the process is not accessible by the user.</p>
+<dl>
+<dt><code>j.exceptions.NotFound</code></dt>
+<dd>if the process is no longer exists.</dd>
+<dt><code>j.exceptions.Permission</code></dt>
+<dd>if the process is not accessible by the user.</dd>
+</dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>dict</code></strong></dt>
+<dt><code>dict</code></dt>
 <dd>dict of env variables</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_environ(pid):
     &#34;&#34;&#34;Gets env vars for a specific process based on pid
 
@@ -1507,21 +1530,23 @@ j.exceptions.Permission: if the process is not accessible by the user.</p>
 <span>def <span class="ident">get_filtered_pids</span></span>(<span>filterstr, excludes=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get pids filtered by filterstr and excludes, matching against the full command line used to start the process.</p>
+<div class="desc"><p>Get pids filtered by filterstr and excludes, matching against the full command line used to start the process.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>filterstr</code></strong> :&ensp;<code>str</code></dt>
 <dd>the String to filter based on.</dd>
-<dt><strong><code>excludes</code></strong> :&ensp;<code>list</code>[<code>str</code>]</dt>
+<dt><strong><code>excludes</code></strong> :&ensp;<code>list[str]</code></dt>
 <dd>exclude list. Defaults to None.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>list</code> of <code>int</code>: <code>List</code> of <code>the</code> <code>processes</code> <code>IDs</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<dt><code>list</code> of <code>int</code></dt>
+<dd>List of the processes IDs</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_filtered_pids(filterstr, excludes=None):
     &#34;&#34;&#34;Get pids filtered by filterstr and excludes, matching against the full command line used to start the process.
 
@@ -1555,18 +1580,20 @@ j.exceptions.Permission: if the process is not accessible by the user.</p>
 <span>def <span class="ident">get_memory_usage</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get memory status</p>
+<div class="desc"><p>Get memory status</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>dict</code></strong></dt>
+<dt><code>dict</code></dt>
 <dd>Memory status info, available keys ('total', 'used', 'percent')
 'total': total physical memory in Gb (exclusive swap).
 'used': memory used in Gb, calculated differently depending on the platform and designed for informational purposes only.
 total - free does not necessarily match used.
 'percent': the percentage of used memory.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_memory_usage():
     &#34;&#34;&#34;Get memory status
 
@@ -1591,11 +1618,16 @@ total - free does not necessarily match used.
 <span>def <span class="ident">get_my_process</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get psutil.Process object of the current process.</p>
+<div class="desc"><p>Get psutil.Process object of the current process.</p>
 <h2 id="returns">Returns</h2>
-<p>psutil.Process: Process object of the current process.</p></section>
+<dl>
+<dt><code>psutil.Process</code></dt>
+<dd>Process object of the current process.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_my_process():
     &#34;&#34;&#34;Get psutil.Process object of the current process.
 
@@ -1609,7 +1641,7 @@ total - free does not necessarily match used.
 <span>def <span class="ident">get_pid_by_port</span></span>(<span>port, ipv6=False, udp=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Returns the PID of the process that is listening on the given port</p>
+<div class="desc"><p>Returns the PID of the process that is listening on the given port</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>port</code></strong> :&ensp;<code>int</code></dt>
@@ -1620,9 +1652,14 @@ total - free does not necessarily match used.
 <dd>Whether to search the connections for UDP port instead of TCP. Defaults to False.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>int or None: PID for the proceses that listen on that port.</p></section>
+<dl>
+<dt><code>int</code> or <code>None</code></dt>
+<dd>PID for the proceses that listen on that port.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_pid_by_port(port, ipv6=False, udp=False):
     &#34;&#34;&#34;Returns the PID of the process that is listening on the given port
 
@@ -1644,7 +1681,7 @@ total - free does not necessarily match used.
 <span>def <span class="ident">get_pids</span></span>(<span>process_name, match_predicate=None, limit=0, include_zombie=False, full_cmd_line=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Return a list of processes ID(s) matching a given process name.</p>
+<div class="desc"><p>Return a list of processes ID(s) matching a given process name.</p>
 <p>Function will check string against Process.name(), Process.exe() and Process.cmdline()</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -1665,9 +1702,14 @@ the function should accept two arguments and return a boolean. Defaults to None.
 if full_cmd_line is set to True, the full command line is used. Defaults to False.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>list of int: List of the processes IDs.</p></section>
+<dl>
+<dt><code>list</code> of <code>int</code></dt>
+<dd>List of the processes IDs.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_pids(process_name, match_predicate=None, limit=0, _alt_source=None, include_zombie=False, full_cmd_line=False):
     &#34;&#34;&#34;Return a list of processes ID(s) matching a given process name.
 
@@ -1730,16 +1772,21 @@ if full_cmd_line is set to True, the full command line is used. Defaults to Fals
 <span>def <span class="ident">get_pids_filtered_by_regex</span></span>(<span>regex_list)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get pids of a process filtered by Regex list, matching against the full command line used to start the process.</p>
+<div class="desc"><p>Get pids of a process filtered by Regex list, matching against the full command line used to start the process.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>regex_list</code></strong> :&ensp;<code>list</code>[<code>str</code>]</dt>
+<dt><strong><code>regex_list</code></strong> :&ensp;<code>list[str]</code></dt>
 <dd>List of regex expressions.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>list of int: List of the processes IDs.</p></section>
+<dl>
+<dt><code>list</code> of <code>int</code></dt>
+<dd>List of the processes IDs.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_pids_filtered_by_regex(regex_list):
     &#34;&#34;&#34;Get pids of a process filtered by Regex list, matching against the full command line used to start the process.
 
@@ -1763,7 +1810,7 @@ if full_cmd_line is set to True, the full command line is used. Defaults to Fals
 <span>def <span class="ident">get_pids_filtered_sorted</span></span>(<span>filterstr, sortkey=None, desc=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get pids of process by a filter string and optionally sort by sortkey</p>
+<div class="desc"><p>Get pids of process by a filter string and optionally sort by sortkey</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>filterstr</code></strong> :&ensp;<code>str</code></dt>
@@ -1804,11 +1851,13 @@ starting time or date of the process.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>list</code> of <code>int</code>: <code>list</code> of <code>the</code> <code>processes</code> <code>IDs</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<dt><code>list</code> of <code>int</code></dt>
+<dd>list of the processes IDs</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_pids_filtered_sorted(filterstr, sortkey=None, desc=False):
     &#34;&#34;&#34;Get pids of process by a filter string and optionally sort by sortkey
 
@@ -1854,17 +1903,17 @@ starting time or date of the process.</dd>
 </details>
 </dd>
 <dt id="jumpscale.sals.process.get_ports_mapping"><code class="name flex">
-<span>def <span class="ident">get_ports_mapping</span></span>(<span>status=&#39;LISTEN&#39;)</span>
+<span>def <span class="ident">get_ports_mapping</span></span>(<span>status='LISTEN')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get a mapping for process to ports with a status filter</p>
+<div class="desc"><p>Get a mapping for process to ports with a status filter</p>
 <p>It will skip any process in case of errors (e.g. permission error)</p>
 <h2 id="example">Example</h2>
-<pre><code>&gt;&gt;&gt; from jumpscale.loader import j
+<pre><code class="language-python-repl">&gt;&gt;&gt; from jumpscale.loader import j
 &gt;&gt;&gt; import psutil
 &gt;&gt;&gt; j.sals.process.get_ports_mapping(psutil.CONN_ESTABLISHED)
 &gt;&gt;&gt; # or
-&gt;&gt;&gt; j.sals.process.get_ports_mapping("ESTABLISHED")
+&gt;&gt;&gt; j.sals.process.get_ports_mapping(&quot;ESTABLISHED&quot;)
 </code></pre>
 <h2 id="args">Args</h2>
 <dl>
@@ -1873,11 +1922,13 @@ starting time or date of the process.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>defaultdict</code></strong></dt>
+<dt><code>defaultdict</code></dt>
 <dd>a mapping between process and ports</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_ports_mapping(status=psutil.CONN_LISTEN):
     &#34;&#34;&#34;Get a mapping for process to ports with a status filter
 
@@ -1916,7 +1967,7 @@ starting time or date of the process.</dd>
 <span>def <span class="ident">get_process_by_port</span></span>(<span>port, ipv6=False, udp=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Returns the psutil.Process object that is listening on the given port.</p>
+<div class="desc"><p>Returns the psutil.Process object that is listening on the given port.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>port</code></strong> :&ensp;<code>int</code></dt>
@@ -1927,16 +1978,23 @@ starting time or date of the process.</dd>
 <dd>Whether to search the connections for UDP port instead of TCP. Defaults to False.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
-<p>j.exceptions.Runtime: pid is not retrievable.
-j.exceptions.NotFound: if the process is no longer exists.
-j.exceptions.Permission: if the process is not accessible by the user.</p>
+<dl>
+<dt><code>j.exceptions.Runtime</code></dt>
+<dd>pid is not retrievable.</dd>
+<dt><code>j.exceptions.NotFound</code></dt>
+<dd>if the process is no longer exists.</dd>
+<dt><code>j.exceptions.Permission</code></dt>
+<dd>if the process is not accessible by the user.</dd>
+</dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>psutil.Process</code>: <code>process</code> <code>object</code> <code>if</code> <code>found</code>, <code>otherwise</code> <code>None</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<dt><code>psutil.Process</code></dt>
+<dd>process object if found, otherwise None</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_process_by_port(port, ipv6=False, udp=False):
     &#34;&#34;&#34;Returns the psutil.Process object that is listening on the given port.
 
@@ -1977,7 +2035,7 @@ j.exceptions.Permission: if the process is not accessible by the user.</p>
 <span>def <span class="ident">get_process_object</span></span>(<span>pid, die=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get psutil.Process object of a given process ID (PID).</p>
+<div class="desc"><p>Get psutil.Process object of a given process ID (PID).</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>pid</code></strong> :&ensp;<code>int</code></dt>
@@ -1987,12 +2045,21 @@ j.exceptions.Permission: if the process is not accessible by the user.</p>
 current process list or not. Defaults to False.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
-<p>psutil.NoSuchProcess: If process with the given PID is not found and die set to True.
-psutil.AccessDenied: If permission denied.</p>
+<dl>
+<dt><code>psutil.NoSuchProcess</code></dt>
+<dd>If process with the given PID is not found and die set to True.</dd>
+<dt><code>psutil.AccessDenied</code></dt>
+<dd>If permission denied.</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>psutil.Process or None: The Process object of the given PID if found, otherwise None, if die set to False.</p></section>
+<dl>
+<dt><code>psutil.Process</code> or <code>None</code></dt>
+<dd>The Process object of the given PID if found, otherwise None, if die set to False.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_process_object(pid, die=False):
     &#34;&#34;&#34;Get psutil.Process object of a given process ID (PID).
 
@@ -2022,14 +2089,16 @@ psutil.AccessDenied: If permission denied.</p>
 <span>def <span class="ident">get_processes</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get an interator for all running processes</p>
+<div class="desc"><p>Get an interator for all running processes</p>
 <h2 id="yields">Yields</h2>
 <dl>
-<dt><code>psutil.Process</code>: <code>for</code> <code>all</code> <code>processes</code> <code>running</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<dt><code>psutil.Process</code></dt>
+<dd>for all processes running</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_processes():
     &#34;&#34;&#34;Get an interator for all running processes
 
@@ -2040,13 +2109,13 @@ psutil.AccessDenied: If permission denied.</p>
 </details>
 </dd>
 <dt id="jumpscale.sals.process.get_processes_info"><code class="name flex">
-<span>def <span class="ident">get_processes_info</span></span>(<span>user=None, sort=&#39;mem&#39;, filterstr=None, limit=25, desc=True)</span>
+<span>def <span class="ident">get_processes_info</span></span>(<span>user=None, sort='mem', filterstr=None, limit=25, desc=True)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get information for top running processes sorted by memory usage or CPU usage.</p>
+<div class="desc"><p>Get information for top running processes sorted by memory usage or CPU usage.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>user</code></strong> :&ensp;[<code>type</code>], optional</dt>
+<dt><strong><code>user</code></strong> :&ensp;<code>[type]</code>, optional</dt>
 <dd>filter the processes by username. Defaults to None.</dd>
 <dt><strong><code>sort</code></strong> :&ensp;<code>str</code>, optional</dt>
 <dd>sort processes by resource usage, Defaults to 'mem'.
@@ -2074,7 +2143,7 @@ be &gt; 100.0 in case of a process running multiple threads on different CPUs.
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>dict</code></strong></dt>
+<dt><code>dict</code></dt>
 <dd>processes info as a dictionary
 available keys [
 "cpu_num",
@@ -2093,9 +2162,11 @@ available keys [
 "cpu_time",
 "ports"
 ]</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_processes_info(user=None, sort=&#34;mem&#34;, filterstr=None, limit=25, desc=True):
     &#34;&#34;&#34;Get information for top running processes sorted by memory usage or CPU usage.
 
@@ -2220,7 +2291,7 @@ available keys [
 <span>def <span class="ident">get_similar_processes</span></span>(<span>target_proc=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Gets similar processes to current process, started with same command line and same options.</p>
+<div class="desc"><p>Gets similar processes to current process, started with same command line and same options.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>target_proc</code></strong> :&ensp;<code>int</code> or <code>psutil.Process</code>, optional</dt>
@@ -2228,9 +2299,14 @@ available keys [
 if None then pid for current process will be used. Defaults to None.</dd>
 </dl>
 <h2 id="yields">Yields</h2>
-<p>psutil.Process: psutil.Process object for all processes similar to a given process.</p></section>
+<dl>
+<dt><code>psutil.Process</code></dt>
+<dd>psutil.Process object for all processes similar to a given process.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_similar_processes(target_proc=None):
     &#34;&#34;&#34;Gets similar processes to current process, started with same command line and same options.
 
@@ -2257,16 +2333,21 @@ if None then pid for current process will be used. Defaults to None.</dd>
 <span>def <span class="ident">get_user_processes</span></span>(<span>user)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get all process for a specific user.</p>
+<div class="desc"><p>Get all process for a specific user.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>user</code></strong> :&ensp;<code>str</code></dt>
 <dd>The user name to match against.</dd>
 </dl>
 <h2 id="yields">Yields</h2>
-<p>psutil.Process: process object for all processes owned by <code>user</code>.</p></section>
+<dl>
+<dt><code>psutil.Process</code></dt>
+<dd>process object for all processes owned by <code>user</code>.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_user_processes(user):
     &#34;&#34;&#34;Get all process for a specific user.
 
@@ -2288,14 +2369,16 @@ if None then pid for current process will be used. Defaults to None.</dd>
 <span>def <span class="ident">in_docker</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>will check if we are in a docker.</p>
+<div class="desc"><p>will check if we are in a docker.</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if in docker. False otherwise.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def in_docker():
     &#34;&#34;&#34;will check if we are in a docker.
 
@@ -2310,14 +2393,16 @@ if None then pid for current process will be used. Defaults to None.</dd>
 <span>def <span class="ident">in_host</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Will check if we are in a host.</p>
+<div class="desc"><p>Will check if we are in a host.</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if in host. False otherwise.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def in_host():
     &#34;&#34;&#34;Will check if we are in a host.
 
@@ -2331,7 +2416,7 @@ if None then pid for current process will be used. Defaults to None.</dd>
 <span>def <span class="ident">is_alive</span></span>(<span>pid)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Check whether the given PID exists in the current process list.</p>
+<div class="desc"><p>Check whether the given PID exists in the current process list.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>pid</code></strong> :&ensp;<code>int</code></dt>
@@ -2339,11 +2424,13 @@ if None then pid for current process will be used. Defaults to None.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if the given PID exists in the current process list, False otherwise.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def is_alive(pid):
     &#34;&#34;&#34;Check whether the given PID exists in the current process list.
 
@@ -2360,7 +2447,7 @@ if None then pid for current process will be used. Defaults to None.</dd>
 <span>def <span class="ident">is_installed</span></span>(<span>cmd)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Checks if a specific command is available on system e.g. curl.</p>
+<div class="desc"><p>Checks if a specific command is available on system e.g. curl.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>cmd</code></strong> :&ensp;<code>str</code></dt>
@@ -2368,11 +2455,13 @@ if None then pid for current process will be used. Defaults to None.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if command is available, False otherwise.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def is_installed(cmd):
     &#34;&#34;&#34;Checks if a specific command is available on system e.g. curl.
 
@@ -2390,7 +2479,7 @@ if None then pid for current process will be used. Defaults to None.</dd>
 <span>def <span class="ident">is_port_listening</span></span>(<span>port, ipv6=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Check if the TCP port is being used by any process</p>
+<div class="desc"><p>Check if the TCP port is being used by any process</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>port</code></strong> :&ensp;<code>int</code></dt>
@@ -2400,11 +2489,13 @@ if None then pid for current process will be used. Defaults to None.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if port is used, False otherwise.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def is_port_listening(port, ipv6=False):
     &#34;&#34;&#34;Check if the TCP port is being used by any process
 
@@ -2423,10 +2514,10 @@ if None then pid for current process will be used. Defaults to None.</dd>
 </details>
 </dd>
 <dt id="jumpscale.sals.process.kill"><code class="name flex">
-<span>def <span class="ident">kill</span></span>(<span>proc, sig=&lt;Signals.SIGTERM: 15&gt;, timeout=5, sure_kill=False)</span>
+<span>def <span class="ident">kill</span></span>(<span>proc, sig=Signals.SIGTERM, timeout=5, sure_kill=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Kill a process with a specified signal.</p>
+<div class="desc"><p>Kill a process with a specified signal.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>proc</code></strong> :&ensp;<code>int</code> or <code>psutil.Process</code></dt>
@@ -2440,10 +2531,16 @@ or, if sure_kill=True, send a SIGKILL. Defaults to 5.</dd>
 <dd>Whether to fallback to SIGKILL if the timeout exceeded for the terminate operation or not. Defaults to False.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
-<p>j.exceptions.Runtime: In case killing the process failed.
-j.exceptions.Permission: In case the permission to perform this action is denied.</p></section>
+<dl>
+<dt><code>j.exceptions.Runtime</code></dt>
+<dd>In case killing the process failed.</dd>
+<dt><code>j.exceptions.Permission</code></dt>
+<dd>In case the permission to perform this action is denied.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def kill(proc, sig=signal.SIGTERM, timeout=5, sure_kill=False):
     &#34;&#34;&#34;Kill a process with a specified signal.
 
@@ -2497,10 +2594,10 @@ j.exceptions.Permission: In case the permission to perform this action is denied
 </details>
 </dd>
 <dt id="jumpscale.sals.process.kill_all_pids"><code class="name flex">
-<span>def <span class="ident">kill_all_pids</span></span>(<span>pids, sig=&lt;Signals.SIGTERM: 15&gt;, timeout=5, sure_kill=False)</span>
+<span>def <span class="ident">kill_all_pids</span></span>(<span>pids, sig=Signals.SIGTERM, timeout=5, sure_kill=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Kill all processes with given pids.</p>
+<div class="desc"><p>Kill all processes with given pids.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>pids</code></strong> :&ensp;<code>list</code> of <code>int</code></dt>
@@ -2514,9 +2611,14 @@ or, if sure_kill=True, send a SIGKILL. Defaults to 5.</dd>
 <dd>Whether to fallback to SIGKILL if the timeout exceeded for the terminate operation or not. Defaults to False.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>list of int: represents the IDs of the processes remaning alive if any.</p></section>
+<dl>
+<dt><code>list</code> of <code>int</code></dt>
+<dd>represents the IDs of the processes remaning alive if any.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def kill_all_pids(pids, sig=signal.SIGTERM, timeout=5, sure_kill=False):
     &#34;&#34;&#34;Kill all processes with given pids.
 
@@ -2541,10 +2643,10 @@ or, if sure_kill=True, send a SIGKILL. Defaults to 5.</dd>
 </details>
 </dd>
 <dt id="jumpscale.sals.process.kill_proc_tree"><code class="name flex">
-<span>def <span class="ident">kill_proc_tree</span></span>(<span>parent, sig=&lt;Signals.SIGTERM: 15&gt;, include_parent=True, include_grand_children=True, timeout=5, sure_kill=False)</span>
+<span>def <span class="ident">kill_proc_tree</span></span>(<span>parent, sig=Signals.SIGTERM, include_parent=True, include_grand_children=True, timeout=5, sure_kill=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Kill a process and its children (including grandchildren) with signal <code>sig</code></p>
+<div class="desc"><p>Kill a process and its children (including grandchildren) with signal <code>sig</code></p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>proc</code></strong> :&ensp;<code>int</code> or <code>psutil.Process</code></dt>
@@ -2560,14 +2662,19 @@ or, if sure_kill=True, send a SIGKILL. Defaults to 5.</dd>
 <dd>Whether to fallback to SIGKILL if the timeout exceeded for the terminate operation or not. Defaults to False.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>list of psutil.Process: represents the objects of the processes remaning alive if any.</p>
+<dl>
+<dt><code>list</code> of <code>psutil.Process</code></dt>
+<dd>represents the objects of the processes remaning alive if any.</dd>
+</dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>AssertionError</code></strong></dt>
+<dt><code>AssertionError</code></dt>
 <dd>in case the given <code>parent</code> is the current process</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def kill_proc_tree(
     parent, sig=signal.SIGTERM, include_parent=True, include_grand_children=True, timeout=5, sure_kill=False
 ):
@@ -2616,10 +2723,10 @@ or, if sure_kill=True, send a SIGKILL. Defaults to 5.</dd>
 </details>
 </dd>
 <dt id="jumpscale.sals.process.kill_process_by_name"><code class="name flex">
-<span>def <span class="ident">kill_process_by_name</span></span>(<span>process_name, sig=&lt;Signals.SIGTERM: 15&gt;, match_predicate=None, timeout=5, sure_kill=False)</span>
+<span>def <span class="ident">kill_process_by_name</span></span>(<span>process_name, sig=Signals.SIGTERM, match_predicate=None, timeout=5, sure_kill=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Kill all processes that match 'process_name'.</p>
+<div class="desc"><p>Kill all processes that match 'process_name'.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>process_name</code></strong> :&ensp;<code>str</code></dt>
@@ -2637,9 +2744,14 @@ or, if sure_kill=True, send a SIGKILL. Defaults to 5.</dd>
 <dd>Whether to fallback to SIGKILL if the timeout exceeded for the terminate operation or not. Defaults to False.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>list of int: represents the IDs of the processes remaning alive if any.</p></section>
+<dl>
+<dt><code>list</code> of <code>int</code></dt>
+<dd>represents the IDs of the processes remaning alive if any.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def kill_process_by_name(process_name, sig=signal.SIGTERM, match_predicate=None, timeout=5, sure_kill=False):
     &#34;&#34;&#34;Kill all processes that match &#39;process_name&#39;.
 
@@ -2667,10 +2779,10 @@ or, if sure_kill=True, send a SIGKILL. Defaults to 5.</dd>
 </details>
 </dd>
 <dt id="jumpscale.sals.process.kill_process_by_port"><code class="name flex">
-<span>def <span class="ident">kill_process_by_port</span></span>(<span>port, ipv6=False, udp=False, sig=&lt;Signals.SIGTERM: 15&gt;, timeout=5, sure_kill=False)</span>
+<span>def <span class="ident">kill_process_by_port</span></span>(<span>port, ipv6=False, udp=False, sig=Signals.SIGTERM, timeout=5, sure_kill=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Kill process by port.</p>
+<div class="desc"><p>Kill process by port.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>port</code></strong> :&ensp;<code>int</code></dt>
@@ -2688,10 +2800,16 @@ or, if sure_kill=True, send a SIGKILL. Defaults to 5.</dd>
 <dd>Whether to fallback to SIGKILL if the timeout exceeded for the terminate operation or not. Defaults to False.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
-<p>j.exceptions.Runtime: In case killing the process failed.
-j.exceptions.Permission: In case the permission to perform this action is denied.</p></section>
+<dl>
+<dt><code>j.exceptions.Runtime</code></dt>
+<dd>In case killing the process failed.</dd>
+<dt><code>j.exceptions.Permission</code></dt>
+<dd>In case the permission to perform this action is denied.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def kill_process_by_port(port, ipv6=False, udp=False, sig=signal.SIGTERM, timeout=5, sure_kill=False):
     &#34;&#34;&#34;Kill process by port.
 
@@ -2713,10 +2831,10 @@ j.exceptions.Permission: In case the permission to perform this action is denied
 </details>
 </dd>
 <dt id="jumpscale.sals.process.kill_user_processes"><code class="name flex">
-<span>def <span class="ident">kill_user_processes</span></span>(<span>user, sig=&lt;Signals.SIGTERM: 15&gt;, timeout=5, sure_kill=False)</span>
+<span>def <span class="ident">kill_user_processes</span></span>(<span>user, sig=Signals.SIGTERM, timeout=5, sure_kill=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Kill all processes for a specific user.</p>
+<div class="desc"><p>Kill all processes for a specific user.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>user</code></strong> :&ensp;<code>str</code></dt>
@@ -2729,9 +2847,11 @@ j.exceptions.Permission: In case the permission to perform this action is denied
 <dd>Whether to fallback to SIGKILL if the timeout exceeded for the terminate operation or not. Defaults to False.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>list of psutil.Process): list of process objects that remain alive if any.</p></section>
+<p>list of psutil.Process): list of process objects that remain alive if any.</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def kill_user_processes(user, sig=signal.SIGTERM, timeout=5, sure_kill=False):
     &#34;&#34;&#34;Kill all processes for a specific user.
 
@@ -2763,7 +2883,7 @@ j.exceptions.Permission: In case the permission to perform this action is denied
 <span>def <span class="ident">ps_find</span></span>(<span>process_name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Check if there is any running process that match the given name.</p>
+<div class="desc"><p>Check if there is any running process that match the given name.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>process_name</code></strong> :&ensp;<code>str</code></dt>
@@ -2771,11 +2891,13 @@ j.exceptions.Permission: In case the permission to perform this action is denied
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if process is found, False otherwise.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def ps_find(process_name):
     &#34;&#34;&#34;Check if there is any running process that match the given name.
 
@@ -2792,7 +2914,7 @@ j.exceptions.Permission: In case the permission to perform this action is denied
 <span>def <span class="ident">set_env_var</span></span>(<span>var_names, var_values)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Set the value of the environment variables {varnames}. Existing variable are overwritten</p>
+<div class="desc"><p>Set the value of the environment variables {varnames}. Existing variable are overwritten</p>
 <p>Such changes to the environment affect subprocesses started with os.system(), popen() or fork() and execv()</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -2803,11 +2925,13 @@ j.exceptions.Permission: In case the permission to perform this action is denied
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><code>j.exceptions.RuntimeError</code>: <code>if</code> <code>error</code> <code>happened</code> <code>during</code> <code>setting</code> <code>the</code> <code>environment</code> <code>variables</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<dt><code>j.exceptions.RuntimeError</code></dt>
+<dd>if error happened during setting the environment variables</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def set_env_var(var_names, var_values):
     &#34;&#34;&#34;Set the value of the environment variables {varnames}. Existing variable are overwritten
 
@@ -2886,9 +3010,7 @@ j.exceptions.Permission: In case the permission to perform this action is denied
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

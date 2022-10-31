@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.packages.admin.actors.admin API documentation</title>
 <meta name="description" content="" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -21,7 +23,9 @@
 </header>
 <section id="section-intro">
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">from jumpscale.loader import j
 from jumpscale.servers.gedis.baseactor import BaseActor, actor_method
 from requests import HTTPError
@@ -335,12 +339,14 @@ Actor = Admin</code></pre>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
 <dt id="jumpscale.packages.admin.actors.admin.Admin"><code class="flex name class">
-<span>class <span class="ident">Actor</span></span>
+<span>class <span class="ident">Admin</span></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class Admin(BaseActor):
     @actor_method
     def list_admins(self) -&gt; str:
@@ -641,12 +647,14 @@ Actor = Admin</code></pre>
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.add_admin"><code class="name flex">
-<span>def <span class="ident">add_admin</span></span>(<span>self, name)</span>
+<span>def <span class="ident">add_admin</span></span>(<span>self, name: str)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def add_admin(self, name: str):
     if name in j.core.identity.me.admins:
@@ -656,12 +664,14 @@ def add_admin(self, name: str):
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.add_escalation_email"><code class="name flex">
-<span>def <span class="ident">add_escalation_email</span></span>(<span>self, email)</span>
+<span>def <span class="ident">add_escalation_email</span></span>(<span>self, email) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def add_escalation_email(self, email) -&gt; str:
     escalation_emails = j.core.config.get(&#34;ESCALATION_EMAILS&#34;, [])
@@ -672,12 +682,14 @@ def add_escalation_email(self, email) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.add_identity"><code class="name flex">
-<span>def <span class="ident">add_identity</span></span>(<span>self, display_name, tname, email, words, admins)</span>
+<span>def <span class="ident">add_identity</span></span>(<span>self, display_name: str, tname: str, email: str, words: str, admins: list) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def add_identity(
     self,
@@ -726,12 +738,14 @@ def add_identity(
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.add_sshkey"><code class="name flex">
-<span>def <span class="ident">add_sshkey</span></span>(<span>self, key_id, sshkey)</span>
+<span>def <span class="ident">add_sshkey</span></span>(<span>self, key_id, sshkey) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def add_sshkey(self, key_id, sshkey) -&gt; str:
     sshkeys = j.core.config.get(&#34;SSH_KEYS&#34;, {})
@@ -742,12 +756,14 @@ def add_sshkey(self, key_id, sshkey) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.check_identity_instance_name"><code class="name flex">
-<span>def <span class="ident">check_identity_instance_name</span></span>(<span>self, name)</span>
+<span>def <span class="ident">check_identity_instance_name</span></span>(<span>self, name) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def check_identity_instance_name(self, name) -&gt; str:
     if name in j.core.identity.list_all():
@@ -756,12 +772,14 @@ def check_identity_instance_name(self, name) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.check_tname_exists"><code class="name flex">
-<span>def <span class="ident">check_tname_exists</span></span>(<span>self, tname)</span>
+<span>def <span class="ident">check_tname_exists</span></span>(<span>self, tname) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def check_tname_exists(self, tname) -&gt; str:
     try:
@@ -772,12 +790,14 @@ def check_tname_exists(self, tname) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.clear_blocked_managed_domains"><code class="name flex">
-<span>def <span class="ident">clear_blocked_managed_domains</span></span>(<span>self)</span>
+<span>def <span class="ident">clear_blocked_managed_domains</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def clear_blocked_managed_domains(self) -&gt; str:
     j.sals.marketplace.deployer.clear_blocked_managed_domains()
@@ -785,12 +805,14 @@ def clear_blocked_managed_domains(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.clear_blocked_nodes"><code class="name flex">
-<span>def <span class="ident">clear_blocked_nodes</span></span>(<span>self)</span>
+<span>def <span class="ident">clear_blocked_nodes</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def clear_blocked_nodes(self) -&gt; str:
     j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
@@ -798,12 +820,14 @@ def clear_blocked_nodes(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.delete_admin"><code class="name flex">
-<span>def <span class="ident">delete_admin</span></span>(<span>self, name)</span>
+<span>def <span class="ident">delete_admin</span></span>(<span>self, name: str)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def delete_admin(self, name: str):
     if name not in j.core.identity.me.admins:
@@ -813,12 +837,14 @@ def delete_admin(self, name: str):
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.delete_escalation_email"><code class="name flex">
-<span>def <span class="ident">delete_escalation_email</span></span>(<span>self, email)</span>
+<span>def <span class="ident">delete_escalation_email</span></span>(<span>self, email) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def delete_escalation_email(self, email) -&gt; str:
     escalation_emails = j.core.config.get(&#34;ESCALATION_EMAILS&#34;, [])
@@ -829,12 +855,14 @@ def delete_escalation_email(self, email) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.delete_identity"><code class="name flex">
-<span>def <span class="ident">delete_identity</span></span>(<span>self, identity_instance_name)</span>
+<span>def <span class="ident">delete_identity</span></span>(<span>self, identity_instance_name: str) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def delete_identity(self, identity_instance_name: str) -&gt; str:
     identity_names = j.core.identity.list_all()
@@ -850,12 +878,14 @@ def delete_identity(self, identity_instance_name: str) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.delete_sshkey"><code class="name flex">
-<span>def <span class="ident">delete_sshkey</span></span>(<span>self, key_id)</span>
+<span>def <span class="ident">delete_sshkey</span></span>(<span>self, key_id) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def delete_sshkey(self, key_id) -&gt; str:
     sshkeys = j.core.config.get(&#34;SSH_KEYS&#34;, {})
@@ -866,24 +896,28 @@ def delete_sshkey(self, key_id) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.generate_mnemonic"><code class="name flex">
-<span>def <span class="ident">generate_mnemonic</span></span>(<span>self)</span>
+<span>def <span class="ident">generate_mnemonic</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def generate_mnemonic(self) -&gt; str:
     words = j.data.encryption.generate_mnemonic()
     return j.data.serializers.json.dumps({&#34;data&#34;: words})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_config"><code class="name flex">
-<span>def <span class="ident">get_config</span></span>(<span>self)</span>
+<span>def <span class="ident">get_config</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_config(self) -&gt; str:
     config_obj = j.core.config.get_config()
@@ -891,24 +925,28 @@ def get_config(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_current_identity_name"><code class="name flex">
-<span>def <span class="ident">get_current_identity_name</span></span>(<span>self)</span>
+<span>def <span class="ident">get_current_identity_name</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_current_identity_name(self) -&gt; str:
     return j.data.serializers.json.dumps({&#34;data&#34;: j.core.identity.me.instance_name})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_developer_options"><code class="name flex">
-<span>def <span class="ident">get_developer_options</span></span>(<span>self)</span>
+<span>def <span class="ident">get_developer_options</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_developer_options(self) -&gt; str:
     test_cert = j.core.config.set_default(&#34;TEST_CERT&#34;, False)
@@ -928,12 +966,14 @@ def get_developer_options(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_email_server_config"><code class="name flex">
-<span>def <span class="ident">get_email_server_config</span></span>(<span>self)</span>
+<span>def <span class="ident">get_email_server_config</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_email_server_config(self) -&gt; str:
     email_server_config = j.core.config.get(&#34;EMAIL_SERVER_CONFIG&#34;, {})
@@ -945,12 +985,14 @@ def get_email_server_config(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_identity"><code class="name flex">
-<span>def <span class="ident">get_identity</span></span>(<span>self, identity_instance_name)</span>
+<span>def <span class="ident">get_identity</span></span>(<span>self, identity_instance_name: str) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_identity(self, identity_instance_name: str) -&gt; str:
     identity_names = j.core.identity.list_all()
@@ -974,12 +1016,14 @@ def get_identity(self, identity_instance_name: str) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_notifications"><code class="name flex">
-<span>def <span class="ident">get_notifications</span></span>(<span>self)</span>
+<span>def <span class="ident">get_notifications</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_notifications(self) -&gt; str:
     notifications = []
     if j.tools.notificationsqueue.count() &gt;= 10:
@@ -991,24 +1035,28 @@ def get_identity(self, identity_instance_name: str) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_notifications_count"><code class="name flex">
-<span>def <span class="ident">get_notifications_count</span></span>(<span>self)</span>
+<span>def <span class="ident">get_notifications_count</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_notifications_count(self) -&gt; str:
     return j.data.serializers.json.dumps({&#34;data&#34;: j.tools.notificationsqueue.count()})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_sdk_version"><code class="name flex">
-<span>def <span class="ident">get_sdk_version</span></span>(<span>self)</span>
+<span>def <span class="ident">get_sdk_version</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_sdk_version(self) -&gt; str:
     import importlib_metadata as metadata
@@ -1021,12 +1069,14 @@ def get_sdk_version(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.list_admins"><code class="name flex">
-<span>def <span class="ident">list_admins</span></span>(<span>self)</span>
+<span>def <span class="ident">list_admins</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def list_admins(self) -&gt; str:
     admins = list(set(j.core.identity.me.admins))
@@ -1034,12 +1084,14 @@ def list_admins(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.list_escalation_emails"><code class="name flex">
-<span>def <span class="ident">list_escalation_emails</span></span>(<span>self)</span>
+<span>def <span class="ident">list_escalation_emails</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def list_escalation_emails(self) -&gt; str:
     escalation_emails = j.core.config.get(&#34;ESCALATION_EMAILS&#34;, [])
@@ -1047,12 +1099,14 @@ def list_escalation_emails(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.list_identities"><code class="name flex">
-<span>def <span class="ident">list_identities</span></span>(<span>self)</span>
+<span>def <span class="ident">list_identities</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def list_identities(self) -&gt; str:
     identities = j.core.identity.list_all()
@@ -1080,12 +1134,14 @@ def list_identities(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.list_sshkeys"><code class="name flex">
-<span>def <span class="ident">list_sshkeys</span></span>(<span>self)</span>
+<span>def <span class="ident">list_sshkeys</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def list_sshkeys(self) -&gt; str:
     sshkeys = j.core.config.get(&#34;SSH_KEYS&#34;, {})
@@ -1093,12 +1149,14 @@ def list_sshkeys(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.set_developer_options"><code class="name flex">
-<span>def <span class="ident">set_developer_options</span></span>(<span>self, test_cert, over_provision, sort_nodes_by_sru, escalation_emails)</span>
+<span>def <span class="ident">set_developer_options</span></span>(<span>self, test_cert: bool, over_provision: bool, sort_nodes_by_sru: bool, escalation_emails: bool) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def set_developer_options(
     self,
@@ -1124,12 +1182,14 @@ def set_developer_options(
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.set_email_server_config"><code class="name flex">
-<span>def <span class="ident">set_email_server_config</span></span>(<span>self, host=&#39;&#39;, port=&#39;&#39;, username=&#39;&#39;, password=&#39;&#39;)</span>
+<span>def <span class="ident">set_email_server_config</span></span>(<span>self, host='', port='', username='', password='') ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def set_email_server_config(self, host=&#34;&#34;, port=&#34;&#34;, username=&#34;&#34;, password=&#34;&#34;) -&gt; str:
     email_server_config = j.core.config.get(&#34;EMAIL_SERVER_CONFIG&#34;, {})
@@ -1139,12 +1199,14 @@ def set_email_server_config(self, host=&#34;&#34;, port=&#34;&#34;, username=&#3
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.set_identity"><code class="name flex">
-<span>def <span class="ident">set_identity</span></span>(<span>self, identity_instance_name)</span>
+<span>def <span class="ident">set_identity</span></span>(<span>self, identity_instance_name: str) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def set_identity(self, identity_instance_name: str) -&gt; str:
     identity_names = j.core.identity.list_all()
@@ -1159,12 +1221,14 @@ def set_identity(self, identity_instance_name: str) -&gt; str:
 </dl>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin"><code class="flex name class">
-<span>class <span class="ident">Admin</span></span>
+<span>class <span class="ident">Actor</span></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class Admin(BaseActor):
     @actor_method
     def list_admins(self) -&gt; str:
@@ -1465,12 +1529,14 @@ def set_identity(self, identity_instance_name: str) -&gt; str:
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.add_admin"><code class="name flex">
-<span>def <span class="ident">add_admin</span></span>(<span>self, name)</span>
+<span>def <span class="ident">add_admin</span></span>(<span>self, name: str)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def add_admin(self, name: str):
     if name in j.core.identity.me.admins:
@@ -1480,12 +1546,14 @@ def add_admin(self, name: str):
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.add_escalation_email"><code class="name flex">
-<span>def <span class="ident">add_escalation_email</span></span>(<span>self, email)</span>
+<span>def <span class="ident">add_escalation_email</span></span>(<span>self, email) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def add_escalation_email(self, email) -&gt; str:
     escalation_emails = j.core.config.get(&#34;ESCALATION_EMAILS&#34;, [])
@@ -1496,12 +1564,14 @@ def add_escalation_email(self, email) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.add_identity"><code class="name flex">
-<span>def <span class="ident">add_identity</span></span>(<span>self, display_name, tname, email, words, admins)</span>
+<span>def <span class="ident">add_identity</span></span>(<span>self, display_name: str, tname: str, email: str, words: str, admins: list) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def add_identity(
     self,
@@ -1550,12 +1620,14 @@ def add_identity(
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.add_sshkey"><code class="name flex">
-<span>def <span class="ident">add_sshkey</span></span>(<span>self, key_id, sshkey)</span>
+<span>def <span class="ident">add_sshkey</span></span>(<span>self, key_id, sshkey) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def add_sshkey(self, key_id, sshkey) -&gt; str:
     sshkeys = j.core.config.get(&#34;SSH_KEYS&#34;, {})
@@ -1566,12 +1638,14 @@ def add_sshkey(self, key_id, sshkey) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.check_identity_instance_name"><code class="name flex">
-<span>def <span class="ident">check_identity_instance_name</span></span>(<span>self, name)</span>
+<span>def <span class="ident">check_identity_instance_name</span></span>(<span>self, name) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def check_identity_instance_name(self, name) -&gt; str:
     if name in j.core.identity.list_all():
@@ -1580,12 +1654,14 @@ def check_identity_instance_name(self, name) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.check_tname_exists"><code class="name flex">
-<span>def <span class="ident">check_tname_exists</span></span>(<span>self, tname)</span>
+<span>def <span class="ident">check_tname_exists</span></span>(<span>self, tname) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def check_tname_exists(self, tname) -&gt; str:
     try:
@@ -1596,12 +1672,14 @@ def check_tname_exists(self, tname) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.clear_blocked_managed_domains"><code class="name flex">
-<span>def <span class="ident">clear_blocked_managed_domains</span></span>(<span>self)</span>
+<span>def <span class="ident">clear_blocked_managed_domains</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def clear_blocked_managed_domains(self) -&gt; str:
     j.sals.marketplace.deployer.clear_blocked_managed_domains()
@@ -1609,12 +1687,14 @@ def clear_blocked_managed_domains(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.clear_blocked_nodes"><code class="name flex">
-<span>def <span class="ident">clear_blocked_nodes</span></span>(<span>self)</span>
+<span>def <span class="ident">clear_blocked_nodes</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def clear_blocked_nodes(self) -&gt; str:
     j.sals.reservation_chatflow.reservation_chatflow.clear_blocked_nodes()
@@ -1622,12 +1702,14 @@ def clear_blocked_nodes(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.delete_admin"><code class="name flex">
-<span>def <span class="ident">delete_admin</span></span>(<span>self, name)</span>
+<span>def <span class="ident">delete_admin</span></span>(<span>self, name: str)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def delete_admin(self, name: str):
     if name not in j.core.identity.me.admins:
@@ -1637,12 +1719,14 @@ def delete_admin(self, name: str):
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.delete_escalation_email"><code class="name flex">
-<span>def <span class="ident">delete_escalation_email</span></span>(<span>self, email)</span>
+<span>def <span class="ident">delete_escalation_email</span></span>(<span>self, email) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def delete_escalation_email(self, email) -&gt; str:
     escalation_emails = j.core.config.get(&#34;ESCALATION_EMAILS&#34;, [])
@@ -1653,12 +1737,14 @@ def delete_escalation_email(self, email) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.delete_identity"><code class="name flex">
-<span>def <span class="ident">delete_identity</span></span>(<span>self, identity_instance_name)</span>
+<span>def <span class="ident">delete_identity</span></span>(<span>self, identity_instance_name: str) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def delete_identity(self, identity_instance_name: str) -&gt; str:
     identity_names = j.core.identity.list_all()
@@ -1674,12 +1760,14 @@ def delete_identity(self, identity_instance_name: str) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.delete_sshkey"><code class="name flex">
-<span>def <span class="ident">delete_sshkey</span></span>(<span>self, key_id)</span>
+<span>def <span class="ident">delete_sshkey</span></span>(<span>self, key_id) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def delete_sshkey(self, key_id) -&gt; str:
     sshkeys = j.core.config.get(&#34;SSH_KEYS&#34;, {})
@@ -1690,24 +1778,28 @@ def delete_sshkey(self, key_id) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.generate_mnemonic"><code class="name flex">
-<span>def <span class="ident">generate_mnemonic</span></span>(<span>self)</span>
+<span>def <span class="ident">generate_mnemonic</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def generate_mnemonic(self) -&gt; str:
     words = j.data.encryption.generate_mnemonic()
     return j.data.serializers.json.dumps({&#34;data&#34;: words})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_config"><code class="name flex">
-<span>def <span class="ident">get_config</span></span>(<span>self)</span>
+<span>def <span class="ident">get_config</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_config(self) -&gt; str:
     config_obj = j.core.config.get_config()
@@ -1715,24 +1807,28 @@ def get_config(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_current_identity_name"><code class="name flex">
-<span>def <span class="ident">get_current_identity_name</span></span>(<span>self)</span>
+<span>def <span class="ident">get_current_identity_name</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_current_identity_name(self) -&gt; str:
     return j.data.serializers.json.dumps({&#34;data&#34;: j.core.identity.me.instance_name})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_developer_options"><code class="name flex">
-<span>def <span class="ident">get_developer_options</span></span>(<span>self)</span>
+<span>def <span class="ident">get_developer_options</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_developer_options(self) -&gt; str:
     test_cert = j.core.config.set_default(&#34;TEST_CERT&#34;, False)
@@ -1752,12 +1848,14 @@ def get_developer_options(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_email_server_config"><code class="name flex">
-<span>def <span class="ident">get_email_server_config</span></span>(<span>self)</span>
+<span>def <span class="ident">get_email_server_config</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_email_server_config(self) -&gt; str:
     email_server_config = j.core.config.get(&#34;EMAIL_SERVER_CONFIG&#34;, {})
@@ -1769,12 +1867,14 @@ def get_email_server_config(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_identity"><code class="name flex">
-<span>def <span class="ident">get_identity</span></span>(<span>self, identity_instance_name)</span>
+<span>def <span class="ident">get_identity</span></span>(<span>self, identity_instance_name: str) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_identity(self, identity_instance_name: str) -&gt; str:
     identity_names = j.core.identity.list_all()
@@ -1798,12 +1898,14 @@ def get_identity(self, identity_instance_name: str) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_notifications"><code class="name flex">
-<span>def <span class="ident">get_notifications</span></span>(<span>self)</span>
+<span>def <span class="ident">get_notifications</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_notifications(self) -&gt; str:
     notifications = []
     if j.tools.notificationsqueue.count() &gt;= 10:
@@ -1815,24 +1917,28 @@ def get_identity(self, identity_instance_name: str) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_notifications_count"><code class="name flex">
-<span>def <span class="ident">get_notifications_count</span></span>(<span>self)</span>
+<span>def <span class="ident">get_notifications_count</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_notifications_count(self) -&gt; str:
     return j.data.serializers.json.dumps({&#34;data&#34;: j.tools.notificationsqueue.count()})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.get_sdk_version"><code class="name flex">
-<span>def <span class="ident">get_sdk_version</span></span>(<span>self)</span>
+<span>def <span class="ident">get_sdk_version</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def get_sdk_version(self) -&gt; str:
     import importlib_metadata as metadata
@@ -1845,12 +1951,14 @@ def get_sdk_version(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.list_admins"><code class="name flex">
-<span>def <span class="ident">list_admins</span></span>(<span>self)</span>
+<span>def <span class="ident">list_admins</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def list_admins(self) -&gt; str:
     admins = list(set(j.core.identity.me.admins))
@@ -1858,12 +1966,14 @@ def list_admins(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.list_escalation_emails"><code class="name flex">
-<span>def <span class="ident">list_escalation_emails</span></span>(<span>self)</span>
+<span>def <span class="ident">list_escalation_emails</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def list_escalation_emails(self) -&gt; str:
     escalation_emails = j.core.config.get(&#34;ESCALATION_EMAILS&#34;, [])
@@ -1871,12 +1981,14 @@ def list_escalation_emails(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.list_identities"><code class="name flex">
-<span>def <span class="ident">list_identities</span></span>(<span>self)</span>
+<span>def <span class="ident">list_identities</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def list_identities(self) -&gt; str:
     identities = j.core.identity.list_all()
@@ -1904,12 +2016,14 @@ def list_identities(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.list_sshkeys"><code class="name flex">
-<span>def <span class="ident">list_sshkeys</span></span>(<span>self)</span>
+<span>def <span class="ident">list_sshkeys</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def list_sshkeys(self) -&gt; str:
     sshkeys = j.core.config.get(&#34;SSH_KEYS&#34;, {})
@@ -1917,12 +2031,14 @@ def list_sshkeys(self) -&gt; str:
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.set_developer_options"><code class="name flex">
-<span>def <span class="ident">set_developer_options</span></span>(<span>self, test_cert, over_provision, sort_nodes_by_sru, escalation_emails)</span>
+<span>def <span class="ident">set_developer_options</span></span>(<span>self, test_cert: bool, over_provision: bool, sort_nodes_by_sru: bool, escalation_emails: bool) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def set_developer_options(
     self,
@@ -1948,12 +2064,14 @@ def set_developer_options(
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.set_email_server_config"><code class="name flex">
-<span>def <span class="ident">set_email_server_config</span></span>(<span>self, host=&#39;&#39;, port=&#39;&#39;, username=&#39;&#39;, password=&#39;&#39;)</span>
+<span>def <span class="ident">set_email_server_config</span></span>(<span>self, host='', port='', username='', password='') ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def set_email_server_config(self, host=&#34;&#34;, port=&#34;&#34;, username=&#34;&#34;, password=&#34;&#34;) -&gt; str:
     email_server_config = j.core.config.get(&#34;EMAIL_SERVER_CONFIG&#34;, {})
@@ -1963,12 +2081,14 @@ def set_email_server_config(self, host=&#34;&#34;, port=&#34;&#34;, username=&#3
 </details>
 </dd>
 <dt id="jumpscale.packages.admin.actors.admin.Admin.set_identity"><code class="name flex">
-<span>def <span class="ident">set_identity</span></span>(<span>self, identity_instance_name)</span>
+<span>def <span class="ident">set_identity</span></span>(<span>self, identity_instance_name: str) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@actor_method
 def set_identity(self, identity_instance_name: str) -&gt; str:
     identity_names = j.core.identity.list_all()
@@ -2070,9 +2190,7 @@ def set_identity(self, identity_instance_name: str) -&gt; str:
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>
