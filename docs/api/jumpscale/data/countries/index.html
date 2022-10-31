@@ -3,17 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.data.countries API documentation</title>
 <meta name="description" content="This module helps picking a random country or even listing all countries.
 ```
 JS-NG&gt; j.data.countries.names() …" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -23,36 +25,38 @@ JS-NG&gt; j.data.countries.names() …" />
 </header>
 <section id="section-intro">
 <p>This module helps picking a random country or even listing all countries.</p>
-<pre><code>JS-NG&gt; j.data.countries.names()                                                        
+<pre><code>JS-NG&gt; j.data.countries.names()
 ['Aruba', 'Afghanistan', 'Angola', 'Anguilla', 'Åland Islands', 'Albania', 'Andorra', '
-United Arab Emirates', 'Argentina', 'Armenia', 'American Samoa', 'Antarctica', 'French 
+United Arab Emirates', 'Argentina', 'Armenia', 'American Samoa', 'Antarctica', 'French
 Southern Territories', 'Antigua and Barbuda', 'Australia', 'Austria', 'Azerbaijan', 'Bu
 rundi', 'Belgium', 'Benin', 'Bonaire, Sint Eustatius and Saba', 'Burkina Faso', 'Bangla
-desh', 'Bulgaria', 'Bahrain', 'Bahamas', 'Bosnia and Herzegovina', 'Saint Barthélemy', 
+desh', 'Bulgaria', 'Bahrain', 'Bahamas', 'Bosnia and Herzegovina', 'Saint Barthélemy',
 'Belarus', 'Belize', 'Bermuda', 'Bolivia, Plurinational State of', 'Brazil', 'Barbados', 'Brunei Darussalam', 'Bhutan', 'Bouvet Island', 'Botswana', 'Central African Republic', 'Canada', 'Cocos (Keeling) Islands', 'Switzerland', 'Chile', 'China', &quot;Côte d'Ivoire&quot;, 'Cameroon', 'Congo, The Democratic Republic of the', 'Congo', 'Cook Islands', 'Colombia', 'Comoros', 'Cabo Verde', 'Costa Rica', 'Cuba', 'Curaçao', 'Christmas Island', 'Cayman Islands', 'Cyprus', 'Czechia', 'Germany', 'Djibouti', 'Dominica', 'Denmark', 'Dominican Republic', 'Algeria', 'Ecuador', 'Egypt', 'Eritrea', 'Western Sahara', 'Spain', 'Estonia', 'Ethiopia', 'Finland', 'Fiji', 'Falkland Islands (Malvinas)', 'France', 'Faroe Islands', 'Micronesia, Federated States of', 'Gabon', 'United Kingdom', 'Georgia', 'Guernsey', 'Ghana', 'Gibraltar', 'Guinea', 'Guadeloupe', 'Gambia', 'Guinea-Bissau', 'Equatorial Guinea', 'Greece', 'Grenada', 'Greenland', 'Guatemala', 'French Guiana', 'Guam', 'Guyana', 'Hong Kong', 'Heard Island and McDonald Islands', 'Honduras', 'Croatia', 'Haiti', 'Hungary', 'Indonesia', 'Isle of Man', 'India', 'British Indian Ocean Territory', 'Ireland', 'Iran, Islamic Republic of', 'Iraq', 'Iceland', 'Israel', 'Italy', 'Jamaica', 'Jersey', 'Jordan', 'Japan', 'Kazakhstan', 'Kenya', 'Kyrgyzstan', 'Cambodia', 'Kiribati', 'Saint Kitts and Nevis', 'Korea, Republic of', 'Kuwait', &quot;Lao People's Democratic Republic&quot;, 'Lebanon', 'Liberia', 'Libya', 'Saint Lucia', 'Liechtenstein', 'Sri Lanka', 'Lesotho', 'Lithuania', 'Luxembourg', 'Latvia', 'Macao', 'Saint Martin (French part)', 'Morocco', 'Monaco', 'Moldova, Republic of', 'Madagascar', 'Maldives', 'Mexico', 'Marshall Islands', 'North Macedonia', 'Mali', 'Malta', 'Myanmar', 'Montenegro', 'Mongolia', 'Northern Mariana Islands', 'Mozambique', 'Mauritania', 'Montserrat', 'Martinique', 'Mauritius', 'Malawi', 'Malaysia', 'Mayotte', 'Namibia', 'New Caledonia', 'Niger', 'Norfolk Island', 'Nigeria', 'Nicaragua', 'Niue', 'Netherlands', 'Norway', 'Nepal', 'Nauru', 'New Zealand', 'Oman', 'Pakistan', 'Panama', 'Pitcairn', 'Peru', 'Philippines', 'Palau', 'Papua New Guinea', 'Poland', 'Puerto Rico', &quot;Korea, Democratic People's Republic of&quot;, 'Portugal', 'Paraguay', 'Palestine, State of', 'French Polynesia', 'Qatar', 'Réunion', 'Romania', 'Russian Federation', 'Rwanda', 'Saudi Arabia', 'Sudan', 'Senegal', 'Singapore', 'South Georgia and the South Sandwich Islands', 'Saint Helena, Ascension and Tristan da Cunha', 'Svalbard and Jan Mayen', 'Solomon Islands', 'Sierra Leone', 'El Salvador', 'San Marino', 'Somalia', 'Saint Pierre and Miquelon', 'Serbia', 'South Sudan', 'Sao Tome and Principe', 'Suriname', 'Slovakia', 'Slovenia', 'Sweden', 'Eswatini', 'Sint Maarten (Dutch part)', 'Seychelles', 'Syrian Arab Republic', 'Turks and Caicos Islands', 'Chad', 'Togo', 'Thailand', 'Tajikistan', 'Tokelau', 'Turkmenistan', 'Timor-Leste', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Tuvalu', 'Taiwan, Province of China', 'Tanzania, United Republic of', 'Uganda', 'Ukraine', 'United States Minor Outlying Islands', 'Uruguay', 'United States', 'Uzbekistan', 'Holy See (Vatican City State)', 'Saint Vincent and the Grenadines', 'Venezuela, Bolivarian Republic of', 'Virgin Islands, British', 'Virgin Islands, U.S.', 'Viet Nam', 'Vanuatu', 'Wallis and Futuna', 'Samoa', 'Yemen', 'South Africa', 'Zambia', 'Zimbabwe']
 
-JS-NG&gt; j.data.countries.random_country()                                               
+JS-NG&gt; j.data.countries.random_country()
 'Seychelles'
 
-JS-NG&gt; j.data.countries.random_country()                                               
+JS-NG&gt; j.data.countries.random_country()
 'Malawi'
 </code></pre>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">&#34;&#34;&#34;This module helps picking a random country or even listing all countries.
 ```
-JS-NG&gt; j.data.countries.names()                                                        
+JS-NG&gt; j.data.countries.names()
 [&#39;Aruba&#39;, &#39;Afghanistan&#39;, &#39;Angola&#39;, &#39;Anguilla&#39;, &#39;Åland Islands&#39;, &#39;Albania&#39;, &#39;Andorra&#39;, &#39;
-United Arab Emirates&#39;, &#39;Argentina&#39;, &#39;Armenia&#39;, &#39;American Samoa&#39;, &#39;Antarctica&#39;, &#39;French 
+United Arab Emirates&#39;, &#39;Argentina&#39;, &#39;Armenia&#39;, &#39;American Samoa&#39;, &#39;Antarctica&#39;, &#39;French
 Southern Territories&#39;, &#39;Antigua and Barbuda&#39;, &#39;Australia&#39;, &#39;Austria&#39;, &#39;Azerbaijan&#39;, &#39;Bu
 rundi&#39;, &#39;Belgium&#39;, &#39;Benin&#39;, &#39;Bonaire, Sint Eustatius and Saba&#39;, &#39;Burkina Faso&#39;, &#39;Bangla
-desh&#39;, &#39;Bulgaria&#39;, &#39;Bahrain&#39;, &#39;Bahamas&#39;, &#39;Bosnia and Herzegovina&#39;, &#39;Saint Barthélemy&#39;, 
+desh&#39;, &#39;Bulgaria&#39;, &#39;Bahrain&#39;, &#39;Bahamas&#39;, &#39;Bosnia and Herzegovina&#39;, &#39;Saint Barthélemy&#39;,
 &#39;Belarus&#39;, &#39;Belize&#39;, &#39;Bermuda&#39;, &#39;Bolivia, Plurinational State of&#39;, &#39;Brazil&#39;, &#39;Barbados&#39;, &#39;Brunei Darussalam&#39;, &#39;Bhutan&#39;, &#39;Bouvet Island&#39;, &#39;Botswana&#39;, &#39;Central African Republic&#39;, &#39;Canada&#39;, &#39;Cocos (Keeling) Islands&#39;, &#39;Switzerland&#39;, &#39;Chile&#39;, &#39;China&#39;, &#34;Côte d&#39;Ivoire&#34;, &#39;Cameroon&#39;, &#39;Congo, The Democratic Republic of the&#39;, &#39;Congo&#39;, &#39;Cook Islands&#39;, &#39;Colombia&#39;, &#39;Comoros&#39;, &#39;Cabo Verde&#39;, &#39;Costa Rica&#39;, &#39;Cuba&#39;, &#39;Curaçao&#39;, &#39;Christmas Island&#39;, &#39;Cayman Islands&#39;, &#39;Cyprus&#39;, &#39;Czechia&#39;, &#39;Germany&#39;, &#39;Djibouti&#39;, &#39;Dominica&#39;, &#39;Denmark&#39;, &#39;Dominican Republic&#39;, &#39;Algeria&#39;, &#39;Ecuador&#39;, &#39;Egypt&#39;, &#39;Eritrea&#39;, &#39;Western Sahara&#39;, &#39;Spain&#39;, &#39;Estonia&#39;, &#39;Ethiopia&#39;, &#39;Finland&#39;, &#39;Fiji&#39;, &#39;Falkland Islands (Malvinas)&#39;, &#39;France&#39;, &#39;Faroe Islands&#39;, &#39;Micronesia, Federated States of&#39;, &#39;Gabon&#39;, &#39;United Kingdom&#39;, &#39;Georgia&#39;, &#39;Guernsey&#39;, &#39;Ghana&#39;, &#39;Gibraltar&#39;, &#39;Guinea&#39;, &#39;Guadeloupe&#39;, &#39;Gambia&#39;, &#39;Guinea-Bissau&#39;, &#39;Equatorial Guinea&#39;, &#39;Greece&#39;, &#39;Grenada&#39;, &#39;Greenland&#39;, &#39;Guatemala&#39;, &#39;French Guiana&#39;, &#39;Guam&#39;, &#39;Guyana&#39;, &#39;Hong Kong&#39;, &#39;Heard Island and McDonald Islands&#39;, &#39;Honduras&#39;, &#39;Croatia&#39;, &#39;Haiti&#39;, &#39;Hungary&#39;, &#39;Indonesia&#39;, &#39;Isle of Man&#39;, &#39;India&#39;, &#39;British Indian Ocean Territory&#39;, &#39;Ireland&#39;, &#39;Iran, Islamic Republic of&#39;, &#39;Iraq&#39;, &#39;Iceland&#39;, &#39;Israel&#39;, &#39;Italy&#39;, &#39;Jamaica&#39;, &#39;Jersey&#39;, &#39;Jordan&#39;, &#39;Japan&#39;, &#39;Kazakhstan&#39;, &#39;Kenya&#39;, &#39;Kyrgyzstan&#39;, &#39;Cambodia&#39;, &#39;Kiribati&#39;, &#39;Saint Kitts and Nevis&#39;, &#39;Korea, Republic of&#39;, &#39;Kuwait&#39;, &#34;Lao People&#39;s Democratic Republic&#34;, &#39;Lebanon&#39;, &#39;Liberia&#39;, &#39;Libya&#39;, &#39;Saint Lucia&#39;, &#39;Liechtenstein&#39;, &#39;Sri Lanka&#39;, &#39;Lesotho&#39;, &#39;Lithuania&#39;, &#39;Luxembourg&#39;, &#39;Latvia&#39;, &#39;Macao&#39;, &#39;Saint Martin (French part)&#39;, &#39;Morocco&#39;, &#39;Monaco&#39;, &#39;Moldova, Republic of&#39;, &#39;Madagascar&#39;, &#39;Maldives&#39;, &#39;Mexico&#39;, &#39;Marshall Islands&#39;, &#39;North Macedonia&#39;, &#39;Mali&#39;, &#39;Malta&#39;, &#39;Myanmar&#39;, &#39;Montenegro&#39;, &#39;Mongolia&#39;, &#39;Northern Mariana Islands&#39;, &#39;Mozambique&#39;, &#39;Mauritania&#39;, &#39;Montserrat&#39;, &#39;Martinique&#39;, &#39;Mauritius&#39;, &#39;Malawi&#39;, &#39;Malaysia&#39;, &#39;Mayotte&#39;, &#39;Namibia&#39;, &#39;New Caledonia&#39;, &#39;Niger&#39;, &#39;Norfolk Island&#39;, &#39;Nigeria&#39;, &#39;Nicaragua&#39;, &#39;Niue&#39;, &#39;Netherlands&#39;, &#39;Norway&#39;, &#39;Nepal&#39;, &#39;Nauru&#39;, &#39;New Zealand&#39;, &#39;Oman&#39;, &#39;Pakistan&#39;, &#39;Panama&#39;, &#39;Pitcairn&#39;, &#39;Peru&#39;, &#39;Philippines&#39;, &#39;Palau&#39;, &#39;Papua New Guinea&#39;, &#39;Poland&#39;, &#39;Puerto Rico&#39;, &#34;Korea, Democratic People&#39;s Republic of&#34;, &#39;Portugal&#39;, &#39;Paraguay&#39;, &#39;Palestine, State of&#39;, &#39;French Polynesia&#39;, &#39;Qatar&#39;, &#39;Réunion&#39;, &#39;Romania&#39;, &#39;Russian Federation&#39;, &#39;Rwanda&#39;, &#39;Saudi Arabia&#39;, &#39;Sudan&#39;, &#39;Senegal&#39;, &#39;Singapore&#39;, &#39;South Georgia and the South Sandwich Islands&#39;, &#39;Saint Helena, Ascension and Tristan da Cunha&#39;, &#39;Svalbard and Jan Mayen&#39;, &#39;Solomon Islands&#39;, &#39;Sierra Leone&#39;, &#39;El Salvador&#39;, &#39;San Marino&#39;, &#39;Somalia&#39;, &#39;Saint Pierre and Miquelon&#39;, &#39;Serbia&#39;, &#39;South Sudan&#39;, &#39;Sao Tome and Principe&#39;, &#39;Suriname&#39;, &#39;Slovakia&#39;, &#39;Slovenia&#39;, &#39;Sweden&#39;, &#39;Eswatini&#39;, &#39;Sint Maarten (Dutch part)&#39;, &#39;Seychelles&#39;, &#39;Syrian Arab Republic&#39;, &#39;Turks and Caicos Islands&#39;, &#39;Chad&#39;, &#39;Togo&#39;, &#39;Thailand&#39;, &#39;Tajikistan&#39;, &#39;Tokelau&#39;, &#39;Turkmenistan&#39;, &#39;Timor-Leste&#39;, &#39;Tonga&#39;, &#39;Trinidad and Tobago&#39;, &#39;Tunisia&#39;, &#39;Turkey&#39;, &#39;Tuvalu&#39;, &#39;Taiwan, Province of China&#39;, &#39;Tanzania, United Republic of&#39;, &#39;Uganda&#39;, &#39;Ukraine&#39;, &#39;United States Minor Outlying Islands&#39;, &#39;Uruguay&#39;, &#39;United States&#39;, &#39;Uzbekistan&#39;, &#39;Holy See (Vatican City State)&#39;, &#39;Saint Vincent and the Grenadines&#39;, &#39;Venezuela, Bolivarian Republic of&#39;, &#39;Virgin Islands, British&#39;, &#39;Virgin Islands, U.S.&#39;, &#39;Viet Nam&#39;, &#39;Vanuatu&#39;, &#39;Wallis and Futuna&#39;, &#39;Samoa&#39;, &#39;Yemen&#39;, &#39;South Africa&#39;, &#39;Zambia&#39;, &#39;Zimbabwe&#39;]
 
-JS-NG&gt; j.data.countries.random_country()                                               
+JS-NG&gt; j.data.countries.random_country()
 &#39;Seychelles&#39;
 
-JS-NG&gt; j.data.countries.random_country()                                               
+JS-NG&gt; j.data.countries.random_country()
 &#39;Malawi&#39;
 ```
 &#34;&#34;&#34;
@@ -81,9 +85,11 @@ def random_country():
 <span>def <span class="ident">names</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Generates list of country names.</p></section>
+<div class="desc"><p>Generates list of country names.</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def names():
     &#34;&#34;&#34;Generates list of country names.&#34;&#34;&#34;
     return [country.name for country in pycountry.countries]</code></pre>
@@ -93,9 +99,11 @@ def random_country():
 <span>def <span class="ident">random_country</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Generates a random country name</p></section>
+<div class="desc"><p>Generates a random country name</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def random_country():
     &#34;&#34;&#34;Generates a random country name&#34;&#34;&#34;
     return random.choice(names())</code></pre>
@@ -127,9 +135,7 @@ def random_country():
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

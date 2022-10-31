@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.clients.taiga.models API documentation</title>
 <meta name="description" content="" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -21,7 +23,9 @@
 </header>
 <section id="section-intro">
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">from functools import lru_cache
 from textwrap import dedent
 
@@ -876,9 +880,11 @@ class ArchiveCircle(Circle):
 <span>(</span><span>taigaclient, original_object)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class ArchiveCircle(Circle):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
@@ -916,9 +922,11 @@ class ArchiveCircle(Circle):
 <span>(</span><span>taigaclient, original_object)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class Circle(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
@@ -1186,18 +1194,20 @@ class ArchiveCircle(Circle):
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="jumpscale.clients.taiga.models.TeamCircle" href="#jumpscale.clients.taiga.models.TeamCircle">TeamCircle</a></li>
+<li><a title="jumpscale.clients.taiga.models.ArchiveCircle" href="#jumpscale.clients.taiga.models.ArchiveCircle">ArchiveCircle</a></li>
 <li><a title="jumpscale.clients.taiga.models.FunnelCircle" href="#jumpscale.clients.taiga.models.FunnelCircle">FunnelCircle</a></li>
 <li><a title="jumpscale.clients.taiga.models.ProjectCircle" href="#jumpscale.clients.taiga.models.ProjectCircle">ProjectCircle</a></li>
-<li><a title="jumpscale.clients.taiga.models.ArchiveCircle" href="#jumpscale.clients.taiga.models.ArchiveCircle">ArchiveCircle</a></li>
+<li><a title="jumpscale.clients.taiga.models.TeamCircle" href="#jumpscale.clients.taiga.models.TeamCircle">TeamCircle</a></li>
 </ul>
 <h3>Instance variables</h3>
 <dl>
 <dt id="jumpscale.clients.taiga.models.Circle.as_md"><code class="name">var <span class="ident">as_md</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def as_md(self):
 
@@ -1241,9 +1251,11 @@ def as_md(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.Circle.as_yaml"><code class="name">var <span class="ident">as_yaml</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def as_yaml(self):
     obj = {}
@@ -1300,9 +1312,11 @@ def as_yaml(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.Circle.circle_users"><code class="name">var <span class="ident">circle_users</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def circle_users(self):
     return self._original_object.members_objects()</code></pre>
@@ -1310,9 +1324,11 @@ def circle_users(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.Circle.clean_name"><code class="name">var <span class="ident">clean_name</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def clean_name(self):
     return self.slug.lower().replace(&#34;-&#34;, &#34;_&#34;)</code></pre>
@@ -1320,9 +1336,11 @@ def clean_name(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.Circle.issues"><code class="name">var <span class="ident">issues</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def issues(self):
     res = []
@@ -1333,9 +1351,11 @@ def issues(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.Circle.stories"><code class="name">var <span class="ident">stories</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def stories(self):
     res = []
@@ -1347,9 +1367,11 @@ def stories(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.Circle.url"><code class="name">var <span class="ident">url</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def url(self):
     # https://circles.threefold.me/project/despiegk-tftech-software
@@ -1363,21 +1385,23 @@ def url(self):
 <span>def <span class="ident">copy_issue</span></span>(<span>self, issue, project)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Copy issue to specific project</p>
+<div class="desc"><p>Copy issue to specific project</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>issue</code></strong> :&ensp;<code>int</code> , <a title="jumpscale.clients.taiga.models.CircleIssue" href="#jumpscale.clients.taiga.models.CircleIssue"><code>CircleIssue</code></a></dt>
+<dt><strong><code>issue</code></strong> :&ensp;<code>int , <a title="jumpscale.clients.taiga.models.CircleIssue" href="#jumpscale.clients.taiga.models.CircleIssue">CircleIssue</a></code></dt>
 <dd>issue or issue id to be copied</dd>
-<dt><strong><code>to_project</code></strong> :&ensp;<code>int</code>, <a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle"><code>Circle</code></a>, <a title="jumpscale.clients.taiga.models.FunnelCircle" href="#jumpscale.clients.taiga.models.FunnelCircle"><code>FunnelCircle</code></a>, <a title="jumpscale.clients.taiga.models.ProjectCircle" href="#jumpscale.clients.taiga.models.ProjectCircle"><code>ProjectCircle</code></a>, <a title="jumpscale.clients.taiga.models.TeamCircle" href="#jumpscale.clients.taiga.models.TeamCircle"><code>TeamCircle</code></a></dt>
+<dt><strong><code>to_project</code></strong> :&ensp;<code>int, <a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a>, <a title="jumpscale.clients.taiga.models.FunnelCircle" href="#jumpscale.clients.taiga.models.FunnelCircle">FunnelCircle</a>, <a title="jumpscale.clients.taiga.models.ProjectCircle" href="#jumpscale.clients.taiga.models.ProjectCircle">ProjectCircle</a>, <a title="jumpscale.clients.taiga.models.TeamCircle" href="#jumpscale.clients.taiga.models.TeamCircle">TeamCircle</a></code></dt>
 <dd>circle or circle id to copy issue into</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>Issue</code></strong></dt>
+<dt><code>Issue</code></dt>
 <dd>created issue object</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def copy_issue(self, issue, project):
     &#34;&#34;&#34;Copy issue to specific project
 
@@ -1446,9 +1470,11 @@ def url(self):
 <span>def <span class="ident">create_issue</span></span>(<span>self, subject, prio=None, status=None, issue_type=None, severity=None)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def create_issue(self, subject, prio=None, status=None, issue_type=None, severity=None):
     prio = prio or self._original_object.list_priorities()[0].id
     status = status or self._original_object.list_issue_statuses()[0].id
@@ -1459,12 +1485,14 @@ def url(self):
 </details>
 </dd>
 <dt id="jumpscale.clients.taiga.models.Circle.create_story"><code class="name flex">
-<span>def <span class="ident">create_story</span></span>(<span>self, subject=&#39;&#39;, **attrs)</span>
+<span>def <span class="ident">create_story</span></span>(<span>self, subject='', **attrs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def create_story(self, subject=&#34;&#34;, **attrs):
     return self._original_object.add_user_story(subject, **attrs)</code></pre>
 </details>
@@ -1473,9 +1501,11 @@ def url(self):
 <span>def <span class="ident">get_project_info</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@lru_cache(maxsize=128)
 def get_project_info(self):
 
@@ -1491,22 +1521,24 @@ def get_project_info(self):
 <span>def <span class="ident">move_issue</span></span>(<span>self, issue, project)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Move issue to specific project
+<div class="desc"><p>Move issue to specific project
 HINT: Move will delete the issue from original circle</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>issue</code></strong> :&ensp;<code>int</code> , <a title="jumpscale.clients.taiga.models.CircleIssue" href="#jumpscale.clients.taiga.models.CircleIssue"><code>CircleIssue</code></a></dt>
+<dt><strong><code>issue</code></strong> :&ensp;<code>int , <a title="jumpscale.clients.taiga.models.CircleIssue" href="#jumpscale.clients.taiga.models.CircleIssue">CircleIssue</a></code></dt>
 <dd>issue or issue id to be movied</dd>
-<dt><strong><code>to_project</code></strong> :&ensp;<code>int</code>, <a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle"><code>Circle</code></a>, <a title="jumpscale.clients.taiga.models.FunnelCircle" href="#jumpscale.clients.taiga.models.FunnelCircle"><code>FunnelCircle</code></a>, <a title="jumpscale.clients.taiga.models.ProjectCircle" href="#jumpscale.clients.taiga.models.ProjectCircle"><code>ProjectCircle</code></a>, <a title="jumpscale.clients.taiga.models.TeamCircle" href="#jumpscale.clients.taiga.models.TeamCircle"><code>TeamCircle</code></a></dt>
+<dt><strong><code>to_project</code></strong> :&ensp;<code>int, <a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a>, <a title="jumpscale.clients.taiga.models.FunnelCircle" href="#jumpscale.clients.taiga.models.FunnelCircle">FunnelCircle</a>, <a title="jumpscale.clients.taiga.models.ProjectCircle" href="#jumpscale.clients.taiga.models.ProjectCircle">ProjectCircle</a>, <a title="jumpscale.clients.taiga.models.TeamCircle" href="#jumpscale.clients.taiga.models.TeamCircle">TeamCircle</a></code></dt>
 <dd>circle or circle id to move issue into</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>Issue</code></strong></dt>
+<dt><code>Issue</code></dt>
 <dd>created issue object</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def move_issue(self, issue, project):
     &#34;&#34;&#34;Move issue to specific project
     HINT: Move will delete the issue from original circle
@@ -1556,9 +1588,11 @@ HINT: Move will delete the issue from original circle</p>
 <span>(</span><span>taigaclient, original_object)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class CircleIssue(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
@@ -1667,9 +1701,11 @@ HINT: Move will delete the issue from original circle</p>
 <dl>
 <dt id="jumpscale.clients.taiga.models.CircleIssue.as_md"><code class="name">var <span class="ident">as_md</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def as_md(self):
     TEMPLATE = dedent(
@@ -1687,9 +1723,11 @@ def as_md(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleIssue.as_yaml"><code class="name">var <span class="ident">as_yaml</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def as_yaml(self):
     obj = {}
@@ -1761,9 +1799,11 @@ def as_yaml(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleIssue.url"><code class="name">var <span class="ident">url</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def url(self):
     # https://circles.threefold.me/project/despiegk-tftech-software/issue/55
@@ -1785,9 +1825,11 @@ def url(self):
 <span>(</span><span>taigaclient, original_object)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class CircleResource:
     def __init__(self, taigaclient, original_object):
         self._original_object = original_object
@@ -1813,11 +1855,11 @@ def url(self):
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
+<li><a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a></li>
 <li><a title="jumpscale.clients.taiga.models.CircleIssue" href="#jumpscale.clients.taiga.models.CircleIssue">CircleIssue</a></li>
 <li><a title="jumpscale.clients.taiga.models.CircleStory" href="#jumpscale.clients.taiga.models.CircleStory">CircleStory</a></li>
 <li><a title="jumpscale.clients.taiga.models.CircleTask" href="#jumpscale.clients.taiga.models.CircleTask">CircleTask</a></li>
 <li><a title="jumpscale.clients.taiga.models.CircleUser" href="#jumpscale.clients.taiga.models.CircleUser">CircleUser</a></li>
-<li><a title="jumpscale.clients.taiga.models.Circle" href="#jumpscale.clients.taiga.models.Circle">Circle</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
@@ -1825,7 +1867,7 @@ def url(self):
 <span>def <span class="ident">check_by_name</span></span>(<span>self, list_obj, name_to_find)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Check if list contains name, used to check priorities, severities, statuses, types and etc
+<div class="desc"><p>Check if list contains name, used to check priorities, severities, statuses, types and etc
 and return the equivalent id.</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -1836,11 +1878,13 @@ and return the equivalent id.</p>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>int</code></strong></dt>
+<dt><code>int</code></dt>
 <dd>Id of the matched object if found, or id of the first object in the list.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def check_by_name(self, list_obj, name_to_find):
     &#34;&#34;&#34;Check if list contains name, used to check priorities, severities, statuses, types and etc
         and return the equivalent id.
@@ -1866,9 +1910,11 @@ and return the equivalent id.</p>
 <span>(</span><span>taigaclient, original_object)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class CircleStory(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
@@ -1986,9 +2032,11 @@ and return the equivalent id.</p>
 <dl>
 <dt id="jumpscale.clients.taiga.models.CircleStory.as_md"><code class="name">var <span class="ident">as_md</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def as_md(self):
     TEMPLATE = dedent(
@@ -2009,9 +2057,11 @@ def as_md(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleStory.as_yaml"><code class="name">var <span class="ident">as_yaml</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def as_yaml(self):
     obj = {}
@@ -2081,9 +2131,11 @@ def as_yaml(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleStory.circle_tasks"><code class="name">var <span class="ident">circle_tasks</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def circle_tasks(self):
     return [CircleTask(self._client, task) for task in self.list_tasks()]</code></pre>
@@ -2091,9 +2143,11 @@ def circle_tasks(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleStory.tasks"><code class="name">var <span class="ident">tasks</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def tasks(self):
     return self.list_tasks()</code></pre>
@@ -2101,9 +2155,11 @@ def tasks(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleStory.url"><code class="name">var <span class="ident">url</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def url(self):
     # https://circles.threefold.me/project/despiegk-tftech-software/us/4
@@ -2125,9 +2181,11 @@ def url(self):
 <span>(</span><span>taigaclient, original_object)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class CircleTask(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
@@ -2228,9 +2286,11 @@ def url(self):
 <dl>
 <dt id="jumpscale.clients.taiga.models.CircleTask.as_md"><code class="name">var <span class="ident">as_md</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def as_md(self):
     TEMPLATE = dedent(
@@ -2248,9 +2308,11 @@ def as_md(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleTask.as_yaml"><code class="name">var <span class="ident">as_yaml</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def as_yaml(self):
     obj = {}
@@ -2314,9 +2376,11 @@ def as_yaml(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleTask.url"><code class="name">var <span class="ident">url</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def url(self):
     # https://circles.threefold.me/project/despiegk-tftech-software/task/2
@@ -2338,9 +2402,11 @@ def url(self):
 <span>(</span><span>taigaclient, original_object)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class CircleUser(CircleResource):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
@@ -2523,9 +2589,11 @@ def url(self):
 <dl>
 <dt id="jumpscale.clients.taiga.models.CircleUser.as_md"><code class="name">var <span class="ident">as_md</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def as_md(self):
 
@@ -2587,9 +2655,11 @@ def as_md(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleUser.as_yaml"><code class="name">var <span class="ident">as_yaml</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def as_yaml(self):
     obj = {}
@@ -2625,9 +2695,11 @@ def as_yaml(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleUser.circles"><code class="name">var <span class="ident">circles</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def circles(self):
     return self.get_circles()</code></pre>
@@ -2635,9 +2707,11 @@ def circles(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleUser.clean_name"><code class="name">var <span class="ident">clean_name</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def clean_name(self):
     return self.username.lower()</code></pre>
@@ -2645,9 +2719,11 @@ def clean_name(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleUser.issues"><code class="name">var <span class="ident">issues</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def issues(self):
     res = []
@@ -2659,9 +2735,11 @@ def issues(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleUser.stories"><code class="name">var <span class="ident">stories</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def stories(self):
     res = []
@@ -2673,9 +2751,11 @@ def stories(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleUser.tasks"><code class="name">var <span class="ident">tasks</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def tasks(self):
     return self.get_tasks()</code></pre>
@@ -2683,9 +2763,11 @@ def tasks(self):
 </dd>
 <dt id="jumpscale.clients.taiga.models.CircleUser.url"><code class="name">var <span class="ident">url</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def url(self):
     # https://circles.threefold.me/profile/ahartl
@@ -2699,9 +2781,11 @@ def url(self):
 <span>def <span class="ident">get_circles</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_circles(self):
     circles = []
     all_circles = self._client.get_user_circles(self._original_object.username)
@@ -2724,9 +2808,11 @@ def url(self):
 <span>def <span class="ident">get_issues</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_issues(self):
     return self._client.list_all_issues(self._original_object.username)</code></pre>
 </details>
@@ -2735,9 +2821,11 @@ def url(self):
 <span>def <span class="ident">get_stories</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_stories(self):
     return self._client.list_all_user_stories(self._original_object.username)</code></pre>
 </details>
@@ -2746,9 +2834,11 @@ def url(self):
 <span>def <span class="ident">get_tasks</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_tasks(self):
     return self._client.list_all_tasks(self._original_object.username)</code></pre>
 </details>
@@ -2768,9 +2858,11 @@ def url(self):
 <span>(</span><span>taigaclient, original_object)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class FunnelCircle(Circle):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
@@ -2808,9 +2900,11 @@ def url(self):
 <span>(</span><span>taigaclient, original_object)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class ProjectCircle(Circle):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
@@ -2848,9 +2942,11 @@ def url(self):
 <span>(</span><span>taigaclient, original_object)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class TeamCircle(Circle):
     def __init__(self, taigaclient, original_object):
         super().__init__(taigaclient, original_object)
@@ -2983,9 +3079,7 @@ def url(self):
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

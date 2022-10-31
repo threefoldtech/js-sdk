@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.tools.git API documentation</title>
 <meta name="description" content="Git module helps with everything around git management like pulling, cloning .. etc …" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -23,7 +25,9 @@
 <p>Git module helps with everything around git management like pulling, cloning .. etc</p>
 <h1 id="todo-examples">TODO: examples</h1>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">&#34;&#34;&#34;Git module helps with everything around git management like pulling, cloning .. etc
 
 # TODO: examples
@@ -256,10 +260,10 @@ def get_latest_remote_tag(repo_path):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="jumpscale.tools.git.clone_repo"><code class="name flex">
-<span>def <span class="ident">clone_repo</span></span>(<span>url, dest, branch_or_tag=&#39;&#39;, depth=0, commit_id=&#39;&#39;)</span>
+<span>def <span class="ident">clone_repo</span></span>(<span>url: str, dest: str, branch_or_tag='', depth=0, commit_id='')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Clones repo with sepcified url at specified dest</p>
+<div class="desc"><p>Clones repo with sepcified url at specified dest</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
@@ -272,9 +276,11 @@ def get_latest_remote_tag(repo_path):
 <dd>specify the depth of the clone. Defaults to 0.</dd>
 <dt><strong><code>commit_id</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>commit to checkout to. Defauls to "".</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def clone_repo(url: str, dest: str, branch_or_tag=&#34;&#34;, depth=0, commit_id=&#34;&#34;):
     &#34;&#34;&#34;Clones repo with sepcified url at specified dest
 
@@ -306,10 +312,10 @@ def get_latest_remote_tag(repo_path):
 </details>
 </dd>
 <dt id="jumpscale.tools.git.ensure_repo"><code class="name flex">
-<span>def <span class="ident">ensure_repo</span></span>(<span>url, dest=&#39;&#39;, branch_or_tag=&#39;&#39;, commit_id=&#39;&#39;, discard_changes=False, depth=0)</span>
+<span>def <span class="ident">ensure_repo</span></span>(<span>url: str, dest='', branch_or_tag='', commit_id='', discard_changes=False, depth=0)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Makes sure that repo exists in specified dest with correct branch</p>
+<div class="desc"><p>Makes sure that repo exists in specified dest with correct branch</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
@@ -324,9 +330,11 @@ def get_latest_remote_tag(repo_path):
 <dd>Will remove changes in repo if True during pull. Defaults to False.</dd>
 <dt><strong><code>depth</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>specify the depth of the clone. Defaults to 0.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def ensure_repo(url: str, dest=&#34;&#34;, branch_or_tag=&#34;&#34;, commit_id=&#34;&#34;, discard_changes=False, depth=0):
     &#34;&#34;&#34;Makes sure that repo exists in specified dest with correct branch
 
@@ -349,10 +357,10 @@ def get_latest_remote_tag(repo_path):
 </details>
 </dd>
 <dt id="jumpscale.tools.git.find"><code class="name flex">
-<span>def <span class="ident">find</span></span>(<span>account=&#39;&#39;, name=&#39;&#39;)</span>
+<span>def <span class="ident">find</span></span>(<span>account='', name='')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>find all repo paths in j.core.dirs.CODEDIR</p>
+<div class="desc"><p>find all repo paths in j.core.dirs.CODEDIR</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>account</code></strong> :&ensp;<code>str</code>, optional</dt>
@@ -362,11 +370,13 @@ def get_latest_remote_tag(repo_path):
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>list</code></strong></dt>
+<dt><code>list</code></dt>
 <dd>list of repos path</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def find(account=&#34;&#34;, name=&#34;&#34;):
     &#34;&#34;&#34;find all repo paths in j.core.dirs.CODEDIR
 
@@ -395,12 +405,14 @@ def get_latest_remote_tag(repo_path):
 <span>def <span class="ident">find_git_path</span></span>(<span>path, die=True)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>given a path, check if this path or any of its parents is a git repo, return the first git repo
+<div class="desc"><p>given a path, check if this path or any of its parents is a git repo, return the first git repo
 :param path: (String) path from where to start search
 :returns (String) the first path which is a git repo
-:raises Exception when no git path can be found</p></section>
+:raises Exception when no git path can be found</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def find_git_path(path, die=True):
     &#34;&#34;&#34;
     given a path, check if this path or any of its parents is a git repo, return the first git repo
@@ -420,7 +432,7 @@ def get_latest_remote_tag(repo_path):
 <span>def <span class="ident">get_latest_remote_tag</span></span>(<span>repo_path)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>retrive the latest tag of a remote upstream repository</p>
+<div class="desc"><p>retrive the latest tag of a remote upstream repository</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>repo_path</code></strong> :&ensp;<code>str</code></dt>
@@ -428,11 +440,13 @@ def get_latest_remote_tag(repo_path):
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>the latest tag of the remote repository</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_latest_remote_tag(repo_path):
     &#34;&#34;&#34;
     retrive the latest tag of a remote upstream repository
@@ -453,17 +467,19 @@ def get_latest_remote_tag(repo_path):
 </details>
 </dd>
 <dt id="jumpscale.tools.git.get_path_from_url"><code class="name flex">
-<span>def <span class="ident">get_path_from_url</span></span>(<span>url)</span>
+<span>def <span class="ident">get_path_from_url</span></span>(<span>url: str)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>returns repo path in the filesystem based on the urk</p>
+<div class="desc"><p>returns repo path in the filesystem based on the urk</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
 <dd>repo url</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_path_from_url(url: str):
     &#34;&#34;&#34;returns repo path in the filesystem based on the urk
 
@@ -489,7 +505,7 @@ def get_latest_remote_tag(repo_path):
 <span>def <span class="ident">giturl_parse</span></span>(<span>url)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>:return
+<div class="desc"><p>:return
 - repository_url the full url to the repo but rewritten
 - relpath: path inside the git repo
 - branch: branch specified in the url</p>
@@ -497,9 +513,11 @@ def get_latest_remote_tag(repo_path):
 - <a href="https://github.com/threefoldtech/jumpscale_/NOS/blob/master/specs/NOS_1.0.0.md">https://github.com/threefoldtech/jumpscale_/NOS/blob/master/specs/NOS_1.0.0.md</a>
 - <a href="https://github.com/threefoldtech/jumpscale_/jumpscaleX_core/blob/8.1.2/lib/Jumpscale/tools/docsite/macros/dot.py">https://github.com/threefoldtech/jumpscale_/jumpscaleX_core/blob/8.1.2/lib/Jumpscale/tools/docsite/macros/dot.py</a>
 - <a href="https://github.com/threefoldtech/jumpscale_/jumpscaleX_core/tree/8.2.0/lib/Jumpscale/tools/docsite/macros">https://github.com/threefoldtech/jumpscale_/jumpscaleX_core/tree/8.2.0/lib/Jumpscale/tools/docsite/macros</a>
-- <a href="https://github.com/threefoldtech/jumpscale_/jumpscaleX_core/tree/master/lib/Jumpscale/tools/docsite/macros">https://github.com/threefoldtech/jumpscale_/jumpscaleX_core/tree/master/lib/Jumpscale/tools/docsite/macros</a></p></section>
+- <a href="https://github.com/threefoldtech/jumpscale_/jumpscaleX_core/tree/master/lib/Jumpscale/tools/docsite/macros">https://github.com/threefoldtech/jumpscale_/jumpscaleX_core/tree/master/lib/Jumpscale/tools/docsite/macros</a></p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def giturl_parse(url):
     &#34;&#34;&#34;
     :return
@@ -536,10 +554,10 @@ def get_latest_remote_tag(repo_path):
 </details>
 </dd>
 <dt id="jumpscale.tools.git.pull_repo"><code class="name flex">
-<span>def <span class="ident">pull_repo</span></span>(<span>path, discard_changes=False, revision=&#39;&#39;)</span>
+<span>def <span class="ident">pull_repo</span></span>(<span>path: str, discard_changes=False, revision='')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Pull repo at the given path</p>
+<div class="desc"><p>Pull repo at the given path</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
@@ -548,9 +566,11 @@ def get_latest_remote_tag(repo_path):
 <dd>Will remove changes in repo if True. Defaults to False.</dd>
 <dt><strong><code>revision</code></strong> :&ensp;<code>str</code>, optional</dt>
 <dd>change to specified branch, tag, commit. Defaults to "".</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def pull_repo(path: str, discard_changes=False, revision=&#34;&#34;):
     &#34;&#34;&#34;Pull repo at the given path
 
@@ -571,10 +591,12 @@ def get_latest_remote_tag(repo_path):
 <span>def <span class="ident">rewrite_git_https_url_to_ssh</span></span>(<span>url)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>:param url: (str) https url to rewrite as ssh
-:return (tuple) repo name and rewritten ssh url</p></section>
+<div class="desc"><p>:param url: (str) https url to rewrite as ssh
+:return (tuple) repo name and rewritten ssh url</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def rewrite_git_https_url_to_ssh(url):
     &#34;&#34;&#34;
     :param url: (str) https url to rewrite as ssh
@@ -590,12 +612,14 @@ def get_latest_remote_tag(repo_path):
 <span>def <span class="ident">rewrite_git_ssh_url_to_https</span></span>(<span>url, login=None, passwd=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>:param url: (str) ssh url to rewrite ass https
+<div class="desc"><p>:param url: (str) ssh url to rewrite ass https
 :param login: (str) authentication login name
 :param passwd: (str) authentication login password
-:return (tuple) repo name and rewritten https url</p></section>
+:return (tuple) repo name and rewritten https url</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def rewrite_git_ssh_url_to_https(url, login=None, passwd=None):
     &#34;&#34;&#34;
     :param url: (str) ssh url to rewrite ass https
@@ -652,9 +676,7 @@ def get_latest_remote_tag(repo_path):
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

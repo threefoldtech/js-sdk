@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.tools.servicemanager.servicemanager API documentation</title>
 <meta name="description" content="Description …" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -24,9 +26,9 @@
 <p>Service manager is the service that monitors and manages background services through gevent greenlets.
 Each service defines an interval to define the period of the service and defines also a job method that is run each period.
 Any service should:
-- Inherit from <a title="jumpscale.tools.servicemanager.servicemanager.BackgroundService" href="#jumpscale.tools.servicemanager.servicemanager.BackgroundService"><code>BackgroundService</code></a> class defined here: <code>from jumpscale.tools.servicemanager.servicemanager import BackgroundService</code>
+- Inherit from <code><a title="jumpscale.tools.servicemanager.servicemanager.BackgroundService" href="#jumpscale.tools.servicemanager.servicemanager.BackgroundService">BackgroundService</a></code> class defined here: <code>from <a title="jumpscale.tools.servicemanager.servicemanager" href="#jumpscale.tools.servicemanager.servicemanager">jumpscale.tools.servicemanager.servicemanager</a> import <a title="jumpscale.tools.servicemanager.servicemanager.BackgroundService" href="#jumpscale.tools.servicemanager.servicemanager.BackgroundService">BackgroundService</a></code>
 - Define an interval in the constructor
-- Implement the abstract <code>job</code> method of the <a title="jumpscale.tools.servicemanager.servicemanager.BackgroundService" href="#jumpscale.tools.servicemanager.servicemanager.BackgroundService"><code>BackgroundService</code></a> base class.</p>
+- Implement the abstract <code>job</code> method of the <code><a title="jumpscale.tools.servicemanager.servicemanager.BackgroundService" href="#jumpscale.tools.servicemanager.servicemanager.BackgroundService">BackgroundService</a></code> base class.</p>
 <h3 id="how-it-schedules-services">How it schedules services</h3>
 <p>The service manager uses gevent greenlets to run jobs. It spawns the job in a greenlet after its interval period.
 Rescheduling the service job is done in by linking a callback to the greenlet which is run after the greenlet finishes.
@@ -56,7 +58,9 @@ class TestService(BackgroundService):
 service = TestService()
 </code></pre>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">&#34;&#34;&#34;
 ### Description
 
@@ -316,13 +320,15 @@ class ServiceManager(Base):
 <span>(</span><span>interval=60, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Helper class that provides a standard way to create an ABC using
+<div class="desc"><p>Helper class that provides a standard way to create an ABC using
 inheritance.</p>
 <p>Abstract base class for background services managed by the service manager</p>
 <h2 id="arguments">Arguments</h2>
-<p>interval (int | CronTab object | str): scheduled job is executed every interval in seconds / CronTab object / CronTab-formatted string</p></section>
+<p>interval (int | CronTab object | str): scheduled job is executed every interval in seconds / CronTab object / CronTab-formatted string</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class BackgroundService(ABC):
     def __init__(self, interval=60, *args, **kwargs):
         &#34;&#34;&#34;Abstract base class for background services managed by the service manager
@@ -347,12 +353,12 @@ inheritance.</p>
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="jumpscale.packages.backup.services.system_backup.SystemBackupService" href="../../packages/backup/services/system_backup.html#jumpscale.packages.backup.services.system_backup.SystemBackupService">SystemBackupService</a></li>
-<li><a title="jumpscale.packages.admin.services.diskcheck.DiskCheckService" href="../../packages/admin/services/diskcheck.html#jumpscale.packages.admin.services.diskcheck.DiskCheckService">DiskCheckService</a></li>
 <li><a title="jumpscale.packages.admin.services.alerts_notifier.AlertsNotifier" href="../../packages/admin/services/alerts_notifier.html#jumpscale.packages.admin.services.alerts_notifier.AlertsNotifier">AlertsNotifier</a></li>
-<li><a title="jumpscale.packages.admin.services.stellar.StellarService" href="../../packages/admin/services/stellar.html#jumpscale.packages.admin.services.stellar.StellarService">StellarService</a></li>
+<li><a title="jumpscale.packages.admin.services.diskcheck.DiskCheckService" href="../../packages/admin/services/diskcheck.html#jumpscale.packages.admin.services.diskcheck.DiskCheckService">DiskCheckService</a></li>
 <li><a title="jumpscale.packages.admin.services.heartbeat.HeartBeatService" href="../../packages/admin/services/heartbeat.html#jumpscale.packages.admin.services.heartbeat.HeartBeatService">HeartBeatService</a></li>
 <li><a title="jumpscale.packages.admin.services.notifier.Notifier" href="../../packages/admin/services/notifier.html#jumpscale.packages.admin.services.notifier.Notifier">Notifier</a></li>
+<li><a title="jumpscale.packages.admin.services.stellar.StellarService" href="../../packages/admin/services/stellar.html#jumpscale.packages.admin.services.stellar.StellarService">StellarService</a></li>
+<li><a title="jumpscale.packages.backup.services.system_backup.SystemBackupService" href="../../packages/backup/services/system_backup.html#jumpscale.packages.backup.services.system_backup.SystemBackupService">SystemBackupService</a></li>
 <li><a title="jumpscale.packages.billing.services.billing.BillingService" href="../../packages/billing/services/billing.html#jumpscale.packages.billing.services.billing.BillingService">BillingService</a></li>
 </ul>
 <h3>Methods</h3>
@@ -361,10 +367,12 @@ inheritance.</p>
 <span>def <span class="ident">job</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Background job to be scheduled.
-Should be implemented by any service that inherits from this class</p></section>
+<div class="desc"><p>Background job to be scheduled.
+Should be implemented by any service that inherits from this class</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@abstractmethod
 def job(self):
     &#34;&#34;&#34;
@@ -381,7 +389,7 @@ def job(self):
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
@@ -400,9 +408,11 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class ServiceManager(Base):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -572,24 +582,23 @@ print(p.name, p.age)
 <span>def <span class="ident">seconds_to_next_interval</span></span>(<span>interval)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Helper method to get seconds remaining to next_interval</p>
+<div class="desc"><p>Helper method to get seconds remaining to next_interval</p>
 <h2 id="arguments">Arguments</h2>
-<dl>
-<dt><strong><code>interval</code></strong> :&ensp;<code>Any</code></dt>
-<dd>next interval to which seconds remaining is calculated</dd>
-</dl>
+<p>interval (Any): next interval to which seconds remaining is calculated</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>Real</code></strong></dt>
+<dt><code>Real</code></dt>
 <dd>number of seconds remaining until next interval</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>ValueError</code></strong></dt>
+<dt><code>ValueError</code></dt>
 <dd>when the type of interval is not Real / CronTab object / CronTab string format</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@staticmethod
 def seconds_to_next_interval(interval):
     &#34;&#34;&#34;Helper method to get seconds remaining to next_interval
@@ -623,14 +632,13 @@ def seconds_to_next_interval(interval):
 <span>def <span class="ident">add_service</span></span>(<span>self, service_name, service_path)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Add a new background service to be managed and scheduled by the service manager</p>
+<div class="desc"><p>Add a new background service to be managed and scheduled by the service manager</p>
 <h2 id="arguments">Arguments</h2>
-<dl>
-<dt><strong><code>service_path</code></strong> :&ensp;<code>str</code></dt>
-<dd>absolute path of the service file</dd>
-</dl></section>
+<p>service_path (str): absolute path of the service file</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def add_service(self, service_name, service_path):
     &#34;&#34;&#34;Add a new background service to be managed and scheduled by the service manager
 
@@ -655,9 +663,11 @@ def seconds_to_next_interval(interval):
 <span>def <span class="ident">start</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Start the service manager and schedule default services</p></section>
+<div class="desc"><p>Start the service manager and schedule default services</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def start(self):
     &#34;&#34;&#34;Start the service manager and schedule default services
     &#34;&#34;&#34;
@@ -671,9 +681,11 @@ def seconds_to_next_interval(interval):
 <span>def <span class="ident">stop</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Stop all background services</p></section>
+<div class="desc"><p>Stop all background services</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def stop(self):
     &#34;&#34;&#34;Stop all background services
     &#34;&#34;&#34;
@@ -687,16 +699,14 @@ def seconds_to_next_interval(interval):
 <span>def <span class="ident">stop_service</span></span>(<span>self, service_name, block=True)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Stop a running background service and unschedule it if it's scheduled to run again</p>
+<div class="desc"><p>Stop a running background service and unschedule it if it's scheduled to run again</p>
 <h2 id="arguments">Arguments</h2>
-<dl>
-<dt><strong><code>service_name</code></strong> :&ensp;<code>str</code></dt>
-<dd>name of the service to be stopped</dd>
-<dt><strong><code>block</code></strong> :&ensp;<code>bool</code></dt>
-<dd>wait for service job to finish. if False, service job will be killed without waiting</dd>
-</dl></section>
+<p>service_name (str): name of the service to be stopped
+block (bool): wait for service job to finish. if False, service job will be killed without waiting</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def stop_service(self, service_name, block=True):
     &#34;&#34;&#34;Stop a running background service and unschedule it if it&#39;s scheduled to run again
 
@@ -793,9 +803,7 @@ def seconds_to_next_interval(interval):
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

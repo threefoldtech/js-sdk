@@ -3,16 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.sals.backupjob.backupjob API documentation</title>
 <meta name="description" content="THE BACKUPJOB SAL
 This sal can be used to create and manage multiple backup jobs with multiple and configured paths …" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -53,7 +55,9 @@ JS-NG&gt; nginxbackup_job.execute()</code></li>
 </li>
 </ol>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">&#34;&#34;&#34;
 ----------------------------------------------------------------------
 # THE BACKUPJOB SAL
@@ -293,7 +297,7 @@ class BackupJob(Base):
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
@@ -312,9 +316,11 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class BackupJob(Base):
     paths = fields.List(fields.String(validators=[_path_validator]))
     paths_to_exclude = fields.List(fields.String())
@@ -483,16 +489,18 @@ print(p.name, p.age)
 <dl>
 <dt id="jumpscale.sals.backupjob.backupjob.BackupJob.clients"><code class="name">var <span class="ident">clients</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -508,16 +516,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.backupjob.backupjob.BackupJob.paths"><code class="name">var <span class="ident">paths</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -533,16 +543,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.backupjob.backupjob.BackupJob.paths_to_exclude"><code class="name">var <span class="ident">paths_to_exclude</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -563,7 +575,7 @@ and will get the default value if not</p>
 <span>def <span class="ident">clean_snapshots</span></span>(<span>self, restic_client_name, keep_last=0, prune=True)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Deletes the snapshots data if <code>prune</code> is True otherwise remove the)reference to the data (snapshots) in a ResticRepo with a given instance name.</p>
+<div class="desc"><p>Deletes the snapshots data if <code>prune</code> is True otherwise remove the)reference to the data (snapshots) in a ResticRepo with a given instance name.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>restic_client_name</code></strong> :&ensp;<code>str</code></dt>
@@ -572,9 +584,11 @@ and will get the default value if not</p>
 <dd>How many snapshots to keep. Passing 0 will remove all snapshots for this BackupJob instance. Defaults to 0.</dd>
 <dt><strong><code>prune</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Whether to delete the data or not. Defaults to True.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def clean_snapshots(self, restic_client_name, keep_last=0, prune=True):
     &#34;&#34;&#34;Deletes the snapshots data if `prune` is True otherwise remove the)reference to the data (snapshots) in a ResticRepo with a given instance name.
 
@@ -598,7 +612,7 @@ and will get the default value if not</p>
 <span>def <span class="ident">execute</span></span>(<span>self, block=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Backups the preconfigured paths with the preconfigured restic clients.
+<div class="desc"><p>Backups the preconfigured paths with the preconfigured restic clients.
 All snapshots created with a Backupjob will be tagged with the BackupJob instance name for easy referencing, manageing, cleaning and restoring.</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -606,15 +620,20 @@ All snapshots created with a Backupjob will be tagged with the BackupJob instanc
 <dd>Wait for the backup to finish. if False, will start the backup and return immediately. Defaults to False.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
-<p>j.exceptions.Runtime: If there are no restic instances defined for this backup job.</p>
+<dl>
+<dt><code>j.exceptions.Runtime</code></dt>
+<dd>If there are no restic instances defined for this backup job.</dd>
+</dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>whether the backup created successfully on all the preconfigured repos.</dd>
 </dl>
-<p>if block is False, then it returns False immediately.</p></section>
+<p>if block is False, then it returns False immediately.</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def execute(self, block=False):
     &#34;&#34;&#34;Backups the preconfigured paths with the preconfigured restic clients.
     All snapshots created with a Backupjob will be tagged with the BackupJob instance name for easy referencing, manageing, cleaning and restoring.
@@ -655,7 +674,7 @@ All snapshots created with a Backupjob will be tagged with the BackupJob instanc
 <span>def <span class="ident">list_all_snapshots</span></span>(<span>self, last=False, path=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Returns a dictionary of restic snapshots lists that are related to to this BackupJob instance,
+<div class="desc"><p>Returns a dictionary of restic snapshots lists that are related to to this BackupJob instance,
 where the keys are the ResticRepo instance name.</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -666,11 +685,13 @@ where the keys are the ResticRepo instance name.</p>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>Dict</code> of <code>lists</code>: <code>a</code> <code>dictionary</code> of <code>restic</code> <code>snapshots</code> <code>lists</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<dt><code>Dict</code> of <code>lists</code></dt>
+<dd>a dictionary of restic snapshots lists</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_all_snapshots(self, last=False, path=None):
     &#34;&#34;&#34;Returns a dictionary of restic snapshots lists that are related to to this BackupJob instance,
     where the keys are the ResticRepo instance name.
@@ -692,7 +713,7 @@ where the keys are the ResticRepo instance name.</p>
 <span>def <span class="ident">list_snapshots</span></span>(<span>self, restic_client_name, last=False, path=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Returns a list of restic snapshots that are related to to this BackupJob instance from a ResticRepo with a given instance name</p>
+<div class="desc"><p>Returns a list of restic snapshots that are related to to this BackupJob instance from a ResticRepo with a given instance name</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>restic_client_name</code></strong> :&ensp;<code>str</code></dt>
@@ -703,13 +724,18 @@ where the keys are the ResticRepo instance name.</p>
 <dd>Path to filter on. Defaults to None.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p>list of dictionaries: list of restic snapshots.
+<dl>
+<dt><code>list</code> of <code>dictionaries</code></dt>
+<dd>list of restic snapshots.
 Example: [{'time': '2021-06-27T19:18:00.203093762+02:00', 'parent': 'ded571a29dfa8f3db1c455ee5714acf5b248a90f9b5103235a682737eba583b3',
 'tree': 'dae692c71558aa6f1f632dc805dd614a8d35ecb8c5053bc32665506d7a4a066c', 'paths': ['/home/ayoub/play.txt'],
 'hostname': 'ayoub', 'username': 'ayoub', 'uid': 1000, 'gid': 1000, 'tags': ['admin_sameh'],
-'id': 'e3d5d9dd2e252d0cf55ff66aabe839af312c4fdc6119e08a72984086664ef3b0', 'short_id': 'e3d5d9dd'}]</p></section>
+'id': 'e3d5d9dd2e252d0cf55ff66aabe839af312c4fdc6119e08a72984086664ef3b0', 'short_id': 'e3d5d9dd'}]</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_snapshots(self, restic_client_name, last=False, path=None):
     &#34;&#34;&#34;Returns a list of restic snapshots that are related to to this BackupJob instance from a ResticRepo with a given instance name
 
@@ -730,10 +756,10 @@ Example: [{'time': '2021-06-27T19:18:00.203093762+02:00', 'parent': 'ded571a29df
 </details>
 </dd>
 <dt id="jumpscale.sals.backupjob.backupjob.BackupJob.restore"><code class="name flex">
-<span>def <span class="ident">restore</span></span>(<span>self, restic_client_name, target_path=&#39;/&#39;, snapshot_id=None, host=None)</span>
+<span>def <span class="ident">restore</span></span>(<span>self, restic_client_name, target_path='/', snapshot_id=None, host=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Restore a specifc or latest snapshot for this BackupJob from a ResticRepo with a given instance name.</p>
+<div class="desc"><p>Restore a specifc or latest snapshot for this BackupJob from a ResticRepo with a given instance name.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>restic_client_name</code></strong> :&ensp;<code>str</code></dt>
@@ -747,10 +773,16 @@ if not specified will use tha latest snapshot/s taken for this BackupJob instead
 <dd>Filter on the hostname when using latest. Defaults to None.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
-<p>j.exceptions.Value: if the specified snapshot id is not found for this BackupJob.
-j.exceptions.Runtime: if no previous snapshots found for this BackupJob.</p></section>
+<dl>
+<dt><code>j.exceptions.Value</code></dt>
+<dd>if the specified snapshot id is not found for this BackupJob.</dd>
+<dt><code>j.exceptions.Runtime</code></dt>
+<dd>if no previous snapshots found for this BackupJob.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def restore(self, restic_client_name, target_path=&#34;/&#34;, snapshot_id=None, host=None):
     &#34;&#34;&#34;Restore a specifc or latest snapshot for this BackupJob from a ResticRepo with a given instance name.
 
@@ -830,9 +862,7 @@ j.exceptions.Runtime: if no previous snapshots found for this BackupJob.</p></se
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>
