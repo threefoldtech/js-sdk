@@ -90,7 +90,7 @@ class Stellar(Client):
     def load_account(self):
         horizonServer = self._get_horizon_server()
         saccount = horizonServer.load_account(self.address)
-        account = Account(saccount.account_id, saccount.sequence, self)
+        account = Account(saccount.account.account_id, saccount.sequence, self)
         return account
 
     def _get_url(self, endpoint):
@@ -241,7 +241,7 @@ class Stellar(Client):
                     amount=balance.balance,
                     asset_code=balance.asset_code,
                     asset_issuer=balance.asset_issuer,
-                    source=account.account_id,
+                    source=account.account.account_id,
                 )
             # Step 2: Delete trustlines
             transaction_builder.append_change_trust_op(
@@ -541,9 +541,8 @@ class Stellar(Client):
         transaction_builder.append_payment_op(
             destination=destination_address,
             amount=str(amount),
-            asset_code=asset_code,
-            asset_issuer=issuer,
-            source=source_account.account_id,
+            asset=self._get_asset(asset_code),
+            source=source_account.account.account_id,
         )
         transaction_builder.set_timeout(timeout)
         if memo_text is not None:
@@ -1045,7 +1044,7 @@ class Stellar(Client):
         wallet_address = wallet_address or self.address
         server = self._get_horizon_server()
         endpoint = server.offers()
-        endpoint.account(wallet_address)
+        endpoint.for_account(wallet_address)
         response = endpoint.call()
         offers = response["_embedded"]["records"]
         return offers
