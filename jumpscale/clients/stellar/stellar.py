@@ -389,14 +389,13 @@ class Stellar(Client):
         source_account = server.load_account(source_public_key)
 
         base_fee = server.fetch_base_fee()
-
         transaction = (
             stellar_sdk.TransactionBuilder(
                 source_account=source_account,
                 network_passphrase=_NETWORK_PASSPHRASES[self.network.value],
                 base_fee=base_fee,
             )
-            .append_change_trust_op(asset_issuer=issuer, asset_code=asset_code, limit=limit)
+            .append_change_trust_op(Asset(asset_code,issuer), limit=limit)
             .set_timeout(30)
             .build()
         )
