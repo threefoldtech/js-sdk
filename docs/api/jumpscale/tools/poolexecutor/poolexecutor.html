@@ -39,7 +39,7 @@ class Job:
 class PoolExecutor:
     def __init__(self):
         self.jobs = []
-
+    
     def __enter__(self):
         return self
 
@@ -60,7 +60,7 @@ class PoolExecutor:
         else:
             self.jobs = []
             return greenlets
-
+    
     def results(self, greenlets):
         return [greenlet.value for greenlet in greenlets]
 
@@ -72,7 +72,7 @@ class PoolExecutor:
 
     #         gs = p.run()
     #         p.results(gs)
-
+    
     #     def sleepf(howlong, name=&#34;fun&#34;):
     #         print(&#34;{} is sleeping for {}&#34;.format(name, howlong))
     #         for i in range(howlong):
@@ -169,7 +169,7 @@ class PoolExecutor:
 <pre><code class="python">class PoolExecutor:
     def __init__(self):
         self.jobs = []
-
+    
     def __enter__(self):
         return self
 
@@ -190,7 +190,7 @@ class PoolExecutor:
         else:
             self.jobs = []
             return greenlets
-
+    
     def results(self, greenlets):
         return [greenlet.value for greenlet in greenlets]
 
@@ -202,7 +202,7 @@ class PoolExecutor:
 
     #         gs = p.run()
     #         p.results(gs)
-
+    
     #     def sleepf(howlong, name=&#34;fun&#34;):
     #         print(&#34;{} is sleeping for {}&#34;.format(name, howlong))
     #         for i in range(howlong):

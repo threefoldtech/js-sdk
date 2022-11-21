@@ -89,11 +89,11 @@ class Example2(Poll):
         self.custom_answers = {}
 
     def welcome(self):
-
+        
         statement_1 = &#34;&#34;&#34;
-        Dear ThreeFold Token Holder,
+        Dear ThreeFold Token Holder, 
 
-        This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid).
+        This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid). 
         This poll is only for TFT v1 holders (TFTA).
 
         This first poll is related to introducing a new era in the ThreeFold Grid which leads to even more decentralization and it is important to have your support.
@@ -107,7 +107,7 @@ class Example2(Poll):
 
         INSERT: GDPR disclaimer (see Pierre)
         &#34;&#34;&#34;
-
+        
         self.md_show(statement_1, md=True)
 
         full_name = self.string_ask(&#34;What is your full name ?&#34;, required=True)
@@ -153,7 +153,7 @@ class Example2(Poll):
 
         if vote_1_answer == VOTES[1][&#34;options&#34;][1] or vote_2_answer == VOTES[2][&#34;options&#34;][1]:
             self.stop(&#34;Thank you for your participation, The poll ends now because you did read the June 2020 update document and/or did not read the manifesto.&#34;)
-        else:
+        else: 
             self.md_show(&#34;Thank you for confirming our \&#34;decentralization manifesto\&#34;, you have now digitally signed this document.&#34;)
 
         vote_3_answer = self.single_choice(VOTES[3][&#34;content&#34;], VOTES[3][&#34;options&#34;], md=True, required=True)
@@ -194,7 +194,7 @@ class Example2(Poll):
         #     &#34; I have read the manifesto and I do agree.&#34;,
         #     &#34;I have not read the manifesto or I do not agree.&#34;
         # ]
-
+        
         # self.QUESTIONS.update({vote_2_name: vote_2_options})
         # vote_2_answer = self.single_choice(vote_2_text, vote_2_options, md=True, required=True)
         # self.custom_answers.update({vote_2_name: vote_2_answer})
@@ -230,7 +230,7 @@ class Example2(Poll):
         # vote_4_answer = self.single_choice(vote_4_text, vote_4_options, required=True)
         # self.custom_answers.update({vote_4_name: vote_4_answer})
 
-
+        
 
 
 chat = Example2</code></pre>
@@ -281,11 +281,11 @@ any extra kwargs that is passed while creating the session
         self.custom_answers = {}
 
     def welcome(self):
-
+        
         statement_1 = &#34;&#34;&#34;
-        Dear ThreeFold Token Holder,
+        Dear ThreeFold Token Holder, 
 
-        This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid).
+        This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid). 
         This poll is only for TFT v1 holders (TFTA).
 
         This first poll is related to introducing a new era in the ThreeFold Grid which leads to even more decentralization and it is important to have your support.
@@ -299,7 +299,7 @@ any extra kwargs that is passed while creating the session
 
         INSERT: GDPR disclaimer (see Pierre)
         &#34;&#34;&#34;
-
+        
         self.md_show(statement_1, md=True)
 
         full_name = self.string_ask(&#34;What is your full name ?&#34;, required=True)
@@ -345,7 +345,7 @@ any extra kwargs that is passed while creating the session
 
         if vote_1_answer == VOTES[1][&#34;options&#34;][1] or vote_2_answer == VOTES[2][&#34;options&#34;][1]:
             self.stop(&#34;Thank you for your participation, The poll ends now because you did read the June 2020 update document and/or did not read the manifesto.&#34;)
-        else:
+        else: 
             self.md_show(&#34;Thank you for confirming our \&#34;decentralization manifesto\&#34;, you have now digitally signed this document.&#34;)
 
         vote_3_answer = self.single_choice(VOTES[3][&#34;content&#34;], VOTES[3][&#34;options&#34;], md=True, required=True)
@@ -386,7 +386,7 @@ any extra kwargs that is passed while creating the session
         #     &#34; I have read the manifesto and I do agree.&#34;,
         #     &#34;I have not read the manifesto or I do not agree.&#34;
         # ]
-
+        
         # self.QUESTIONS.update({vote_2_name: vote_2_options})
         # vote_2_answer = self.single_choice(vote_2_text, vote_2_options, md=True, required=True)
         # self.custom_answers.update({vote_2_name: vote_2_answer})
@@ -458,7 +458,7 @@ any extra kwargs that is passed while creating the session
 
     if vote_1_answer == VOTES[1][&#34;options&#34;][1] or vote_2_answer == VOTES[2][&#34;options&#34;][1]:
         self.stop(&#34;Thank you for your participation, The poll ends now because you did read the June 2020 update document and/or did not read the manifesto.&#34;)
-    else:
+    else: 
         self.md_show(&#34;Thank you for confirming our \&#34;decentralization manifesto\&#34;, you have now digitally signed this document.&#34;)
 
     vote_3_answer = self.single_choice(VOTES[3][&#34;content&#34;], VOTES[3][&#34;options&#34;], md=True, required=True)
@@ -499,7 +499,7 @@ any extra kwargs that is passed while creating the session
     #     &#34; I have read the manifesto and I do agree.&#34;,
     #     &#34;I have not read the manifesto or I do not agree.&#34;
     # ]
-
+    
     # self.QUESTIONS.update({vote_2_name: vote_2_options})
     # vote_2_answer = self.single_choice(vote_2_text, vote_2_options, md=True, required=True)
     # self.custom_answers.update({vote_2_name: vote_2_answer})
@@ -546,11 +546,11 @@ any extra kwargs that is passed while creating the session
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def welcome(self):
-
+    
     statement_1 = &#34;&#34;&#34;
-    Dear ThreeFold Token Holder,
+    Dear ThreeFold Token Holder, 
 
-    This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid).
+    This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid). 
     This poll is only for TFT v1 holders (TFTA).
 
     This first poll is related to introducing a new era in the ThreeFold Grid which leads to even more decentralization and it is important to have your support.
@@ -564,7 +564,7 @@ any extra kwargs that is passed while creating the session
 
     INSERT: GDPR disclaimer (see Pierre)
     &#34;&#34;&#34;
-
+    
     self.md_show(statement_1, md=True)
 
     full_name = self.string_ask(&#34;What is your full name ?&#34;, required=True)
@@ -635,11 +635,11 @@ any extra kwargs that is passed while creating the session
         self.custom_answers = {}
 
     def welcome(self):
-
+        
         statement_1 = &#34;&#34;&#34;
-        Dear ThreeFold Token Holder,
+        Dear ThreeFold Token Holder, 
 
-        This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid).
+        This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid). 
         This poll is only for TFT v1 holders (TFTA).
 
         This first poll is related to introducing a new era in the ThreeFold Grid which leads to even more decentralization and it is important to have your support.
@@ -653,7 +653,7 @@ any extra kwargs that is passed while creating the session
 
         INSERT: GDPR disclaimer (see Pierre)
         &#34;&#34;&#34;
-
+        
         self.md_show(statement_1, md=True)
 
         full_name = self.string_ask(&#34;What is your full name ?&#34;, required=True)
@@ -699,7 +699,7 @@ any extra kwargs that is passed while creating the session
 
         if vote_1_answer == VOTES[1][&#34;options&#34;][1] or vote_2_answer == VOTES[2][&#34;options&#34;][1]:
             self.stop(&#34;Thank you for your participation, The poll ends now because you did read the June 2020 update document and/or did not read the manifesto.&#34;)
-        else:
+        else: 
             self.md_show(&#34;Thank you for confirming our \&#34;decentralization manifesto\&#34;, you have now digitally signed this document.&#34;)
 
         vote_3_answer = self.single_choice(VOTES[3][&#34;content&#34;], VOTES[3][&#34;options&#34;], md=True, required=True)
@@ -740,7 +740,7 @@ any extra kwargs that is passed while creating the session
         #     &#34; I have read the manifesto and I do agree.&#34;,
         #     &#34;I have not read the manifesto or I do not agree.&#34;
         # ]
-
+        
         # self.QUESTIONS.update({vote_2_name: vote_2_options})
         # vote_2_answer = self.single_choice(vote_2_text, vote_2_options, md=True, required=True)
         # self.custom_answers.update({vote_2_name: vote_2_answer})
@@ -812,7 +812,7 @@ any extra kwargs that is passed while creating the session
 
     if vote_1_answer == VOTES[1][&#34;options&#34;][1] or vote_2_answer == VOTES[2][&#34;options&#34;][1]:
         self.stop(&#34;Thank you for your participation, The poll ends now because you did read the June 2020 update document and/or did not read the manifesto.&#34;)
-    else:
+    else: 
         self.md_show(&#34;Thank you for confirming our \&#34;decentralization manifesto\&#34;, you have now digitally signed this document.&#34;)
 
     vote_3_answer = self.single_choice(VOTES[3][&#34;content&#34;], VOTES[3][&#34;options&#34;], md=True, required=True)
@@ -853,7 +853,7 @@ any extra kwargs that is passed while creating the session
     #     &#34; I have read the manifesto and I do agree.&#34;,
     #     &#34;I have not read the manifesto or I do not agree.&#34;
     # ]
-
+    
     # self.QUESTIONS.update({vote_2_name: vote_2_options})
     # vote_2_answer = self.single_choice(vote_2_text, vote_2_options, md=True, required=True)
     # self.custom_answers.update({vote_2_name: vote_2_answer})
@@ -900,11 +900,11 @@ any extra kwargs that is passed while creating the session
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def welcome(self):
-
+    
     statement_1 = &#34;&#34;&#34;
-    Dear ThreeFold Token Holder,
+    Dear ThreeFold Token Holder, 
 
-    This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid).
+    This is the first poll organized by the foundation using our newly developed ThreeFold voting system. Your votes at the end of this wizard are super important to the future of the ThreeFold Grid (TF Grid). 
     This poll is only for TFT v1 holders (TFTA).
 
     This first poll is related to introducing a new era in the ThreeFold Grid which leads to even more decentralization and it is important to have your support.
@@ -918,7 +918,7 @@ any extra kwargs that is passed while creating the session
 
     INSERT: GDPR disclaimer (see Pierre)
     &#34;&#34;&#34;
-
+    
     self.md_show(statement_1, md=True)
 
     full_name = self.string_ask(&#34;What is your full name ?&#34;, required=True)

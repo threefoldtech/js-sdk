@@ -25,8 +25,8 @@ JS-NG&gt; …" />
 </header>
 <section id="section-intro">
 <p>Console module helps with coloring in the console and asking for input from the user.</p>
-<pre><code>JS-NG&gt; j.tools.console.printcolors(&quot;{RED}Hello{BGRED}What{WHITE}OK&quot;)
-JS-NG&gt; j.tools.console.printcolors(&quot;{RED}Hello{BGRED}What{RESET}{WHITE}OK&quot;)
+<pre><code>JS-NG&gt; j.tools.console.printcolors(&quot;{RED}Hello{BGRED}What{WHITE}OK&quot;)                                                                     
+JS-NG&gt; j.tools.console.printcolors(&quot;{RED}Hello{BGRED}What{RESET}{WHITE}OK&quot;)                                                              
 </code></pre>
 <details class="source">
 <summary>
@@ -34,8 +34,8 @@ JS-NG&gt; j.tools.console.printcolors(&quot;{RED}Hello{BGRED}What{RESET}{WHITE}O
 </summary>
 <pre><code class="python">&#34;&#34;&#34;Console module helps with coloring in the console and asking for input from the user.
 ```
-JS-NG&gt; j.tools.console.printcolors(&#34;{RED}Hello{BGRED}What{WHITE}OK&#34;)
-JS-NG&gt; j.tools.console.printcolors(&#34;{RED}Hello{BGRED}What{RESET}{WHITE}OK&#34;)
+JS-NG&gt; j.tools.console.printcolors(&#34;{RED}Hello{BGRED}What{WHITE}OK&#34;)                                                                     
+JS-NG&gt; j.tools.console.printcolors(&#34;{RED}Hello{BGRED}What{RESET}{WHITE}OK&#34;)                                                              
 ```
 
 &#34;&#34;&#34;
@@ -77,11 +77,11 @@ def printcolors(s):
 
 def ask_password(prompt=&#34;Password : &#34;, forbiddens=[]):
     &#34;&#34;&#34;Prompt the user for a password without echoing
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#34;Password : &#34;})
         forbiddens {list} -- the list of bad passwords (default: {[]})
-
+    
     Returns:
         str -- the appropriate input password
     &#34;&#34;&#34;
@@ -94,12 +94,12 @@ def ask_password(prompt=&#34;Password : &#34;, forbiddens=[]):
 
 def ask_yes_no(prompt=&#34;[y/n] :&#34;, default=&#34;y&#34;, valid=[&#34;y&#34;, &#34;n&#34;]):
     &#34;&#34;&#34;Display a yes/no question and loop until a valid answer is entered
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#39;[y/n] :&#39;})
         default {str} -- the default answer if there is no answer (default: {&#34;y&#34;})
         valid {list} -- the list of appropriate answers (default: {[&#34;y&#34;, &#34;n&#34;]})
-
+    
     Returns:
         str -- the answer
     &#34;&#34;&#34;
@@ -122,14 +122,14 @@ def ask_int(prompt=&#34;Type int :&#34;):
 
 def ask_int_in_range(mini, maxi, prompt=&#34;Type int :&#34;):
     &#34;&#34;&#34;Get an integer response between two integer on asked question
-
+    
     Arguments:
         mini {int} -- the minimum value for the number
         maxi {int} -- the maximum value for the number
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#34;Type int :&#34;})
-
+    
     Returns:
         int -- the input number on the range provided
     &#34;&#34;&#34;
@@ -152,14 +152,14 @@ def ask_float(prompt=&#34;Type float :&#34;):
 
 def ask_float_in_range(mini, maxi, prompt=&#34;Type float :&#34;):
     &#34;&#34;&#34;Get an float response between two float on asked question
-
+    
     Arguments:
         mini {float} -- the minimum value for the number
         maxi {float} -- the maximum value for the number
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#34;Type float :&#34;})
-
+    
     Returns:
         float -- the input number on the range provided
     &#34;&#34;&#34;
@@ -184,11 +184,11 @@ def _print_choices(choices_list):
 
 def ask_choice(prompt=&#34;Type choice number : &#34;, choices_list=[]):
     &#34;&#34;&#34;Get an option from provided list
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#34;Type choice number : &#34;})
         choices_list {list} -- the available options (default: {[]})
-
+    
     Returns:
         str -- the chosen option
     &#34;&#34;&#34;
@@ -202,13 +202,13 @@ def ask_choice(prompt=&#34;Type choice number : &#34;, choices_list=[]):
 
 def ask_multi_choices(prompt=&#34;Add to choices : &#34;, choices_list=[], to_save=&#34;s&#34;, to_quit=&#34;q&#34;):
     &#34;&#34;&#34;Collect multi choices from list
-
+    
     Keyword Arguments:
         prompt {str} -- the question method (default: {&#34;Add to choices : &#34;})
         choices_list {list} -- the available options (default: {[]})
         to_save {str} -- escape and save choices (default: {&#34;s&#34;})
         to_quit {str} -- escape without saving (default: {&#34;q&#34;})
-
+    
     Returns:
         list -- list of the selected choices
     &#34;&#34;&#34;
@@ -231,11 +231,11 @@ def ask_multi_choices(prompt=&#34;Add to choices : &#34;, choices_list=[], to_sa
 
 def ask_multi_lines(prompt=&#34;Type :&#34;, escape_string=&#34;.&#34;):
     &#34;&#34;&#34;Get input from user provided multilines
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#34;Type :&#34;})
         escape_string {str} -- escape character (default: {&#34;.&#34;})
-
+    
     Returns:
         str -- the text seperated by lines
     &#34;&#34;&#34;
@@ -249,10 +249,10 @@ def ask_multi_lines(prompt=&#34;Type :&#34;, escape_string=&#34;.&#34;):
 
 def ask_string(prompt=&#34;Type :&#34;):
     &#34;&#34;&#34;Just input function
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#34;Type :&#34;})
-
+    
     Returns:
         str -- the string input
     &#34;&#34;&#34;
@@ -290,11 +290,11 @@ choices_list {list} &ndash; the available options (default: {[]})</p>
 </summary>
 <pre><code class="python">def ask_choice(prompt=&#34;Type choice number : &#34;, choices_list=[]):
     &#34;&#34;&#34;Get an option from provided list
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#34;Type choice number : &#34;})
         choices_list {list} -- the available options (default: {[]})
-
+    
     Returns:
         str -- the chosen option
     &#34;&#34;&#34;
@@ -340,14 +340,14 @@ prompt {str} &ndash; the question message (default: {"Type float :"})</p>
 </summary>
 <pre><code class="python">def ask_float_in_range(mini, maxi, prompt=&#34;Type float :&#34;):
     &#34;&#34;&#34;Get an float response between two float on asked question
-
+    
     Arguments:
         mini {float} -- the minimum value for the number
         maxi {float} -- the maximum value for the number
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#34;Type float :&#34;})
-
+    
     Returns:
         float -- the input number on the range provided
     &#34;&#34;&#34;
@@ -395,14 +395,14 @@ prompt {str} &ndash; the question message (default: {"Type int :"})</p>
 </summary>
 <pre><code class="python">def ask_int_in_range(mini, maxi, prompt=&#34;Type int :&#34;):
     &#34;&#34;&#34;Get an integer response between two integer on asked question
-
+    
     Arguments:
         mini {int} -- the minimum value for the number
         maxi {int} -- the maximum value for the number
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#34;Type int :&#34;})
-
+    
     Returns:
         int -- the input number on the range provided
     &#34;&#34;&#34;
@@ -434,13 +434,13 @@ to_quit {str} &ndash; escape without saving (default: {"q"})</p>
 </summary>
 <pre><code class="python">def ask_multi_choices(prompt=&#34;Add to choices : &#34;, choices_list=[], to_save=&#34;s&#34;, to_quit=&#34;q&#34;):
     &#34;&#34;&#34;Collect multi choices from list
-
+    
     Keyword Arguments:
         prompt {str} -- the question method (default: {&#34;Add to choices : &#34;})
         choices_list {list} -- the available options (default: {[]})
         to_save {str} -- escape and save choices (default: {&#34;s&#34;})
         to_quit {str} -- escape without saving (default: {&#34;q&#34;})
-
+    
     Returns:
         list -- list of the selected choices
     &#34;&#34;&#34;
@@ -477,11 +477,11 @@ escape_string {str} &ndash; escape character (default: {"."})</p>
 </summary>
 <pre><code class="python">def ask_multi_lines(prompt=&#34;Type :&#34;, escape_string=&#34;.&#34;):
     &#34;&#34;&#34;Get input from user provided multilines
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#34;Type :&#34;})
         escape_string {str} -- escape character (default: {&#34;.&#34;})
-
+    
     Returns:
         str -- the text seperated by lines
     &#34;&#34;&#34;
@@ -509,11 +509,11 @@ forbiddens {list} &ndash; the list of bad passwords (default: {[]})</p>
 </summary>
 <pre><code class="python">def ask_password(prompt=&#34;Password : &#34;, forbiddens=[]):
     &#34;&#34;&#34;Prompt the user for a password without echoing
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#34;Password : &#34;})
         forbiddens {list} -- the list of bad passwords (default: {[]})
-
+    
     Returns:
         str -- the appropriate input password
     &#34;&#34;&#34;
@@ -539,10 +539,10 @@ prompt {str} &ndash; the question message (default: {"Type :"})</p>
 </summary>
 <pre><code class="python">def ask_string(prompt=&#34;Type :&#34;):
     &#34;&#34;&#34;Just input function
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#34;Type :&#34;})
-
+    
     Returns:
         str -- the string input
     &#34;&#34;&#34;
@@ -568,12 +568,12 @@ valid {list} &ndash; the list of appropriate answers (default: {["y", "n"]})</p>
 </summary>
 <pre><code class="python">def ask_yes_no(prompt=&#34;[y/n] :&#34;, default=&#34;y&#34;, valid=[&#34;y&#34;, &#34;n&#34;]):
     &#34;&#34;&#34;Display a yes/no question and loop until a valid answer is entered
-
+    
     Keyword Arguments:
         prompt {str} -- the question message (default: {&#39;[y/n] :&#39;})
         default {str} -- the default answer if there is no answer (default: {&#34;y&#34;})
         valid {list} -- the list of appropriate answers (default: {[&#34;y&#34;, &#34;n&#34;]})
-
+    
     Returns:
         str -- the answer
     &#34;&#34;&#34;
