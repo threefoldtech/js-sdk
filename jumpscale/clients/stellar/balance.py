@@ -53,9 +53,8 @@ class EscrowAccount:
 
             txe = TransactionEnvelope.from_xdr(unlockhash_tx["transaction_xdr"], self.network_passphrase)
             tx = txe.transaction
-            if tx.preconditions is not None:
-                if tx.preconditions.time_bounds is not None:
-                    self.unlock_time = tx.time_bounds.min_time
+            if tx.preconditions is not None and tx.preconditions.time_bounds is not None:
+                self.unlock_time = tx.preconditions.time_bounds.min_time
 
     def can_be_unlocked(self):
         if len(self.unlockhashes) == 0:
