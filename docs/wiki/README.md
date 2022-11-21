@@ -25,3 +25,4 @@
     * [API](generated_apis.md)
     * Builders
     * [Github actions](./githubactions.md)
+    * [Releasing](./release.md)
