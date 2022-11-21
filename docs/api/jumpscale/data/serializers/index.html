@@ -25,18 +25,18 @@ JS-NG&gt; obj = …" />
 </header>
 <section id="section-intro">
 <p>This module does all the work for serialization/deserialization around pickle, base64, json, msgpack, pickle, dill, toml</p>
-<pre><code>JS-NG&gt; obj = {&quot;name&quot;:&quot;username&quot;, &quot;list&quot;:[1,3,4,7], &quot;n&quot;:5}
+<pre><code>JS-NG&gt; obj = {&quot;name&quot;:&quot;username&quot;, &quot;list&quot;:[1,3,4,7], &quot;n&quot;:5}                                           
 
-JS-NG&gt; j.data.serializers.json.dumps(obj)
+JS-NG&gt; j.data.serializers.json.dumps(obj)                                                           
 '{&quot;name&quot;: &quot;username&quot;, &quot;list&quot;: [1, 3, 4, 7], &quot;n&quot;: 5}'
 
-JS-NG&gt; j.data.serializers.toml.dumps(obj)
+JS-NG&gt; j.data.serializers.toml.dumps(obj)                                                           
 'name = &quot;username&quot;
 list = [1, 3, 4, 7]
 n = 5
 '
 
-JS-NG&gt; j.data.serializers.yaml.dumps(obj)
+JS-NG&gt; j.data.serializers.yaml.dumps(obj)                                                           
 'list:
 - 1
 - 3
@@ -46,7 +46,7 @@ n: 5
 name: username
 '
 
-JS-NG&gt; j.data.serializers.msgpack.dumps(obj)
+JS-NG&gt; j.data.serializers.msgpack.dumps(obj)                                                        
 b'¤name¨username¤list¡n'
 </code></pre>
 <details class="source">
@@ -55,18 +55,18 @@ b'¤name¨username¤list¡n'
 </summary>
 <pre><code class="python">&#34;&#34;&#34;This module does all the work for serialization/deserialization around pickle, base64, json, msgpack, pickle, dill, toml
 ```
-JS-NG&gt; obj = {&#34;name&#34;:&#34;username&#34;, &#34;list&#34;:[1,3,4,7], &#34;n&#34;:5}
+JS-NG&gt; obj = {&#34;name&#34;:&#34;username&#34;, &#34;list&#34;:[1,3,4,7], &#34;n&#34;:5}                                           
 
-JS-NG&gt; j.data.serializers.json.dumps(obj)
+JS-NG&gt; j.data.serializers.json.dumps(obj)                                                           
 &#39;{&#34;name&#34;: &#34;username&#34;, &#34;list&#34;: [1, 3, 4, 7], &#34;n&#34;: 5}&#39;
 
-JS-NG&gt; j.data.serializers.toml.dumps(obj)
+JS-NG&gt; j.data.serializers.toml.dumps(obj)                                                           
 &#39;name = &#34;username&#34;\nlist = [1, 3, 4, 7]\nn = 5\n&#39;
 
-JS-NG&gt; j.data.serializers.yaml.dumps(obj)
+JS-NG&gt; j.data.serializers.yaml.dumps(obj)                                                           
 &#39;list:\n- 1\n- 3\n- 4\n- 7\nn: 5\nname: username\n&#39;
 
-JS-NG&gt; j.data.serializers.msgpack.dumps(obj)
+JS-NG&gt; j.data.serializers.msgpack.dumps(obj)                                                        
 b&#39;\x83\xa4name\xa8username\xa4list\x94\x01\x03\x04\x07\xa1n\x05&#39;
 ```
 &#34;&#34;&#34;
