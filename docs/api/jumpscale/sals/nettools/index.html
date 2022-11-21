@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.sals.nettools API documentation</title>
-<meta name="description" content="Docs for nettools" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<meta name="description" content="This module contains a collection of functions which help in manage network connections and interfaces …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -20,58 +22,76 @@
 <h1 class="title">Module <code>jumpscale.sals.nettools</code></h1>
 </header>
 <section id="section-intro">
-<p>Docs for nettools</p>
+<p>This module contains a collection of functions which help in manage network connections and interfaces.</p>
+<p>General Note on python socket operations:
+If you use a hostname in the host portion of IPv4/v6 socket address,the program may show a nondeterministic behavior,
+as Python uses the first address returned from the DNS resolution. The socket address will be resolved differently
+into an actual IPv4/v6 address, depending on the results from DNS resolution and/or the host configuration.
+For deterministic behavior use a numeric address in host portion.
+<a href="https://docs.python.org/3/library/socket.html">https://docs.python.org/3/library/socket.html</a></p>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">&#34;&#34;&#34;
-Docs for nettools
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;This module contains a collection of functions which help in manage network connections and interfaces.
 
+General Note on python socket operations:
+    If you use a hostname in the host portion of IPv4/v6 socket address,the program may show a nondeterministic behavior,
+    as Python uses the first address returned from the DNS resolution. The socket address will be resolved differently
+    into an actual IPv4/v6 address, depending on the results from DNS resolution and/or the host configuration.
+    For deterministic behavior use a numeric address in host portion.
+    https://docs.python.org/3/library/socket.html
 &#34;&#34;&#34;
-# TODO: test *2
-
 import time
-import urllib3
 import socket
 import ipaddress
 import re
+import ssl
+import json
+import subprocess
+import shutil
+from os.path import basename
 from typing import Optional
-from jumpscale.core.exceptions import Value, Runtime, Input
-from jumpscale.data.time import now
+from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
+from urllib.parse import urlparse
+from urllib.request import build_opener, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler, install_opener
+from pathlib import Path
+from collections import namedtuple
+from jumpscale.loader import j
+from jumpscale.core.exceptions import Value, Runtime
 import jumpscale.tools.http
 import jumpscale.data.platform
 import jumpscale.sals.fs
 import jumpscale.core.executors
-from jumpscale.data.types import IPAddress
 
 
-def tcp_connection_test(ipaddr: str, port: int, timeout: Optional[int]):
-    &#34;&#34;&#34;tests tcp connection on specified port
+def tcp_connection_test(ipaddr: str, port: int, timeout: Optional[int] = None) -&gt; bool:
+    &#34;&#34;&#34;tests tcp connection on specified port, compatible with both IPv4 and IPv6.
+    ensures that each side of the connection is reachable in the network.
+
+    Raises:
+        socket.gaierror: raised for address-related errors.
+        socket.herror: raised for address-related errors.
 
     Args:
-        ipaddr (str): ip address
+        ipaddr (str): ip address or hostname
         port (int): port number
         timeout (int, optional): time before the connection test fails. Defaults to None.
 
     Returns:
         bool: True if the test succeeds, False otherwise
     &#34;&#34;&#34;
-    conn = None
     try:
-        conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if timeout:
-            conn.settimeout(timeout)
-        try:
-            conn.connect((ipaddr, port))
-        except BaseException:
-            return False
-    finally:
-        if conn:
-            conn.close()
-    return True
+        with socket.create_connection((ipaddr, port), timeout) as conn:
+            return True
+    except (ConnectionRefusedError, socket.timeout, OSError):
+        return False
 
 
-def udp_connection_test(ipaddr: str, port: int, timeout=1, message=b&#34;PING&#34;):
-    &#34;&#34;&#34;tests udp connection on specified port by sending specified message
+def udp_connection_test(ipaddr: str, port: int, timeout: Optional[int] = 1, message: Optional[bytes] = b&#34;&#34;) -&gt; bool:
+    &#34;&#34;&#34;tests udp connection on specified port by sending specified message and expecting
+    to receive at least one byte from the socket as an indicator of connection success
 
     Args:
         ipaddr (str): ip address
@@ -79,95 +99,133 @@ def udp_connection_test(ipaddr: str, port: int, timeout=1, message=b&#34;PING&#3
         timeout (int, optional): time before the connection test fails. Defaults to None.
         message (str, optional): message to send. Defaults to b&#34;PING&#34;
 
+    Raises:
+        ValueError: raises if invalid ip address was used
+
     Returns:
         bool: True if the test succeeds, False otherwise
     &#34;&#34;&#34;
-    conn = socket.socket(type=socket.SOCK_DGRAM)
-    if timeout:
-        conn.settimeout(timeout)
-    try:
-        conn.connect((ipaddr, port))
-    except BaseException:
-        conn.close()
-        return False
+    ip = ipaddress.ip_address(ipaddr)
+    if ip.version == 4:
+        family = socket.AF_INET
+    else:
+        family = socket.AF_INET6
 
-    conn.send(message)
+    with socket.socket(family, socket.SOCK_DGRAM) as sock:
+        if timeout:
+            sock.settimeout(timeout)
 
-    try:
-        conn.recvfrom(8192)
-    except Exception:
-        return False
-    return True
+        try:
+            sock.sendto(message, (ipaddr, port))
+            # expecting to receive at least one byte from the socket as indication to succeed connection
+            data, _ = sock.recvfrom(1)
+            return True
+        except (socket.timeout, OSError):
+            return False
 
 
-def wait_connection_test(ipaddr: str, port: int, timeout=5):
-    &#34;&#34;&#34;Will wait until port listens on the specified address
+def wait_connection_test(ipaddr: str, port: int, timeout: Optional[int] = 6) -&gt; bool:
+    &#34;&#34;&#34;Will wait until port listens on the specified address or `timeout` sec elapsed
+
+    under the hood the function will try to connect every `interval` sec, if waiting time `timeout` set
+    to value &lt;= 2, `interval` is 1 sec, otherwise 2.
 
     Args:
-        ipaddr (str): ip address
+        ipaddr (str): ip address, or hostname
         port (int): port number
-        timeout_total (int, optional): how long to wait for the connection. Defaults to 5.
+        timeout_total (int, optional): how long to wait for the connection. if the timeout set to value &gt; 2,
+            due to the way the function works, it makes sense to choose an even number. Defaults to 6.
 
     Returns:
         bool: True if the test succeeds, False otherwise
     &#34;&#34;&#34;
-    port = int(port)
-    end = now().timestamp + timeout
-    while True:
-        if now().timestamp &gt; end:
-            return False
-        if tcp_connection_test(ipaddr, port, timeout=2):
+    # port = int(port)
+    interval = 1 if timeout &lt;= 2 else 2
+    init_start = time.time()
+    deadline = init_start + timeout
+    while time.time() &lt; deadline:
+        start = time.time()
+        if tcp_connection_test(ipaddr, port, timeout=interval):
             return True
+        # if return immediately (err111) take a break before retry
+        if time.time() - start &lt; interval:
+            time.sleep(1)
+    return False
 
 
-def wait_http_test(url: str, timeout: int = 60, verify: bool = True) -&gt; bool:
-    &#34;&#34;&#34;Will wait until url is reachable
+def wait_http_test(
+    url: str, timeout: Optional[int] = 60, verify: Optional[bool] = True, interval_time: Optional[int] = 2
+) -&gt; bool:
+    &#34;&#34;&#34;Will keep try to reach specified url every {interval_time} sec until url become reachable or {timeout} sec elapsed
 
     Args:
         url (str): url
-        timeout (int, optional): how long to wait for the connection. Defaults to 60.
+        timeout (int, optional): how long to keep trying to reach specified url. Defaults to 60.
         verify (bool, optional): boolean indication to verify the servers TLS certificate or not.
+        interval_time (int, optional): how long to wait for a response before sending a new request. Defaults to 2.
 
+    Raises:
+        ValueError: raises if not correct url
 
     Returns:
         bool: true if the test succeeds
     &#34;&#34;&#34;
-    for _ in range(timeout):
-        try:
-            if check_url_reachable(url, timeout, verify):
-                return True
-        except:
-            pass
+    init_start = time.time()
+    deadline = init_start + timeout
+    while time.time() &lt; deadline:
+        start = time.time()
+        if check_url_reachable(url, interval_time, verify):
+            return True
+        # be gentle on system resource in case the above call to check_url_reachable() returned immediately (edge cases)
+        if time.time() - start &lt; interval_time:
+            time.sleep(1)
+    return False
 
-        time.sleep(1)
-    else:
-        return False
 
-
-def check_url_reachable(url: str, timeout=5, verify=True):
+def check_url_reachable(
+    url: str, timeout: Optional[int] = 5, verify: Optional[bool] = True, fake_user_agent: Optional[bool] = True
+) -&gt; bool:
     &#34;&#34;&#34;Check that given url is reachable
 
     Args:
         url (str): url to test
         timeout (int, optional): timeout of test. Defaults to 5.
         verify (bool, optional): boolean indication to verify the servers TLS certificate or not.
+        fake_user_agent (bool, optional): boolean indication to fake the user-agent and act like normal browser or not.
 
     Raises:
-        Input: raises if not correct url
+        ValueError: raises if not correct url
 
     Returns:
         bool: True if the test succeeds, False otherwise
     &#34;&#34;&#34;
+    # fake the user-agent, to act like a normal browser
+    # because some services will block requests from python default user-agent
+    # By default urllib identifies itself as Python-urllib/x.y (e.g. Python-urllib/2.5),
+    # which may confuse the site, or just plain not work.
+    # ex: www.amazon.com, and it will looks unreachable to our code, unless we fake the user-agent.
+    HEADERS = {
+        &#34;User-Agent&#34;: &#34;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.1 Safari/603.1.30&#34;
+    }
+    METHOD = &#34;GET&#34;
+
+    if timeout:
+        socket.setdefaulttimeout(timeout)
+
+    context = None
+    if not verify:
+        # opt out of certificate verification on a single connection
+        context = ssl._create_unverified_context()
+
+    req = Request(url, headers=HEADERS if fake_user_agent else {}, method=METHOD)
     try:
-        code = jumpscale.tools.http.get(url, timeout=timeout, verify=verify).status_code
-        return code == 200
-    except jumpscale.tools.http.exceptions.MissingSchema:
-        raise Input(&#34;Please specify correct url with correct scheme&#34;)
-    except jumpscale.tools.http.exceptions.ConnectionError:
+        with urlopen(req, timeout=timeout, context=context):
+            return True
+    except (HTTPError, URLError, socket.timeout):
         return False
 
 
-def get_nic_names():
+def get_nic_names() -&gt; list:
     &#34;&#34;&#34;Get Nics on this machine
 
     Returns:
@@ -176,7 +234,7 @@ def get_nic_names():
     return [nic[&#34;name&#34;] for nic in get_network_info()]
 
 
-def get_nic_type(interface):
+def get_nic_type(interface: str) -&gt; str:
     &#34;&#34;&#34;Get Nic Type on a certain interface
 
     Args:
@@ -237,108 +295,138 @@ def get_nic_type(interface):
                     return &#34;ETHERNET_GB&#34;
 
 
-def get_reachable_ip_address(ip: str, port: int):
-    &#34;&#34;&#34;Returns the first local ip address that can connect to the specified ip on the specified port
+def get_reachable_ip_address(ip: str, port: Optional[int] = 0) -&gt; str:
+    &#34;&#34;&#34;figures out what source address would be used if some traffic were to be sent out to specified ip.
+    compatible with both IPv4 and IPv6.
 
     Args:
         ip (str): ip address
-        port (int): port number
+        port (int, optional): port number. does not matter much. No traffic is actually sent. Defaults to 0.
 
     Raises:
-        Runtime: if can&#39;t connect
+        ValueError: if address does not represent a valid IPv4 or IPv6 address, or port is invalid.
+        RuntimeError: if can&#39;t connect
 
     Returns:
         str: ip that can connect to the specified ip
     &#34;&#34;&#34;
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect((ip, port))
-    except BaseException:
-        raise Runtime(&#34;Cannot connect to %s:%s, check network configuration&#34; % (ip, port))
-    return s.getsockname()[0]
+    ipaddr = ipaddress.ip_address(ip)
+
+    if ipaddr.version == 4:
+        family = socket.AF_INET
+    else:
+        family = socket.AF_INET6
+
+    with socket.socket(family, socket.SOCK_DGRAM) as sock:
+        try:
+            sock.connect((ip, port))
+        except OSError as e:
+            # (ConnectionRefusedError, socket.timeout, socket.herror, socket.gaierror)
+            reason = e.error if hasattr(e, &#34;error&#34;) else repr(e)
+            raise RuntimeError(f&#34;Cannot connect to {ip}:{port} because of this error: {reason}&#34;)
+        except (ValueError, TypeError, OverflowError) as e:
+            # incorrect port numper or type
+            raise ValueError(repr(e))
+
+        return sock.getsockname()[0]
 
 
-def get_default_ip_config():
-    &#34;&#34;&#34;get default nic and address
+def get_default_ip_config(ip: Optional[str] = &#34;8.8.8.8&#34;) -&gt; tuple:
+    &#34;&#34;&#34;get default nic and address, by default, the one exposed to internet
+
+    Args:
+        ip (str): ip address. default to &#39;8.8.8.8&#39;
+
+    Raises:
+        ValueError: if address does not represent a valid IPv4 or IPv6 address.
+        RuntimeError: if can&#39;t connect
 
     Returns:
-        tuple: default nic and address
+        tuple: default nic name and its ip address
     &#34;&#34;&#34;
-    ipaddr = get_reachable_ip_address(&#34;8.8.8.8&#34;, 22)
-    for item in get_network_info():
-        for ipaddr2 in item[&#34;ip&#34;]:
-            # print &#34;%s %s&#34;%(ipaddr2,ipaddr)
-            if str(ipaddr) == str(ipaddr2):
-                return item[&#34;name&#34;], ipaddr
+    ipaddr = ipaddress.ip_address(ip)
+    address_family = &#34;ip&#34; if ipaddr.version == 4 else &#34;ip6&#34;
+    source_addr = get_reachable_ip_address(ip)
+    default_nic = None
+    for nic in get_network_info():
+        for candidate_ip, _ in nic[address_family]:
+            if candidate_ip == source_addr:
+                default_nic = (nic[&#34;name&#34;], source_addr)
+                break
+        if default_nic is not None:
+            break
+    return default_nic
 
 
-def get_network_info(device=None):
+def get_network_info(device: Optional[str] = None) -&gt; list:
+    &#34;&#34;&#34;Get network info
+
+    Args:
+        device (str, optional): device name. Defaults to None.
+
+    Raises:
+        Runtime: if it could not find the specified device
+        NotImplementedError: if the function runs on unsupported OS
+
+    Returns:
+        Dict, or list of dicts if device arg used: network info
+        [{&#39;ip&#39;: [(&#39;127.0.0.1&#39;, 8)], &#39;ip6&#39;: [(&#39;::1&#39;, 128)], &#39;mac&#39;: &#39;00:00:00:00:00:00&#39;, &#39;name&#39;: &#39;lo&#39;},
+        {&#39;ip&#39;: [(&#39;192.168.1.6&#39;, 24)],
+         &#39;ip6&#39;: [(&#39;fdb4:f58e:3c34:300:91f0:9c76:e1fb:d060&#39;, 64), ...],
+         &#39;mac&#39;: &#39;d8:9c:67:2a:f2:53&#39;,
+         &#39;name&#39;: &#39;wlp3s0&#39;}, ...]
     &#34;&#34;&#34;
-    Get network info
 
-    [{&#39;cidr&#39;: 8, &#39;ip&#39;: [&#39;127.0.0.1&#39;], &#39;mac&#39;: &#39;00:00:00:00:00:00&#39;, &#39;name&#39;: &#39;lo&#39;},
-        {&#39;cidr&#39;: 24,
-        &#39;ip&#39;: [&#39;192.168.0.105&#39;],
-        &#39;ip6&#39;: [&#39;...&#39;,&#39;...],
-        &#39;mac&#39;: &#39;80:ee:73:a9:19:05&#39;,
-        &#39;name&#39;: &#39;enp2s0&#39;},
-        {&#39;cidr&#39;: 0, &#39;ip&#39;: [], &#39;mac&#39;: &#39;80:ee:73:a9:19:06&#39;, &#39;name&#39;: &#39;enp3s0&#39;},
-        {&#39;cidr&#39;: 16,
-        &#39;ip&#39;: [&#39;172.17.0.1&#39;],
-        &#39;mac&#39;: &#39;02:42:97:63:e6:ba&#39;,
-        &#39;name&#39;: &#39;docker0&#39;}]
-
-    :param device: device name, defaults to None
-    :type device: str, optional
-    :raises RuntimeError: if the platform isn&#39;t implemented
-    :return: network info
-    :rtype: list or dict if device is specified
-    &#34;&#34;&#34;
-    IPBLOCKS = re.compile(r&#34;(^|\n)(?P&lt;block&gt;\d+:.*?)(?=(\n\d+)|$)&#34;, re.S)
-    IPMAC = re.compile(r&#34;^\s+link/\w+\s+(?P&lt;mac&gt;(\w+:){5}\w{2})&#34;, re.M)
-    IPIP = re.compile(r&#34;\s+?inet\s(?P&lt;ip&gt;(\d+\.){3}\d+)/(?P&lt;cidr&gt;\d+)&#34;, re.M)
-    IPNAME = re.compile(r&#34;^\d+: (?P&lt;name&gt;.*?)(?=:)&#34;, re.M)
-
-    def block_parse(block):
-        result = {&#34;ip&#34;: [], &#34;ip6&#34;: [], &#34;cidr&#34;: [], &#34;mac&#34;: &#34;&#34;, &#34;name&#34;: &#34;&#34;}
-        for rec in (IPMAC, IPNAME):
-            match = rec.search(block)
-            if match:
-                result.update(match.groupdict())
-        for mrec in (IPIP,):
-            for m in mrec.finditer(block):
-                for key, value in list(m.groupdict().items()):
-                    result[key].append(value)
-        _, IPV6, _ = jumpscale.core.executors.run_local(
-            &#34;ifconfig %s |  awk &#39;/inet6/{print $2}&#39;&#34; % result[&#34;name&#34;], hide=True
-        )
-        for ipv6 in IPV6.split(&#34;\n&#34;):
-            result[&#34;ip6&#34;].append(ipv6)
-        if isinstance(result[&#34;cidr&#34;], list):
-            if len(result[&#34;cidr&#34;]) == 0:
-                result[&#34;cidr&#34;] = 0
-            else:
-                result[&#34;cidr&#34;] = int(result[&#34;cidr&#34;][0])
+    def _clean(nic_info: dict):
+        result = {
+            &#34;ip&#34;: [(addr[&#34;local&#34;], addr[&#34;prefixlen&#34;]) for addr in nic_info[&#34;addr_info&#34;] if addr[&#34;family&#34;] == &#34;inet&#34;],
+            &#34;ip6&#34;: [(addr[&#34;local&#34;], addr[&#34;prefixlen&#34;]) for addr in nic_info[&#34;addr_info&#34;] if addr[&#34;family&#34;] == &#34;inet6&#34;],
+            &#34;mac&#34;: nic_info[&#34;address&#34;],
+            &#34;name&#34;: nic_info[&#34;ifname&#34;],
+        }
         return result
 
-    def networkinfo_get():
-        _, output, _ = jumpscale.core.executors.run_local(&#34;ip a&#34;, hide=True)
-        for m in IPBLOCKS.finditer(output):
-            block = m.group(&#34;block&#34;)
-            yield block_parse(block)
+    def _get_info():
+        if device:
+            # exitcode, output, _ = jumpscale.core.executors.run_local(f&#34;ip -j addr show {device}&#34;, hide=True, warn=True)
+            # if exitcode != 0:
+            #    raise Runtime(&#34;could not find device&#34;)
+            try:
+                output = subprocess.check_output(f&#34;ip -j addr show {device}&#34;, shell=True)
+            except subprocess.CalledProcessError as e:
+                # the process returns a non-zero exit status.
+                # This probably happened because specified interface name does not exists
+                j.logger.exception(f&#34;cmd: {e.cmd} returns a non-zero exit status.&#34;, exception=e)
+                raise RuntimeError(f&#34;could not find this interface: {device}&#34;)
+        else:
+            # _, output, _ = jumpscale.core.executors.run_local(&#34;ip -j addr show&#34;, hide=True, warn=True)
+            output = subprocess.check_output(&#34;ip -j addr show&#34;, shell=True)
+        res = json.loads(output)
+        for nic_info in res:
+            # when use ip command with -j option and specified interface. it returns on ubuntu &lt; 20
+            # a list contains a requested info alongside other partially empty dicts like this -&gt; {&#39;addr_info&#39;: [{}, {}]}
+            # so we need to filter those dicts to get consistent behavior at all supported ubuntu versions.
+            if len(nic_info) &gt; 1:
+                yield _clean(nic_info)
+            else:
+                j.logger.debug(f&#34;Discarded this improper json\n{nic_info}&#34;)
+                continue
 
-    res = []
-    for nic in networkinfo_get():
-        if nic[&#34;name&#34;] == device:
-            return nic
-        res.append(nic)
+    if jumpscale.data.platform.is_linux():
+        if not device:
+            res = []
+            for nic in _get_info():
+                res.append(nic)
+            return res
+        else:
+            return next(_get_info())
 
-    if device is not None:
-        raise Runtime(&#34;could not find device&#34;)
-    return res
+    else:
+        # TODO: make it OSX Compatible
+        raise NotImplementedError(&#34;this function supports only linux at the moment.&#34;)
 
 
-def get_mac_address(interface: str):
+def get_mac_address(interface: str) -&gt; str:
     &#34;&#34;&#34;Return the MAC address of this interface
 
     Args:
@@ -350,7 +438,7 @@ def get_mac_address(interface: str):
     return get_network_info(interface)[&#34;mac&#34;]
 
 
-def get_host_name():
+def get_host_name() -&gt; str:  # pragma: no cover - we&#39;re just proxying
     &#34;&#34;&#34;Get hostname of the machine
 
     Returns:
@@ -359,7 +447,7 @@ def get_host_name():
     return socket.gethostname()
 
 
-def is_nic_connected(interface: str):
+def is_nic_connected(interface: str) -&gt; bool:
     &#34;&#34;&#34;check if interface is connected
 
     Args:
@@ -370,25 +458,24 @@ def is_nic_connected(interface: str):
     &#34;&#34;&#34;
     if jumpscale.data.platform.is_linux():
         carrierfile = f&#34;/sys/class/net/{interface}/carrier&#34;
-        if not jumpscale.sals.fs.exists(carrierfile):
-            return False
         try:
-            return int(jumpscale.sals.fs.read_file(carrierfile)) != 0
-        except IOError:
+            is_up = int(jumpscale.sals.fs.read_file(carrierfile)) != 0
+            return is_up
+        except IOError as e:
+            j.logger.exception(e.strerror or repr(e), exception=e)
             return False
 
     elif jumpscale.data.platform.is_osx():
-        command = f&#34;dladm show-dev -p -o STATE {interface}&#34;
-        expectResults = [&#34;up&#34;, &#34;unknown&#34;]
+        # superuser.com/questions/203272/
+        command = &#34;ifconfig -{} | sed -E &#39;s/[[:space:]:].*//;/^$/d&#34;
+        option = {&#34;up&#34;: &#34;u&#34;, &#34;down&#34;: &#34;d&#34;}
+        stdout = subprocess.check_output(command.format(option[&#34;up&#34;]), shell=True)
+        output = stdout.decode(&#34;utf-8&#34;)
+        up_interfaces = output.split()
+        return interface in up_interfaces
 
-        exitcode, output, _ = jumpscale.core.executors.run_local(command, warn=True, hide=True)
-        if exitcode != 0:
-            return False
-        output = output.strip()
-        return output in expectResults
 
-
-def get_host_by_name(dnsHostname: str):
+def get_host_by_name(dnsHostname: str) -&gt; str:  # pragma: no cover - we&#39;re just proxying
     &#34;&#34;&#34;get host address by its name
 
     Args:
@@ -400,101 +487,235 @@ def get_host_by_name(dnsHostname: str):
     return socket.gethostbyname(dnsHostname)
 
 
-def ping_machine(ip, pingtimeout=60, allowhostname=True):
+def ping_machine(ip: str, timeout: Optional[int] = 60, allowhostname: Optional[bool] = True) -&gt; bool:
     &#34;&#34;&#34;Ping a machine to check if it&#39;s up/running and accessible
-    @param ip: Machine Ip Address
-    @param pingtimeout: time in sec after which ip will be declared as unreachable
-    @param allowhostname: allow pinging on hostname (default is false)
-    @rtype: True if machine is pingable, False otherwise
+    Note: Any well-behaved device on an LAN or WAN is free to ignore nearly any traffic,
+    so PINGs, port scans, and the like are all unreliable.
+
+    Args:
+        ip (str): Machine Ip Address
+        pingtimeout (int, optional): time in sec after which ip will be declared as unreachable. Defaults to 60.
+        allowhostname (bool, optional): allow pinging on hostname. Defaults to True.
+
+    Raises:
+        ValueError: if ip is Invalid ip address
+        NotImplementedError: if the function runs on unsupported system
+
+    Returns:
+        bool: True if machine is pingable, False otherwise
     &#34;&#34;&#34;
     if not allowhostname:
-        if not IPAddress().check(ip):
-            raise Value(&#34;Invalid ip address, set allowedhostname to use hostnames&#34;)
+        ipaddress.ip_address(ip)
 
-    start = time.time()
-    pingsucceeded = False
-    while time.time() - start &lt; pingtimeout:
-        if jumpscale.data.platform.is_linux():
-            # ping -c 1 -W 1 IP
-            exitcode, _, _ = jumpscale.core.executors.run_local(f&#34;ping -c 1 -W 1 -w 1 {ip}&#34;, warn=True, hide=True)
-        elif jumpscale.data.platform.is_osx():
-            exitcode, _, _ = jumpscale.core.executors.run_local(f&#34;ping -c 1 {ip}&#34;, warn=True, hide=True)
-        if exitcode == 0:
-            pingsucceeded = True
-            return True
-        time.sleep(1)
-    if not pingsucceeded:
-        return False
+    if jumpscale.data.platform.is_linux():
+        try:
+            _ = subprocess.check_output(f&#34;ping -c 1 -w {timeout} {ip}&#34;, shell=True)
+            exitcode = 0
+        except subprocess.CalledProcessError as e:
+            exitcode = e.returncode
+        # exitcode, output, err = jumpscale.core.executors.run_local(f&#34;ping -c 1 -w {timeout} {ip}&#34;, warn=True, hide=True)
+    elif jumpscale.data.platform.is_osx():
+        try:
+            _ = subprocess.check_output(f&#34;ping -o -t {timeout} {ip}&#34;, shell=True)
+            exitcode = 0
+        except subprocess.CalledProcessError as e:
+            exitcode = e.returncode
+        # exitcode, _, _ = jumpscale.core.executors.run_local(f&#34;ping -o -t {timeout} {ip}&#34;, warn=True, hide=True)
+    else:  # unsupported platform
+        raise NotImplementedError(&#34;Not Implemented for this os&#34;)
+    return exitcode == 0
 
 
-def download(url, localpath, username=None, passwd=None, overwrite=True):
+def download(
+    url: str,
+    localpath: Optional[str] = &#34;&#34;,
+    username: Optional[str] = None,
+    passwd: Optional[str] = None,
+    overwrite: Optional[bool] = True,
+    append_to_home: Optional[bool] = False,
+    name_from_url: Optional[bool] = True,
+):
     &#34;&#34;&#34;Download a url to a file or a directory, supported protocols: http, https, ftp, file
-    @param url: URL to download from
-    @type url: string
-    @param localpath: filename or directory to download the url to pass - to return data
-    @type localpath: string
-    @param username: username for the url if it requires authentication
-    @type username: string
-    @param passwd: password for the url if it requires authentication
-    @type passwd: string
-    &#34;&#34;&#34;
-    if not url:
-        raise Value(&#34;URL can not be None or empty string&#34;)
-    if not localpath:
-        raise Value(&#34;Local path to download the url to can not be None or empty string&#34;)
-    filename = &#34;&#34;
-    if localpath == &#34;-&#34;:
-        filename = &#34;-&#34;
-    if jumpscale.sals.fs.exists(localpath) and jumpscale.sals.fs.is_dir(localpath):
-        filename = jumpscale.sals.fs.join_paths(localpath, jumpscale.sals.fs.basename(url))
-    else:
-        if jumpscale.sals.fs.is_dir(jumpscale.sals.fs.dirname(localpath)):
-            filename = localpath
-        else:
-            raise Value(&#34;Local path is an invalid path&#34;)
 
-    if not jumpscale.sals.fs.exists(filename):
-        overwrite = True
+    Args:
+        url (str): URL to download from
+        localpath (str): filename or directory to download the url to. pass None to return the data. Defaults to &#39;&#39;.
+        username (str, optional): username for the url if it requires authentication. Defaults to None.
+        passwd (str, optional): password for the url if it requires authentication. Defaults to None.
+        overwrite (bool, optional): if the file exists, it will be truncated. Defaults to True.
+        append_to_home (bool, optional): if set to true, any relative path specified in localpath arg
+            will be appended to the user home directory (that guaranteed to have a write permission). if set
+            to False any relative localpath set by user will append to the current working directory. if user
+            specified a absolute localpath (start with /) append_to_home will have no effect. Defaults to False.
+        name_from_url (bool, optional): if set to true, localpath will treated as a dir, and will try to get
+            the file name from the url or fallback to auto generated name. Defaults to True.
+
+    Raises:
+        PermissionError: [description]
+        FileNotFoundError: [description]
+        FileExistsError: [description]
+        ValueError: [description]
+        URLError: [description]
+
+    Returns:
+        namedtuple: namedtuple(&#39;DownloadResult&#39;, [&#39;localpath&#39;, &#39;content&#39;, content_length])
+            - localpath (pathlib.Path)
+            - content (bytes): only if localpath is None else it will be None always
+            - content_length: the content length as returned from the response headers
+
+    Todo:
+        - better performance with Multi-Threaded
+        - support resume
+
+    Examples:
+        # use default values for args will download the url to cwd and get the name from the url,
+        # if the file already exists, it will overwritten.
+        &gt;&gt;&gt; nettools.download(&#39;https://www.7-zip.org/a/7z1900-extra.7z&#39;)
+        DownloadResult(localpath=PosixPath(&#39;/home/sameh/projects/js-ng/7z1900-extra.7z&#39;), content=None, content_length=&#39;929117&#39;)
+
+    &#34;&#34;&#34;
+    DownloadResult = namedtuple(&#34;DownloadResult&#34;, [&#34;localpath&#34;, &#34;content&#34;, &#34;content_length&#34;])
+    file_name = &#34;&#34;
+
+    try:
+        parsed_url = urlparse(url)
+    except ValueError as e:
+        j.logger.exception(repr(e), exception=e)
+        raise
+
+    if name_from_url:
+        file_name = basename(parsed_url.path)  # TODO: insure safe file name and fall back if can&#39;t get the file name
+    elif localpath == &#34;&#34;:
+        j.logger.error(f&#34;Improper args used.\nname_from_url: {name_from_url}\nlocalpath: {localpath}&#34;)
+        raise ValueError(&#34;localpath can&#39;t be empty when name_from_url is False&#34;)
+
+    if username and passwd:
+        if parsed_url.scheme == &#34;ftp&#34;:
+            url = &#34;ftp://%s:%s@&#34; % (username, passwd) + url.split(&#34;://&#34;)[1]
+        elif parsed_url.scheme in (&#34;http&#34;, &#34;https&#34;):
+            # create a password manager
+            password_mgr = HTTPPasswordMgrWithDefaultRealm()
+            # Add the username and password.
+            # If we knew the realm, we could use it instead of None.
+            password_mgr.add_password(None, parsed_url.netloc, username, passwd)
+            handler = HTTPBasicAuthHandler(password_mgr)
+            # create &#34;opener&#34; (OpenerDirector instance)
+            opener = build_opener(handler)
+            install_opener(opener)
+
+    req = Request(url)
+    req.add_header(
+        &#34;User-agent&#34;,
+        &#34;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36&#34;,
+    )
+
+    try:
+        response = urlopen(req)
+        content_length = response.headers.get(&#34;Content-Length&#34;)
+    except URLError as e:
+        if hasattr(e, &#34;reason&#34;):
+            msg = &#34;We failed to reach a server.&#34;
+            msg += &#34; Reason: &#34; + e.reason
+        elif hasattr(e, &#34;code&#34;):
+            msg = &#34;The server couldn&#39;t fulfill the request.&#34;
+            msg += &#34; Error code: &#34; + e.code
+        j.logger.exception(msg, exception=e)
+        raise
+
+    if localpath is None:
+        return DownloadResult(localpath=None, content=response.read(), content_length=content_length)
+
+    file_path = Path(localpath) / file_name
+    if not file_path.is_absolute() and append_to_home:
+        file_path = Path.home() / file_path
+
+    dir_path = file_path.parent
+
+    try:
+        dir_path.mkdir(parents=True, exist_ok=True)
+    except (PermissionError, FileNotFoundError) as e:
+        j.logger.exception(e.strerror or repr(e), exception=e)
+        raise
 
     if overwrite:
-        if username and passwd and jumpscale.tools.http.urllib3.util.parse_url(url).scheme == &#34;ftp&#34;:
-            url = url.split(&#34;://&#34;)[0] + &#34;://%s:%s@&#34; % (username, passwd) + url.split(&#34;://&#34;)[1]
-        response = jumpscale.tools.http.get(
-            url, stream=True, auth=jumpscale.tools.http.auth.HTTPBasicAuth(username, passwd)
-        )
-        response.raise_for_status()
-        if filename != &#34;-&#34;:
-            with open(filename, &#34;wb&#34;) as fw:
-                for chunk in response.iter_content(chunk_size=2048):
-                    if chunk:  # filter out keep-alive new chunks
-                        fw.write(chunk)
-            return
-        else:
-            return response.content
+        file_mode = &#34;wb&#34;  # if exists will truncated
+    else:
+        file_mode = &#34;xb&#34;  # if exists will raise exception
+
+    try:
+        with file_path.open(file_mode) as f_handler:
+            shutil.copyfileobj(response, f_handler, length=8 * 1024 * 1024)
+            return DownloadResult(localpath=file_path.resolve(), content=None, content_length=content_length)
+    finally:
+        response.close()
 
 
-def _netobject_get(device: str):
+def _netobject_get(device: str) -&gt; ipaddress.IPv4Network:
     n = get_network_info(device)
-    net = ipaddress.IPv4Network(n[&#34;ip&#34;][0] + &#34;/&#34; + str(n[&#34;cidr&#34;]), strict=False)
+    net = ipaddress.IPv4Network(n[&#34;ip&#34;][0][0] + &#34;/&#34; + str(n[&#34;ip&#34;][0][1]), sdirnametrict=False)
     return net
 
 
-def netrange_get(device, skip_begin=10, skip_end=10):
-    &#34;&#34;&#34;
-    Get ($fromip,$topip) from range attached to device, skip the mentioned ip addresses.
+def netrange_get(device: str, skip_begin: Optional[int] = 10, skip_end: Optional[int] = 10) -&gt; tuple:
+    &#34;&#34;&#34;Get ($fromip,$topip) from range attached to device, skip the mentioned ip addresses.
 
-    :param device: device name
-    :type device: str
-    :param skip_begin: ips to skip from the begining of the range, defaults to 10
-    :type skip_begin: int, optional
-    :param skip_end: ips to skip from the end of the range, defaults to 10
-    :type skip_end: int, optional
+    Args:
+        device (str): [description]
+        skip_begin (Optional[int], optional): ips to skip from the begining of the range, Defaults to 10.
+        skip_end (Optional[int], optional): ips to skip from the end of the range, Defaults to 10.
 
-    :return: ip range for this device
-    :rtype: tuple
+    Returns:
+        tuple: ip range for this device
     &#34;&#34;&#34;
     n = _netobject_get(device)
-    return (str(n[0] + skip_begin), str(n[-1] - skip_end))</code></pre>
+    return (str(n[0] + skip_begin), str(n[-1] - skip_end))
+
+
+def get_free_port(ipv6: Optional[bool] = False, udp: Optional[bool] = False, return_socket: Optional[bool] = False):
+    &#34;&#34;&#34;Bind an ipv4 or ipv6 socket to port 0 to make OS pick a random, free and
+    available port from 1024 to 65535.
+
+    you can optionally choose to reuse the socket by set return_socket to True (preferred to
+    To prevent race conditions from occurring) but then it is your responsibility to close
+    that socket calling its close method after you finish with it to free the selected port.
+    by default you got tcp port, but setting udp to True will set socket type to UDP.
+
+    Args:
+        ipv6 (bool, optional): weather to bind the free port to 127.0.0.1 or ::1. Defaults to False.
+        udp (bool, optional): set socket type to udp instead of tcp. Defaults to False.
+        return_socket (bool, optional): return the socket alongside the port to reuse it. Defaults to False.
+
+    Returns:
+        int: returns a random free port from 1024 to 65535 range.
+        Optional[socket]: in the case of return_socket set to True, socket will be returned alongside the port in a tuple.
+
+    Example:
+        # get a free TCP port that currently not binded to 127.0.0.1
+        &gt;&gt;&gt; port = get_free_port()
+        # get a free UDP port that currently not binded to 127.0.0.1
+        &gt;&gt;&gt; port = get_free_port(udp=True)
+        # get a free TCP port that currently not binded to ::1
+        &gt;&gt;&gt; port = get_free_port(ipv6=True)
+        # get a free TCP port that currently not binded to 127.0.0.1
+        # and reuse the socket instead of creating a socket and bind it to selected port
+        &gt;&gt;&gt; port, sock = get_free_port(return_socket=True)
+        &gt;&gt;&gt; sock.listen()
+        ..
+        &gt;&gt;&gt; sock.close()
+    &#34;&#34;&#34;
+    socket_type = socket.SOCK_DGRAM if udp else socket.SOCK_STREAM
+    # Picking a random port is not a good idea - let the OS pick one for you.
+    if ipv6:
+        sock = socket.socket(socket.AF_INET6, socket_type)
+        sock.bind((&#34;::1&#34;, 0))
+    else:
+        sock = socket.socket(socket.AF_INET, socket_type)
+        sock.bind((&#34;127.0.0.1&#34;, 0))
+
+    # retrieve the selected port with getsockname() right after bind()
+    port = sock.getsockname()[1]
+    # returns port or (port, socket) depend on the bool value of return_socket
+    return (port, sock) if return_socket else port</code></pre>
 </details>
 </section>
 <section>
@@ -505,10 +726,10 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="jumpscale.sals.nettools.check_url_reachable"><code class="name flex">
-<span>def <span class="ident">check_url_reachable</span></span>(<span>url, timeout=5, verify=True)</span>
+<span>def <span class="ident">check_url_reachable</span></span>(<span>url: str, timeout: Optional[int] = 5, verify: Optional[bool] = True, fake_user_agent: Optional[bool] = True) ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Check that given url is reachable</p>
+<div class="desc"><p>Check that given url is reachable</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
@@ -517,134 +738,401 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 <dd>timeout of test. Defaults to 5.</dd>
 <dt><strong><code>verify</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>boolean indication to verify the servers TLS certificate or not.</dd>
+<dt><strong><code>fake_user_agent</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>boolean indication to fake the user-agent and act like normal browser or not.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>Input</code></strong></dt>
+<dt><code>ValueError</code></dt>
 <dd>raises if not correct url</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if the test succeeds, False otherwise</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def check_url_reachable(url: str, timeout=5, verify=True):
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_url_reachable(
+    url: str, timeout: Optional[int] = 5, verify: Optional[bool] = True, fake_user_agent: Optional[bool] = True
+) -&gt; bool:
     &#34;&#34;&#34;Check that given url is reachable
 
     Args:
         url (str): url to test
         timeout (int, optional): timeout of test. Defaults to 5.
         verify (bool, optional): boolean indication to verify the servers TLS certificate or not.
+        fake_user_agent (bool, optional): boolean indication to fake the user-agent and act like normal browser or not.
 
     Raises:
-        Input: raises if not correct url
+        ValueError: raises if not correct url
 
     Returns:
         bool: True if the test succeeds, False otherwise
     &#34;&#34;&#34;
+    # fake the user-agent, to act like a normal browser
+    # because some services will block requests from python default user-agent
+    # By default urllib identifies itself as Python-urllib/x.y (e.g. Python-urllib/2.5),
+    # which may confuse the site, or just plain not work.
+    # ex: www.amazon.com, and it will looks unreachable to our code, unless we fake the user-agent.
+    HEADERS = {
+        &#34;User-Agent&#34;: &#34;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/603.1.30 (KHTML, like Gecko) Version/10.1 Safari/603.1.30&#34;
+    }
+    METHOD = &#34;GET&#34;
+
+    if timeout:
+        socket.setdefaulttimeout(timeout)
+
+    context = None
+    if not verify:
+        # opt out of certificate verification on a single connection
+        context = ssl._create_unverified_context()
+
+    req = Request(url, headers=HEADERS if fake_user_agent else {}, method=METHOD)
     try:
-        code = jumpscale.tools.http.get(url, timeout=timeout, verify=verify).status_code
-        return code == 200
-    except jumpscale.tools.http.exceptions.MissingSchema:
-        raise Input(&#34;Please specify correct url with correct scheme&#34;)
-    except jumpscale.tools.http.exceptions.ConnectionError:
+        with urlopen(req, timeout=timeout, context=context):
+            return True
+    except (HTTPError, URLError, socket.timeout):
         return False</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.download"><code class="name flex">
-<span>def <span class="ident">download</span></span>(<span>url, localpath, username=None, passwd=None, overwrite=True)</span>
+<span>def <span class="ident">download</span></span>(<span>url: str, localpath: Optional[str] = '', username: Optional[str] = None, passwd: Optional[str] = None, overwrite: Optional[bool] = True, append_to_home: Optional[bool] = False, name_from_url: Optional[bool] = True)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Download a url to a file or a directory, supported protocols: http, https, ftp, file
-@param url: URL to download from
-@type url: string
-@param localpath: filename or directory to download the url to pass - to return data
-@type localpath: string
-@param username: username for the url if it requires authentication
-@type username: string
-@param passwd: password for the url if it requires authentication
-@type passwd: string</p></section>
+<div class="desc"><p>Download a url to a file or a directory, supported protocols: http, https, ftp, file</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
+<dd>URL to download from</dd>
+<dt><strong><code>localpath</code></strong> :&ensp;<code>str</code></dt>
+<dd>filename or directory to download the url to. pass None to return the data. Defaults to ''.</dd>
+<dt><strong><code>username</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>username for the url if it requires authentication. Defaults to None.</dd>
+<dt><strong><code>passwd</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>password for the url if it requires authentication. Defaults to None.</dd>
+<dt><strong><code>overwrite</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>if the file exists, it will be truncated. Defaults to True.</dd>
+<dt><strong><code>append_to_home</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>if set to true, any relative path specified in localpath arg
+will be appended to the user home directory (that guaranteed to have a write permission). if set
+to False any relative localpath set by user will append to the current working directory. if user
+specified a absolute localpath (start with /) append_to_home will have no effect. Defaults to False.</dd>
+<dt><strong><code>name_from_url</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>if set to true, localpath will treated as a dir, and will try to get
+the file name from the url or fallback to auto generated name. Defaults to True.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>PermissionError</code></dt>
+<dd>[description]</dd>
+<dt><code>FileNotFoundError</code></dt>
+<dd>[description]</dd>
+<dt><code>FileExistsError</code></dt>
+<dd>[description]</dd>
+<dt><code>ValueError</code></dt>
+<dd>[description]</dd>
+<dt><code>URLError</code></dt>
+<dd>[description]</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>namedtuple</code></dt>
+<dd>namedtuple('DownloadResult', ['localpath', 'content', content_length])
+- localpath (pathlib.Path)
+- content (bytes): only if localpath is None else it will be None always
+- content_length: the content length as returned from the response headers</dd>
+</dl>
+<h2 id="todo">Todo</h2>
+<ul>
+<li>better performance with Multi-Threaded</li>
+<li>support resume</li>
+</ul>
+<h2 id="examples">Examples</h2>
+<h1 id="use-default-values-for-args-will-download-the-url-to-cwd-and-get-the-name-from-the-url">use default values for args will download the url to cwd and get the name from the url,</h1>
+<h1 id="if-the-file-already-exists-it-will-overwritten">if the file already exists, it will overwritten.</h1>
+<pre><code class="language-python-repl">&gt;&gt;&gt; nettools.download('https://www.7-zip.org/a/7z1900-extra.7z')
+DownloadResult(localpath=PosixPath('/home/sameh/projects/js-ng/7z1900-extra.7z'), content=None, content_length='929117')
+</code></pre></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def download(url, localpath, username=None, passwd=None, overwrite=True):
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def download(
+    url: str,
+    localpath: Optional[str] = &#34;&#34;,
+    username: Optional[str] = None,
+    passwd: Optional[str] = None,
+    overwrite: Optional[bool] = True,
+    append_to_home: Optional[bool] = False,
+    name_from_url: Optional[bool] = True,
+):
     &#34;&#34;&#34;Download a url to a file or a directory, supported protocols: http, https, ftp, file
-    @param url: URL to download from
-    @type url: string
-    @param localpath: filename or directory to download the url to pass - to return data
-    @type localpath: string
-    @param username: username for the url if it requires authentication
-    @type username: string
-    @param passwd: password for the url if it requires authentication
-    @type passwd: string
-    &#34;&#34;&#34;
-    if not url:
-        raise Value(&#34;URL can not be None or empty string&#34;)
-    if not localpath:
-        raise Value(&#34;Local path to download the url to can not be None or empty string&#34;)
-    filename = &#34;&#34;
-    if localpath == &#34;-&#34;:
-        filename = &#34;-&#34;
-    if jumpscale.sals.fs.exists(localpath) and jumpscale.sals.fs.is_dir(localpath):
-        filename = jumpscale.sals.fs.join_paths(localpath, jumpscale.sals.fs.basename(url))
-    else:
-        if jumpscale.sals.fs.is_dir(jumpscale.sals.fs.dirname(localpath)):
-            filename = localpath
-        else:
-            raise Value(&#34;Local path is an invalid path&#34;)
 
-    if not jumpscale.sals.fs.exists(filename):
-        overwrite = True
+    Args:
+        url (str): URL to download from
+        localpath (str): filename or directory to download the url to. pass None to return the data. Defaults to &#39;&#39;.
+        username (str, optional): username for the url if it requires authentication. Defaults to None.
+        passwd (str, optional): password for the url if it requires authentication. Defaults to None.
+        overwrite (bool, optional): if the file exists, it will be truncated. Defaults to True.
+        append_to_home (bool, optional): if set to true, any relative path specified in localpath arg
+            will be appended to the user home directory (that guaranteed to have a write permission). if set
+            to False any relative localpath set by user will append to the current working directory. if user
+            specified a absolute localpath (start with /) append_to_home will have no effect. Defaults to False.
+        name_from_url (bool, optional): if set to true, localpath will treated as a dir, and will try to get
+            the file name from the url or fallback to auto generated name. Defaults to True.
+
+    Raises:
+        PermissionError: [description]
+        FileNotFoundError: [description]
+        FileExistsError: [description]
+        ValueError: [description]
+        URLError: [description]
+
+    Returns:
+        namedtuple: namedtuple(&#39;DownloadResult&#39;, [&#39;localpath&#39;, &#39;content&#39;, content_length])
+            - localpath (pathlib.Path)
+            - content (bytes): only if localpath is None else it will be None always
+            - content_length: the content length as returned from the response headers
+
+    Todo:
+        - better performance with Multi-Threaded
+        - support resume
+
+    Examples:
+        # use default values for args will download the url to cwd and get the name from the url,
+        # if the file already exists, it will overwritten.
+        &gt;&gt;&gt; nettools.download(&#39;https://www.7-zip.org/a/7z1900-extra.7z&#39;)
+        DownloadResult(localpath=PosixPath(&#39;/home/sameh/projects/js-ng/7z1900-extra.7z&#39;), content=None, content_length=&#39;929117&#39;)
+
+    &#34;&#34;&#34;
+    DownloadResult = namedtuple(&#34;DownloadResult&#34;, [&#34;localpath&#34;, &#34;content&#34;, &#34;content_length&#34;])
+    file_name = &#34;&#34;
+
+    try:
+        parsed_url = urlparse(url)
+    except ValueError as e:
+        j.logger.exception(repr(e), exception=e)
+        raise
+
+    if name_from_url:
+        file_name = basename(parsed_url.path)  # TODO: insure safe file name and fall back if can&#39;t get the file name
+    elif localpath == &#34;&#34;:
+        j.logger.error(f&#34;Improper args used.\nname_from_url: {name_from_url}\nlocalpath: {localpath}&#34;)
+        raise ValueError(&#34;localpath can&#39;t be empty when name_from_url is False&#34;)
+
+    if username and passwd:
+        if parsed_url.scheme == &#34;ftp&#34;:
+            url = &#34;ftp://%s:%s@&#34; % (username, passwd) + url.split(&#34;://&#34;)[1]
+        elif parsed_url.scheme in (&#34;http&#34;, &#34;https&#34;):
+            # create a password manager
+            password_mgr = HTTPPasswordMgrWithDefaultRealm()
+            # Add the username and password.
+            # If we knew the realm, we could use it instead of None.
+            password_mgr.add_password(None, parsed_url.netloc, username, passwd)
+            handler = HTTPBasicAuthHandler(password_mgr)
+            # create &#34;opener&#34; (OpenerDirector instance)
+            opener = build_opener(handler)
+            install_opener(opener)
+
+    req = Request(url)
+    req.add_header(
+        &#34;User-agent&#34;,
+        &#34;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36&#34;,
+    )
+
+    try:
+        response = urlopen(req)
+        content_length = response.headers.get(&#34;Content-Length&#34;)
+    except URLError as e:
+        if hasattr(e, &#34;reason&#34;):
+            msg = &#34;We failed to reach a server.&#34;
+            msg += &#34; Reason: &#34; + e.reason
+        elif hasattr(e, &#34;code&#34;):
+            msg = &#34;The server couldn&#39;t fulfill the request.&#34;
+            msg += &#34; Error code: &#34; + e.code
+        j.logger.exception(msg, exception=e)
+        raise
+
+    if localpath is None:
+        return DownloadResult(localpath=None, content=response.read(), content_length=content_length)
+
+    file_path = Path(localpath) / file_name
+    if not file_path.is_absolute() and append_to_home:
+        file_path = Path.home() / file_path
+
+    dir_path = file_path.parent
+
+    try:
+        dir_path.mkdir(parents=True, exist_ok=True)
+    except (PermissionError, FileNotFoundError) as e:
+        j.logger.exception(e.strerror or repr(e), exception=e)
+        raise
 
     if overwrite:
-        if username and passwd and jumpscale.tools.http.urllib3.util.parse_url(url).scheme == &#34;ftp&#34;:
-            url = url.split(&#34;://&#34;)[0] + &#34;://%s:%s@&#34; % (username, passwd) + url.split(&#34;://&#34;)[1]
-        response = jumpscale.tools.http.get(
-            url, stream=True, auth=jumpscale.tools.http.auth.HTTPBasicAuth(username, passwd)
-        )
-        response.raise_for_status()
-        if filename != &#34;-&#34;:
-            with open(filename, &#34;wb&#34;) as fw:
-                for chunk in response.iter_content(chunk_size=2048):
-                    if chunk:  # filter out keep-alive new chunks
-                        fw.write(chunk)
-            return
-        else:
-            return response.content</code></pre>
+        file_mode = &#34;wb&#34;  # if exists will truncated
+    else:
+        file_mode = &#34;xb&#34;  # if exists will raise exception
+
+    try:
+        with file_path.open(file_mode) as f_handler:
+            shutil.copyfileobj(response, f_handler, length=8 * 1024 * 1024)
+            return DownloadResult(localpath=file_path.resolve(), content=None, content_length=content_length)
+    finally:
+        response.close()</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_default_ip_config"><code class="name flex">
-<span>def <span class="ident">get_default_ip_config</span></span>(<span>)</span>
+<span>def <span class="ident">get_default_ip_config</span></span>(<span>ip: Optional[str] = '8.8.8.8') ‑> tuple</span>
 </code></dt>
 <dd>
-<section class="desc"><p>get default nic and address</p>
+<div class="desc"><p>get default nic and address, by default, the one exposed to internet</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ip</code></strong> :&ensp;<code>str</code></dt>
+<dd>ip address. default to '8.8.8.8'</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>if address does not represent a valid IPv4 or IPv6 address.</dd>
+<dt><code>RuntimeError</code></dt>
+<dd>if can't connect</dd>
+</dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>tuple</code></strong></dt>
-<dd>default nic and address</dd>
-</dl></section>
+<dt><code>tuple</code></dt>
+<dd>default nic name and its ip address</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def get_default_ip_config():
-    &#34;&#34;&#34;get default nic and address
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_default_ip_config(ip: Optional[str] = &#34;8.8.8.8&#34;) -&gt; tuple:
+    &#34;&#34;&#34;get default nic and address, by default, the one exposed to internet
+
+    Args:
+        ip (str): ip address. default to &#39;8.8.8.8&#39;
+
+    Raises:
+        ValueError: if address does not represent a valid IPv4 or IPv6 address.
+        RuntimeError: if can&#39;t connect
 
     Returns:
-        tuple: default nic and address
+        tuple: default nic name and its ip address
     &#34;&#34;&#34;
-    ipaddr = get_reachable_ip_address(&#34;8.8.8.8&#34;, 22)
-    for item in get_network_info():
-        for ipaddr2 in item[&#34;ip&#34;]:
-            # print &#34;%s %s&#34;%(ipaddr2,ipaddr)
-            if str(ipaddr) == str(ipaddr2):
-                return item[&#34;name&#34;], ipaddr</code></pre>
+    ipaddr = ipaddress.ip_address(ip)
+    address_family = &#34;ip&#34; if ipaddr.version == 4 else &#34;ip6&#34;
+    source_addr = get_reachable_ip_address(ip)
+    default_nic = None
+    for nic in get_network_info():
+        for candidate_ip, _ in nic[address_family]:
+            if candidate_ip == source_addr:
+                default_nic = (nic[&#34;name&#34;], source_addr)
+                break
+        if default_nic is not None:
+            break
+    return default_nic</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nettools.get_free_port"><code class="name flex">
+<span>def <span class="ident">get_free_port</span></span>(<span>ipv6: Optional[bool] = False, udp: Optional[bool] = False, return_socket: Optional[bool] = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Bind an ipv4 or ipv6 socket to port 0 to make OS pick a random, free and
+available port from 1024 to 65535.</p>
+<p>you can optionally choose to reuse the socket by set return_socket to True (preferred to
+To prevent race conditions from occurring) but then it is your responsibility to close
+that socket calling its close method after you finish with it to free the selected port.
+by default you got tcp port, but setting udp to True will set socket type to UDP.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ipv6</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>weather to bind the free port to 127.0.0.1 or ::1. Defaults to False.</dd>
+<dt><strong><code>udp</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>set socket type to udp instead of tcp. Defaults to False.</dd>
+<dt><strong><code>return_socket</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>return the socket alongside the port to reuse it. Defaults to False.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>returns a random free port from 1024 to 65535 range.</dd>
+<dt><code>Optional[socket]</code></dt>
+<dd>in the case of return_socket set to True, socket will be returned alongside the port in a tuple.</dd>
+</dl>
+<h2 id="example">Example</h2>
+<h1 id="get-a-free-tcp-port-that-currently-not-binded-to-127001">get a free TCP port that currently not binded to 127.0.0.1</h1>
+<pre><code class="language-python-repl">&gt;&gt;&gt; port = get_free_port()
+# get a free UDP port that currently not binded to 127.0.0.1
+&gt;&gt;&gt; port = get_free_port(udp=True)
+# get a free TCP port that currently not binded to ::1
+&gt;&gt;&gt; port = get_free_port(ipv6=True)
+# get a free TCP port that currently not binded to 127.0.0.1
+# and reuse the socket instead of creating a socket and bind it to selected port
+&gt;&gt;&gt; port, sock = get_free_port(return_socket=True)
+&gt;&gt;&gt; sock.listen()
+..
+&gt;&gt;&gt; sock.close()
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_free_port(ipv6: Optional[bool] = False, udp: Optional[bool] = False, return_socket: Optional[bool] = False):
+    &#34;&#34;&#34;Bind an ipv4 or ipv6 socket to port 0 to make OS pick a random, free and
+    available port from 1024 to 65535.
+
+    you can optionally choose to reuse the socket by set return_socket to True (preferred to
+    To prevent race conditions from occurring) but then it is your responsibility to close
+    that socket calling its close method after you finish with it to free the selected port.
+    by default you got tcp port, but setting udp to True will set socket type to UDP.
+
+    Args:
+        ipv6 (bool, optional): weather to bind the free port to 127.0.0.1 or ::1. Defaults to False.
+        udp (bool, optional): set socket type to udp instead of tcp. Defaults to False.
+        return_socket (bool, optional): return the socket alongside the port to reuse it. Defaults to False.
+
+    Returns:
+        int: returns a random free port from 1024 to 65535 range.
+        Optional[socket]: in the case of return_socket set to True, socket will be returned alongside the port in a tuple.
+
+    Example:
+        # get a free TCP port that currently not binded to 127.0.0.1
+        &gt;&gt;&gt; port = get_free_port()
+        # get a free UDP port that currently not binded to 127.0.0.1
+        &gt;&gt;&gt; port = get_free_port(udp=True)
+        # get a free TCP port that currently not binded to ::1
+        &gt;&gt;&gt; port = get_free_port(ipv6=True)
+        # get a free TCP port that currently not binded to 127.0.0.1
+        # and reuse the socket instead of creating a socket and bind it to selected port
+        &gt;&gt;&gt; port, sock = get_free_port(return_socket=True)
+        &gt;&gt;&gt; sock.listen()
+        ..
+        &gt;&gt;&gt; sock.close()
+    &#34;&#34;&#34;
+    socket_type = socket.SOCK_DGRAM if udp else socket.SOCK_STREAM
+    # Picking a random port is not a good idea - let the OS pick one for you.
+    if ipv6:
+        sock = socket.socket(socket.AF_INET6, socket_type)
+        sock.bind((&#34;::1&#34;, 0))
+    else:
+        sock = socket.socket(socket.AF_INET, socket_type)
+        sock.bind((&#34;127.0.0.1&#34;, 0))
+
+    # retrieve the selected port with getsockname() right after bind()
+    port = sock.getsockname()[1]
+    # returns port or (port, socket) depend on the bool value of return_socket
+    return (port, sock) if return_socket else port</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_host_by_name"><code class="name flex">
-<span>def <span class="ident">get_host_by_name</span></span>(<span>dnsHostname)</span>
+<span>def <span class="ident">get_host_by_name</span></span>(<span>dnsHostname: str) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"><p>get host address by its name</p>
+<div class="desc"><p>get host address by its name</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>dnsHostname</code></strong> :&ensp;<code>str</code></dt>
@@ -652,12 +1140,14 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>host address</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def get_host_by_name(dnsHostname: str):
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_host_by_name(dnsHostname: str) -&gt; str:  # pragma: no cover - we&#39;re just proxying
     &#34;&#34;&#34;get host address by its name
 
     Args:
@@ -670,18 +1160,20 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_host_name"><code class="name flex">
-<span>def <span class="ident">get_host_name</span></span>(<span>)</span>
+<span>def <span class="ident">get_host_name</span></span>(<span>) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get hostname of the machine</p>
+<div class="desc"><p>Get hostname of the machine</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>host name</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def get_host_name():
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_host_name() -&gt; str:  # pragma: no cover - we&#39;re just proxying
     &#34;&#34;&#34;Get hostname of the machine
 
     Returns:
@@ -691,10 +1183,10 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_mac_address"><code class="name flex">
-<span>def <span class="ident">get_mac_address</span></span>(<span>interface)</span>
+<span>def <span class="ident">get_mac_address</span></span>(<span>interface: str) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Return the MAC address of this interface</p>
+<div class="desc"><p>Return the MAC address of this interface</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>interface</code></strong> :&ensp;<code>str</code></dt>
@@ -702,12 +1194,14 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>mac of the interface</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def get_mac_address(interface: str):
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_mac_address(interface: str) -&gt; str:
     &#34;&#34;&#34;Return the MAC address of this interface
 
     Args:
@@ -720,107 +1214,119 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_network_info"><code class="name flex">
-<span>def <span class="ident">get_network_info</span></span>(<span>device=None)</span>
+<span>def <span class="ident">get_network_info</span></span>(<span>device: Optional[str] = None) ‑> list</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get network info</p>
-<p>[{'cidr': 8, 'ip': ['127.0.0.1'], 'mac': '00:00:00:00:00:00', 'name': 'lo'},
-{'cidr': 24,
-'ip': ['192.168.0.105'],
-'ip6': ['&hellip;','&hellip;],
-'mac': '80:ee:73:a9:19:05',
-'name': 'enp2s0'},
-{'cidr': 0, 'ip': [], 'mac': '80:ee:73:a9:19:06', 'name': 'enp3s0'},
-{'cidr': 16,
-'ip': ['172.17.0.1'],
-'mac': '02:42:97:63:e6:ba',
-'name': 'docker0'}]</p>
-<p>:param device: device name, defaults to None
-:type device: str, optional
-:raises RuntimeError: if the platform isn't implemented
-:return: network info
-:rtype: list or dict if device is specified</p></section>
+<div class="desc"><p>Get network info</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>device</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>device name. Defaults to None.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>Runtime</code></dt>
+<dd>if it could not find the specified device</dd>
+<dt><code>NotImplementedError</code></dt>
+<dd>if the function runs on unsupported OS</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Dict,</code> or <code>list</code> of <code>dicts if device arg used</code></dt>
+<dd>network info</dd>
+</dl>
+<p>[{'ip': [('127.0.0.1', 8)], 'ip6': [('::1', 128)], 'mac': '00:00:00:00:00:00', 'name': 'lo'},
+{'ip': [('192.168.1.6', 24)],
+'ip6': [('fdb4:f58e:3c34:300:91f0:9c76:e1fb:d060', 64), &hellip;],
+'mac': 'd8:9c:67:2a:f2:53',
+'name': 'wlp3s0'}, &hellip;]</p></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def get_network_info(device=None):
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_network_info(device: Optional[str] = None) -&gt; list:
+    &#34;&#34;&#34;Get network info
+
+    Args:
+        device (str, optional): device name. Defaults to None.
+
+    Raises:
+        Runtime: if it could not find the specified device
+        NotImplementedError: if the function runs on unsupported OS
+
+    Returns:
+        Dict, or list of dicts if device arg used: network info
+        [{&#39;ip&#39;: [(&#39;127.0.0.1&#39;, 8)], &#39;ip6&#39;: [(&#39;::1&#39;, 128)], &#39;mac&#39;: &#39;00:00:00:00:00:00&#39;, &#39;name&#39;: &#39;lo&#39;},
+        {&#39;ip&#39;: [(&#39;192.168.1.6&#39;, 24)],
+         &#39;ip6&#39;: [(&#39;fdb4:f58e:3c34:300:91f0:9c76:e1fb:d060&#39;, 64), ...],
+         &#39;mac&#39;: &#39;d8:9c:67:2a:f2:53&#39;,
+         &#39;name&#39;: &#39;wlp3s0&#39;}, ...]
     &#34;&#34;&#34;
-    Get network info
 
-    [{&#39;cidr&#39;: 8, &#39;ip&#39;: [&#39;127.0.0.1&#39;], &#39;mac&#39;: &#39;00:00:00:00:00:00&#39;, &#39;name&#39;: &#39;lo&#39;},
-        {&#39;cidr&#39;: 24,
-        &#39;ip&#39;: [&#39;192.168.0.105&#39;],
-        &#39;ip6&#39;: [&#39;...&#39;,&#39;...],
-        &#39;mac&#39;: &#39;80:ee:73:a9:19:05&#39;,
-        &#39;name&#39;: &#39;enp2s0&#39;},
-        {&#39;cidr&#39;: 0, &#39;ip&#39;: [], &#39;mac&#39;: &#39;80:ee:73:a9:19:06&#39;, &#39;name&#39;: &#39;enp3s0&#39;},
-        {&#39;cidr&#39;: 16,
-        &#39;ip&#39;: [&#39;172.17.0.1&#39;],
-        &#39;mac&#39;: &#39;02:42:97:63:e6:ba&#39;,
-        &#39;name&#39;: &#39;docker0&#39;}]
-
-    :param device: device name, defaults to None
-    :type device: str, optional
-    :raises RuntimeError: if the platform isn&#39;t implemented
-    :return: network info
-    :rtype: list or dict if device is specified
-    &#34;&#34;&#34;
-    IPBLOCKS = re.compile(r&#34;(^|\n)(?P&lt;block&gt;\d+:.*?)(?=(\n\d+)|$)&#34;, re.S)
-    IPMAC = re.compile(r&#34;^\s+link/\w+\s+(?P&lt;mac&gt;(\w+:){5}\w{2})&#34;, re.M)
-    IPIP = re.compile(r&#34;\s+?inet\s(?P&lt;ip&gt;(\d+\.){3}\d+)/(?P&lt;cidr&gt;\d+)&#34;, re.M)
-    IPNAME = re.compile(r&#34;^\d+: (?P&lt;name&gt;.*?)(?=:)&#34;, re.M)
-
-    def block_parse(block):
-        result = {&#34;ip&#34;: [], &#34;ip6&#34;: [], &#34;cidr&#34;: [], &#34;mac&#34;: &#34;&#34;, &#34;name&#34;: &#34;&#34;}
-        for rec in (IPMAC, IPNAME):
-            match = rec.search(block)
-            if match:
-                result.update(match.groupdict())
-        for mrec in (IPIP,):
-            for m in mrec.finditer(block):
-                for key, value in list(m.groupdict().items()):
-                    result[key].append(value)
-        _, IPV6, _ = jumpscale.core.executors.run_local(
-            &#34;ifconfig %s |  awk &#39;/inet6/{print $2}&#39;&#34; % result[&#34;name&#34;], hide=True
-        )
-        for ipv6 in IPV6.split(&#34;\n&#34;):
-            result[&#34;ip6&#34;].append(ipv6)
-        if isinstance(result[&#34;cidr&#34;], list):
-            if len(result[&#34;cidr&#34;]) == 0:
-                result[&#34;cidr&#34;] = 0
-            else:
-                result[&#34;cidr&#34;] = int(result[&#34;cidr&#34;][0])
+    def _clean(nic_info: dict):
+        result = {
+            &#34;ip&#34;: [(addr[&#34;local&#34;], addr[&#34;prefixlen&#34;]) for addr in nic_info[&#34;addr_info&#34;] if addr[&#34;family&#34;] == &#34;inet&#34;],
+            &#34;ip6&#34;: [(addr[&#34;local&#34;], addr[&#34;prefixlen&#34;]) for addr in nic_info[&#34;addr_info&#34;] if addr[&#34;family&#34;] == &#34;inet6&#34;],
+            &#34;mac&#34;: nic_info[&#34;address&#34;],
+            &#34;name&#34;: nic_info[&#34;ifname&#34;],
+        }
         return result
 
-    def networkinfo_get():
-        _, output, _ = jumpscale.core.executors.run_local(&#34;ip a&#34;, hide=True)
-        for m in IPBLOCKS.finditer(output):
-            block = m.group(&#34;block&#34;)
-            yield block_parse(block)
+    def _get_info():
+        if device:
+            # exitcode, output, _ = jumpscale.core.executors.run_local(f&#34;ip -j addr show {device}&#34;, hide=True, warn=True)
+            # if exitcode != 0:
+            #    raise Runtime(&#34;could not find device&#34;)
+            try:
+                output = subprocess.check_output(f&#34;ip -j addr show {device}&#34;, shell=True)
+            except subprocess.CalledProcessError as e:
+                # the process returns a non-zero exit status.
+                # This probably happened because specified interface name does not exists
+                j.logger.exception(f&#34;cmd: {e.cmd} returns a non-zero exit status.&#34;, exception=e)
+                raise RuntimeError(f&#34;could not find this interface: {device}&#34;)
+        else:
+            # _, output, _ = jumpscale.core.executors.run_local(&#34;ip -j addr show&#34;, hide=True, warn=True)
+            output = subprocess.check_output(&#34;ip -j addr show&#34;, shell=True)
+        res = json.loads(output)
+        for nic_info in res:
+            # when use ip command with -j option and specified interface. it returns on ubuntu &lt; 20
+            # a list contains a requested info alongside other partially empty dicts like this -&gt; {&#39;addr_info&#39;: [{}, {}]}
+            # so we need to filter those dicts to get consistent behavior at all supported ubuntu versions.
+            if len(nic_info) &gt; 1:
+                yield _clean(nic_info)
+            else:
+                j.logger.debug(f&#34;Discarded this improper json\n{nic_info}&#34;)
+                continue
 
-    res = []
-    for nic in networkinfo_get():
-        if nic[&#34;name&#34;] == device:
-            return nic
-        res.append(nic)
+    if jumpscale.data.platform.is_linux():
+        if not device:
+            res = []
+            for nic in _get_info():
+                res.append(nic)
+            return res
+        else:
+            return next(_get_info())
 
-    if device is not None:
-        raise Runtime(&#34;could not find device&#34;)
-    return res</code></pre>
+    else:
+        # TODO: make it OSX Compatible
+        raise NotImplementedError(&#34;this function supports only linux at the moment.&#34;)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_nic_names"><code class="name flex">
-<span>def <span class="ident">get_nic_names</span></span>(<span>)</span>
+<span>def <span class="ident">get_nic_names</span></span>(<span>) ‑> list</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get Nics on this machine</p>
+<div class="desc"><p>Get Nics on this machine</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>list</code></strong></dt>
+<dt><code>list</code></dt>
 <dd>list of all availabe nics</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def get_nic_names():
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_nic_names() -&gt; list:
     &#34;&#34;&#34;Get Nics on this machine
 
     Returns:
@@ -830,10 +1336,10 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_nic_type"><code class="name flex">
-<span>def <span class="ident">get_nic_type</span></span>(<span>interface)</span>
+<span>def <span class="ident">get_nic_type</span></span>(<span>interface: str) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get Nic Type on a certain interface</p>
+<div class="desc"><p>Get Nic Type on a certain interface</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>interface</code></strong> :&ensp;<code>str</code></dt>
@@ -841,19 +1347,21 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>Runtime</code></strong></dt>
+<dt><code>Runtime</code></dt>
 <dd>if ethtool not installed on the system</dd>
-<dt><strong><code>Value</code></strong></dt>
+<dt><code>Value</code></dt>
 <dd>if interface given is invalid</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>type of the interface</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def get_nic_type(interface):
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_nic_type(interface: str) -&gt; str:
     &#34;&#34;&#34;Get Nic Type on a certain interface
 
     Args:
@@ -915,55 +1423,75 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.get_reachable_ip_address"><code class="name flex">
-<span>def <span class="ident">get_reachable_ip_address</span></span>(<span>ip, port)</span>
+<span>def <span class="ident">get_reachable_ip_address</span></span>(<span>ip: str, port: Optional[int] = 0) ‑> str</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Returns the first local ip address that can connect to the specified ip on the specified port</p>
+<div class="desc"><p>figures out what source address would be used if some traffic were to be sent out to specified ip.
+compatible with both IPv4 and IPv6.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>ip</code></strong> :&ensp;<code>str</code></dt>
 <dd>ip address</dd>
-<dt><strong><code>port</code></strong> :&ensp;<code>int</code></dt>
-<dd>port number</dd>
+<dt><strong><code>port</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>port number. does not matter much. No traffic is actually sent. Defaults to 0.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>Runtime</code></strong></dt>
+<dt><code>ValueError</code></dt>
+<dd>if address does not represent a valid IPv4 or IPv6 address, or port is invalid.</dd>
+<dt><code>RuntimeError</code></dt>
 <dd>if can't connect</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>ip that can connect to the specified ip</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def get_reachable_ip_address(ip: str, port: int):
-    &#34;&#34;&#34;Returns the first local ip address that can connect to the specified ip on the specified port
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_reachable_ip_address(ip: str, port: Optional[int] = 0) -&gt; str:
+    &#34;&#34;&#34;figures out what source address would be used if some traffic were to be sent out to specified ip.
+    compatible with both IPv4 and IPv6.
 
     Args:
         ip (str): ip address
-        port (int): port number
+        port (int, optional): port number. does not matter much. No traffic is actually sent. Defaults to 0.
 
     Raises:
-        Runtime: if can&#39;t connect
+        ValueError: if address does not represent a valid IPv4 or IPv6 address, or port is invalid.
+        RuntimeError: if can&#39;t connect
 
     Returns:
         str: ip that can connect to the specified ip
     &#34;&#34;&#34;
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect((ip, port))
-    except BaseException:
-        raise Runtime(&#34;Cannot connect to %s:%s, check network configuration&#34; % (ip, port))
-    return s.getsockname()[0]</code></pre>
+    ipaddr = ipaddress.ip_address(ip)
+
+    if ipaddr.version == 4:
+        family = socket.AF_INET
+    else:
+        family = socket.AF_INET6
+
+    with socket.socket(family, socket.SOCK_DGRAM) as sock:
+        try:
+            sock.connect((ip, port))
+        except OSError as e:
+            # (ConnectionRefusedError, socket.timeout, socket.herror, socket.gaierror)
+            reason = e.error if hasattr(e, &#34;error&#34;) else repr(e)
+            raise RuntimeError(f&#34;Cannot connect to {ip}:{port} because of this error: {reason}&#34;)
+        except (ValueError, TypeError, OverflowError) as e:
+            # incorrect port numper or type
+            raise ValueError(repr(e))
+
+        return sock.getsockname()[0]</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.is_nic_connected"><code class="name flex">
-<span>def <span class="ident">is_nic_connected</span></span>(<span>interface)</span>
+<span>def <span class="ident">is_nic_connected</span></span>(<span>interface: str) ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>check if interface is connected</p>
+<div class="desc"><p>check if interface is connected</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>interface</code></strong> :&ensp;<code>str</code></dt>
@@ -971,12 +1499,14 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>whether it is connected or not</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def is_nic_connected(interface: str):
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_nic_connected(interface: str) -&gt; bool:
     &#34;&#34;&#34;check if interface is connected
 
     Args:
@@ -987,104 +1517,149 @@ def netrange_get(device, skip_begin=10, skip_end=10):
     &#34;&#34;&#34;
     if jumpscale.data.platform.is_linux():
         carrierfile = f&#34;/sys/class/net/{interface}/carrier&#34;
-        if not jumpscale.sals.fs.exists(carrierfile):
-            return False
         try:
-            return int(jumpscale.sals.fs.read_file(carrierfile)) != 0
-        except IOError:
+            is_up = int(jumpscale.sals.fs.read_file(carrierfile)) != 0
+            return is_up
+        except IOError as e:
+            j.logger.exception(e.strerror or repr(e), exception=e)
             return False
 
     elif jumpscale.data.platform.is_osx():
-        command = f&#34;dladm show-dev -p -o STATE {interface}&#34;
-        expectResults = [&#34;up&#34;, &#34;unknown&#34;]
-
-        exitcode, output, _ = jumpscale.core.executors.run_local(command, warn=True, hide=True)
-        if exitcode != 0:
-            return False
-        output = output.strip()
-        return output in expectResults</code></pre>
+        # superuser.com/questions/203272/
+        command = &#34;ifconfig -{} | sed -E &#39;s/[[:space:]:].*//;/^$/d&#34;
+        option = {&#34;up&#34;: &#34;u&#34;, &#34;down&#34;: &#34;d&#34;}
+        stdout = subprocess.check_output(command.format(option[&#34;up&#34;]), shell=True)
+        output = stdout.decode(&#34;utf-8&#34;)
+        up_interfaces = output.split()
+        return interface in up_interfaces</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.netrange_get"><code class="name flex">
-<span>def <span class="ident">netrange_get</span></span>(<span>device, skip_begin=10, skip_end=10)</span>
+<span>def <span class="ident">netrange_get</span></span>(<span>device: str, skip_begin: Optional[int] = 10, skip_end: Optional[int] = 10) ‑> tuple</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get ($fromip,$topip) from range attached to device, skip the mentioned ip addresses.</p>
-<p>:param device: device name
-:type device: str
-:param skip_begin: ips to skip from the begining of the range, defaults to 10
-:type skip_begin: int, optional
-:param skip_end: ips to skip from the end of the range, defaults to 10
-:type skip_end: int, optional</p>
-<p>:return: ip range for this device
-:rtype: tuple</p></section>
+<div class="desc"><p>Get ($fromip,$topip) from range attached to device, skip the mentioned ip addresses.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>device</code></strong> :&ensp;<code>str</code></dt>
+<dd>[description]</dd>
+<dt><strong><code>skip_begin</code></strong> :&ensp;<code>Optional[int]</code>, optional</dt>
+<dd>ips to skip from the begining of the range, Defaults to 10.</dd>
+<dt><strong><code>skip_end</code></strong> :&ensp;<code>Optional[int]</code>, optional</dt>
+<dd>ips to skip from the end of the range, Defaults to 10.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple</code></dt>
+<dd>ip range for this device</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def netrange_get(device, skip_begin=10, skip_end=10):
-    &#34;&#34;&#34;
-    Get ($fromip,$topip) from range attached to device, skip the mentioned ip addresses.
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def netrange_get(device: str, skip_begin: Optional[int] = 10, skip_end: Optional[int] = 10) -&gt; tuple:
+    &#34;&#34;&#34;Get ($fromip,$topip) from range attached to device, skip the mentioned ip addresses.
 
-    :param device: device name
-    :type device: str
-    :param skip_begin: ips to skip from the begining of the range, defaults to 10
-    :type skip_begin: int, optional
-    :param skip_end: ips to skip from the end of the range, defaults to 10
-    :type skip_end: int, optional
+    Args:
+        device (str): [description]
+        skip_begin (Optional[int], optional): ips to skip from the begining of the range, Defaults to 10.
+        skip_end (Optional[int], optional): ips to skip from the end of the range, Defaults to 10.
 
-    :return: ip range for this device
-    :rtype: tuple
+    Returns:
+        tuple: ip range for this device
     &#34;&#34;&#34;
     n = _netobject_get(device)
     return (str(n[0] + skip_begin), str(n[-1] - skip_end))</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.ping_machine"><code class="name flex">
-<span>def <span class="ident">ping_machine</span></span>(<span>ip, pingtimeout=60, allowhostname=True)</span>
+<span>def <span class="ident">ping_machine</span></span>(<span>ip: str, timeout: Optional[int] = 60, allowhostname: Optional[bool] = True) ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ping a machine to check if it's up/running and accessible
-@param ip: Machine Ip Address
-@param pingtimeout: time in sec after which ip will be declared as unreachable
-@param allowhostname: allow pinging on hostname (default is false)
-@rtype: True if machine is pingable, False otherwise</p></section>
+<div class="desc"><p>Ping a machine to check if it's up/running and accessible
+Note: Any well-behaved device on an LAN or WAN is free to ignore nearly any traffic,
+so PINGs, port scans, and the like are all unreliable.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ip</code></strong> :&ensp;<code>str</code></dt>
+<dd>Machine Ip Address</dd>
+<dt><strong><code>pingtimeout</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>time in sec after which ip will be declared as unreachable. Defaults to 60.</dd>
+<dt><strong><code>allowhostname</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>allow pinging on hostname. Defaults to True.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>if ip is Invalid ip address</dd>
+<dt><code>NotImplementedError</code></dt>
+<dd>if the function runs on unsupported system</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bool</code></dt>
+<dd>True if machine is pingable, False otherwise</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def ping_machine(ip, pingtimeout=60, allowhostname=True):
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ping_machine(ip: str, timeout: Optional[int] = 60, allowhostname: Optional[bool] = True) -&gt; bool:
     &#34;&#34;&#34;Ping a machine to check if it&#39;s up/running and accessible
-    @param ip: Machine Ip Address
-    @param pingtimeout: time in sec after which ip will be declared as unreachable
-    @param allowhostname: allow pinging on hostname (default is false)
-    @rtype: True if machine is pingable, False otherwise
+    Note: Any well-behaved device on an LAN or WAN is free to ignore nearly any traffic,
+    so PINGs, port scans, and the like are all unreliable.
+
+    Args:
+        ip (str): Machine Ip Address
+        pingtimeout (int, optional): time in sec after which ip will be declared as unreachable. Defaults to 60.
+        allowhostname (bool, optional): allow pinging on hostname. Defaults to True.
+
+    Raises:
+        ValueError: if ip is Invalid ip address
+        NotImplementedError: if the function runs on unsupported system
+
+    Returns:
+        bool: True if machine is pingable, False otherwise
     &#34;&#34;&#34;
     if not allowhostname:
-        if not IPAddress().check(ip):
-            raise Value(&#34;Invalid ip address, set allowedhostname to use hostnames&#34;)
+        ipaddress.ip_address(ip)
 
-    start = time.time()
-    pingsucceeded = False
-    while time.time() - start &lt; pingtimeout:
-        if jumpscale.data.platform.is_linux():
-            # ping -c 1 -W 1 IP
-            exitcode, _, _ = jumpscale.core.executors.run_local(f&#34;ping -c 1 -W 1 -w 1 {ip}&#34;, warn=True, hide=True)
-        elif jumpscale.data.platform.is_osx():
-            exitcode, _, _ = jumpscale.core.executors.run_local(f&#34;ping -c 1 {ip}&#34;, warn=True, hide=True)
-        if exitcode == 0:
-            pingsucceeded = True
-            return True
-        time.sleep(1)
-    if not pingsucceeded:
-        return False</code></pre>
+    if jumpscale.data.platform.is_linux():
+        try:
+            _ = subprocess.check_output(f&#34;ping -c 1 -w {timeout} {ip}&#34;, shell=True)
+            exitcode = 0
+        except subprocess.CalledProcessError as e:
+            exitcode = e.returncode
+        # exitcode, output, err = jumpscale.core.executors.run_local(f&#34;ping -c 1 -w {timeout} {ip}&#34;, warn=True, hide=True)
+    elif jumpscale.data.platform.is_osx():
+        try:
+            _ = subprocess.check_output(f&#34;ping -o -t {timeout} {ip}&#34;, shell=True)
+            exitcode = 0
+        except subprocess.CalledProcessError as e:
+            exitcode = e.returncode
+        # exitcode, _, _ = jumpscale.core.executors.run_local(f&#34;ping -o -t {timeout} {ip}&#34;, warn=True, hide=True)
+    else:  # unsupported platform
+        raise NotImplementedError(&#34;Not Implemented for this os&#34;)
+    return exitcode == 0</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.tcp_connection_test"><code class="name flex">
-<span>def <span class="ident">tcp_connection_test</span></span>(<span>ipaddr, port, timeout)</span>
+<span>def <span class="ident">tcp_connection_test</span></span>(<span>ipaddr: str, port: int, timeout: Optional[int] = None) ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>tests tcp connection on specified port</p>
+<div class="desc"><p>tests tcp connection on specified port, compatible with both IPv4 and IPv6.
+ensures that each side of the connection is reachable in the network.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>socket.gaierror</code></dt>
+<dd>raised for address-related errors.</dd>
+<dt><code>socket.herror</code></dt>
+<dd>raised for address-related errors.</dd>
+</dl>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>ipaddr</code></strong> :&ensp;<code>str</code></dt>
-<dd>ip address</dd>
+<dd>ip address or hostname</dd>
 <dt><strong><code>port</code></strong> :&ensp;<code>int</code></dt>
 <dd>port number</dd>
 <dt><strong><code>timeout</code></strong> :&ensp;<code>int</code>, optional</dt>
@@ -1092,42 +1667,42 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if the test succeeds, False otherwise</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def tcp_connection_test(ipaddr: str, port: int, timeout: Optional[int]):
-    &#34;&#34;&#34;tests tcp connection on specified port
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def tcp_connection_test(ipaddr: str, port: int, timeout: Optional[int] = None) -&gt; bool:
+    &#34;&#34;&#34;tests tcp connection on specified port, compatible with both IPv4 and IPv6.
+    ensures that each side of the connection is reachable in the network.
+
+    Raises:
+        socket.gaierror: raised for address-related errors.
+        socket.herror: raised for address-related errors.
 
     Args:
-        ipaddr (str): ip address
+        ipaddr (str): ip address or hostname
         port (int): port number
         timeout (int, optional): time before the connection test fails. Defaults to None.
 
     Returns:
         bool: True if the test succeeds, False otherwise
     &#34;&#34;&#34;
-    conn = None
     try:
-        conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        if timeout:
-            conn.settimeout(timeout)
-        try:
-            conn.connect((ipaddr, port))
-        except BaseException:
-            return False
-    finally:
-        if conn:
-            conn.close()
-    return True</code></pre>
+        with socket.create_connection((ipaddr, port), timeout) as conn:
+            return True
+    except (ConnectionRefusedError, socket.timeout, OSError):
+        return False</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.udp_connection_test"><code class="name flex">
-<span>def <span class="ident">udp_connection_test</span></span>(<span>ipaddr, port, timeout=1, message=b&#39;PING&#39;)</span>
+<span>def <span class="ident">udp_connection_test</span></span>(<span>ipaddr: str, port: int, timeout: Optional[int] = 1, message: Optional[bytes] = b'') ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>tests udp connection on specified port by sending specified message</p>
+<div class="desc"><p>tests udp connection on specified port by sending specified message and expecting
+to receive at least one byte from the socket as an indicator of connection success</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>ipaddr</code></strong> :&ensp;<code>str</code></dt>
@@ -1139,15 +1714,23 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 <dt><strong><code>message</code></strong> :&ensp;<code>str</code>, optional</dt>
 <dd>message to send. Defaults to b"PING"</dd>
 </dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>raises if invalid ip address was used</dd>
+</dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if the test succeeds, False otherwise</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def udp_connection_test(ipaddr: str, port: int, timeout=1, message=b&#34;PING&#34;):
-    &#34;&#34;&#34;tests udp connection on specified port by sending specified message
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def udp_connection_test(ipaddr: str, port: int, timeout: Optional[int] = 1, message: Optional[bytes] = b&#34;&#34;) -&gt; bool:
+    &#34;&#34;&#34;tests udp connection on specified port by sending specified message and expecting
+    to receive at least one byte from the socket as an indicator of connection success
 
     Args:
         ipaddr (str): ip address
@@ -1155,111 +1738,143 @@ def netrange_get(device, skip_begin=10, skip_end=10):
         timeout (int, optional): time before the connection test fails. Defaults to None.
         message (str, optional): message to send. Defaults to b&#34;PING&#34;
 
+    Raises:
+        ValueError: raises if invalid ip address was used
+
     Returns:
         bool: True if the test succeeds, False otherwise
     &#34;&#34;&#34;
-    conn = socket.socket(type=socket.SOCK_DGRAM)
-    if timeout:
-        conn.settimeout(timeout)
-    try:
-        conn.connect((ipaddr, port))
-    except BaseException:
-        conn.close()
-        return False
+    ip = ipaddress.ip_address(ipaddr)
+    if ip.version == 4:
+        family = socket.AF_INET
+    else:
+        family = socket.AF_INET6
 
-    conn.send(message)
+    with socket.socket(family, socket.SOCK_DGRAM) as sock:
+        if timeout:
+            sock.settimeout(timeout)
 
-    try:
-        conn.recvfrom(8192)
-    except Exception:
-        return False
-    return True</code></pre>
+        try:
+            sock.sendto(message, (ipaddr, port))
+            # expecting to receive at least one byte from the socket as indication to succeed connection
+            data, _ = sock.recvfrom(1)
+            return True
+        except (socket.timeout, OSError):
+            return False</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.wait_connection_test"><code class="name flex">
-<span>def <span class="ident">wait_connection_test</span></span>(<span>ipaddr, port, timeout=5)</span>
+<span>def <span class="ident">wait_connection_test</span></span>(<span>ipaddr: str, port: int, timeout: Optional[int] = 6) ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Will wait until port listens on the specified address</p>
+<div class="desc"><p>Will wait until port listens on the specified address or <code>timeout</code> sec elapsed</p>
+<p>under the hood the function will try to connect every <code>interval</code> sec, if waiting time <code>timeout</code> set
+to value &lt;= 2, <code>interval</code> is 1 sec, otherwise 2.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>ipaddr</code></strong> :&ensp;<code>str</code></dt>
-<dd>ip address</dd>
+<dd>ip address, or hostname</dd>
 <dt><strong><code>port</code></strong> :&ensp;<code>int</code></dt>
 <dd>port number</dd>
 <dt><strong><code>timeout_total</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>how long to wait for the connection. Defaults to 5.</dd>
+<dd>how long to wait for the connection. if the timeout set to value &gt; 2,
+due to the way the function works, it makes sense to choose an even number. Defaults to 6.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>True if the test succeeds, False otherwise</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wait_connection_test(ipaddr: str, port: int, timeout=5):
-    &#34;&#34;&#34;Will wait until port listens on the specified address
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wait_connection_test(ipaddr: str, port: int, timeout: Optional[int] = 6) -&gt; bool:
+    &#34;&#34;&#34;Will wait until port listens on the specified address or `timeout` sec elapsed
+
+    under the hood the function will try to connect every `interval` sec, if waiting time `timeout` set
+    to value &lt;= 2, `interval` is 1 sec, otherwise 2.
 
     Args:
-        ipaddr (str): ip address
+        ipaddr (str): ip address, or hostname
         port (int): port number
-        timeout_total (int, optional): how long to wait for the connection. Defaults to 5.
+        timeout_total (int, optional): how long to wait for the connection. if the timeout set to value &gt; 2,
+            due to the way the function works, it makes sense to choose an even number. Defaults to 6.
 
     Returns:
         bool: True if the test succeeds, False otherwise
     &#34;&#34;&#34;
-    port = int(port)
-    end = now().timestamp + timeout
-    while True:
-        if now().timestamp &gt; end:
-            return False
-        if tcp_connection_test(ipaddr, port, timeout=2):
-            return True</code></pre>
+    # port = int(port)
+    interval = 1 if timeout &lt;= 2 else 2
+    init_start = time.time()
+    deadline = init_start + timeout
+    while time.time() &lt; deadline:
+        start = time.time()
+        if tcp_connection_test(ipaddr, port, timeout=interval):
+            return True
+        # if return immediately (err111) take a break before retry
+        if time.time() - start &lt; interval:
+            time.sleep(1)
+    return False</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nettools.wait_http_test"><code class="name flex">
-<span>def <span class="ident">wait_http_test</span></span>(<span>url, timeout=60, verify=True)</span>
+<span>def <span class="ident">wait_http_test</span></span>(<span>url: str, timeout: Optional[int] = 60, verify: Optional[bool] = True, interval_time: Optional[int] = 2) ‑> bool</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Will wait until url is reachable</p>
+<div class="desc"><p>Will keep try to reach specified url every {interval_time} sec until url become reachable or {timeout} sec elapsed</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>url</code></strong> :&ensp;<code>str</code></dt>
 <dd>url</dd>
 <dt><strong><code>timeout</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>how long to wait for the connection. Defaults to 60.</dd>
+<dd>how long to keep trying to reach specified url. Defaults to 60.</dd>
 <dt><strong><code>verify</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>boolean indication to verify the servers TLS certificate or not.</dd>
+<dt><strong><code>interval_time</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>how long to wait for a response before sending a new request. Defaults to 2.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>raises if not correct url</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>bool</code></strong></dt>
+<dt><code>bool</code></dt>
 <dd>true if the test succeeds</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def wait_http_test(url: str, timeout: int = 60, verify: bool = True) -&gt; bool:
-    &#34;&#34;&#34;Will wait until url is reachable
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wait_http_test(
+    url: str, timeout: Optional[int] = 60, verify: Optional[bool] = True, interval_time: Optional[int] = 2
+) -&gt; bool:
+    &#34;&#34;&#34;Will keep try to reach specified url every {interval_time} sec until url become reachable or {timeout} sec elapsed
 
     Args:
         url (str): url
-        timeout (int, optional): how long to wait for the connection. Defaults to 60.
+        timeout (int, optional): how long to keep trying to reach specified url. Defaults to 60.
         verify (bool, optional): boolean indication to verify the servers TLS certificate or not.
+        interval_time (int, optional): how long to wait for a response before sending a new request. Defaults to 2.
 
+    Raises:
+        ValueError: raises if not correct url
 
     Returns:
         bool: true if the test succeeds
     &#34;&#34;&#34;
-    for _ in range(timeout):
-        try:
-            if check_url_reachable(url, timeout, verify):
-                return True
-        except:
-            pass
-
-        time.sleep(1)
-    else:
-        return False</code></pre>
+    init_start = time.time()
+    deadline = init_start + timeout
+    while time.time() &lt; deadline:
+        start = time.time()
+        if check_url_reachable(url, interval_time, verify):
+            return True
+        # be gentle on system resource in case the above call to check_url_reachable() returned immediately (edge cases)
+        if time.time() - start &lt; interval_time:
+            time.sleep(1)
+    return False</code></pre>
 </details>
 </dd>
 </dl>
@@ -1283,6 +1898,7 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 <li><code><a title="jumpscale.sals.nettools.check_url_reachable" href="#jumpscale.sals.nettools.check_url_reachable">check_url_reachable</a></code></li>
 <li><code><a title="jumpscale.sals.nettools.download" href="#jumpscale.sals.nettools.download">download</a></code></li>
 <li><code><a title="jumpscale.sals.nettools.get_default_ip_config" href="#jumpscale.sals.nettools.get_default_ip_config">get_default_ip_config</a></code></li>
+<li><code><a title="jumpscale.sals.nettools.get_free_port" href="#jumpscale.sals.nettools.get_free_port">get_free_port</a></code></li>
 <li><code><a title="jumpscale.sals.nettools.get_host_by_name" href="#jumpscale.sals.nettools.get_host_by_name">get_host_by_name</a></code></li>
 <li><code><a title="jumpscale.sals.nettools.get_host_name" href="#jumpscale.sals.nettools.get_host_name">get_host_name</a></code></li>
 <li><code><a title="jumpscale.sals.nettools.get_mac_address" href="#jumpscale.sals.nettools.get_mac_address">get_mac_address</a></code></li>
@@ -1303,9 +1919,7 @@ def netrange_get(device, skip_begin=10, skip_end=10):
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

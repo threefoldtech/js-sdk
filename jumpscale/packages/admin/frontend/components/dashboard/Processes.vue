@@ -4,7 +4,7 @@
       <template #actions>
         <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details solo flat></v-text-field>
       </template>
-      <v-data-table :items-per-page="5" :headers="headers" :items="processes" :search="search" @click:row="open" :footer-props="{'disable-items-per-page': true}">
+      <v-data-table :calculate-widths="true" :items-per-page="10" :headers="headers" :items="processes" :search="search" @click:row="open" :footer-props="{'disable-items-per-page': true}">
         <template slot="no-data">No processes available</p></template>
         <template v-slot:item.rss="{ item }">
           {{Math.round(item.rss)}} MB
@@ -31,6 +31,8 @@
         headers: [
           {text: "Name", value: "name"},
           {text: "PID", value: "pid"},
+          {text: "PPID", value: "ppid"},
+          {text:"Status", value: "status"},
           {text: "User", value: "username"},
           {text: "Memory", value: "rss"}
         ]
@@ -55,8 +57,4 @@
     }
   }
 </script>
-<style scoped>
-.v-data-table tr {
-  cursor: pointer;
-}
-</style>
+

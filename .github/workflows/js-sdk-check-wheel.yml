@@ -1,4 +1,4 @@
-# This workflow will clean install Python dependencies, build the wheel from pyproject.toml 
+# This workflow will clean install Python dependencies, build the wheel from pyproject.toml
 # and confirm that it has the right stuff and it can install correctly using pip.
 # For more information see:
 # https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
@@ -18,14 +18,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04]
-        python-version: [3.6, 3.7, 3.8]
+        os: [ubuntu-20.04]
+        python-version: [3.7, 3.8, 3.9]
         experimental: [false]
-        #include:
-        #  - python-version: 3.9
-        #    os: ubuntu-20.04
-        #    experimental: true
-        #    name: Experimental build - latest Python
+        include:
+         - python-version: '3.10'
+           os: ubuntu-22.04
+           experimental: true
+           name: Experimental build - latest Python
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}

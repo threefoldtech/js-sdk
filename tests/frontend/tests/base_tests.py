@@ -22,7 +22,6 @@ class BaseTest(BaseTests):
         cls.tname = os.environ.get("TNAME")
         cls.email = os.environ.get("EMAIL")
         cls.words = os.environ.get("WORDS")
-        cls.explorer_url = "https://explorer.testnet.grid.tf/api/v1"
         if not all([cls.tname, cls.email, cls.words]):
             raise Exception("Please add (TNAME, EMAIL, WORDS) of your 3bot identity as environment variables")
 
@@ -41,9 +40,7 @@ class BaseTest(BaseTests):
 
         # Configure test identity and start threebot server.
         cls.identity_name = j.data.random_names.random_name()
-        identity = j.core.identity.new(
-            cls.identity_name, tname=cls.tname, email=cls.email, words=cls.words, explorer_url=cls.explorer_url
-        )
+        identity = j.core.identity.new(cls.identity_name, tname=cls.tname, email=cls.email, words=cls.words)
         identity.register()
         identity.set_default()
         cls.server = j.servers.threebot.get("default")

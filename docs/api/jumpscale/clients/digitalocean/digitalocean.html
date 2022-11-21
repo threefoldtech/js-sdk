@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.clients.digitalocean.digitalocean API documentation</title>
 <meta name="description" content="This module is used to manage your digital ocean account, create droplet,list all the droplets, destroy droplets, create project, list all the …" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -29,56 +31,58 @@ ssh.private_key_path = "/home/rafy/.ssh/id_rsa"
 ssh.load_from_file_system()
 '''</p>
 <h2 id="create-digital-ocean-client-and-set-your-token-and-load-your-sshkey">Create Digital Ocean client and set your token and load your sshkey</h2>
-<pre><code class="python">dg = j.clients.digitalocean.get(&quot;testDG&quot;)
+<pre><code class="language-python">dg = j.clients.digitalocean.get(&quot;testDG&quot;)
 dg.token = &quot;&quot;
 </code></pre>
 <h2 id="set-sshclient-you-have-created">Set sshclient you have created</h2>
-<pre><code class="python">dg.set_default_sshkey(ssh)
+<pre><code class="language-python">dg.set_default_sshkey(ssh)
 </code></pre>
 <h2 id="use-digital-ocean-client">Use Digital Ocean client</h2>
 <h3 id="create-and-deploy-project-to-digital-ocean">Create and deploy Project to Digital Ocean</h3>
 <h4 id="create-project-name-must-not-contian-spaces-or-start-with-number">Create Project (name must not contian spaces or start with number)</h4>
-<pre><code class="python"> project = dg.projects.new(&quot;test_DG_client&quot;)
+<pre><code class="language-python"> project = dg.projects.new(&quot;test_DG_client&quot;)
 </code></pre>
 <h4 id="set-the-name-you-want-to-deploy-with-on-digital-ocean">Set the name you want to deploy with on Digital Ocean</h4>
-<pre><code class="python">project.set_digital_ocean_name(&quot;test project DO client&quot;)
+<pre><code class="language-python">project.set_digital_ocean_name(&quot;test project DO client&quot;)
 </code></pre>
 <h4 id="deploy-the-project-you-have-to-specific-the-purpose">Deploy the project (you have to specific the purpose)</h4>
-<pre><code class="python">project.deploy(purpose=&quot;testing digital ocean client&quot;)
+<pre><code class="language-python">project.deploy(purpose=&quot;testing digital ocean client&quot;)
 </code></pre>
 <h4 id="deploy-the-project-as-default-one-so-the-new-droplets-will-be-automatically-added-to-your-default-project">Deploy the project as default one so the new droplets will be automatically added to your default project</h4>
-<pre><code class="python">project.deploy(purpose=&quot;testing digital ocean client&quot;,is_default=True) 
+<pre><code class="language-python">project.deploy(purpose=&quot;testing digital ocean client&quot;,is_default=True) 
 </code></pre>
 <h4 id="delete-the-project-from-digital-ocean">Delete the project from Digital Ocean</h4>
-<pre><code class="python">project.delete_remote()
+<pre><code class="language-python">project.delete_remote()
 </code></pre>
 <h3 id="create-and-deploy-droplet-to-digital-ocean">Create and deploy Droplet to Digital Ocean</h3>
 <h4 id="create-droplet-name-must-not-contian-spaces-or-start-with-number">Create Droplet (name must not contian spaces or start with number)</h4>
-<pre><code class="python">droplet = dg.droplets.new(&quot;test_droplet_dg&quot;)
+<pre><code class="language-python">droplet = dg.droplets.new(&quot;test_droplet_dg&quot;)
 </code></pre>
 <h4 id="set-the-name-you-want-to-deploy-with-on-digital-ocean_1">Set the name you want to deploy with on Digital Ocean</h4>
-<pre><code class="python">droplet.set_digital_ocean_name(&quot;droplet-test-DO&quot;)
+<pre><code class="language-python">droplet.set_digital_ocean_name(&quot;droplet-test-DO&quot;)
 </code></pre>
 <h4 id="deploy-the-droplet">Deploy the Droplet</h4>
 <p>The droplet will be deployed to you your default project</p>
-<pre><code class="python">droplet.deploy()
+<pre><code class="language-python">droplet.deploy()
 </code></pre>
 <p>You can specify the project that you want the deploy the droplet to </p>
-<pre><code class="python">droplet.deploy(project_name=&quot;test project DO client&quot;)
+<pre><code class="language-python">droplet.deploy(project_name=&quot;test project DO client&quot;)
 </code></pre>
 <h4 id="delete-the-droplet-from-digital-ocean">Delete the Droplet from Digital Ocean</h4>
-<pre><code class="python">droplet.delete_remote()
+<pre><code class="language-python">droplet.delete_remote()
 </code></pre>
 <h3 id="get-digital-ocean-regions">Get digital ocean regions</h3>
-<pre><code class="python">dg.regions
+<pre><code class="language-python">dg.regions
 </code></pre>
 <h3 id="get-digital-ocean-images">Get digital ocean images</h3>
-<pre><code class="python">dg.images
+<pre><code class="language-python">dg.images
 </code></pre>
 <p>In the below examples, I have supposed that you followed the above steps
 and you got digital ocean client with the name (dg)</p>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">&#34;&#34;&#34;This module is used to manage your digital ocean account, create droplet,list all the droplets, destroy droplets, create project, list all the projects and delete project
 # prerequisites
 ## Sshkey client and loaded with you public key
@@ -765,11 +769,11 @@ class DigitalOcean(Client):
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -784,9 +788,11 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class DigitalOcean(Client):
     name = fields.String()
     token = fields.Secret()
@@ -1032,15 +1038,17 @@ print(p.name, p.age)
 <dl>
 <dt id="jumpscale.clients.digitalocean.digitalocean.DigitalOcean.account_images"><code class="name">var <span class="ident">account_images</span></code></dt>
 <dd>
-<section class="desc"><p>Return a list of digital ocean images and the images you have created</p>
+<div class="desc"><p>Return a list of digital ocean images and the images you have created</p>
 <p>e.g
 dg.account_images
 -&gt; [<Image: 31354013 CentOS 6.9 x32>,
 <Image: 34902021 CentOS 6.9 x64>,&hellip;]</p>
 <p>Returns
-List : list of images on digital ocean images and the images you have created</p></section>
+List : list of images on digital ocean images and the images you have created</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def account_images(self):
     &#34;&#34;&#34;Return a list of digital ocean images and the images you have created
@@ -1058,14 +1066,16 @@ def account_images(self):
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.DigitalOcean.client"><code class="name">var <span class="ident">client</span></code></dt>
 <dd>
-<section class="desc"><p>Return a new client if it is not set or it will return the already existed one</p>
+<div class="desc"><p>Return a new client if it is not set or it will return the already existed one</p>
 <p>e.g
 dg.client
 -&gt; <Manager>
 Returns
-Manager: client form digital ocean manager</p></section>
+Manager: client form digital ocean manager</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def client(self):
     &#34;&#34;&#34;Return a new client if it is not set or it will return the already existed one
@@ -1083,16 +1093,18 @@ def client(self):
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.DigitalOcean.droplets"><code class="name">var <span class="ident">droplets</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1108,15 +1120,17 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.DigitalOcean.images"><code class="name">var <span class="ident">images</span></code></dt>
 <dd>
-<section class="desc"><p>Return a list of digital ocean availabe images</p>
+<div class="desc"><p>Return a list of digital ocean availabe images</p>
 <p>e.g
 dg.images
 -&gt; [<Image: 31354013 CentOS 6.9 x32>,
 <Image: 34902021 CentOS 6.9 x64>,&hellip;]</p>
 <p>Returns
-List : list of images on digital ocean available</p></section>
+List : list of images on digital ocean available</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def images(self):
     &#34;&#34;&#34;Return a list of digital ocean availabe images
@@ -1133,15 +1147,17 @@ def images(self):
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.DigitalOcean.myimages"><code class="name">var <span class="ident">myimages</span></code></dt>
 <dd>
-<section class="desc"><p>Return a list of digital ocean images, you have created</p>
+<div class="desc"><p>Return a list of digital ocean images, you have created</p>
 <p>e.g
 dg.myimages
 -&gt; [<Image: 48614453 Unknown Zero_OS>,
 <Image: 50898718 Ubuntu JumpScale>,&hellip;]</p>
 <p>Returns
-List : list of images on digital ocean, you have created</p></section>
+List : list of images on digital ocean, you have created</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def myimages(self):
     &#34;&#34;&#34;Return a list of digital ocean images, you have created
@@ -1158,16 +1174,18 @@ def myimages(self):
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.DigitalOcean.name"><code class="name">var <span class="ident">name</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1183,16 +1201,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.DigitalOcean.projects"><code class="name">var <span class="ident">projects</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1208,14 +1228,16 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.DigitalOcean.region_names"><code class="name">var <span class="ident">region_names</span></code></dt>
 <dd>
-<section class="desc"><p>Returns Digital Ocean regions</p>
+<div class="desc"><p>Returns Digital Ocean regions</p>
 <p>e.g
 dg.region_names
 -&gt; ['nyc1', 'sgp1', 'lon1', 'nyc3', 'ams3', 'fra1', 'tor1', 'sfo2', 'blr1']</p>
 <p>Returns
-list : list of digital ocean regions</p></section>
+list : list of digital ocean regions</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def region_names(self):
     &#34;&#34;&#34;Returns Digital Ocean regions
@@ -1231,14 +1253,16 @@ def region_names(self):
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.DigitalOcean.regions"><code class="name">var <span class="ident">regions</span></code></dt>
 <dd>
-<section class="desc"><p>Return a list regions available on digital ocean</p>
+<div class="desc"><p>Return a list regions available on digital ocean</p>
 <p>e.g
 dg.regions
 -&gt; [<Region: nyc1 New York 1>, <Region: sgp1 Singapore 1>,&hellip;]</p>
 <p>Returns
-List : list of regions</p></section>
+List : list of regions</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def regions(self):
     &#34;&#34;&#34;Return a list regions available on digital ocean
@@ -1254,13 +1278,15 @@ def regions(self):
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.DigitalOcean.sizes"><code class="name">var <span class="ident">sizes</span></code></dt>
 <dd>
-<section class="desc"><p>Return a list sizes available on digital ocean</p>
+<div class="desc"><p>Return a list sizes available on digital ocean</p>
 <p>e.g
 dg.sizes -&gt; [s-1vcpu-1gb, 512mb, s-1vcpu-2gb, 1gb, s-3vcpu-1gb,.....]</p>
 <p>Returns
-List : list of sizes</p></section>
+List : list of sizes</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def sizes(self):
     &#34;&#34;&#34;Return a list sizes available on digital ocean
@@ -1276,15 +1302,17 @@ def sizes(self):
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.DigitalOcean.sshkeys"><code class="name">var <span class="ident">sshkeys</span></code></dt>
 <dd>
-<section class="desc"><p>Return list of sshkeys on digital ocean</p>
+<div class="desc"><p>Return list of sshkeys on digital ocean</p>
 <p>e.g
 dg.sshkeys
 -&gt; [<SSHKey: 25882170 3bot_container_sandbox>,
 <SSHKey: 27130645 Geert-root>,&hellip;]</p>
 <p>Returns
-list : list of sshkeys</p></section>
+list : list of sshkeys</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def sshkeys(self):
     &#34;&#34;&#34;
@@ -1303,16 +1331,18 @@ def sshkeys(self):
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.DigitalOcean.token"><code class="name">var <span class="ident">token</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1333,15 +1363,17 @@ and will get the default value if not</p>
 <span>def <span class="ident">get_default_sshkey</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Return sshkey you have added to your Digital Ocean client</p>
+<div class="desc"><p>Return sshkey you have added to your Digital Ocean client</p>
 <p>e.g
 dg.get_default_sshkey()
 -&gt;
 <SSHKey: 25589987 rafy@rafy-Inspiron-3576></p>
 <p>Returns
-list : list of sshkeys</p></section>
+list : list of sshkeys</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_default_sshkey(self):
     &#34;&#34;&#34;
     Return sshkey you have added to your Digital Ocean client
@@ -1363,7 +1395,7 @@ list : list of sshkeys</p></section>
 <span>def <span class="ident">get_image</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Return an image</p>
+<div class="desc"><p>Return an image</p>
 <p>e.g
 dg.get_image(name="CentOS")
 -&gt; <Image: 31354013 CentOS 6.9 x32></p>
@@ -1371,9 +1403,11 @@ dg.get_image(name="CentOS")
 name (str): name of the
 required image
 Returns
-Image : list of images on digital ocean images and the images you have created</p></section>
+Image : list of images on digital ocean images and the images you have created</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_image(self, name):
     &#34;&#34;&#34;Return an image
 
@@ -1398,10 +1432,10 @@ Image : list of images on digital ocean images and the images you have created</
 </details>
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.DigitalOcean.get_image_names"><code class="name flex">
-<span>def <span class="ident">get_image_names</span></span>(<span>self, name=&#39;&#39;)</span>
+<span>def <span class="ident">get_image_names</span></span>(<span>self, name='')</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Return all the image
+<div class="desc"><p>Return all the image
 or images with a specified name
 e.g
 dg.get_image_names()
@@ -1411,9 +1445,11 @@ dg.get_image_names("centos") -&gt; ['centos 6.9 x32 20180130', 'centos 6.9 x64 2
 name (str): name of the
 required image
 Returns
-Image : list of images</p></section>
+Image : list of images</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_image_names(self, name=&#34;&#34;):
     &#34;&#34;&#34; Return all the image  or images with a specified name
      e.g
@@ -1441,16 +1477,18 @@ Image : list of images</p></section>
 <span>def <span class="ident">get_region</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Returns specific region</p>
+<div class="desc"><p>Returns specific region</p>
 <p>e.g
 dg.get_region(name = 'nyc1')
 -&gt; <Region: nyc1 New York 1></p>
 <p>Args
 name (str) : name of the required region
 Returns
-Region : the region with the name specified</p></section>
+Region : the region with the name specified</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_region(self, name):
     &#34;&#34;&#34;
     Returns specific region
@@ -1475,7 +1513,7 @@ Region : the region with the name specified</p></section>
 <span>def <span class="ident">get_sshkey</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>get sshkey from
+<div class="desc"><p>get sshkey from
 Digital Ocean</p>
 <p>e.g
 dg.get_sshkey("rafy@rafy-Inspiron-3576")
@@ -1484,9 +1522,11 @@ dg.get_sshkey("rafy@rafy-Inspiron-3576")
 <p>Args
 name (string) : sshkey name</p>
 <p>Returns
-SSHKey : return the specified sshkey</p></section>
+SSHKey : return the specified sshkey</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_sshkey(self, name):
     &#34;&#34;&#34;
     get sshkey from  Digital Ocean
@@ -1510,16 +1550,18 @@ SSHKey : return the specified sshkey</p></section>
 <span>def <span class="ident">set_default_sshkey</span></span>(<span>self, default_sshkey)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Set sshkey you
+<div class="desc"><p>Set sshkey you
 Digital Ocean client</p>
 <p>e.g
 dg.set_default_sshkey(ssh)
 -&gt;
 <SSHKey: 25589987 rafy@rafy-Inspiron-3576></p>
 <p>Args
-default_sshkey (SSHKeyClient) : sshkey client you have created</p></section>
+default_sshkey (SSHKeyClient) : sshkey client you have created</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def set_default_sshkey(self, default_sshkey):
     &#34;&#34;&#34;
     Set sshkey you  Digital Ocean client
@@ -1550,11 +1592,11 @@ default_sshkey (SSHKeyClient) : sshkey client you have created</p></section>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -1569,9 +1611,11 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class Droplet(Client):
     do_name = fields.String()
 
@@ -1690,16 +1734,18 @@ print(p.name, p.age)
 <dl>
 <dt id="jumpscale.clients.digitalocean.digitalocean.Droplet.do_name"><code class="name">var <span class="ident">do_name</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1720,11 +1766,13 @@ and will get the default value if not</p>
 <span>def <span class="ident">delete_remote</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Delete Droplet from digital ocean</p>
+<div class="desc"><p>Delete Droplet from digital ocean</p>
 <p>e.g
-droplet.delete_remote()</p></section>
+droplet.delete_remote()</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def delete_remote(self):
     &#34;&#34;&#34;Delete Droplet from digital ocean
 
@@ -1737,10 +1785,10 @@ droplet.delete_remote()</p></section>
 </details>
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.Droplet.deploy"><code class="name flex">
-<span>def <span class="ident">deploy</span></span>(<span>self, sshkey=None, region=&#39;Amsterdam 3&#39;, image=&#39;ubuntu 18.04&#39;, size_slug=&#39;s-1vcpu-2gb&#39;, delete=True, project_name=None)</span>
+<span>def <span class="ident">deploy</span></span>(<span>self, sshkey=None, region='Amsterdam 3', image='ubuntu 18.04', size_slug='s-1vcpu-2gb', delete=True, project_name=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Deploy your Droplet to Digital Ocean</p>
+<div class="desc"><p>Deploy your Droplet to Digital Ocean</p>
 <p>Args
 sshkey (string): sshkey name used on digital ocean (if not set it will use the default one which already loaded)
 region (string): region name to deploy to
@@ -1748,9 +1796,11 @@ image (string): Image name to be used
 size_slug (string): size of the droplet
 (s-1vcpu-2gb,s-6vcpu-16gb,gd-8vcpu-32gb)
 delete (bool): delete the droplet if it is already deployed on digital ocean
-project_name (string): project to add this droplet it. If not specified the default project will be used.</p></section>
+project_name (string): project to add this droplet it. If not specified the default project will be used.</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def deploy(
     self,
     sshkey=None,
@@ -1826,15 +1876,17 @@ project_name (string): project to add this droplet it. If not specified the defa
 <span>def <span class="ident">get_digital_ocean_name</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get a name for the Droplet which is used on digital ocean</p>
+<div class="desc"><p>Get a name for the Droplet which is used on digital ocean</p>
 <p>e.g
 droplet.get_digital_ocean_name()
 -&gt;
 "test-name"</p>
 <p>Returns
-str: name for the droplet which is used on digital ocean</p></section>
+str: name for the droplet which is used on digital ocean</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_digital_ocean_name(self):
     &#34;&#34;&#34;Get a name for the Droplet which is used on digital ocean
 
@@ -1851,16 +1903,18 @@ str: name for the droplet which is used on digital ocean</p></section>
 <span>def <span class="ident">set_digital_ocean_name</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Set a name for your Droplet to be used on Digital Ocean</p>
+<div class="desc"><p>Set a name for your Droplet to be used on Digital Ocean</p>
 <p>e.g
 droplet.set_digital_ocean_name("test-name")</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>name to be used on digital ocean</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def set_digital_ocean_name(self, name):
     &#34;&#34;&#34;Set a name for your Droplet to be used on Digital Ocean
 
@@ -1890,7 +1944,7 @@ droplet.set_digital_ocean_name("test-name")</p>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Stored factories are a custom type of <code>Factory</code>, which uses current configured store backend
+<div class="desc"><p>Stored factories are a custom type of <code>Factory</code>, which uses current configured store backend
 to store all instance configurations.</p>
 <p>get a new stored factory given the type to create and store instances for.</p>
 <p>Any factory can have a name, parent <code>Base</code> instance and a parent factory.</p>
@@ -1905,9 +1959,11 @@ to store all instance configurations.</p>
 <dd>a parent <code>Base</code> instance. Defaults to None.</dd>
 <dt><strong><code>parent_factory_</code></strong> :&ensp;<code>Factory</code>, optional</dt>
 <dd>a parent <code>Factory</code>. Defaults to None.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class DropletFactory(StoredFactory):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -2035,20 +2091,20 @@ to store all instance configurations.</p>
 <span>def <span class="ident">check_droplet_exist_remote</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Check droplet exists on digital ocean</p>
+<div class="desc"><p>Check droplet exists on digital ocean</p>
 <p>e.g
 dg.droplets.check_droplet_exist_remote("3git")
 -&gt; True
 dg.droplets.check_droplet_exist_remote("sdfgdfed")
 -&gt; False</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt>name (str) : name of droplet</dt>
-<dt><strong><code>Returns</code></strong></dt>
-<dd>bool : True if the droplet exist or False if the droplet does not exist</dd>
-</dl></section>
+<p>name (str) : name of droplet
+Returns
+bool : True if the droplet exist or False if the droplet does not exist</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def check_droplet_exist_remote(self, name):
     &#34;&#34;&#34;
     Check droplet exists on digital ocean
@@ -2073,7 +2129,7 @@ dg.droplets.check_droplet_exist_remote("sdfgdfed")
 <span>def <span class="ident">delete_all</span></span>(<span>self, ignore=None, interactive=True, project_name=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Delete all the droplets or delete all the droplets in specific project</p>
+<div class="desc"><p>Delete all the droplets or delete all the droplets in specific project</p>
 <p>e.g
 dg.droplets.delete_all(project_name = "codescalers")
 dg.droplets.delete_all()</p>
@@ -2086,9 +2142,11 @@ dg.droplets.delete_all()</p>
 <dd>if True the deletion will be interactive and
 confirm if you want to delete but if False it
 will delete directly</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def delete_all(self, ignore=None, interactive=True, project_name=None):
     &#34;&#34;&#34;
     Delete all the droplets or delete all the droplets in specific project
@@ -2130,17 +2188,17 @@ will delete directly</dd>
 <span>def <span class="ident">get_droplet_exist_remote</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get Droplet exists from Digital Ocean</p>
+<div class="desc"><p>Get Droplet exists from Digital Ocean</p>
 <p>e.g
 dg.droplets.get_droplet_exist_remote("3git")</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt>name (str) : name of droplet</dt>
-<dt><strong><code>Returns</code></strong></dt>
-<dd>droplet : droplet with the name specified</dd>
-</dl></section>
+<p>name (str) : name of droplet
+Returns
+droplet : droplet with the name specified</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_droplet_exist_remote(self, name):
     &#34;&#34;&#34;
     Get Droplet exists from Digital Ocean
@@ -2165,20 +2223,20 @@ dg.droplets.get_droplet_exist_remote("3git")</p>
 <span>def <span class="ident">list_remote</span></span>(<span>self, project_name=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>List all remote droplet or list droplets for a project if it is specified</p>
+<div class="desc"><p>List all remote droplet or list droplets for a project if it is specified</p>
 <p>e.g
 dg.droplets.list_remote()
 -&gt; list of droplets
 dg.droplets.list_remote("codescalers")
 -&gt; list of droplets on codescalers project</p>
 <h2 id="args">Args</h2>
-<dl>
-<dt>project_name (str) : name of project on digital ocean (optional)</dt>
-<dt><strong><code>Returns</code></strong></dt>
-<dd>list (Droplet) : list of droplets on digital ocean</dd>
-</dl></section>
+<p>project_name (str) : name of project on digital ocean (optional)
+Returns
+list (Droplet) : list of droplets on digital ocean</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_remote(self, project_name=None):
     &#34;&#34;&#34;
     List all remote droplet or list droplets for a project if it is specified
@@ -2206,14 +2264,16 @@ dg.droplets.list_remote("codescalers")
 <span>def <span class="ident">shutdown_all</span></span>(<span>self, project_name=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Shutdown all the droplets or droplets in specific project</p>
+<div class="desc"><p>Shutdown all the droplets or droplets in specific project</p>
 <p>e.g
 dg.droplets.shutdown_all("codescalers")
 dg.droplets.shutdown_all()</p>
 <h2 id="args">Args</h2>
-<p>name (str) : name of the project</p></section>
+<p>name (str) : name of the project</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def shutdown_all(self, project_name=None):
     &#34;&#34;&#34;
     Shutdown all the droplets or droplets in specific project
@@ -2254,11 +2314,11 @@ dg.droplets.shutdown_all()</p>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -2273,9 +2333,11 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class Project(Client):
     do_name = fields.String()
 
@@ -2353,16 +2415,18 @@ print(p.name, p.age)
 <dl>
 <dt id="jumpscale.clients.digitalocean.digitalocean.Project.do_name"><code class="name">var <span class="ident">do_name</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -2383,11 +2447,13 @@ and will get the default value if not</p>
 <span>def <span class="ident">delete_remote</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Delete the project from Digital Ocean (A project can't be deleted unless it has no resources.)</p>
+<div class="desc"><p>Delete the project from Digital Ocean (A project can't be deleted unless it has no resources.)</p>
 <p>e.g
-project.delete_remote()</p></section>
+project.delete_remote()</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def delete_remote(self):
     &#34;&#34;&#34;Delete the project from Digital Ocean (A project can&#39;t be deleted unless it has no resources.)
 
@@ -2399,10 +2465,10 @@ project.delete_remote()</p></section>
 </details>
 </dd>
 <dt id="jumpscale.clients.digitalocean.digitalocean.Project.deploy"><code class="name flex">
-<span>def <span class="ident">deploy</span></span>(<span>self, purpose, description=&#39;&#39;, environment=&#39;&#39;, is_default=False)</span>
+<span>def <span class="ident">deploy</span></span>(<span>self, purpose, description='', environment='', is_default=False)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Create a digital ocean project
+<div class="desc"><p>Create a digital ocean project
 e.g
 project.deploy(purpose="testing digital ocean client")
 -&gt; project</p>
@@ -2413,11 +2479,13 @@ environment(str): environment of project's resources, defaults to ""
 is_default(bool): make this the default project for your user</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>project</code></strong></dt>
+<dt><code>project</code></dt>
 <dd>The project object that has been created</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def deploy(self, purpose, description=&#34;&#34;, environment=&#34;&#34;, is_default=False):
     &#34;&#34;&#34;Create a digital ocean project
     e.g
@@ -2455,18 +2523,20 @@ is_default(bool): make this the default project for your user</p>
 <span>def <span class="ident">get_digital_ocean_name</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get a name for the project which is used on digital ocean
+<div class="desc"><p>Get a name for the project which is used on digital ocean
 e.g
 project.get_digital_ocean_name()
 -&gt;
 "test project DO client"</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>name for the project which is used on digital ocean</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_digital_ocean_name(self):
     &#34;&#34;&#34;Get a name for the project which is used on digital ocean
     e.g
@@ -2482,16 +2552,18 @@ project.get_digital_ocean_name()
 <span>def <span class="ident">set_digital_ocean_name</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Set a name for your project to be used on Digital Ocean
+<div class="desc"><p>Set a name for your project to be used on Digital Ocean
 e.g
 project.set_digital_ocean_name("test project DO client")</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>name to be used on digital ocean</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def set_digital_ocean_name(self, name):
     &#34;&#34;&#34;Set a name for your project to be used on Digital Ocean
     e.g
@@ -2520,7 +2592,7 @@ project.set_digital_ocean_name("test project DO client")</p>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Stored factories are a custom type of <code>Factory</code>, which uses current configured store backend
+<div class="desc"><p>Stored factories are a custom type of <code>Factory</code>, which uses current configured store backend
 to store all instance configurations.</p>
 <p>get a new stored factory given the type to create and store instances for.</p>
 <p>Any factory can have a name, parent <code>Base</code> instance and a parent factory.</p>
@@ -2535,9 +2607,11 @@ to store all instance configurations.</p>
 <dd>a parent <code>Base</code> instance. Defaults to None.</dd>
 <dt><strong><code>parent_factory_</code></strong> :&ensp;<code>Factory</code>, optional</dt>
 <dd>a parent <code>Factory</code>. Defaults to None.</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class ProjectFactory(StoredFactory):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -2604,7 +2678,7 @@ to store all instance configurations.</p>
 <span>def <span class="ident">check_project_exist_remote</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Check a project with specific name exits on Digital Ocean</p>
+<div class="desc"><p>Check a project with specific name exits on Digital Ocean</p>
 <p>e.g
 dg.projects.check_project_exist_remote("codescalers")
 -&gt; True
@@ -2613,9 +2687,11 @@ dg.projects.check_project_exist_remote("dsrfjsdfjl")
 <p>Args
 name (str): name of the project</p>
 <p>Returns
-bool : True if the project exits and False if the project does not exist on digital ocean</p></section>
+bool : True if the project exits and False if the project does not exist on digital ocean</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def check_project_exist_remote(self, name):
     &#34;&#34;&#34;
     Check a project with specific name exits on Digital Ocean
@@ -2640,7 +2716,7 @@ bool : True if the project exits and False if the project does not exist on digi
 <span>def <span class="ident">get_project_exist_remote</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get a project with specifc name from
+<div class="desc"><p>Get a project with specifc name from
 Digital Ocean.</p>
 <p>e.g
 dg.projects.get_project_exist_remote("codescalers")
@@ -2648,9 +2724,11 @@ dg.projects.get_project_exist_remote("codescalers")
 <p>Args
 name (str): name of the project</p>
 <p>Returns
-Project : a project from digital ocean with the name specified</p></section>
+Project : a project from digital ocean with the name specified</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_project_exist_remote(self, name):
     &#34;&#34;&#34;
     Get a project with specifc name from  Digital Ocean.
@@ -2674,14 +2752,16 @@ Project : a project from digital ocean with the name specified</p></section>
 <span>def <span class="ident">list_remote</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Returns list of projects on Digital Ocean</p>
+<div class="desc"><p>Returns list of projects on Digital Ocean</p>
 <p>e.g
 dg.projects.list_remote()
 -&gt; list of projects</p>
 <p>Returns
-list(projects): list of projects on digital ocean</p></section>
+list(projects): list of projects on digital ocean</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_remote(self):
     &#34;&#34;&#34;
     Returns list of projects on Digital Ocean
@@ -2825,9 +2905,7 @@ list(projects): list of projects on digital ocean</p></section>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

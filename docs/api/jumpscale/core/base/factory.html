@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.core.base.factory API documentation</title>
 <meta name="description" content="Hierarchal configurations and factories for any `jumpscale.core.base.meta.Base` type/class …" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -20,11 +22,11 @@
 <h1 class="title">Module <code>jumpscale.core.base.factory</code></h1>
 </header>
 <section id="section-intro">
-<p>Hierarchal configurations and factories for any <a title="jumpscale.core.base.meta.Base" href="meta.html#jumpscale.core.base.meta.Base"><code>Base</code></a> type/class.</p>
+<p>Hierarchal configurations and factories for any <code><a title="jumpscale.core.base.meta.Base" href="meta.html#jumpscale.core.base.meta.Base">Base</a></code> type/class.</p>
 <p>It is implemented using:</p>
 <ul>
-<li><a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory"><code>Factory</code></a>: the base for all factories, implements an in-memory factory for any type.</li>
-<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory"><code>StoredFactory</code></a>: a factory which stores and load configuration according to the current configured store backend.</li>
+<li><code><a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory">Factory</a></code>: the base for all factories, implements an in-memory factory for any type.</li>
+<li><code><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></code>: a factory which stores and load configuration according to the current configured store backend.</li>
 </ul>
 <p>Default store configured is file system, you can show current store config by doing:</p>
 <pre><code>✗ jsctl config get store
@@ -42,7 +44,9 @@ whoosh.path = &quot;/home/abom/.config/jumpscale/whoosh_indexes&quot;
 </code></pre>
 <p>This will use current redis config (hostname: localhost, port: 6379).</p>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">&#34;&#34;&#34;
 Hierarchal configurations and factories for any `jumpscale.core.base.meta.Base` type/class.
 
@@ -648,9 +652,11 @@ class StoredFactory(events.Handler, Factory):
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>raised when you try to create an instance by the same name of an existing one for a factory</p></section>
+<div class="desc"><p>raised when you try to create an instance by the same name of an existing one for a factory</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class DuplicateError(Exception):
     &#34;&#34;&#34;
     raised when you try to create an instance by the same name of an existing one for a factory
@@ -667,10 +673,10 @@ class StoredFactory(events.Handler, Factory):
 <span>(</span><span>type_, name_=None, parent_instance_=None, parent_factory_=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Base factory, where you can create/get/list/delete new instances.</p>
+<div class="desc"><p>Base factory, where you can create/get/list/delete new instances.</p>
 <p>All of the operations are done in memory, also instances will be available as properties.</p>
 <p>Example:</p>
-<pre><code class="python">
+<pre><code class="language-python">
 class Car(Base):
     name = fields.String()
     color = fields.String()
@@ -691,11 +697,13 @@ print(cars.mycar.name)
 <dd>factory name. Defaults to None.</dd>
 <dt><strong><code>parent_instance_</code></strong> :&ensp;<code>Base</code>, optional</dt>
 <dd>a parent <code>Base</code> instance. Defaults to None.</dd>
-<dt><strong><code>parent_factory_</code></strong> :&ensp;<code>Factory</code>, optional</dt>
-<dd>a parent <code>Factory</code>. Defaults to None.</dd>
-</dl></section>
+<dt><strong><code>parent_factory_</code></strong> :&ensp;<code><a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory">Factory</a></code>, optional</dt>
+<dd>a parent <code><a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory">Factory</a></code>. Defaults to None.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class Factory:
     &#34;&#34;&#34;
     Base factory, where you can create/get/list/delete new instances.
@@ -921,9 +929,11 @@ print(cars.mycar.name)
 <dl>
 <dt id="jumpscale.core.base.factory.Factory.name"><code class="name">var <span class="ident">name</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def name(self):
     return self.__name</code></pre>
@@ -931,9 +941,11 @@ def name(self):
 </dd>
 <dt id="jumpscale.core.base.factory.Factory.parent_factory"><code class="name">var <span class="ident">parent_factory</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def parent_factory(self):
     return self.__parent_factory</code></pre>
@@ -941,9 +953,11 @@ def parent_factory(self):
 </dd>
 <dt id="jumpscale.core.base.factory.Factory.parent_instance"><code class="name">var <span class="ident">parent_instance</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def parent_instance(self):
     return self.__parent_instance</code></pre>
@@ -956,12 +970,14 @@ def parent_instance(self):
 <span>def <span class="ident">delete</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>delete an instance (with its attribute)</p>
+<div class="desc"><p>delete an instance (with its attribute)</p>
 <p>this will update the count and trigger <code>_deleted</code></p>
 <h2 id="args">Args</h2>
-<p>name (str)</p></section>
+<p>name (str)</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def delete(self, name):
     &#34;&#34;&#34;
     delete an instance (with its attribute)
@@ -980,7 +996,7 @@ def parent_instance(self):
 <span>def <span class="ident">find</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>find an instance with the given name</p>
+<div class="desc"><p>find an instance with the given name</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
@@ -988,16 +1004,18 @@ def parent_instance(self):
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><code>ValueError</code></strong></dt>
+<dt><code>ValueError</code></dt>
 <dd>in case the name is an internal attribute of this factory, like <code>get</code> or <code>new</code>.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>Base</code> or <code>NoneType</code>: <code>an</code> <code>instance</code> or <code>none</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<dt><code>Base</code> or <code>NoneType</code></dt>
+<dd>an instance or none</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def find(self, name):
     &#34;&#34;&#34;
     find an instance with the given name
@@ -1021,7 +1039,7 @@ def parent_instance(self):
 <span>def <span class="ident">get</span></span>(<span>self, name, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>get an instance (will create if it does not exist)</p>
+<div class="desc"><p>get an instance (will create if it does not exist)</p>
 <p>if the instance with <code>name</code> exists, <code>args</code> and <code>kwargs</code> are ignored.</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -1034,16 +1052,18 @@ def parent_instance(self):
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><a title="jumpscale.core.base.factory.DuplicateError" href="#jumpscale.core.base.factory.DuplicateError"><code>DuplicateError</code></a></strong></dt>
+<dt><code><a title="jumpscale.core.base.factory.DuplicateError" href="#jumpscale.core.base.factory.DuplicateError">DuplicateError</a></code></dt>
 <dd>in case an instance with the same name exists</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>Base</code></strong></dt>
+<dt><code>Base</code></dt>
 <dd>instance</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get(self, name, *args, **kwargs):
     &#34;&#34;&#34;
     get an instance (will create if it does not exist)
@@ -1071,15 +1091,14 @@ def parent_instance(self):
 <span>def <span class="ident">list_all</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>get a set of all instance names</p>
+<div class="desc"><p>get a set of all instance names</p>
 <p>this only get a list of all properties that are of factory <code>Base</code> type.</p>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><code>set</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<p>set</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_all(self):
     &#34;&#34;&#34;
     get a set of all instance names
@@ -1100,7 +1119,7 @@ def parent_instance(self):
 <span>def <span class="ident">new</span></span>(<span>self, name, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>get a new instance and make it available as an attribute</p>
+<div class="desc"><p>get a new instance and make it available as an attribute</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
@@ -1112,16 +1131,18 @@ def parent_instance(self):
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><a title="jumpscale.core.base.factory.DuplicateError" href="#jumpscale.core.base.factory.DuplicateError"><code>DuplicateError</code></a></strong></dt>
+<dt><code><a title="jumpscale.core.base.factory.DuplicateError" href="#jumpscale.core.base.factory.DuplicateError">DuplicateError</a></code></dt>
 <dd>in case an instance with the same name exists</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>Base</code></strong></dt>
+<dt><code>Base</code></dt>
 <dd>instance</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def new(self, name, *args, **kwargs):
     &#34;&#34;&#34;
     get a new instance and make it available as an attribute
@@ -1152,7 +1173,7 @@ def parent_instance(self):
 <span>(</span><span>type_, name_=None, parent_instance_=None, parent_factory_=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Stored factories are a custom type of <a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory"><code>Factory</code></a>, which uses current configured store backend
+<div class="desc"><p>Stored factories are a custom type of <code><a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory">Factory</a></code>, which uses current configured store backend
 to store all instance configurations.</p>
 <p>get a new stored factory given the type to create and store instances for.</p>
 <p>Any factory can have a name, parent <code>Base</code> instance and a parent factory.</p>
@@ -1165,11 +1186,13 @@ to store all instance configurations.</p>
 <dd>factory name. Defaults to None.</dd>
 <dt><strong><code>parent_instance_</code></strong> :&ensp;<code>Base</code>, optional</dt>
 <dd>a parent <code>Base</code> instance. Defaults to None.</dd>
-<dt><strong><code>parent_factory_</code></strong> :&ensp;<a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory"><code>Factory</code></a>, optional</dt>
-<dd>a parent <a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory"><code>Factory</code></a>. Defaults to None.</dd>
-</dl></section>
+<dt><strong><code>parent_factory_</code></strong> :&ensp;<code><a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory">Factory</a></code>, optional</dt>
+<dd>a parent <code><a title="jumpscale.core.base.factory.Factory" href="#jumpscale.core.base.factory.Factory">Factory</a></code>. Defaults to None.</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class StoredFactory(events.Handler, Factory):
     &#34;&#34;&#34;
     Stored factories are a custom type of `Factory`, which uses current configured store backend
@@ -1496,47 +1519,46 @@ to store all instance configurations.</p>
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="jumpscale.clients.zdb.ZDBFactory" href="../../clients/zdb/index.html#jumpscale.clients.zdb.ZDBFactory">ZDBFactory</a></li>
-<li><a title="jumpscale.clients.digitalocean.digitalocean.ProjectFactory" href="../../clients/digitalocean/digitalocean.html#jumpscale.clients.digitalocean.digitalocean.ProjectFactory">ProjectFactory</a></li>
 <li><a title="jumpscale.clients.digitalocean.digitalocean.DropletFactory" href="../../clients/digitalocean/digitalocean.html#jumpscale.clients.digitalocean.digitalocean.DropletFactory">DropletFactory</a></li>
-<li><a title="jumpscale.core.identity.IdentityFactory" href="../identity/index.html#jumpscale.core.identity.IdentityFactory">IdentityFactory</a></li>
-<li><a title="jumpscale.clients.explorer.ExplorerFactory" href="../../clients/explorer/index.html#jumpscale.clients.explorer.ExplorerFactory">ExplorerFactory</a></li>
+<li><a title="jumpscale.clients.digitalocean.digitalocean.ProjectFactory" href="../../clients/digitalocean/digitalocean.html#jumpscale.clients.digitalocean.digitalocean.ProjectFactory">ProjectFactory</a></li>
 <li><a title="jumpscale.clients.stellar.StellarFactory" href="../../clients/stellar/index.html#jumpscale.clients.stellar.StellarFactory">StellarFactory</a></li>
+<li><a title="jumpscale.clients.zdb.ZDBFactory" href="../../clients/zdb/index.html#jumpscale.clients.zdb.ZDBFactory">ZDBFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
+<li><a title="jumpscale.core.identity.IdentityFactory" href="../identity/index.html#jumpscale.core.identity.IdentityFactory">IdentityFactory</a></li>
+<li><a title="jumpscale.sals.billing.models.PaymentFactory" href="../../sals/billing/models.html#jumpscale.sals.billing.models.PaymentFactory">PaymentFactory</a></li>
+<li><a title="jumpscale.sals.billing.models.RefundFactory" href="../../sals/billing/models.html#jumpscale.sals.billing.models.RefundFactory">RefundFactory</a></li>
 <li><a title="jumpscale.servers.threebot.ThreebotServerFactory" href="../../servers/threebot/index.html#jumpscale.servers.threebot.ThreebotServerFactory">ThreebotServerFactory</a></li>
-<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
-<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
-<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
-<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
-<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
-<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
-<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
-<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
-<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
-<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
-<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
-<li><a title="jumpscale.core.base.factory.StoredFactory" href="#jumpscale.core.base.factory.StoredFactory">StoredFactory</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="jumpscale.core.base.factory.StoredFactory.STORE"><code class="name">var <span class="ident">STORE</span></code></dt>
 <dd>
-<section class="desc"><p>Filesystem store is an EncryptedConfigStore</p>
+<div class="desc"><p>Filesystem store is an EncryptedConfigStore</p>
 <p>It saves the config relative to <code>config_env.get_store_config("filesystem")</code></p>
-<p>To store every instance config in a different path, it uses the given <code>Location</code>.</p></section>
+<p>To store every instance config in a different path, it uses the given <code>Location</code>.</p></div>
 </dd>
 </dl>
 <h3>Instance variables</h3>
 <dl>
 <dt id="jumpscale.core.base.factory.StoredFactory.location"><code class="name">var <span class="ident">location</span></code></dt>
 <dd>
-<section class="desc"><p>get a unique location for this factory</p>
+<div class="desc"><p>get a unique location for this factory</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>Location</code></strong></dt>
+<dt><code>Location</code></dt>
 <dd>location object</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def location(self):
     &#34;&#34;&#34;
@@ -1569,9 +1591,11 @@ def location(self):
 </dd>
 <dt id="jumpscale.core.base.factory.StoredFactory.parent_location"><code class="name">var <span class="ident">parent_location</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def parent_location(self):
     if not self.parent_factory:
@@ -1581,9 +1605,11 @@ def parent_location(self):
 </dd>
 <dt id="jumpscale.core.base.factory.StoredFactory.store"><code class="name">var <span class="ident">store</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def store(self):
     if not self.__store:
@@ -1598,7 +1624,7 @@ def store(self):
 <span>def <span class="ident">find_many</span></span>(<span>self, cursor_=None, limit_=None, **query)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>do a search against the store (not loaded objects) with this query.</p>
+<div class="desc"><p>do a search against the store (not loaded objects) with this query.</p>
 <p>queries can relate to current store backend used.</p>
 <p>Keyword Args:
 cursor_ (any, optional): an optional cursor, to start searching from. Defaults to None.
@@ -1606,11 +1632,13 @@ limit_ (int, optional): results limit. Defaults to None.
 query: a mapping for field/query, e.g. first_name="aa"</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>tuple</code></strong></dt>
+<dt><code>tuple</code></dt>
 <dd>the new cursor, total results count, and a list of objects as a result</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def find_many(self, cursor_=None, limit_=None, **query):
     &#34;&#34;&#34;
     do a search against the store (not loaded objects) with this query.
@@ -1636,7 +1664,7 @@ query: a mapping for field/query, e.g. first_name="aa"</p>
 <span>def <span class="ident">get_instance_property</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>return a new property descriptor for a given name, this will help in lazy-loading
+<div class="desc"><p>return a new property descriptor for a given name, this will help in lazy-loading
 as this property will only create and load an instance from the store once accessed.</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -1645,11 +1673,13 @@ as this property will only create and load an instance from the store once acces
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>property</code></strong></dt>
+<dt><code>property</code></dt>
 <dd>property descriptor (object)</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_instance_property(self, name):
     &#34;&#34;&#34;
     return a new property descriptor for a given name, this will help in lazy-loading
@@ -1680,14 +1710,16 @@ as this property will only create and load an instance from the store once acces
 <span>def <span class="ident">handle</span></span>(<span>self, ev)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>handle when the parent instance is deleted</p>
+<div class="desc"><p>handle when the parent instance is deleted</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>ev</code></strong> :&ensp;<code>InstanceDeleteEvent</code></dt>
 <dd>instance delete event</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def handle(self, ev):
     &#34;&#34;&#34;
     handle when the parent instance is deleted
@@ -1710,14 +1742,16 @@ as this property will only create and load an instance from the store once acces
 <span>def <span class="ident">list_all</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>get all instance names (stored or not)</p>
+<div class="desc"><p>get all instance names (stored or not)</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>set</code></strong></dt>
+<dt><code>set</code></dt>
 <dd>instance names</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def list_all(self):
     &#34;&#34;&#34;
     get all instance names (stored or not)
@@ -1733,7 +1767,7 @@ as this property will only create and load an instance from the store once acces
 <span>def <span class="ident">new</span></span>(<span>self, name, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>get a new instance and make it available as an attribute</p>
+<div class="desc"><p>get a new instance and make it available as an attribute</p>
 <p>this method also initialize sub-factories for this instance.</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -1746,16 +1780,18 @@ as this property will only create and load an instance from the store once acces
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><strong><a title="jumpscale.core.base.factory.DuplicateError" href="#jumpscale.core.base.factory.DuplicateError"><code>DuplicateError</code></a></strong></dt>
+<dt><code><a title="jumpscale.core.base.factory.DuplicateError" href="#jumpscale.core.base.factory.DuplicateError">DuplicateError</a></code></dt>
 <dd>in case an instance with the same name exists</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>Base</code></strong></dt>
+<dt><code>Base</code></dt>
 <dd>instance</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def new(self, name, *args, **kwargs):
     &#34;&#34;&#34;
     get a new instance and make it available as an attribute
@@ -1842,9 +1878,7 @@ as this property will only create and load an instance from the store once acces
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

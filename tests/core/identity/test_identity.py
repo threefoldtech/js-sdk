@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 from jumpscale.loader import j
 import os
 
@@ -22,7 +22,6 @@ class TestIdentity(TestCase):
             tname=self.tname,
             email=self.email,
             words=self.words,
-            explorer_url="https://explorer.testnet.grid.tf/api/v1",
         )
 
     def test001_register(self):
@@ -87,6 +86,7 @@ class TestIdentity(TestCase):
 
         self.assertIsNone(j.core.identity.find(self.instance_name))
 
+    @skip("registration now jus gets a random id")
     def test004_register_fake_identity(self):
         """Test case for delete my identity.
 
@@ -103,7 +103,6 @@ class TestIdentity(TestCase):
                 tname=f"{self.instance_name}.3bot",
                 email=self.email,
                 words=self.words,
-                explorer_url="https://explorer.testnet.grid.tf/api/v1",
             )
 
             identity.register()

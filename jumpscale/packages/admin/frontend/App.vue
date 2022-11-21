@@ -153,11 +153,6 @@
               <v-list-item-title
                 >{{ identity.name }} ({{ identity.id }})</v-list-item-title
               >
-              <v-list-item-subtitle>
-                <v-chip class="mt-2" outlined
-                  >{{ identity.network }} Network</v-chip
-                >
-              </v-list-item-subtitle>
               <v-list-item-subtitle v-if="SDKVersion">
                 <v-chip class="mt-2 px-6 py-6" outlined
                   >JS-NG: {{ NGVersion }}<br />JS-SDK: {{ SDKVersion }}</v-chip
@@ -382,7 +377,6 @@ module.exports = {
     this.getAnnouncementStatus();
     this.setTimeLocal();
     this.getSDKVersion();
-    this.isFarmManagementInstalled();
     this.clockInterval = setInterval(() => {
       this.setTimeLocal();
     }, 1000);

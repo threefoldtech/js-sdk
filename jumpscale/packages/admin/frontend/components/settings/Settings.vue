@@ -193,20 +193,7 @@
                 :label="`Allow staging ssl certificate`"
                 @click.stop="setDeveloperOptions()"
               ></v-switch>
-              <v-switch
-                hide-details
-                class="my-2 pl-2"
-                v-model="overProvision"
-                :label="`Allow over provisioning`"
-                @click.stop="setDeveloperOptions()"
-              ></v-switch>
-              <v-switch
-                hide-details
-                class="my-2 pl-2"
-                v-model="explorerLogs"
-                :label="`Enable explorer logs`"
-                @click.stop="setDeveloperOptions()"
-              ></v-switch>
+
               <v-switch
                 hide-details
                 class="my-2 pl-2"
@@ -214,20 +201,8 @@
                 :label="`Enable sending escalation emails`"
                 @click.stop="setDeveloperOptions()"
               ></v-switch>
-              <v-switch
-                hide-details
-                class="my-2 pl-2"
-                v-model="autoExtendPools"
-                :label="`Pools auto extension`"
-                @click.stop="setDeveloperOptions()"
-              ></v-switch>
-              <v-switch
-                hide-details
-                class="my-2 pl-2"
-                v-model="sortNodesBySru"
-                :label="`Sort nodes by SRU`"
-                @click.stop="setDeveloperOptions()"
-              ></v-switch>
+
+
               <v-btn
                 hide-details
                 class="my-2 ml-2"
@@ -236,14 +211,7 @@
                 @click="showConfig()"
                 >Show 3Bot configurations</v-btn
               >
-              <v-btn
-                hide-details
-                class="my-2 ml-2"
-                small
-                color="success"
-                @click="clearBlockedNodes()"
-                >Clear blocked nodes</v-btn
-              >
+
               <v-btn
                 hide-details
                 class="my-2 ml-2"
@@ -251,14 +219,6 @@
                 color="success"
                 @click="downloadThreebotStateFile()"
                 >Export 3Bot state</v-btn
-              >
-              <v-btn
-                hide-details
-                class="my-2 ml-2"
-                small
-                color="success"
-                @click="clearBlockedManagedDomains()"
-                >Clear blocked domains</v-btn
               >
             </base-section>
           </v-col>
@@ -357,7 +317,6 @@ module.exports = {
       configurations: null,
       testCert: false,
       overProvision: false,
-      explorerLogs: false,
       escalationEmailsEnabled: false,
       autoExtendPools: false,
       sortNodesBySru: false,
@@ -512,7 +471,6 @@ module.exports = {
           let developerOptions = JSON.parse(response.data).data;
           this.testCert = developerOptions["test_cert"];
           this.overProvision = developerOptions["over_provision"];
-          this.explorerLogs = developerOptions["explorer_logs"];
           this.escalationEmailsEnabled = developerOptions["escalation_emails"];
           this.autoExtendPools = developerOptions["auto_extend_pools"];
           this.sortNodesBySru = developerOptions["sort_nodes_by_sru"];
@@ -526,7 +484,6 @@ module.exports = {
         .setDeveloperOptions(
           this.testCert,
           this.overProvision,
-          this.explorerLogs,
           this.escalationEmailsEnabled,
           this.autoExtendPools,
           this.sortNodesBySru

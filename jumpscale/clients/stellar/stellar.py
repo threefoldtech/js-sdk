@@ -26,17 +26,14 @@ ACTIVATION_ADDRESS = "GCKLGWHEYT2V63HC2VDJRDWEY3G54YSHHPOA6Q3HAPQUGA5OZDWZL7KW"
 _THREEFOLDFOUNDATION_TFTSTELLAR_SERVICES = {
     "TEST": "testnet.threefold.io",
     "STD": "tokenservices.threefold.io",
-    "TFTECHTEST": None,
-}  # TODO: add tftech link
+}
 _HORIZON_NETWORKS = {
     "TEST": "https://horizon-testnet.stellar.org",
     "STD": "https://horizon.stellar.org",
-    "TFTECHTEST": "https://horizon.testnet.threefold.io",
 }
 _NETWORK_PASSPHRASES = {
     "TEST": stellar_sdk.Network.TESTNET_NETWORK_PASSPHRASE,
     "STD": stellar_sdk.Network.PUBLIC_NETWORK_PASSPHRASE,
-    "TFTECHTEST": "TFTech Test Network ; December 2020",
 }
 _NETWORK_KNOWN_TRUSTS = {
     "TEST": {
@@ -48,11 +45,6 @@ _NETWORK_KNOWN_TRUSTS = {
         "TFT": "GBOVQKJYHXRR3DX6NOX2RRYFRCUMSADGDESTDNBDS6CDVLGVESRTAC47",
         "FreeTFT": "GCBGS5TFE2BPPUVY55ZPEMWWGR6CLQ7T6P46SOFGHXEBJ34MSP6HVEUT",
         "TFTA": "GBUT4GP5GJ6B3XW5PXENHQA7TXJI5GOPW3NF4W3ZIW6OOO4ISY6WNLN2",
-    },
-    "TFTECHTEST": {
-        "TFT": "GA47YZA3PKFUZMPLQ3B5F2E3CJIB57TGGU7SPCQT2WAEYKN766PWIMB3",
-        "FreeTFT": "GBLDUINEFYTF7XEE7YNWA3JQS4K2VD37YU7I2YAE7R5AHZDKQXSS2J6R",
-        "TFTA": "GB55A4RR4G2MIORJTQA4L6FENZU7K4W7ATGY6YOT2CW47M5SZYGYKSCT",
     },
 }
 _THREEFOLDFOUNDATION_TFTSTELLAR_ENDPOINT = {
@@ -67,7 +59,6 @@ _THREEFOLDFOUNDATION_TFTSTELLAR_ENDPOINT = {
 class Network(Enum):
     STD = "STD"
     TEST = "TEST"
-    TFTECHTEST = "TFTECHTEST"
 
 
 class Stellar(Client):
@@ -99,7 +90,7 @@ class Stellar(Client):
     def load_account(self):
         horizonServer = self._get_horizon_server()
         saccount = horizonServer.load_account(self.address)
-        account = Account(saccount.account_id, saccount.sequence, self)
+        account = Account(saccount.account.account_id, saccount.sequence, self)
         return account
 
     def _get_url(self, endpoint):
@@ -166,7 +157,7 @@ class Stellar(Client):
             address = self.address
         escrow_accounts = []
         accounts_endpoint = self._get_horizon_server().accounts()
-        accounts_endpoint.signer(address)
+        accounts_endpoint.for_signer(address)
         old_cursor = "old"
         new_cursor = ""
         while new_cursor != old_cursor:
@@ -250,7 +241,7 @@ class Stellar(Client):
                     amount=balance.balance,
                     asset_code=balance.asset_code,
                     asset_issuer=balance.asset_issuer,
-                    source=account.account_id,
+                    source=account.account.account_id,
                 )
             # Step 2: Delete trustlines
             transaction_builder.append_change_trust_op(
@@ -398,14 +389,13 @@ class Stellar(Client):
         source_account = server.load_account(source_public_key)
 
         base_fee = server.fetch_base_fee()
-
         transaction = (
             stellar_sdk.TransactionBuilder(
                 source_account=source_account,
                 network_passphrase=_NETWORK_PASSPHRASES[self.network.value],
                 base_fee=base_fee,
             )
-            .append_change_trust_op(asset_issuer=issuer, asset_code=asset_code, limit=limit)
+            .append_change_trust_op(Asset(asset_code,issuer), limit=limit)
             .set_timeout(30)
             .build()
         )
@@ -550,9 +540,8 @@ class Stellar(Client):
         transaction_builder.append_payment_op(
             destination=destination_address,
             amount=str(amount),
-            asset_code=asset_code,
-            asset_issuer=issuer,
-            source=source_account.account_id,
+            asset=self._get_asset(asset_code),
+            source=source_account.account.account_id,
         )
         transaction_builder.set_timeout(timeout)
         if memo_text is not None:
@@ -1054,7 +1043,7 @@ class Stellar(Client):
         wallet_address = wallet_address or self.address
         server = self._get_horizon_server()
         endpoint = server.offers()
-        endpoint.account(wallet_address)
+        endpoint.for_account(wallet_address)
         response = endpoint.call()
         offers = response["_embedded"]["records"]
         return offers

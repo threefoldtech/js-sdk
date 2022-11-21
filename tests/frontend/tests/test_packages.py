@@ -1,6 +1,6 @@
 import pytest
 from jumpscale.loader import j
-from jumpscale.packages import marketplace
+from jumpscale.packages import stellar_stats
 from tests.frontend.pages.Packages.packages import Packages
 from tests.frontend.tests.base_tests import BaseTest
 
@@ -62,7 +62,7 @@ class PackagesTests(BaseTest):
         self.assertNotIn("notebooks", installed_packages.keys())
 
         self.info("Add a package using path")
-        path = j.sals.fs.dirname(marketplace.__file__)
+        path = j.sals.fs.dirname(stellar_stats.__file__)
         packages.add_package(path=path)
 
         self.info("Check that the package has been Added correctly")

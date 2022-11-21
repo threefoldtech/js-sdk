@@ -29,8 +29,6 @@ module.exports = {
       KeysWithTypeDict: [
         "factory",
         "threebot",
-        "explorer_api_urls",
-        "explorer",
         "alerts",
       ],
     };

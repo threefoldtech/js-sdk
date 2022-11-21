@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.sals.chatflows.chatflows API documentation</title>
 <meta name="description" content="" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -21,11 +23,12 @@
 </header>
 <section id="section-intro">
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">import base64
 import sys
 import uuid
-from captcha.image import ImageCaptcha
 from importlib import import_module
 import inspect
 import json
@@ -33,6 +36,7 @@ import gevent
 import gevent.queue
 import html
 from jumpscale.loader import j
+import stellar_sdk
 
 
 class Result:
@@ -105,6 +109,7 @@ class GedisChatBot:
 
     steps = []
     title = &#34;Zero Chat Bot&#34;
+    alert_view_url = None
 
     def __init__(self, **kwargs):
         &#34;&#34;&#34;
@@ -114,6 +119,7 @@ class GedisChatBot:
         &#34;&#34;&#34;
         self.session_id = str(uuid.uuid4())
         self.kwargs = kwargs
+        self.spawn = kwargs.get(&#34;spawn&#34;, True)
         self._state = {}
         self._current_step = 0
         self._steps_info = {}
@@ -159,41 +165,67 @@ class GedisChatBot:
             &#34;final_step&#34;: self.step_info.get(&#34;final_step&#34;),
         }
 
-    def _execute_current_step(self, spawn=True):
+    def _execute_current_step(self, spawn=None):
+        if spawn is None:
+            spawn = self.spawn
+
         def wrapper(step_name):
             internal_error = False
             try:
                 getattr(self, step_name)()
             except StopChatFlow as e:
                 internal_error = True
-                j.logger.exception(&#34;error&#34;, exception=e)
+                j.logger.exception(f&#34;chatflow stopped in step {step_name}. exception: {str(e)}&#34;, exception=e)
+                traceback_info = j.tools.errorhandler.get_traceback()
                 j.tools.alerthandler.alert_raise(
-                    appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
+                    app_name=&#34;chatflows&#34;,
+                    category=&#34;internal_errors&#34;,
+                    message=str(e),
+                    alert_type=&#34;exception&#34;,
+                    traceback=traceback_info,
                 )
                 if e.msg:
                     self.send_error(
-                        e.msg + &#34;. Please use the refresh button on the upper right to restart the chatflow&#34;, **e.kwargs
+                        e.msg + f&#34;. Use the refresh button on the upper right to restart {self.title} creation&#34;,
+                        **e.kwargs,
                     )
                 self.send_data({&#34;category&#34;: &#34;end&#34;})
 
             except Exception as e:
+                message = &#34;Something wrong happened&#34;
+                if isinstance(e, stellar_sdk.exceptions.BadRequestError) and &#34;op_underfunded&#34; in e.extras.get(
+                    &#34;result_codes&#34;, {}
+                ).get(&#34;operations&#34;, []):
+                    message = &#34;Not enough funds&#34;
                 internal_error = True
-                j.logger.exception(&#34;error&#34;, exception=e)
+                j.logger.exception(f&#34;error when executing step {step_name}. exception: {str(e)}&#34;, exception=e)
+                traceback_info = j.tools.errorhandler.get_traceback()
                 alert = j.tools.alerthandler.alert_raise(
-                    appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
+                    app_name=&#34;chatflows&#34;,
+                    category=&#34;internal_errors&#34;,
+                    message=str(e),
+                    alert_type=&#34;exception&#34;,
+                    traceback=traceback_info,
                 )
                 username = self.user_info()[&#34;username&#34;]
-                if username in j.core.identity.me.admins:
+                if self.alert_view_url:
                     self.send_error(
-                        f&#34;&#34;&#34;Something wrong happened, please check alert: &lt;a href=&#34;/admin/#/alerts/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;&#34;&#34;&#34;
-                        &#34;Please use the refresh button on the upper right to restart the chatflow&#34;,
+                        f&#34;&#34;&#34;{message}, please check alert: &lt;a href=&#34;{self.alert_view_url}/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;. This could occur if Stellar service was down.&#34;&#34;&#34;
+                        f&#34;Use the refresh button on the upper right to restart {self.title} creation&#34;,
+                        md=True,
+                        html=True,
+                    )
+                elif username in j.core.identity.me.admins:
+                    self.send_error(
+                        f&#34;&#34;&#34;{message}, please check alert: &lt;a href=&#34;/admin/#/alerts/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;. This could occur if Stellar service was down.&#34;&#34;&#34;
+                        f&#34;Use the refresh button on the upper right to restart {self.title} creation&#34;,
                         md=True,
                         html=True,
                     )
                 else:
                     self.send_error(
                         f&#34;Something wrong happened, please contact support with alert ID: {alert.id}\n&#34;
-                        &#34;Please use the refresh button on the upper right to restart the chatflow&#34;
+                        f&#34;Use the refresh button on the upper right to restart {self.title} creation&#34;
                     )
                 self.send_data({&#34;category&#34;: &#34;end&#34;})
 
@@ -564,26 +596,6 @@ class GedisChatBot:
         qrcode = j.tools.qrcode.base64_get(data, scale=scale)
         self.send_data({&#34;category&#34;: &#34;qrcode_show&#34;, &#34;msg&#34;: msg, &#34;qrcode&#34;: qrcode, &#34;kwargs&#34;: kwargs}, is_slide=True)
         self._queue_in.get()
-
-    def captcha_msg(self, **kwargs):
-        image = ImageCaptcha()
-        captcha = j.data.idgenerator.generateXCharID(4)
-        data = image.generate(captcha)
-        kwargs[&#34;value&#34;] = captcha
-        return (
-            captcha,
-            {
-                &#34;category&#34;: &#34;captcha_ask&#34;,
-                &#34;captcha&#34;: base64.b64encode(data.read()).decode(),
-                &#34;value&#34;: captcha,
-                &#34;msg&#34;: &#34;Are you human?&#34;,
-                &#34;kwargs&#34;: kwargs,
-            },
-        )
-
-    def captcha_ask(self, **kwargs):
-        captcha, message = self.captcha_msg(required=True, **kwargs)
-        return self.ask(message) == captcha
 
     def md_msg(self, msg, **kwargs):
         return {&#34;category&#34;: &#34;md_show&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
@@ -693,9 +705,11 @@ class StopChatFlow(Exception):
 <span>def <span class="ident">chatflow_step</span></span>(<span>title=None, final_step=False, disable_previous=False)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def chatflow_step(title=None, final_step=False, disable_previous=False):
     def decorator(func):
         def wrapper(*args, **kwargs):
@@ -718,9 +732,11 @@ class StopChatFlow(Exception):
 <span>(</span><span>session)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class Form:
     def __init__(self, session):
         self._session = session
@@ -774,9 +790,11 @@ class StopChatFlow(Exception):
 <span>def <span class="ident">ask</span></span>(<span>self, msg=None, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def ask(self, msg=None, **kwargs):
     self._session.send_data(
         {&#34;category&#34;: &#34;form&#34;, &#34;msg&#34;: msg, &#34;fields&#34;: self.fields, &#34;kwargs&#34;: kwargs}, is_slide=True
@@ -790,9 +808,11 @@ class StopChatFlow(Exception):
 <span>def <span class="ident">datetime_picker</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def datetime_picker(self, msg, **kwargs):
     return self._append(self._session.datetime_picker_msg(msg, **kwargs))</code></pre>
 </details>
@@ -801,9 +821,11 @@ class StopChatFlow(Exception):
 <span>def <span class="ident">drop_down_choice</span></span>(<span>self, msg, options, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def drop_down_choice(self, msg, options, **kwargs):
     return self._append(self._session.drop_down_choice_msg(msg, options, **kwargs))</code></pre>
 </details>
@@ -812,9 +834,11 @@ class StopChatFlow(Exception):
 <span>def <span class="ident">int_ask</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def int_ask(self, msg, **kwargs):
     return self._append(self._session.int_msg(msg, **kwargs), int)</code></pre>
 </details>
@@ -823,9 +847,11 @@ class StopChatFlow(Exception):
 <span>def <span class="ident">multi_choice</span></span>(<span>self, msg, options, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def multi_choice(self, msg, options, **kwargs):
     return self._append(self._session.multi_choice_msg(msg, options, **kwargs), j.data.serializers.json.loads)</code></pre>
 </details>
@@ -834,9 +860,11 @@ class StopChatFlow(Exception):
 <span>def <span class="ident">multi_list_choice</span></span>(<span>self, msg, options, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def multi_list_choice(self, msg, options, **kwargs):
     return self._append(self._session.multi_list_choice_msg(msg, options, **kwargs))</code></pre>
 </details>
@@ -845,9 +873,11 @@ class StopChatFlow(Exception):
 <span>def <span class="ident">secret_ask</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def secret_ask(self, msg, **kwargs):
     return self._append(self._session.secret_msg(msg, **kwargs))</code></pre>
 </details>
@@ -856,9 +886,11 @@ class StopChatFlow(Exception):
 <span>def <span class="ident">single_choice</span></span>(<span>self, msg, options, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def single_choice(self, msg, options, **kwargs):
     return self._append(self._session.single_choice_msg(msg, options, **kwargs))</code></pre>
 </details>
@@ -867,9 +899,11 @@ class StopChatFlow(Exception):
 <span>def <span class="ident">string_ask</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def string_ask(self, msg, **kwargs):
     return self._append(self._session.string_msg(msg, **kwargs))</code></pre>
 </details>
@@ -878,9 +912,11 @@ class StopChatFlow(Exception):
 <span>def <span class="ident">upload_file</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def upload_file(self, msg, **kwargs):
     return self._append(self._session.upload_file_msg(msg, **kwargs))</code></pre>
 </details>
@@ -892,13 +928,15 @@ class StopChatFlow(Exception):
 <span>(</span><span>**kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Contains the basic helper methods for asking questions
+<div class="desc"><p>Contains the basic helper methods for asking questions
 It also have the main queues q_in, q_out that are used to pass questions and answers between browser and server</p>
 <p>Keyword Args
 any extra kwargs that is passed while creating the session
-(i.e. can be used for passing any query parameters)</p></section>
+(i.e. can be used for passing any query parameters)</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class GedisChatBot:
     &#34;&#34;&#34;
     Contains the basic helper methods for asking questions
@@ -907,6 +945,7 @@ any extra kwargs that is passed while creating the session
 
     steps = []
     title = &#34;Zero Chat Bot&#34;
+    alert_view_url = None
 
     def __init__(self, **kwargs):
         &#34;&#34;&#34;
@@ -916,6 +955,7 @@ any extra kwargs that is passed while creating the session
         &#34;&#34;&#34;
         self.session_id = str(uuid.uuid4())
         self.kwargs = kwargs
+        self.spawn = kwargs.get(&#34;spawn&#34;, True)
         self._state = {}
         self._current_step = 0
         self._steps_info = {}
@@ -961,41 +1001,67 @@ any extra kwargs that is passed while creating the session
             &#34;final_step&#34;: self.step_info.get(&#34;final_step&#34;),
         }
 
-    def _execute_current_step(self, spawn=True):
+    def _execute_current_step(self, spawn=None):
+        if spawn is None:
+            spawn = self.spawn
+
         def wrapper(step_name):
             internal_error = False
             try:
                 getattr(self, step_name)()
             except StopChatFlow as e:
                 internal_error = True
-                j.logger.exception(&#34;error&#34;, exception=e)
+                j.logger.exception(f&#34;chatflow stopped in step {step_name}. exception: {str(e)}&#34;, exception=e)
+                traceback_info = j.tools.errorhandler.get_traceback()
                 j.tools.alerthandler.alert_raise(
-                    appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
+                    app_name=&#34;chatflows&#34;,
+                    category=&#34;internal_errors&#34;,
+                    message=str(e),
+                    alert_type=&#34;exception&#34;,
+                    traceback=traceback_info,
                 )
                 if e.msg:
                     self.send_error(
-                        e.msg + &#34;. Please use the refresh button on the upper right to restart the chatflow&#34;, **e.kwargs
+                        e.msg + f&#34;. Use the refresh button on the upper right to restart {self.title} creation&#34;,
+                        **e.kwargs,
                     )
                 self.send_data({&#34;category&#34;: &#34;end&#34;})
 
             except Exception as e:
+                message = &#34;Something wrong happened&#34;
+                if isinstance(e, stellar_sdk.exceptions.BadRequestError) and &#34;op_underfunded&#34; in e.extras.get(
+                    &#34;result_codes&#34;, {}
+                ).get(&#34;operations&#34;, []):
+                    message = &#34;Not enough funds&#34;
                 internal_error = True
-                j.logger.exception(&#34;error&#34;, exception=e)
+                j.logger.exception(f&#34;error when executing step {step_name}. exception: {str(e)}&#34;, exception=e)
+                traceback_info = j.tools.errorhandler.get_traceback()
                 alert = j.tools.alerthandler.alert_raise(
-                    appname=&#34;chatflows&#34;, category=&#34;internal_errors&#34;, message=str(e), alert_type=&#34;exception&#34;
+                    app_name=&#34;chatflows&#34;,
+                    category=&#34;internal_errors&#34;,
+                    message=str(e),
+                    alert_type=&#34;exception&#34;,
+                    traceback=traceback_info,
                 )
                 username = self.user_info()[&#34;username&#34;]
-                if username in j.core.identity.me.admins:
+                if self.alert_view_url:
                     self.send_error(
-                        f&#34;&#34;&#34;Something wrong happened, please check alert: &lt;a href=&#34;/admin/#/alerts/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;&#34;&#34;&#34;
-                        &#34;Please use the refresh button on the upper right to restart the chatflow&#34;,
+                        f&#34;&#34;&#34;{message}, please check alert: &lt;a href=&#34;{self.alert_view_url}/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;. This could occur if Stellar service was down.&#34;&#34;&#34;
+                        f&#34;Use the refresh button on the upper right to restart {self.title} creation&#34;,
+                        md=True,
+                        html=True,
+                    )
+                elif username in j.core.identity.me.admins:
+                    self.send_error(
+                        f&#34;&#34;&#34;{message}, please check alert: &lt;a href=&#34;/admin/#/alerts/{alert.id}&#34; target=&#34;_parent&#34;&gt;{alert.id} &lt;/a&gt;. This could occur if Stellar service was down.&#34;&#34;&#34;
+                        f&#34;Use the refresh button on the upper right to restart {self.title} creation&#34;,
                         md=True,
                         html=True,
                     )
                 else:
                     self.send_error(
                         f&#34;Something wrong happened, please contact support with alert ID: {alert.id}\n&#34;
-                        &#34;Please use the refresh button on the upper right to restart the chatflow&#34;
+                        f&#34;Use the refresh button on the upper right to restart {self.title} creation&#34;
                     )
                 self.send_data({&#34;category&#34;: &#34;end&#34;})
 
@@ -1367,26 +1433,6 @@ any extra kwargs that is passed while creating the session
         self.send_data({&#34;category&#34;: &#34;qrcode_show&#34;, &#34;msg&#34;: msg, &#34;qrcode&#34;: qrcode, &#34;kwargs&#34;: kwargs}, is_slide=True)
         self._queue_in.get()
 
-    def captcha_msg(self, **kwargs):
-        image = ImageCaptcha()
-        captcha = j.data.idgenerator.generateXCharID(4)
-        data = image.generate(captcha)
-        kwargs[&#34;value&#34;] = captcha
-        return (
-            captcha,
-            {
-                &#34;category&#34;: &#34;captcha_ask&#34;,
-                &#34;captcha&#34;: base64.b64encode(data.read()).decode(),
-                &#34;value&#34;: captcha,
-                &#34;msg&#34;: &#34;Are you human?&#34;,
-                &#34;kwargs&#34;: kwargs,
-            },
-        )
-
-    def captcha_ask(self, **kwargs):
-        captcha, message = self.captcha_msg(required=True, **kwargs)
-        return self.ask(message) == captcha
-
     def md_msg(self, msg, **kwargs):
         return {&#34;category&#34;: &#34;md_show&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}
 
@@ -1467,37 +1513,31 @@ any extra kwargs that is passed while creating the session
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="jumpscale.sals.chatflows.polls.Poll" href="polls.html#jumpscale.sals.chatflows.polls.Poll">Poll</a></li>
-<li><a title="jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow" href="../marketplace/chatflow.html#jumpscale.sals.marketplace.chatflow.MarketPlaceChatflow">MarketPlaceChatflow</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.gollum.GollumDeploy" href="../../packages/tfgrid_solutions/chats/gollum.html#jumpscale.packages.tfgrid_solutions.chats.gollum.GollumDeploy">GollumDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.exposed.SolutionExpose" href="../../packages/tfgrid_solutions/chats/exposed.html#jumpscale.packages.tfgrid_solutions.chats.exposed.SolutionExpose">SolutionExpose</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.flist.FlistDeploy" href="../../packages/tfgrid_solutions/chats/flist.html#jumpscale.packages.tfgrid_solutions.chats.flist.FlistDeploy">FlistDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.kubernetes.KubernetesDeploy" href="../../packages/tfgrid_solutions/chats/kubernetes.html#jumpscale.packages.tfgrid_solutions.chats.kubernetes.KubernetesDeploy">KubernetesDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.minio.MinioDeploy" href="../../packages/tfgrid_solutions/chats/minio.html#jumpscale.packages.tfgrid_solutions.chats.minio.MinioDeploy">MinioDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.monitoring.MonitoringDeploy" href="../../packages/tfgrid_solutions/chats/monitoring.html#jumpscale.packages.tfgrid_solutions.chats.monitoring.MonitoringDeploy">MonitoringDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy" href="../../packages/tfgrid_solutions/chats/network.html#jumpscale.packages.tfgrid_solutions.chats.network.NetworkDeploy">NetworkDeploy</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway" href="../../packages/tfgrid_solutions/chats/4to6gw.html#jumpscale.packages.tfgrid_solutions.chats.4to6gw.FourToSixGateway">FourToSixGateway</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.delegated_domain.DomainDelegation" href="../../packages/tfgrid_solutions/chats/delegated_domain.html#jumpscale.packages.tfgrid_solutions.chats.delegated_domain.DomainDelegation">DomainDelegation</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation" href="../../packages/tfgrid_solutions/chats/pools.html#jumpscale.packages.tfgrid_solutions.chats.pools.PoolReservation">PoolReservation</a></li>
-<li><a title="jumpscale.packages.tfgrid_solutions.chats.ubuntu.UbuntuDeploy" href="../../packages/tfgrid_solutions/chats/ubuntu.html#jumpscale.packages.tfgrid_solutions.chats.ubuntu.UbuntuDeploy">UbuntuDeploy</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
+<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.alert_view_url"><code class="name">var <span class="ident">alert_view_url</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.steps"><code class="name">var <span class="ident">steps</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 </dd>
 <dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.title"><code class="name">var <span class="ident">title</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 </dd>
 </dl>
 <h3>Instance variables</h3>
 <dl>
 <dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.info"><code class="name">var <span class="ident">info</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def info(self):
     previous = True
@@ -1520,9 +1560,11 @@ def info(self):
 </dd>
 <dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.is_first_slide"><code class="name">var <span class="ident">is_first_slide</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def is_first_slide(self):
     return self.step_info.get(&#34;slide&#34;, 1) == 1</code></pre>
@@ -1530,9 +1572,11 @@ def is_first_slide(self):
 </dd>
 <dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.is_first_step"><code class="name">var <span class="ident">is_first_step</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def is_first_step(self):
     return self._current_step == 0</code></pre>
@@ -1540,9 +1584,11 @@ def is_first_step(self):
 </dd>
 <dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.is_last_step"><code class="name">var <span class="ident">is_last_step</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def is_last_step(self):
     return self._current_step &gt;= len(self.steps) - 1</code></pre>
@@ -1550,9 +1596,11 @@ def is_last_step(self):
 </dd>
 <dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.step_info"><code class="name">var <span class="ident">step_info</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def step_info(self):
     return self._steps_info.setdefault(self._current_step, {&#34;slide&#34;: 0})</code></pre>
@@ -1565,9 +1613,11 @@ def step_info(self):
 <span>def <span class="ident">ask</span></span>(<span>self, data)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def ask(self, data):
     self.send_data(data, is_slide=True)
     return self._queue_in.get()</code></pre>
@@ -1577,7 +1627,7 @@ def step_info(self):
 <span>def <span class="ident">autocomplete_drop_down</span></span>(<span>self, msg, options, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for a single options using dropdown with auto completion</p>
+<div class="desc"><p>Ask for a single options using dropdown with auto completion</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -1589,11 +1639,13 @@ md (bool): render message as markdown
 html (bool): render message as html</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>user input</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def autocomplete_drop_down(self, msg, options, **kwargs):
     &#34;&#34;&#34;Ask for a single options using dropdown with auto completion
 
@@ -1611,47 +1663,11 @@ html (bool): render message as html</p>
     return self.drop_down_choice(msg, options, auto_complete=True, **kwargs)</code></pre>
 </details>
 </dd>
-<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_ask"><code class="name flex">
-<span>def <span class="ident">captcha_ask</span></span>(<span>self, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def captcha_ask(self, **kwargs):
-    captcha, message = self.captcha_msg(required=True, **kwargs)
-    return self.ask(message) == captcha</code></pre>
-</details>
-</dd>
-<dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_msg"><code class="name flex">
-<span>def <span class="ident">captcha_msg</span></span>(<span>self, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-<details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def captcha_msg(self, **kwargs):
-    image = ImageCaptcha()
-    captcha = j.data.idgenerator.generateXCharID(4)
-    data = image.generate(captcha)
-    kwargs[&#34;value&#34;] = captcha
-    return (
-        captcha,
-        {
-            &#34;category&#34;: &#34;captcha_ask&#34;,
-            &#34;captcha&#34;: base64.b64encode(data.read()).decode(),
-            &#34;value&#34;: captcha,
-            &#34;msg&#34;: &#34;Are you human?&#34;,
-            &#34;kwargs&#34;: kwargs,
-        },
-    )</code></pre>
-</details>
-</dd>
 <dt id="jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker"><code class="name flex">
 <span>def <span class="ident">datetime_picker</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for a datetime</p>
+<div class="desc"><p>Ask for a datetime</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -1663,11 +1679,13 @@ md (bool): render message as markdown
 html (bool): render message as html</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>int</code></strong></dt>
+<dt><code>int</code></dt>
 <dd>timestamp</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def datetime_picker(self, msg, **kwargs):
     &#34;&#34;&#34;Ask for a datetime
 
@@ -1691,9 +1709,11 @@ html (bool): render message as html</p>
 <span>def <span class="ident">datetime_picker_msg</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def datetime_picker_msg(self, msg, **kwargs):
     return {&#34;category&#34;: &#34;datetime_picker&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
 </details>
@@ -1702,7 +1722,7 @@ html (bool): render message as html</p>
 <span>def <span class="ident">download_file</span></span>(<span>self, msg, data, filename, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Add a download button to download data as a file</p>
+<div class="desc"><p>Add a download button to download data as a file</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -1714,9 +1734,11 @@ html (bool): render message as html</p>
 </dl>
 <p>Keyword Arguments:
 md (bool): render message as markdown
-html (bool): render message as html</p></section>
+html (bool): render message as html</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def download_file(self, msg, data, filename, **kwargs):
     &#34;&#34;&#34;Add a download button to download data as a file
 
@@ -1737,7 +1759,7 @@ html (bool): render message as html</p></section>
 <span>def <span class="ident">drop_down_choice</span></span>(<span>self, msg, options, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for a single options using dropdown</p>
+<div class="desc"><p>Ask for a single options using dropdown</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -1749,11 +1771,13 @@ md (bool): render message as markdown
 html (bool): render message as html</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>user input</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def drop_down_choice(self, msg, options, **kwargs):
     &#34;&#34;&#34;Ask for a single options using dropdown
 
@@ -1775,9 +1799,11 @@ html (bool): render message as html</p>
 <span>def <span class="ident">drop_down_choice_msg</span></span>(<span>self, msg, options, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def drop_down_choice_msg(self, msg, options, **kwargs):
     return {&#34;category&#34;: &#34;drop_down_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}</code></pre>
 </details>
@@ -1786,9 +1812,11 @@ html (bool): render message as html</p>
 <span>def <span class="ident">end</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def end(self):
     self.send_data({&#34;category&#34;: &#34;end&#34;})</code></pre>
 </details>
@@ -1797,9 +1825,11 @@ html (bool): render message as html</p>
 <span>def <span class="ident">get_work</span></span>(<span>self, restore=False)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_work(self, restore=False):
     if self._fetch_greenlet:
         if not self._fetch_greenlet.ready():
@@ -1819,9 +1849,11 @@ html (bool): render message as html</p>
 <span>def <span class="ident">go_back</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def go_back(self):
     if self.is_first_slide:
         if self.is_first_step:
@@ -1837,9 +1869,11 @@ html (bool): render message as html</p>
 <span>def <span class="ident">go_next</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def go_next(self):
     self._current_step += 1
     self._execute_current_step()</code></pre>
@@ -1849,7 +1883,7 @@ html (bool): render message as html</p>
 <span>def <span class="ident">int_ask</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for a inegert value</p>
+<div class="desc"><p>Ask for a inegert value</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -1863,11 +1897,13 @@ min (int): min value
 max (int): max value</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>user input</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def int_ask(self, msg, **kwargs):
     &#34;&#34;&#34;Ask for a inegert value
 
@@ -1893,9 +1929,11 @@ max (int): max value</p>
 <span>def <span class="ident">int_msg</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def int_msg(self, msg, **kwargs):
     return {&#34;category&#34;: &#34;int_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
 </details>
@@ -1904,7 +1942,7 @@ max (int): max value</p>
 <span>def <span class="ident">loading_show</span></span>(<span>self, msg, wait, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Show a progress bar</p>
+<div class="desc"><p>Show a progress bar</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -1914,9 +1952,11 @@ max (int): max value</p>
 </dl>
 <p>Keyword Arguments:
 md (bool): render message as markdown
-html (bool): render message as html</p></section>
+html (bool): render message as html</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def loading_show(self, msg, wait, **kwargs):
     &#34;&#34;&#34;Show a progress bar
 
@@ -1939,7 +1979,7 @@ html (bool): render message as html</p></section>
 <span>def <span class="ident">location_ask</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for a location [lng, lat]</p>
+<div class="desc"><p>Ask for a location [lng, lat]</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -1951,11 +1991,13 @@ md (bool): render message as markdown
 html (bool): render message as html</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>list</code></strong></dt>
+<dt><code>list</code></dt>
 <dd>list([lat, lng])</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def location_ask(self, msg, **kwargs):
     &#34;&#34;&#34;Ask for a location [lng, lat]
 
@@ -1978,9 +2020,11 @@ html (bool): render message as html</p>
 <span>def <span class="ident">location_msg</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def location_msg(self, msg, **kwargs):
     return {&#34;category&#34;: &#34;location_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
 </details>
@@ -1989,9 +2033,11 @@ html (bool): render message as html</p>
 <span>def <span class="ident">md_msg</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def md_msg(self, msg, **kwargs):
     return {&#34;category&#34;: &#34;md_show&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
 </details>
@@ -2000,14 +2046,16 @@ html (bool): render message as html</p>
 <span>def <span class="ident">md_show</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Show markdown</p>
+<div class="desc"><p>Show markdown</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
 <dd>markdown string</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def md_show(self, msg, **kwargs):
     &#34;&#34;&#34;Show markdown
 
@@ -2022,14 +2070,16 @@ html (bool): render message as html</p>
 <span>def <span class="ident">md_show_confirm</span></span>(<span>self, data, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Show a table contains the keys and values of the data dict</p>
+<div class="desc"><p>Show a table contains the keys and values of the data dict</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>data</code></strong> :&ensp;<code>dict</code></dt>
 <dd>the data to be shown in the table</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def md_show_confirm(self, data, **kwargs):
     &#34;&#34;&#34;Show a table contains the keys and values of the data dict
 
@@ -2049,9 +2099,11 @@ html (bool): render message as html</p>
 <span>def <span class="ident">md_show_update</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def md_show_update(self, msg, **kwargs):
     self.send_data({&#34;category&#34;: &#34;infinite_loading&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}, is_slide=False)</code></pre>
 </details>
@@ -2060,7 +2112,7 @@ html (bool): render message as html</p>
 <span>def <span class="ident">multi_choice</span></span>(<span>self, msg, options, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for a multiple options</p>
+<div class="desc"><p>Ask for a multiple options</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -2074,11 +2126,13 @@ min_options (int): min number of selected options
 max_options (int): max number selected options</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>user input</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def multi_choice(self, msg, options, **kwargs):
     &#34;&#34;&#34;Ask for a multiple options
 
@@ -2103,9 +2157,11 @@ max_options (int): max number selected options</p>
 <span>def <span class="ident">multi_choice_msg</span></span>(<span>self, msg, options, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def multi_choice_msg(self, msg, options, **kwargs):
     return {&#34;category&#34;: &#34;multi_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}</code></pre>
 </details>
@@ -2114,7 +2170,7 @@ max_options (int): max number selected options</p>
 <span>def <span class="ident">multi_list_choice</span></span>(<span>self, msg, options, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for a multiple options</p>
+<div class="desc"><p>Ask for a multiple options</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -2128,11 +2184,13 @@ min_options (int): min number of selected options
 max_options (int): max number selected options</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>user input</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def multi_list_choice(self, msg, options, **kwargs):
     &#34;&#34;&#34;Ask for a multiple options
 
@@ -2157,9 +2215,11 @@ max_options (int): max number selected options</p>
 <span>def <span class="ident">multi_list_choice_msg</span></span>(<span>self, msg, options, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def multi_list_choice_msg(self, msg, options, **kwargs):
     return {&#34;category&#34;: &#34;multi_list_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}</code></pre>
 </details>
@@ -2168,7 +2228,7 @@ max_options (int): max number selected options</p>
 <span>def <span class="ident">multi_values_ask</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for multiple values</p>
+<div class="desc"><p>Ask for multiple values</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -2180,11 +2240,13 @@ md (bool): render message as markdown
 html (bool): render message as html</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>dict</code></strong></dt>
+<dt><code>dict</code></dt>
 <dd>the result as a dict</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def multi_values_ask(self, msg, **kwargs):
     &#34;&#34;&#34;Ask for multiple values
 
@@ -2207,14 +2269,16 @@ html (bool): render message as html</p>
 <span>def <span class="ident">new_form</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Create a new form</p>
+<div class="desc"><p>Create a new form</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><a title="jumpscale.sals.chatflows.chatflows.Form" href="#jumpscale.sals.chatflows.chatflows.Form"><code>Form</code></a></strong></dt>
+<dt><code><a title="jumpscale.sals.chatflows.chatflows.Form" href="#jumpscale.sals.chatflows.chatflows.Form">Form</a></code></dt>
 <dd>form object</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def new_form(self):
     &#34;&#34;&#34;Create a new form
 
@@ -2228,7 +2292,7 @@ html (bool): render message as html</p>
 <span>def <span class="ident">qrcode_show</span></span>(<span>self, msg, data, scale=10, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Show QR code as an image</p>
+<div class="desc"><p>Show QR code as an image</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -2240,9 +2304,11 @@ html (bool): render message as html</p>
 </dl>
 <p>Keyword Arguments:
 md (bool): render message as markdown
-html (bool): render message as html</p></section>
+html (bool): render message as html</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def qrcode_show(self, msg, data, scale=10, **kwargs):
     &#34;&#34;&#34;Show QR code as an image
 
@@ -2264,7 +2330,7 @@ html (bool): render message as html</p></section>
 <span>def <span class="ident">secret_ask</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for a secret value</p>
+<div class="desc"><p>Ask for a secret value</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -2278,11 +2344,13 @@ min_length (int): min length
 max_length (int): max length</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>user input</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def secret_ask(self, msg, **kwargs):
     &#34;&#34;&#34;Ask for a secret value
 
@@ -2306,9 +2374,11 @@ max_length (int): max length</p>
 <span>def <span class="ident">secret_msg</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def secret_msg(self, msg, **kwargs):
     return {&#34;category&#34;: &#34;secret_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
 </details>
@@ -2317,9 +2387,11 @@ max_length (int): max length</p>
 <span>def <span class="ident">send_data</span></span>(<span>self, data, is_slide=False)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def send_data(self, data, is_slide=False):
     data.setdefault(&#34;kwargs&#34;, {})
     retry = data[&#34;kwargs&#34;].pop(&#34;retry&#34;, False)
@@ -2336,9 +2408,11 @@ max_length (int): max length</p>
 <span>def <span class="ident">send_error</span></span>(<span>self, message, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def send_error(self, message, **kwargs):
     self.send_data({&#34;category&#34;: &#34;error&#34;, &#34;msg&#34;: message, &#34;kwargs&#34;: kwargs})
     self._queue_in.get()</code></pre>
@@ -2348,9 +2422,11 @@ max_length (int): max length</p>
 <span>def <span class="ident">set_work</span></span>(<span>self, data)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def set_work(self, data):
     return self._queue_in.put(data)</code></pre>
 </details>
@@ -2359,7 +2435,7 @@ max_length (int): max length</p>
 <span>def <span class="ident">single_choice</span></span>(<span>self, msg, options, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for a single option</p>
+<div class="desc"><p>Ask for a single option</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -2371,11 +2447,13 @@ md (bool): render message as markdown
 html (bool): render message as html</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>user input</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def single_choice(self, msg, options, **kwargs):
     &#34;&#34;&#34;Ask for a single option
 
@@ -2397,9 +2475,11 @@ html (bool): render message as html</p>
 <span>def <span class="ident">single_choice_msg</span></span>(<span>self, msg, options, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def single_choice_msg(self, msg, options, **kwargs):
     return {&#34;category&#34;: &#34;single_choice&#34;, &#34;msg&#34;: msg, &#34;options&#34;: options, &#34;kwargs&#34;: kwargs}</code></pre>
 </details>
@@ -2408,9 +2488,11 @@ html (bool): render message as html</p>
 <span>def <span class="ident">stop</span></span>(<span>self, msg=None, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def stop(self, msg=None, **kwargs):
     raise StopChatFlow(msg=msg, **kwargs)</code></pre>
 </details>
@@ -2419,7 +2501,7 @@ html (bool): render message as html</p>
 <span>def <span class="ident">string_ask</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for a string value</p>
+<div class="desc"><p>Ask for a string value</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -2433,11 +2515,13 @@ min_length (int): min length
 max_length (int): max length</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>user input</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def string_ask(self, msg, **kwargs):
     &#34;&#34;&#34;Ask for a string value
 
@@ -2461,9 +2545,11 @@ max_length (int): max length</p>
 <span>def <span class="ident">string_msg</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def string_msg(self, msg, **kwargs):
     return {&#34;category&#34;: &#34;string_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
 </details>
@@ -2472,7 +2558,7 @@ max_length (int): max length</p>
 <span>def <span class="ident">text_ask</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for a multi line string value</p>
+<div class="desc"><p>Ask for a multi line string value</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -2484,11 +2570,13 @@ md (bool): render message as markdown
 html (bool): render message as html</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>user input</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def text_ask(self, msg, **kwargs):
     &#34;&#34;&#34;Ask for a multi line string value
 
@@ -2510,9 +2598,11 @@ html (bool): render message as html</p>
 <span>def <span class="ident">text_msg</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def text_msg(self, msg, **kwargs):
     return {&#34;category&#34;: &#34;text_ask&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
 </details>
@@ -2521,7 +2611,7 @@ html (bool): render message as html</p>
 <span>def <span class="ident">time_delta_ask</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for a time delta example: 1Y 1M 1w 2d 1h</p>
+<div class="desc"><p>Ask for a time delta example: 1Y 1M 1w 2d 1h</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -2533,11 +2623,13 @@ md (bool): render message as markdown
 html (bool): render message as html</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>datetime.datetime</code>: <code>user</code> <code>input</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<dt><code>datetime.datetime</code></dt>
+<dd>user input</dd>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def time_delta_ask(self, msg, **kwargs):
     &#34;&#34;&#34;Ask for a time delta example: 1Y 1M 1w 2d 1h
 
@@ -2560,9 +2652,11 @@ html (bool): render message as html</p>
 <span>def <span class="ident">time_delta_msg</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def time_delta_msg(self, msg, **kwargs):
     return {&#34;category&#34;: &#34;time_delta&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
 </details>
@@ -2571,7 +2665,7 @@ html (bool): render message as html</p>
 <span>def <span class="ident">upload_file</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Ask for a file to be uploaded</p>
+<div class="desc"><p>Ask for a file to be uploaded</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>msg</code></strong> :&ensp;<code>str</code></dt>
@@ -2585,11 +2679,13 @@ max_size (int): file max size
 allowed_types: list of allowed types example : ['text/plain']</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>str</code></strong></dt>
+<dt><code>str</code></dt>
 <dd>file content</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def upload_file(self, msg, **kwargs):
     &#34;&#34;&#34;Ask for a file to be uploaded
 
@@ -2613,9 +2709,11 @@ allowed_types: list of allowed types example : ['text/plain']</p>
 <span>def <span class="ident">upload_file_msg</span></span>(<span>self, msg, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def upload_file_msg(self, msg, **kwargs):
     return {&#34;category&#34;: &#34;upload_file&#34;, &#34;msg&#34;: msg, &#34;kwargs&#34;: kwargs}</code></pre>
 </details>
@@ -2624,9 +2722,11 @@ allowed_types: list of allowed types example : ['text/plain']</p>
 <span>def <span class="ident">user_info</span></span>(<span>self, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def user_info(self, **kwargs):
     self.send_data({&#34;category&#34;: &#34;user_info&#34;, &#34;kwargs&#34;: kwargs})
     result = j.data.serializers.json.loads(self._queue_in.get())
@@ -2640,9 +2740,11 @@ allowed_types: list of allowed types example : ['text/plain']</p>
 <span>(</span><span>loader=builtins.str)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class Result:
     def __init__(self, loader=str):
         self._value = None
@@ -2660,9 +2762,11 @@ allowed_types: list of allowed types example : ['text/plain']</p>
 <dl>
 <dt id="jumpscale.sals.chatflows.chatflows.Result.value"><code class="name">var <span class="ident">value</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def value(self):
     return self._value</code></pre>
@@ -2675,9 +2779,11 @@ def value(self):
 <span>(</span><span>msg=None, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class StopChatFlow(Exception):
     def __init__(self, msg=None, **kwargs):
         super().__init__(self, msg)
@@ -2688,10 +2794,6 @@ def value(self):
 <ul class="hlist">
 <li>builtins.Exception</li>
 <li>builtins.BaseException</li>
-</ul>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="jumpscale.sals.reservation_chatflow.DeploymentFailed" href="../reservation_chatflow/index.html#jumpscale.sals.reservation_chatflow.DeploymentFailed">DeploymentFailed</a></li>
 </ul>
 </dd>
 </dl>
@@ -2733,10 +2835,9 @@ def value(self):
 <li>
 <h4><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot">GedisChatBot</a></code></h4>
 <ul class="">
+<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.alert_view_url" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.alert_view_url">alert_view_url</a></code></li>
 <li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.ask" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.ask">ask</a></code></li>
 <li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.autocomplete_drop_down" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.autocomplete_drop_down">autocomplete_drop_down</a></code></li>
-<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_ask" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_ask">captcha_ask</a></code></li>
-<li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.captcha_msg">captcha_msg</a></code></li>
 <li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker">datetime_picker</a></code></li>
 <li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker_msg" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.datetime_picker_msg">datetime_picker_msg</a></code></li>
 <li><code><a title="jumpscale.sals.chatflows.chatflows.GedisChatBot.download_file" href="#jumpscale.sals.chatflows.chatflows.GedisChatBot.download_file">download_file</a></code></li>
@@ -2803,9 +2904,7 @@ def value(self):
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

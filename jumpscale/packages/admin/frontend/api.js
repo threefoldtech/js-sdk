@@ -178,12 +178,12 @@ const apiClient = {
                 url: `${baseURL}/admin/get_developer_options`
             })
         },
-        setDeveloperOptions: (testCert, overProvision, explorerLogs, escalationEmails, autoExtendPools, sortNodesBySRU) => {
+        setDeveloperOptions: (testCert, overProvision, escalationEmails, sortNodesBySRU) => {
             return axios({
                 url: `${baseURL}/admin/set_developer_options`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { test_cert: testCert, over_provision: overProvision, explorer_logs: explorerLogs, sort_nodes_by_sru: sortNodesBySRU, escalation_emails: escalationEmails, auto_extend_pools: autoExtendPools }
+                data: { test_cert: testCert, over_provision: overProvision, sort_nodes_by_sru: sortNodesBySRU, escalation_emails: escalationEmails }
             })
         },
         clearBlockedNodes: () => {
@@ -192,12 +192,12 @@ const apiClient = {
             })
         },
         getThreebotState: () => {
-          return axios({
-            url: `/admin/api/export`,
-            headers: { 'Content-Type': 'application/json' },
-            responseType: 'arraybuffer',
-            method: "get"
-          })
+            return axios({
+                url: `/admin/api/export`,
+                headers: { 'Content-Type': 'application/json' },
+                responseType: 'arraybuffer',
+                method: "get"
+            })
         },
         clearBlockedManagedDomains: () => {
             return axios({
@@ -259,30 +259,18 @@ const apiClient = {
         }
 
     },
-    explorers: {
-        get: () => {
-            return axios({
-                url: `${baseURL}/admin/get_explorer`
-            })
-        },
-        list: () => {
-            return axios({
-                url: `${baseURL}/admin/list_explorers`
-            })
-        },
-    },
     identities: {
         list: () => {
             return axios({
                 url: `${baseURL}/admin/list_identities`
             })
         },
-        add: (display_name, tname, email, words, explorer_type, admins) => {
+        add: (display_name, tname, email, words, admins) => {
             return axios({
                 url: `${baseURL}/admin/add_identity`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { display_name, tname, email, words, explorer_type, admins }
+                data: { display_name, tname, email, words, admins }
             })
         },
         generateMnemonic: () => {
@@ -290,12 +278,12 @@ const apiClient = {
                 url: `${baseURL}/admin/generate_mnemonic`
             })
         },
-        checkTNameExists: (tname, explorerType) => {
+        checkTNameExists: (tname) => {
             return axios({
                 url: `${baseURL}/admin/check_tname_exists`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { tname: tname, explorer_type: explorerType }
+                data: { tname: tname }
             })
         },
         checkInstanceName: (name) => {
@@ -359,102 +347,7 @@ const apiClient = {
             })
         }
     },
-    solutions: {
-        getCount: () => {
-            return axios({
-                url: `/tfgrid_solutions/actors/solutions/count_solutions`
-            })
-        },
-        getDeployed: (solution_type) => {
-            return axios({
-                url: `/tfgrid_solutions/actors/solutions/list_solutions`,
-                method: "post",
-                headers: { 'Content-Type': 'application/json' },
-                data: { solution_type: solution_type }
-            })
-        },
-        getK8sDetails: (k8s_solution_name) =>{
-            return axios({
-                url: `/tfgrid_solutions/actors/solutions/get_k8s_solution_details`,
-                method: "post",
-                headers: { 'Content-Type': 'application/json' },
-                data: { k8s_solution_name: k8s_solution_name }
 
-            })
-        },
-        getPools: (include_hidden) => {
-            return axios({
-                method: "post",
-                url: `/tfgrid_solutions/actors/solutions/list_pools`,
-                data: {
-                    include_hidden: include_hidden || false,
-                }
-            })
-        },
-        getAll: () => {
-            return axios({
-                url: `/tfgrid_solutions/actors/solutions/list_all_solutions`,
-            })
-        },
-        cancelWorkload: (wid) => {
-            return axios({
-                method: "post",
-                headers: { 'Content-Type': 'application/json' },
-                url: `/tfgrid_solutions/actors/solutions/cancel_workload`,
-                data: { wid: wid }
-            })
-        },
-        patchCancelWorkload: (wids) => {
-            return axios({
-                method: "post",
-                headers: { 'Content-Type': 'application/json' },
-                url: `/tfgrid_solutions/actors/solutions/patch_cancel_workloads`,
-                data: { wids: wids }
-            })
-        },
-        cancelReservation: (wids) => {
-            return axios({
-                url: `/tfgrid_solutions/actors/solutions/cancel_solution`,
-                method: "post",
-                headers: { 'Content-Type': 'application/json' },
-                data: { wids: wids }
-            })
-        },
-        hasMigrated: () => {
-            return axios({
-                url: `/tfgrid_solutions/actors/solutions/has_migrated`,
-            })
-        },
-        migrate: () => {
-            return axios({
-                url: `/tfgrid_solutions/actors/solutions/migrate`,
-            })
-        },
-        hidePool: (pool_id) => {
-            return axios({
-                url: `/tfgrid_solutions/actors/solutions/hide_pool`,
-                method: "post",
-                headers: { 'Content-Type': 'application/json' },
-                data: { pool_id: pool_id }
-            })
-        },
-        renamePool: (pool_id, name) => {
-            return axios({
-                url: `/tfgrid_solutions/actors/solutions/rename_pool`,
-                method: "post",
-                headers: { 'Content-Type': 'application/json' },
-                data: { pool_id: pool_id, name: name }
-            })
-        },
-        unhidePool: (pool_id) => {
-            return axios({
-                url: `/tfgrid_solutions/actors/solutions/unhide_pool`,
-                method: "post",
-                headers: { 'Content-Type': 'application/json' },
-                data: { pool_id: pool_id }
-            })
-        },
-    },
     health: {
         getMemoryUsage() {
             return axios({
@@ -574,12 +467,12 @@ const apiClient = {
                 url: `${baseURL}/identity/list_identities`
             })
         },
-        set: (label, tname, email, words, explorer_url, backup_password) => {
+        set: (label, tname, email, words) => {
             return axios({
                 url: `${baseURL}/identity/set_identity`,
                 method: "post",
                 headers: { 'Content-Type': 'application/json' },
-                data: { label: label, tname: tname, email: email, words: words, explorer_url: explorer_url, backup_password: backup_password }
+                data: { label: label, tname: tname, email: email, words: words }
             })
         }
     },

@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.sals.nginx.nginx API documentation</title>
 <meta name="description" content="Get nginx sal instance as an abstract parent for the websites and locations and for the nginx conf …" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -65,7 +67,9 @@ https or https</p>
 <h1 id="configuring-the-website-and-all-its-locations-and-generating-the-certificates">Configuring the website and all its locations and generating the certificates</h1>
 <p>website.configure()</p>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">&#34;&#34;&#34;
 #  Get nginx sal instance as an abstract parent for the websites and locations and for the nginx conf
 
@@ -108,6 +112,7 @@ website.configure()
 from enum import Enum
 
 from jumpscale.core.base import Base, fields
+from jumpscale.core.exceptions import Input
 from jumpscale.loader import j
 
 from .utils import DIR_PATH, render_config_template
@@ -161,6 +166,8 @@ class Location(Base):
     location_type = fields.Enum(LocationType)
     is_auth = fields.Boolean(default=False)
     is_admin = fields.Boolean(default=False)
+    package_name = fields.String()
+    is_package_authorized = fields.Boolean(default=False)
     custom_config = fields.String(default=None)
     proxy_buffering = fields.Enum(ProxyBuffering)
     proxy_buffers = fields.String()
@@ -180,7 +187,7 @@ class Location(Base):
             base_dir=j.core.dirs.BASEDIR,
             location=self,
             threebot_connect=j.core.config.get_config().get(&#34;threebot_connect&#34;, True),
-            https_port=PORTS.HTTPS
+            https_port=PORTS.HTTPS,
         )
 
     def configure(self):
@@ -188,14 +195,161 @@ class Location(Base):
         j.sals.fs.write_file(self.cfg_file, self.get_config())
 
 
+class AcmeServer(Enum):
+    LETSENCRYPT = &#34;letsencrypt&#34;
+    ZEROSSL = &#34;zerossl&#34;
+    CUSTOM = &#34;custom&#34;
+
+
+class Certbot(Base):
+    DEFAULT_NAME = &#34;certbot&#34;
+    DEFAULT_LOGS_DIR = j.sals.fs.join_paths(j.core.dirs.LOGDIR, DEFAULT_NAME)
+    DEFAULT_CONFIG_DIR = j.sals.fs.join_paths(j.core.dirs.CFGDIR, DEFAULT_NAME)
+    DEFAULT_WORK_DIR = j.sals.fs.join_paths(j.core.dirs.VARDIR, DEFAULT_NAME)
+
+    # the following options match the certbot command arguments
+    domain = fields.String(required=True)
+    non_interactive = fields.Boolean(default=True)
+    agree_tos = fields.Boolean(default=True)
+    logs_dir = fields.String(default=DEFAULT_LOGS_DIR)
+    config_dir = fields.String(default=DEFAULT_CONFIG_DIR)
+    work_dir = fields.String(default=DEFAULT_WORK_DIR)
+
+    email = fields.Email()
+    server = fields.URL()
+    eab_kid = fields.String()
+    eab_hmac_key = fields.String()
+
+    # for existing certificates
+    key_path = fields.String()
+    cert_path = fields.String()
+    fullchain_path = fields.String()
+
+    @property
+    def run_cmd(self):
+        args = [self.DEFAULT_NAME]
+
+        for name, value in self.to_dict().items():
+            if name.endswith(&#34;_&#34;):
+                continue
+
+            if value:
+                # append only if the field has a value
+                name = name.replace(&#34;_&#34;, &#34;-&#34;)
+                args.append(f&#34;--{name}&#34;)
+
+                # append the value itself only if it&#39;s a boolean value
+                # boolean options are set by adding name only
+                if not isinstance(value, bool):
+                    args.append(value)
+
+        return args
+
+    @property
+    def install_cmd(self):
+        # replace &#34;certbot&#34; with &#34;certbot install&#34;
+        cmd = self.run_cmd
+        cmd.insert(1, &#34;install&#34;)
+        return cmd
+
+    @property
+    def renew_cmd(self):
+        # replace &#34;certbot&#34; with &#34;certbot install&#34;
+        renew_certbot = Certbot(work_dir=self.work_dir, config_dir=self.config_dir, logs_dir=self.logs_dir, domain=&#34;&#34;)
+        cmd = renew_certbot.run_cmd
+        cmd.insert(1, &#34;renew&#34;)
+        return cmd
+
+
+class NginxCertbot(Certbot):
+    nginx_server_root = fields.String(required=True)
+    nginx = fields.Boolean(default=True)
+
+
+class LetsencryptCertbot(NginxCertbot):
+    &#34;&#34;&#34;
+    default installation is for let&#39;s encrypt (manual plugin), no need for other options
+
+    currently, we support only email
+    &#34;&#34;&#34;
+
+    # change required value to True here
+    email = fields.Email(required=True)
+
+
+class ZerosslCertbot(NginxCertbot):
+    SERVER_URL = &#34;https://acme.zerossl.com/v2/DV90&#34;
+    KEY_CREDENTIALS_URL = &#34;https://api.zerossl.com/acme/eab-credentials&#34;
+    EMAIL_CREDENTIALS_URL = &#34;https://api.zerossl.com/acme/eab-credentials-email&#34;
+
+    api_key_ = fields.Secret()
+    server = fields.URL(default=SERVER_URL)
+
+    @property
+    def run_cmd(self):
+        # get eab_kid and eab_hmac_key based on email or api_key_
+        if not self.email and not self.api_key_:
+            raise Input(&#34;email or api_key_ must be provided&#34;)
+
+        # set them to get the full run-cmd with correct arguments
+        if self.api_key_:
+            resp = j.tools.http.post(self.KEY_CREDENTIALS_URL, params={&#34;access_key&#34;: self.api_key_})
+        else:
+            resp = j.tools.http.post(self.EMAIL_CREDENTIALS_URL, data={&#34;email&#34;: self.email})
+
+        resp.raise_for_status()
+        data = resp.json()
+
+        self.eab_kid = data[&#34;eab_kid&#34;]
+        self.eab_hmac_key = data[&#34;eab_hmac_key&#34;]
+
+        return super().run_cmd
+
+
+class CustomCertbot(NginxCertbot):
+    # change email and server required value to True here
+    email = fields.Email(required=True)
+    server = fields.URL(required=True)
+
+
 class Website(Base):
     domain = fields.String()
     ssl = fields.Boolean()
     port = fields.Integer(default=PORTS.HTTP)
-    locations = fields.Factory(Location)
+    locations = fields.Factory(Location, stored=False)
     includes = fields.List(fields.String())
-    letsencryptemail = fields.String()
+
     selfsigned = fields.Boolean(default=True)
+
+    # keep it as letsencryptemail for compatibility
+    letsencryptemail = fields.String()
+    acme_server_type = fields.Enum(AcmeServer)
+    acme_server_url = fields.URL()
+    # in case of using existing key/certificate
+    key_path = fields.String()
+    cert_path = fields.String()
+    fullchain_path = fields.String()
+
+    @property
+    def certbot(self):
+        kwargs = dict(
+            domain=self.domain,
+            email=self.letsencryptemail,
+            server=self.acme_server_url,
+            nginx_server_root=self.parent.cfg_dir,
+            key_path=self.key_path,
+            cert_path=self.cert_path,
+            fullchain_path=self.fullchain_path,
+        )
+
+        if self.acme_server_type == AcmeServer.LETSENCRYPT:
+            certbot_type = LetsencryptCertbot
+        elif self.acme_server_type == AcmeServer.ZEROSSL:
+            certbot_type = ZerosslCertbot
+        else:
+            certbot_type = CustomCertbot
+
+        return certbot_type(**kwargs)
 
     @property
     def cfg_dir(self):
@@ -240,18 +394,43 @@ class Website(Base):
     def get_config(self):
         return render_config_template(&#34;website&#34;, base_dir=j.core.dirs.BASEDIR, website=self)
 
-    def generate_certificates(self):
+    def generate_certificates(self, retries=6):
         if self.domain:
-            rc, out, err = j.sals.process.execute(
-                f&#34;certbot --nginx -d {self.domain} &#34;
-                f&#34;--non-interactive --agree-tos -m {self.letsencryptemail} &#34;
-                f&#34;--nginx-server-root {self.parent.cfg_dir} &#34;
-                f&#34;--logs-dir {j.core.dirs.LOGDIR}/certbot &#34;
-                f&#34;--config-dir {j.core.dirs.CFGDIR}/certbot &#34;
-                f&#34;--work-dir {j.core.dirs.VARDIR}/certbot &#34;
-            )
+            if self.key_path and self.cert_path and self.fullchain_path:
+                # only use install command if an existing key and certificate were set
+                self.install_certifcate()
+            else:
+                self.obtain_and_install_certifcate(retries=retries)
+
+    def install_certifcate(self):
+        &#34;&#34;&#34;Construct and Execute install certificate command
+        Alternative to certbot install
+
+        &#34;&#34;&#34;
+        cmd = self.certbot.install_cmd
+        j.logger.debug(f&#34;Execute: {&#39; &#39;.join(cmd)}&#34;)
+        rc, out, err = j.sals.process.execute(cmd)
+        if rc &gt; 0:
+            j.logger.error(f&#34;Installing certificate failed {out}\n{err}&#34;)
+        else:
+            j.logger.info(f&#34;Certificate installed successfully {out}&#34;)
+
+    def obtain_and_install_certifcate(self, retries=6):
+        &#34;&#34;&#34;Construct and Execute run certificate command,This will issue a new certificate managed by Certbot
+        Alternative to certbot run
+
+        Args:
+            retries (int, optional): Number of retries Certbot will try to install the certificate if failed. Defaults to 6.
+        &#34;&#34;&#34;
+        cmd = self.certbot.run_cmd
+        j.logger.debug(f&#34;Execute: {&#39; &#39;.join(cmd)}&#34;)
+        for _ in range(retries):
+            rc, out, err = j.sals.process.execute(cmd)
             if rc &gt; 0:
                 j.logger.error(f&#34;Generating certificate failed {out}\n{err}&#34;)
+            else:
+                j.logger.error(f&#34;Certificate Generated successfully {out}&#34;)
+                break
 
     def generate_self_signed_certificates(self):
         keypempath = f&#34;{self.parent.cfg_dir}/key.pem&#34;
@@ -281,9 +460,9 @@ class Website(Base):
             location.configure()
 
         j.sals.fs.write_file(self.cfg_file, self.get_config())
-
-        if generate_certificates and self.ssl:
+        if self.ssl:
             self.generate_self_signed_certificates()
+        if generate_certificates and self.ssl:
             self.generate_certificates()
 
     def clean(self):
@@ -291,7 +470,8 @@ class Website(Base):
 
 
 class NginxConfig(Base):
-    websites = fields.Factory(Website)
+    websites = fields.Factory(Website, stored=False)
+    cert = fields.Boolean(default=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -319,8 +499,7 @@ class NginxConfig(Base):
         return self._logs_dir
 
     def configure(self):
-        &#34;&#34;&#34;configures main nginx conf
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;configures main nginx conf&#34;&#34;&#34;
         self.clean()
         j.sals.fs.mkdir(self.cfg_dir)
         user = j.sals.unix.get_current_pwd()
@@ -364,16 +543,51 @@ class NginxConfig(Base):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="jumpscale.sals.nginx.nginx.Location"><code class="flex name class">
-<span>class <span class="ident">Location</span></span>
+<dt id="jumpscale.sals.nginx.nginx.AcmeServer"><code class="flex name class">
+<span>class <span class="ident">AcmeServer</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AcmeServer(Enum):
+    LETSENCRYPT = &#34;letsencrypt&#34;
+    ZEROSSL = &#34;zerossl&#34;
+    CUSTOM = &#34;custom&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="jumpscale.sals.nginx.nginx.AcmeServer.CUSTOM"><code class="name">var <span class="ident">CUSTOM</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.AcmeServer.LETSENCRYPT"><code class="name">var <span class="ident">LETSENCRYPT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.AcmeServer.ZEROSSL"><code class="name">var <span class="ident">ZEROSSL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot"><code class="flex name class">
+<span>class <span class="ident">Certbot</span></span>
 <span>(</span><span>parent_=None, instance_name_=None, **values)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -388,9 +602,690 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Certbot(Base):
+    DEFAULT_NAME = &#34;certbot&#34;
+    DEFAULT_LOGS_DIR = j.sals.fs.join_paths(j.core.dirs.LOGDIR, DEFAULT_NAME)
+    DEFAULT_CONFIG_DIR = j.sals.fs.join_paths(j.core.dirs.CFGDIR, DEFAULT_NAME)
+    DEFAULT_WORK_DIR = j.sals.fs.join_paths(j.core.dirs.VARDIR, DEFAULT_NAME)
+
+    # the following options match the certbot command arguments
+    domain = fields.String(required=True)
+    non_interactive = fields.Boolean(default=True)
+    agree_tos = fields.Boolean(default=True)
+    logs_dir = fields.String(default=DEFAULT_LOGS_DIR)
+    config_dir = fields.String(default=DEFAULT_CONFIG_DIR)
+    work_dir = fields.String(default=DEFAULT_WORK_DIR)
+
+    email = fields.Email()
+    server = fields.URL()
+    eab_kid = fields.String()
+    eab_hmac_key = fields.String()
+
+    # for existing certificates
+    key_path = fields.String()
+    cert_path = fields.String()
+    fullchain_path = fields.String()
+
+    @property
+    def run_cmd(self):
+        args = [self.DEFAULT_NAME]
+
+        for name, value in self.to_dict().items():
+            if name.endswith(&#34;_&#34;):
+                continue
+
+            if value:
+                # append only if the field has a value
+                name = name.replace(&#34;_&#34;, &#34;-&#34;)
+                args.append(f&#34;--{name}&#34;)
+
+                # append the value itself only if it&#39;s a boolean value
+                # boolean options are set by adding name only
+                if not isinstance(value, bool):
+                    args.append(value)
+
+        return args
+
+    @property
+    def install_cmd(self):
+        # replace &#34;certbot&#34; with &#34;certbot install&#34;
+        cmd = self.run_cmd
+        cmd.insert(1, &#34;install&#34;)
+        return cmd
+
+    @property
+    def renew_cmd(self):
+        # replace &#34;certbot&#34; with &#34;certbot install&#34;
+        renew_certbot = Certbot(work_dir=self.work_dir, config_dir=self.config_dir, logs_dir=self.logs_dir, domain=&#34;&#34;)
+        cmd = renew_certbot.run_cmd
+        cmd.insert(1, &#34;renew&#34;)
+        return cmd</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_CONFIG_DIR"><code class="name">var <span class="ident">DEFAULT_CONFIG_DIR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_LOGS_DIR"><code class="name">var <span class="ident">DEFAULT_LOGS_DIR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_NAME"><code class="name">var <span class="ident">DEFAULT_NAME</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_WORK_DIR"><code class="name">var <span class="ident">DEFAULT_WORK_DIR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.agree_tos"><code class="name">var <span class="ident">agree_tos</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.cert_path"><code class="name">var <span class="ident">cert_path</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.config_dir"><code class="name">var <span class="ident">config_dir</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.domain"><code class="name">var <span class="ident">domain</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key"><code class="name">var <span class="ident">eab_hmac_key</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.eab_kid"><code class="name">var <span class="ident">eab_kid</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.email"><code class="name">var <span class="ident">email</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.fullchain_path"><code class="name">var <span class="ident">fullchain_path</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.install_cmd"><code class="name">var <span class="ident">install_cmd</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def install_cmd(self):
+    # replace &#34;certbot&#34; with &#34;certbot install&#34;
+    cmd = self.run_cmd
+    cmd.insert(1, &#34;install&#34;)
+    return cmd</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.key_path"><code class="name">var <span class="ident">key_path</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.logs_dir"><code class="name">var <span class="ident">logs_dir</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.non_interactive"><code class="name">var <span class="ident">non_interactive</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.renew_cmd"><code class="name">var <span class="ident">renew_cmd</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def renew_cmd(self):
+    # replace &#34;certbot&#34; with &#34;certbot install&#34;
+    renew_certbot = Certbot(work_dir=self.work_dir, config_dir=self.config_dir, logs_dir=self.logs_dir, domain=&#34;&#34;)
+    cmd = renew_certbot.run_cmd
+    cmd.insert(1, &#34;renew&#34;)
+    return cmd</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.run_cmd"><code class="name">var <span class="ident">run_cmd</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def run_cmd(self):
+    args = [self.DEFAULT_NAME]
+
+    for name, value in self.to_dict().items():
+        if name.endswith(&#34;_&#34;):
+            continue
+
+        if value:
+            # append only if the field has a value
+            name = name.replace(&#34;_&#34;, &#34;-&#34;)
+            args.append(f&#34;--{name}&#34;)
+
+            # append the value itself only if it&#39;s a boolean value
+            # boolean options are set by adding name only
+            if not isinstance(value, bool):
+                args.append(value)
+
+    return args</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.server"><code class="name">var <span class="ident">server</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Certbot.work_dir"><code class="name">var <span class="ident">work_dir</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.core.base.meta.Base.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.core.base.meta.Base.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.core.base.meta.Base.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.CustomCertbot"><code class="flex name class">
+<span>class <span class="ident">CustomCertbot</span></span>
+<span>(</span><span>parent_=None, instance_name_=None, **values)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="language-python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CustomCertbot(NginxCertbot):
+    # change email and server required value to True here
+    email = fields.Email(required=True)
+    server = fields.URL(required=True)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></li>
+<li><a title="jumpscale.sals.nginx.nginx.Certbot" href="#jumpscale.sals.nginx.nginx.Certbot">Certbot</a></li>
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.agree_tos" href="#jumpscale.sals.nginx.nginx.Certbot.agree_tos">agree_tos</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.cert_path" href="#jumpscale.sals.nginx.nginx.Certbot.cert_path">cert_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.config_dir" href="#jumpscale.sals.nginx.nginx.Certbot.config_dir">config_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.domain" href="#jumpscale.sals.nginx.nginx.Certbot.domain">domain</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.eab_hmac_key" href="#jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key">eab_hmac_key</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.eab_kid" href="#jumpscale.sals.nginx.nginx.Certbot.eab_kid">eab_kid</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.email" href="#jumpscale.sals.nginx.nginx.Certbot.email">email</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.fullchain_path" href="#jumpscale.sals.nginx.nginx.Certbot.fullchain_path">fullchain_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.key_path" href="#jumpscale.sals.nginx.nginx.Certbot.key_path">key_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.logs_dir" href="#jumpscale.sals.nginx.nginx.Certbot.logs_dir">logs_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx">nginx</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root">nginx_server_root</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.non_interactive" href="#jumpscale.sals.nginx.nginx.Certbot.non_interactive">non_interactive</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.server" href="#jumpscale.sals.nginx.nginx.Certbot.server">server</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.work_dir" href="#jumpscale.sals.nginx.nginx.Certbot.work_dir">work_dir</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.LetsencryptCertbot"><code class="flex name class">
+<span>class <span class="ident">LetsencryptCertbot</span></span>
+<span>(</span><span>parent_=None, instance_name_=None, **values)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>default installation is for let's encrypt (manual plugin), no need for other options</p>
+<p>currently, we support only email</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="language-python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LetsencryptCertbot(NginxCertbot):
+    &#34;&#34;&#34;
+    default installation is for let&#39;s encrypt (manual plugin), no need for other options
+
+    currently, we support only email
+    &#34;&#34;&#34;
+
+    # change required value to True here
+    email = fields.Email(required=True)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></li>
+<li><a title="jumpscale.sals.nginx.nginx.Certbot" href="#jumpscale.sals.nginx.nginx.Certbot">Certbot</a></li>
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.agree_tos" href="#jumpscale.sals.nginx.nginx.Certbot.agree_tos">agree_tos</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.cert_path" href="#jumpscale.sals.nginx.nginx.Certbot.cert_path">cert_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.config_dir" href="#jumpscale.sals.nginx.nginx.Certbot.config_dir">config_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.domain" href="#jumpscale.sals.nginx.nginx.Certbot.domain">domain</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.eab_hmac_key" href="#jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key">eab_hmac_key</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.eab_kid" href="#jumpscale.sals.nginx.nginx.Certbot.eab_kid">eab_kid</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.email" href="#jumpscale.sals.nginx.nginx.Certbot.email">email</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.fullchain_path" href="#jumpscale.sals.nginx.nginx.Certbot.fullchain_path">fullchain_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.key_path" href="#jumpscale.sals.nginx.nginx.Certbot.key_path">key_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.logs_dir" href="#jumpscale.sals.nginx.nginx.Certbot.logs_dir">logs_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx">nginx</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root">nginx_server_root</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.non_interactive" href="#jumpscale.sals.nginx.nginx.Certbot.non_interactive">non_interactive</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.server" href="#jumpscale.sals.nginx.nginx.Certbot.server">server</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.work_dir" href="#jumpscale.sals.nginx.nginx.Certbot.work_dir">work_dir</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Location"><code class="flex name class">
+<span>class <span class="ident">Location</span></span>
+<span>(</span><span>parent_=None, instance_name_=None, **values)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="language-python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class Location(Base):
     path_url = fields.String(default=&#34;/&#34;)
     force_https = fields.Boolean(default=False)
@@ -406,6 +1301,8 @@ print(p.name, p.age)
     location_type = fields.Enum(LocationType)
     is_auth = fields.Boolean(default=False)
     is_admin = fields.Boolean(default=False)
+    package_name = fields.String()
+    is_package_authorized = fields.Boolean(default=False)
     custom_config = fields.String(default=None)
     proxy_buffering = fields.Enum(ProxyBuffering)
     proxy_buffers = fields.String()
@@ -425,7 +1322,7 @@ print(p.name, p.age)
             base_dir=j.core.dirs.BASEDIR,
             location=self,
             threebot_connect=j.core.config.get_config().get(&#34;threebot_connect&#34;, True),
-            https_port=PORTS.HTTPS
+            https_port=PORTS.HTTPS,
         )
 
     def configure(self):
@@ -441,9 +1338,11 @@ print(p.name, p.age)
 <dl>
 <dt id="jumpscale.sals.nginx.nginx.Location.cfg_dir"><code class="name">var <span class="ident">cfg_dir</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def cfg_dir(self):
     return j.sals.fs.join_paths(self.parent.cfg_dir, &#34;locations&#34;)</code></pre>
@@ -451,9 +1350,11 @@ def cfg_dir(self):
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.cfg_file"><code class="name">var <span class="ident">cfg_file</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def cfg_file(self):
     return j.sals.fs.join_paths(self.cfg_dir, f&#34;{self.instance_name}.conf&#34;)</code></pre>
@@ -461,16 +1362,18 @@ def cfg_file(self):
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.custom_config"><code class="name">var <span class="ident">custom_config</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -486,16 +1389,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.force_https"><code class="name">var <span class="ident">force_https</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -511,16 +1416,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.host"><code class="name">var <span class="ident">host</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -536,16 +1443,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.index"><code class="name">var <span class="ident">index</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -561,16 +1470,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.is_admin"><code class="name">var <span class="ident">is_admin</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -586,16 +1497,45 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.is_auth"><code class="name">var <span class="ident">is_auth</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Location.is_package_authorized"><code class="name">var <span class="ident">is_package_authorized</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -611,16 +1551,45 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.location_type"><code class="name">var <span class="ident">location_type</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Location.package_name"><code class="name">var <span class="ident">package_name</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -636,16 +1605,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.path_dest"><code class="name">var <span class="ident">path_dest</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -661,16 +1632,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.path_location"><code class="name">var <span class="ident">path_location</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -686,16 +1659,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.path_url"><code class="name">var <span class="ident">path_url</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -711,16 +1686,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.port"><code class="name">var <span class="ident">port</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -736,16 +1713,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.proxy_buffer_size"><code class="name">var <span class="ident">proxy_buffer_size</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -761,16 +1740,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.proxy_buffering"><code class="name">var <span class="ident">proxy_buffering</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -786,16 +1767,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.proxy_buffers"><code class="name">var <span class="ident">proxy_buffers</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -811,16 +1794,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.scheme"><code class="name">var <span class="ident">scheme</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -836,16 +1821,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.spa"><code class="name">var <span class="ident">spa</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -861,16 +1848,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Location.websocket"><code class="name">var <span class="ident">websocket</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -891,9 +1880,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">configure</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def configure(self):
     j.sals.fs.mkdir(self.cfg_dir)
     j.sals.fs.write_file(self.cfg_file, self.get_config())</code></pre>
@@ -903,16 +1894,18 @@ and will get the default value if not</p>
 <span>def <span class="ident">get_config</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_config(self):
     return render_config_template(
         &#34;location&#34;,
         base_dir=j.core.dirs.BASEDIR,
         location=self,
         threebot_connect=j.core.config.get_config().get(&#34;threebot_connect&#34;, True),
-        https_port=PORTS.HTTPS
+        https_port=PORTS.HTTPS,
     )</code></pre>
 </details>
 </dd>
@@ -930,12 +1923,14 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.LocationType"><code class="flex name class">
 <span>class <span class="ident">LocationType</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<div class="desc"><p>An enumeration.</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class LocationType(Enum):
     STATIC = &#34;static&#34;
     PROXY = &#34;proxy&#34;
@@ -949,28 +1944,28 @@ and will get the default value if not</p>
 <dl>
 <dt id="jumpscale.sals.nginx.nginx.LocationType.CUSTOM"><code class="name">var <span class="ident">CUSTOM</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.LocationType.PROXY"><code class="name">var <span class="ident">PROXY</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.LocationType.STATIC"><code class="name">var <span class="ident">STATIC</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 </dd>
 </dl>
 </dd>
-<dt id="jumpscale.sals.nginx.nginx.NginxConfig"><code class="flex name class">
-<span>class <span class="ident">NginxConfig</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<dt id="jumpscale.sals.nginx.nginx.NginxCertbot"><code class="flex name class">
+<span>class <span class="ident">NginxCertbot</span></span>
+<span>(</span><span>parent_=None, instance_name_=None, **values)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -985,11 +1980,140 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class NginxCertbot(Certbot):
+    nginx_server_root = fields.String(required=True)
+    nginx = fields.Boolean(default=True)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.nginx.nginx.Certbot" href="#jumpscale.sals.nginx.nginx.Certbot">Certbot</a></li>
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.nginx.nginx.CustomCertbot" href="#jumpscale.sals.nginx.nginx.CustomCertbot">CustomCertbot</a></li>
+<li><a title="jumpscale.sals.nginx.nginx.LetsencryptCertbot" href="#jumpscale.sals.nginx.nginx.LetsencryptCertbot">LetsencryptCertbot</a></li>
+<li><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot">ZerosslCertbot</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.sals.nginx.nginx.NginxCertbot.nginx"><code class="name">var <span class="ident">nginx</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root"><code class="name">var <span class="ident">nginx_server_root</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.sals.nginx.nginx.Certbot" href="#jumpscale.sals.nginx.nginx.Certbot">Certbot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.agree_tos" href="#jumpscale.sals.nginx.nginx.Certbot.agree_tos">agree_tos</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.cert_path" href="#jumpscale.sals.nginx.nginx.Certbot.cert_path">cert_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.config_dir" href="#jumpscale.sals.nginx.nginx.Certbot.config_dir">config_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.domain" href="#jumpscale.sals.nginx.nginx.Certbot.domain">domain</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key" href="#jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key">eab_hmac_key</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.eab_kid" href="#jumpscale.sals.nginx.nginx.Certbot.eab_kid">eab_kid</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.email" href="#jumpscale.sals.nginx.nginx.Certbot.email">email</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.fullchain_path" href="#jumpscale.sals.nginx.nginx.Certbot.fullchain_path">fullchain_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.key_path" href="#jumpscale.sals.nginx.nginx.Certbot.key_path">key_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.logs_dir" href="#jumpscale.sals.nginx.nginx.Certbot.logs_dir">logs_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.non_interactive" href="#jumpscale.sals.nginx.nginx.Certbot.non_interactive">non_interactive</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.server" href="#jumpscale.sals.nginx.nginx.Certbot.server">server</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.work_dir" href="#jumpscale.sals.nginx.nginx.Certbot.work_dir">work_dir</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.NginxConfig"><code class="flex name class">
+<span>class <span class="ident">NginxConfig</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="language-python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class NginxConfig(Base):
-    websites = fields.Factory(Website)
+    websites = fields.Factory(Website, stored=False)
+    cert = fields.Boolean(default=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1017,8 +2141,7 @@ print(p.name, p.age)
         return self._logs_dir
 
     def configure(self):
-        &#34;&#34;&#34;configures main nginx conf
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;configures main nginx conf&#34;&#34;&#34;
         self.clean()
         j.sals.fs.mkdir(self.cfg_dir)
         user = j.sals.unix.get_current_pwd()
@@ -1059,11 +2182,40 @@ print(p.name, p.age)
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="jumpscale.sals.nginx.nginx.NginxConfig.cert"><code class="name">var <span class="ident">cert</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.sals.nginx.nginx.NginxConfig.cfg_dir"><code class="name">var <span class="ident">cfg_dir</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def cfg_dir(self):
     if not self._cfg_dir:
@@ -1074,9 +2226,11 @@ def cfg_dir(self):
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.NginxConfig.cfg_file"><code class="name">var <span class="ident">cfg_file</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def cfg_file(self):
     return j.sals.fs.join_paths(self.cfg_dir, &#34;nginx.conf&#34;)</code></pre>
@@ -1084,9 +2238,11 @@ def cfg_file(self):
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.NginxConfig.logs_dir"><code class="name">var <span class="ident">logs_dir</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def logs_dir(self):
     if not self._logs_dir:
@@ -1097,16 +2253,18 @@ def logs_dir(self):
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.NginxConfig.websites"><code class="name">var <span class="ident">websites</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1127,9 +2285,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">clean</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def clean(self):
     j.sals.fs.rmtree(f&#34;{self.cfg_dir}&#34;)</code></pre>
 </details>
@@ -1138,12 +2298,13 @@ and will get the default value if not</p>
 <span>def <span class="ident">configure</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>configures main nginx conf</p></section>
+<div class="desc"><p>configures main nginx conf</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def configure(self):
-    &#34;&#34;&#34;configures main nginx conf
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;configures main nginx conf&#34;&#34;&#34;
     self.clean()
     j.sals.fs.mkdir(self.cfg_dir)
     user = j.sals.unix.get_current_pwd()
@@ -1164,12 +2325,14 @@ and will get the default value if not</p>
 </details>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.NginxConfig.get_website"><code class="name flex">
-<span>def <span class="ident">get_website</span></span>(<span>self, name, port=0)</span>
+<span>def <span class="ident">get_website</span></span>(<span>self, name: str, port: int = 0)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_website(self, name: str, port: int = 0):
     port = port or PORTS.HTTP
     website_name = f&#34;{name}_{port}&#34;
@@ -1197,12 +2360,13 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.PORTS"><code class="flex name class">
 <span>class <span class="ident">PORTS</span></span>
-<span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class PORTS:
     HTTP = 80
     HTTPS = 443
@@ -1227,11 +2391,11 @@ and will get the default value if not</p>
 <dl>
 <dt id="jumpscale.sals.nginx.nginx.PORTS.HTTP"><code class="name">var <span class="ident">HTTP</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.PORTS.HTTPS"><code class="name">var <span class="ident">HTTPS</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 </dd>
 </dl>
 <h3>Static methods</h3>
@@ -1240,9 +2404,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">init_default_ports</span></span>(<span>local=False)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@classmethod
 def init_default_ports(cls, local=False):
     if local:
@@ -1264,12 +2430,14 @@ def init_default_ports(cls, local=False):
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.ProxyBuffering"><code class="flex name class">
 <span>class <span class="ident">ProxyBuffering</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>An enumeration.</p></section>
+<div class="desc"><p>An enumeration.</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class ProxyBuffering(Enum):
     UNSET = &#34;&#34;
     ON = &#34;on&#34;
@@ -1283,15 +2451,15 @@ def init_default_ports(cls, local=False):
 <dl>
 <dt id="jumpscale.sals.nginx.nginx.ProxyBuffering.OFF"><code class="name">var <span class="ident">OFF</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.ProxyBuffering.ON"><code class="name">var <span class="ident">ON</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.ProxyBuffering.UNSET"><code class="name">var <span class="ident">UNSET</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 </dd>
 </dl>
 </dd>
@@ -1300,11 +2468,11 @@ def init_default_ports(cls, local=False):
 <span>(</span><span>parent_=None, instance_name_=None, **values)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>A simple attribute-based namespace.</p>
+<div class="desc"><p>A simple attribute-based namespace.</p>
 <p>SimpleNamespace(**kwargs)</p>
 <p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
 <p>any instance can have an optional name and a parent.</p>
-<pre><code class="python">class Person(Base):
+<pre><code class="language-python">class Person(Base):
     name = fields.String()
     age = fields.Float()
 
@@ -1319,17 +2487,49 @@ print(p.name, p.age)
 <dd>instance name. Defaults to None.</dd>
 <dt><strong><code>**values</code></strong></dt>
 <dd>any given field values to initiate the instance with</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class Website(Base):
     domain = fields.String()
     ssl = fields.Boolean()
     port = fields.Integer(default=PORTS.HTTP)
-    locations = fields.Factory(Location)
+    locations = fields.Factory(Location, stored=False)
     includes = fields.List(fields.String())
-    letsencryptemail = fields.String()
+
     selfsigned = fields.Boolean(default=True)
+
+    # keep it as letsencryptemail for compatibility
+    letsencryptemail = fields.String()
+    acme_server_type = fields.Enum(AcmeServer)
+    acme_server_url = fields.URL()
+    # in case of using existing key/certificate
+    key_path = fields.String()
+    cert_path = fields.String()
+    fullchain_path = fields.String()
+
+    @property
+    def certbot(self):
+        kwargs = dict(
+            domain=self.domain,
+            email=self.letsencryptemail,
+            server=self.acme_server_url,
+            nginx_server_root=self.parent.cfg_dir,
+            key_path=self.key_path,
+            cert_path=self.cert_path,
+            fullchain_path=self.fullchain_path,
+        )
+
+        if self.acme_server_type == AcmeServer.LETSENCRYPT:
+            certbot_type = LetsencryptCertbot
+        elif self.acme_server_type == AcmeServer.ZEROSSL:
+            certbot_type = ZerosslCertbot
+        else:
+            certbot_type = CustomCertbot
+
+        return certbot_type(**kwargs)
 
     @property
     def cfg_dir(self):
@@ -1374,18 +2574,43 @@ print(p.name, p.age)
     def get_config(self):
         return render_config_template(&#34;website&#34;, base_dir=j.core.dirs.BASEDIR, website=self)
 
-    def generate_certificates(self):
+    def generate_certificates(self, retries=6):
         if self.domain:
-            rc, out, err = j.sals.process.execute(
-                f&#34;certbot --nginx -d {self.domain} &#34;
-                f&#34;--non-interactive --agree-tos -m {self.letsencryptemail} &#34;
-                f&#34;--nginx-server-root {self.parent.cfg_dir} &#34;
-                f&#34;--logs-dir {j.core.dirs.LOGDIR}/certbot &#34;
-                f&#34;--config-dir {j.core.dirs.CFGDIR}/certbot &#34;
-                f&#34;--work-dir {j.core.dirs.VARDIR}/certbot &#34;
-            )
+            if self.key_path and self.cert_path and self.fullchain_path:
+                # only use install command if an existing key and certificate were set
+                self.install_certifcate()
+            else:
+                self.obtain_and_install_certifcate(retries=retries)
+
+    def install_certifcate(self):
+        &#34;&#34;&#34;Construct and Execute install certificate command
+        Alternative to certbot install
+
+        &#34;&#34;&#34;
+        cmd = self.certbot.install_cmd
+        j.logger.debug(f&#34;Execute: {&#39; &#39;.join(cmd)}&#34;)
+        rc, out, err = j.sals.process.execute(cmd)
+        if rc &gt; 0:
+            j.logger.error(f&#34;Installing certificate failed {out}\n{err}&#34;)
+        else:
+            j.logger.info(f&#34;Certificate installed successfully {out}&#34;)
+
+    def obtain_and_install_certifcate(self, retries=6):
+        &#34;&#34;&#34;Construct and Execute run certificate command,This will issue a new certificate managed by Certbot
+        Alternative to certbot run
+
+        Args:
+            retries (int, optional): Number of retries Certbot will try to install the certificate if failed. Defaults to 6.
+        &#34;&#34;&#34;
+        cmd = self.certbot.run_cmd
+        j.logger.debug(f&#34;Execute: {&#39; &#39;.join(cmd)}&#34;)
+        for _ in range(retries):
+            rc, out, err = j.sals.process.execute(cmd)
             if rc &gt; 0:
                 j.logger.error(f&#34;Generating certificate failed {out}\n{err}&#34;)
+            else:
+                j.logger.error(f&#34;Certificate Generated successfully {out}&#34;)
+                break
 
     def generate_self_signed_certificates(self):
         keypempath = f&#34;{self.parent.cfg_dir}/key.pem&#34;
@@ -1415,9 +2640,9 @@ print(p.name, p.age)
             location.configure()
 
         j.sals.fs.write_file(self.cfg_file, self.get_config())
-
-        if generate_certificates and self.ssl:
+        if self.ssl:
             self.generate_self_signed_certificates()
+        if generate_certificates and self.ssl:
             self.generate_certificates()
 
     def clean(self):
@@ -1430,11 +2655,123 @@ print(p.name, p.age)
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="jumpscale.sals.nginx.nginx.Website.acme_server_type"><code class="name">var <span class="ident">acme_server_type</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.acme_server_url"><code class="name">var <span class="ident">acme_server_url</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.cert_path"><code class="name">var <span class="ident">cert_path</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.certbot"><code class="name">var <span class="ident">certbot</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def certbot(self):
+    kwargs = dict(
+        domain=self.domain,
+        email=self.letsencryptemail,
+        server=self.acme_server_url,
+        nginx_server_root=self.parent.cfg_dir,
+        key_path=self.key_path,
+        cert_path=self.cert_path,
+        fullchain_path=self.fullchain_path,
+    )
+
+    if self.acme_server_type == AcmeServer.LETSENCRYPT:
+        certbot_type = LetsencryptCertbot
+    elif self.acme_server_type == AcmeServer.ZEROSSL:
+        certbot_type = ZerosslCertbot
+    else:
+        certbot_type = CustomCertbot
+
+    return certbot_type(**kwargs)</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.cfg_dir"><code class="name">var <span class="ident">cfg_dir</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def cfg_dir(self):
     return j.sals.fs.join_paths(self.parent.cfg_dir, self.instance_name)</code></pre>
@@ -1442,9 +2779,11 @@ def cfg_dir(self):
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.cfg_file"><code class="name">var <span class="ident">cfg_file</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def cfg_file(self):
     return j.sals.fs.join_paths(self.cfg_dir, &#34;server.conf&#34;)</code></pre>
@@ -1452,16 +2791,45 @@ def cfg_file(self):
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.domain"><code class="name">var <span class="ident">domain</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.fullchain_path"><code class="name">var <span class="ident">fullchain_path</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1477,9 +2845,11 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.include_paths"><code class="name">var <span class="ident">include_paths</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def include_paths(self):
     paths = []
@@ -1496,16 +2866,45 @@ def include_paths(self):
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.includes"><code class="name">var <span class="ident">includes</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.key_path"><code class="name">var <span class="ident">key_path</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1521,16 +2920,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.letsencryptemail"><code class="name">var <span class="ident">letsencryptemail</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1546,16 +2947,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.locations"><code class="name">var <span class="ident">locations</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1571,16 +2974,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.port"><code class="name">var <span class="ident">port</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1596,16 +3001,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.selfsigned"><code class="name">var <span class="ident">selfsigned</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1621,16 +3028,18 @@ and will get the default value if not</p>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.ssl"><code class="name">var <span class="ident">ssl</span></code></dt>
 <dd>
-<section class="desc"><p>getter method this property</p>
+<div class="desc"><p>getter method this property</p>
 <p>will call <code>_get_value</code>, which would if the value is already defined
 and will get the default value if not</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>any</code></strong></dt>
+<dt><code>any</code></dt>
 <dd>the field value</dd>
-</dl></section>
+</dl></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def getter(self):
     &#34;&#34;&#34;
     getter method this property
@@ -1651,9 +3060,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">clean</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def clean(self):
     j.sals.fs.rmtree(self.cfg_dir)</code></pre>
 </details>
@@ -1662,9 +3073,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">configure</span></span>(<span>self, generate_certificates=True)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def configure(self, generate_certificates=True):
     j.sals.fs.mkdir(self.cfg_dir)
     needed_dirs = (&#34;body&#34;, &#34;client-body&#34;, &#34;fastcgi&#34;, &#34;proxy&#34;, &#34;scgi&#34;, &#34;uwsgi&#34;)
@@ -1674,40 +3087,39 @@ and will get the default value if not</p>
         location.configure()
 
     j.sals.fs.write_file(self.cfg_file, self.get_config())
-
-    if generate_certificates and self.ssl:
+    if self.ssl:
         self.generate_self_signed_certificates()
+    if generate_certificates and self.ssl:
         self.generate_certificates()</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.generate_certificates"><code class="name flex">
-<span>def <span class="ident">generate_certificates</span></span>(<span>self)</span>
+<span>def <span class="ident">generate_certificates</span></span>(<span>self, retries=6)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
-<pre><code class="python">def generate_certificates(self):
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generate_certificates(self, retries=6):
     if self.domain:
-        rc, out, err = j.sals.process.execute(
-            f&#34;certbot --nginx -d {self.domain} &#34;
-            f&#34;--non-interactive --agree-tos -m {self.letsencryptemail} &#34;
-            f&#34;--nginx-server-root {self.parent.cfg_dir} &#34;
-            f&#34;--logs-dir {j.core.dirs.LOGDIR}/certbot &#34;
-            f&#34;--config-dir {j.core.dirs.CFGDIR}/certbot &#34;
-            f&#34;--work-dir {j.core.dirs.VARDIR}/certbot &#34;
-        )
-        if rc &gt; 0:
-            j.logger.error(f&#34;Generating certificate failed {out}\n{err}&#34;)</code></pre>
+        if self.key_path and self.cert_path and self.fullchain_path:
+            # only use install command if an existing key and certificate were set
+            self.install_certifcate()
+        else:
+            self.obtain_and_install_certifcate(retries=retries)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.sals.nginx.nginx.Website.generate_self_signed_certificates"><code class="name flex">
 <span>def <span class="ident">generate_self_signed_certificates</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def generate_self_signed_certificates(self):
     keypempath = f&#34;{self.parent.cfg_dir}/key.pem&#34;
     certpempath = f&#34;{self.parent.cfg_dir}/cert.pem&#34;
@@ -1732,9 +3144,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">get_config</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_config(self):
     return render_config_template(&#34;website&#34;, base_dir=j.core.dirs.BASEDIR, website=self)</code></pre>
 </details>
@@ -1743,9 +3157,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">get_custom_location</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_custom_location(self, name):
     location = self.locations.get(name)
     location.location_type = LocationType.CUSTOM
@@ -1756,9 +3172,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">get_locations</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_locations(self):
     for location in self.locations.list_all():
         yield self.locations.get(location)</code></pre>
@@ -1768,9 +3186,11 @@ and will get the default value if not</p>
 <span>def <span class="ident">get_proxy_location</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_proxy_location(self, name):
     location = self.locations.get(name)
     location.location_type = LocationType.PROXY
@@ -1781,13 +3201,72 @@ and will get the default value if not</p>
 <span>def <span class="ident">get_static_location</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get_static_location(self, name):
     location = self.locations.get(name)
     location.location_type = LocationType.STATIC
     return location</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.install_certifcate"><code class="name flex">
+<span>def <span class="ident">install_certifcate</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Construct and Execute install certificate command
+Alternative to certbot install</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def install_certifcate(self):
+    &#34;&#34;&#34;Construct and Execute install certificate command
+    Alternative to certbot install
+
+    &#34;&#34;&#34;
+    cmd = self.certbot.install_cmd
+    j.logger.debug(f&#34;Execute: {&#39; &#39;.join(cmd)}&#34;)
+    rc, out, err = j.sals.process.execute(cmd)
+    if rc &gt; 0:
+        j.logger.error(f&#34;Installing certificate failed {out}\n{err}&#34;)
+    else:
+        j.logger.info(f&#34;Certificate installed successfully {out}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.Website.obtain_and_install_certifcate"><code class="name flex">
+<span>def <span class="ident">obtain_and_install_certifcate</span></span>(<span>self, retries=6)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Construct and Execute run certificate command,This will issue a new certificate managed by Certbot
+Alternative to certbot run</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>retries</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Number of retries Certbot will try to install the certificate if failed. Defaults to 6.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def obtain_and_install_certifcate(self, retries=6):
+    &#34;&#34;&#34;Construct and Execute run certificate command,This will issue a new certificate managed by Certbot
+    Alternative to certbot run
+
+    Args:
+        retries (int, optional): Number of retries Certbot will try to install the certificate if failed. Defaults to 6.
+    &#34;&#34;&#34;
+    cmd = self.certbot.run_cmd
+    j.logger.debug(f&#34;Execute: {&#39; &#39;.join(cmd)}&#34;)
+    for _ in range(retries):
+        rc, out, err = j.sals.process.execute(cmd)
+        if rc &gt; 0:
+            j.logger.error(f&#34;Generating certificate failed {out}\n{err}&#34;)
+        else:
+            j.logger.error(f&#34;Certificate Generated successfully {out}&#34;)
+            break</code></pre>
 </details>
 </dd>
 </dl>
@@ -1798,6 +3277,169 @@ and will get the default value if not</p>
 <li><code><a title="jumpscale.core.base.meta.Base.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
 <li><code><a title="jumpscale.core.base.meta.Base.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
 <li><code><a title="jumpscale.core.base.meta.Base.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.ZerosslCertbot"><code class="flex name class">
+<span>class <span class="ident">ZerosslCertbot</span></span>
+<span>(</span><span>parent_=None, instance_name_=None, **values)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A simple attribute-based namespace.</p>
+<p>SimpleNamespace(**kwargs)</p>
+<p>base class implementation for any class with fields which supports getting/setting raw data for any instance fields.</p>
+<p>any instance can have an optional name and a parent.</p>
+<pre><code class="language-python">class Person(Base):
+    name = fields.String()
+    age = fields.Float()
+
+p = Person(name=&quot;ahmed&quot;, age=&quot;19&quot;)
+print(p.name, p.age)
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_</code></strong> :&ensp;<code>Base</code>, optional</dt>
+<dd>parent instance. Defaults to None.</dd>
+<dt><strong><code>instance_name_</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>instance name. Defaults to None.</dd>
+<dt><strong><code>**values</code></strong></dt>
+<dd>any given field values to initiate the instance with</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ZerosslCertbot(NginxCertbot):
+    SERVER_URL = &#34;https://acme.zerossl.com/v2/DV90&#34;
+    KEY_CREDENTIALS_URL = &#34;https://api.zerossl.com/acme/eab-credentials&#34;
+    EMAIL_CREDENTIALS_URL = &#34;https://api.zerossl.com/acme/eab-credentials-email&#34;
+
+    api_key_ = fields.Secret()
+    server = fields.URL(default=SERVER_URL)
+
+    @property
+    def run_cmd(self):
+        # get eab_kid and eab_hmac_key based on email or api_key_
+        if not self.email and not self.api_key_:
+            raise Input(&#34;email or api_key_ must be provided&#34;)
+
+        # set them to get the full run-cmd with correct arguments
+        if self.api_key_:
+            resp = j.tools.http.post(self.KEY_CREDENTIALS_URL, params={&#34;access_key&#34;: self.api_key_})
+        else:
+            resp = j.tools.http.post(self.EMAIL_CREDENTIALS_URL, data={&#34;email&#34;: self.email})
+
+        resp.raise_for_status()
+        data = resp.json()
+
+        self.eab_kid = data[&#34;eab_kid&#34;]
+        self.eab_hmac_key = data[&#34;eab_hmac_key&#34;]
+
+        return super().run_cmd</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></li>
+<li><a title="jumpscale.sals.nginx.nginx.Certbot" href="#jumpscale.sals.nginx.nginx.Certbot">Certbot</a></li>
+<li><a title="jumpscale.core.base.meta.Base" href="../../core/base/meta.html#jumpscale.core.base.meta.Base">Base</a></li>
+<li>types.SimpleNamespace</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="jumpscale.sals.nginx.nginx.ZerosslCertbot.EMAIL_CREDENTIALS_URL"><code class="name">var <span class="ident">EMAIL_CREDENTIALS_URL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.ZerosslCertbot.KEY_CREDENTIALS_URL"><code class="name">var <span class="ident">KEY_CREDENTIALS_URL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.ZerosslCertbot.SERVER_URL"><code class="name">var <span class="ident">SERVER_URL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="jumpscale.sals.nginx.nginx.ZerosslCertbot.api_key_"><code class="name">var <span class="ident">api_key_</span></code></dt>
+<dd>
+<div class="desc"><p>getter method this property</p>
+<p>will call <code>_get_value</code>, which would if the value is already defined
+and will get the default value if not</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>any</code></dt>
+<dd>the field value</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+    &#34;&#34;&#34;
+    getter method this property
+
+    will call `_get_value`, which would if the value is already defined
+    and will get the default value if not
+
+    Returns:
+        any: the field value
+    &#34;&#34;&#34;
+    return self._get_value(name, field)</code></pre>
+</details>
+</dd>
+<dt id="jumpscale.sals.nginx.nginx.ZerosslCertbot.run_cmd"><code class="name">var <span class="ident">run_cmd</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def run_cmd(self):
+    # get eab_kid and eab_hmac_key based on email or api_key_
+    if not self.email and not self.api_key_:
+        raise Input(&#34;email or api_key_ must be provided&#34;)
+
+    # set them to get the full run-cmd with correct arguments
+    if self.api_key_:
+        resp = j.tools.http.post(self.KEY_CREDENTIALS_URL, params={&#34;access_key&#34;: self.api_key_})
+    else:
+        resp = j.tools.http.post(self.EMAIL_CREDENTIALS_URL, data={&#34;email&#34;: self.email})
+
+    resp.raise_for_status()
+    data = resp.json()
+
+    self.eab_kid = data[&#34;eab_kid&#34;]
+    self.eab_hmac_key = data[&#34;eab_hmac_key&#34;]
+
+    return super().run_cmd</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.agree_tos" href="#jumpscale.sals.nginx.nginx.Certbot.agree_tos">agree_tos</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.cert_path" href="#jumpscale.sals.nginx.nginx.Certbot.cert_path">cert_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.config_dir" href="#jumpscale.sals.nginx.nginx.Certbot.config_dir">config_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.domain" href="#jumpscale.sals.nginx.nginx.Certbot.domain">domain</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.eab_hmac_key" href="#jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key">eab_hmac_key</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.eab_kid" href="#jumpscale.sals.nginx.nginx.Certbot.eab_kid">eab_kid</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.email" href="#jumpscale.sals.nginx.nginx.Certbot.email">email</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.from_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.from_dict">from_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.fullchain_path" href="#jumpscale.sals.nginx.nginx.Certbot.fullchain_path">fullchain_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.key_path" href="#jumpscale.sals.nginx.nginx.Certbot.key_path">key_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.logs_dir" href="#jumpscale.sals.nginx.nginx.Certbot.logs_dir">logs_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx">nginx</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root">nginx_server_root</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.non_interactive" href="#jumpscale.sals.nginx.nginx.Certbot.non_interactive">non_interactive</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.server" href="#jumpscale.sals.nginx.nginx.Certbot.server">server</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.to_dict" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.to_dict">to_dict</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.validate" href="../../core/base/meta.html#jumpscale.core.base.meta.Base.validate">validate</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.work_dir" href="#jumpscale.sals.nginx.nginx.Certbot.work_dir">work_dir</a></code></li>
 </ul>
 </li>
 </ul>
@@ -1825,8 +3467,47 @@ and will get the default value if not</p>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="jumpscale.sals.nginx.nginx.Location" href="#jumpscale.sals.nginx.nginx.Location">Location</a></code></h4>
+<h4><code><a title="jumpscale.sals.nginx.nginx.AcmeServer" href="#jumpscale.sals.nginx.nginx.AcmeServer">AcmeServer</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.sals.nginx.nginx.AcmeServer.CUSTOM" href="#jumpscale.sals.nginx.nginx.AcmeServer.CUSTOM">CUSTOM</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.AcmeServer.LETSENCRYPT" href="#jumpscale.sals.nginx.nginx.AcmeServer.LETSENCRYPT">LETSENCRYPT</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.AcmeServer.ZEROSSL" href="#jumpscale.sals.nginx.nginx.AcmeServer.ZEROSSL">ZEROSSL</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.nginx.nginx.Certbot" href="#jumpscale.sals.nginx.nginx.Certbot">Certbot</a></code></h4>
 <ul class="two-column">
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_CONFIG_DIR" href="#jumpscale.sals.nginx.nginx.Certbot.DEFAULT_CONFIG_DIR">DEFAULT_CONFIG_DIR</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_LOGS_DIR" href="#jumpscale.sals.nginx.nginx.Certbot.DEFAULT_LOGS_DIR">DEFAULT_LOGS_DIR</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_NAME" href="#jumpscale.sals.nginx.nginx.Certbot.DEFAULT_NAME">DEFAULT_NAME</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.DEFAULT_WORK_DIR" href="#jumpscale.sals.nginx.nginx.Certbot.DEFAULT_WORK_DIR">DEFAULT_WORK_DIR</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.agree_tos" href="#jumpscale.sals.nginx.nginx.Certbot.agree_tos">agree_tos</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.cert_path" href="#jumpscale.sals.nginx.nginx.Certbot.cert_path">cert_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.config_dir" href="#jumpscale.sals.nginx.nginx.Certbot.config_dir">config_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.domain" href="#jumpscale.sals.nginx.nginx.Certbot.domain">domain</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key" href="#jumpscale.sals.nginx.nginx.Certbot.eab_hmac_key">eab_hmac_key</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.eab_kid" href="#jumpscale.sals.nginx.nginx.Certbot.eab_kid">eab_kid</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.email" href="#jumpscale.sals.nginx.nginx.Certbot.email">email</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.fullchain_path" href="#jumpscale.sals.nginx.nginx.Certbot.fullchain_path">fullchain_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.install_cmd" href="#jumpscale.sals.nginx.nginx.Certbot.install_cmd">install_cmd</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.key_path" href="#jumpscale.sals.nginx.nginx.Certbot.key_path">key_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.logs_dir" href="#jumpscale.sals.nginx.nginx.Certbot.logs_dir">logs_dir</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.non_interactive" href="#jumpscale.sals.nginx.nginx.Certbot.non_interactive">non_interactive</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.renew_cmd" href="#jumpscale.sals.nginx.nginx.Certbot.renew_cmd">renew_cmd</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.run_cmd" href="#jumpscale.sals.nginx.nginx.Certbot.run_cmd">run_cmd</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.server" href="#jumpscale.sals.nginx.nginx.Certbot.server">server</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Certbot.work_dir" href="#jumpscale.sals.nginx.nginx.Certbot.work_dir">work_dir</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.nginx.nginx.CustomCertbot" href="#jumpscale.sals.nginx.nginx.CustomCertbot">CustomCertbot</a></code></h4>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.nginx.nginx.LetsencryptCertbot" href="#jumpscale.sals.nginx.nginx.LetsencryptCertbot">LetsencryptCertbot</a></code></h4>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.nginx.nginx.Location" href="#jumpscale.sals.nginx.nginx.Location">Location</a></code></h4>
+<ul class="">
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.cfg_dir" href="#jumpscale.sals.nginx.nginx.Location.cfg_dir">cfg_dir</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.cfg_file" href="#jumpscale.sals.nginx.nginx.Location.cfg_file">cfg_file</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.configure" href="#jumpscale.sals.nginx.nginx.Location.configure">configure</a></code></li>
@@ -1837,7 +3518,9 @@ and will get the default value if not</p>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.index" href="#jumpscale.sals.nginx.nginx.Location.index">index</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.is_admin" href="#jumpscale.sals.nginx.nginx.Location.is_admin">is_admin</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.is_auth" href="#jumpscale.sals.nginx.nginx.Location.is_auth">is_auth</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Location.is_package_authorized" href="#jumpscale.sals.nginx.nginx.Location.is_package_authorized">is_package_authorized</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.location_type" href="#jumpscale.sals.nginx.nginx.Location.location_type">location_type</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Location.package_name" href="#jumpscale.sals.nginx.nginx.Location.package_name">package_name</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.path_dest" href="#jumpscale.sals.nginx.nginx.Location.path_dest">path_dest</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.path_location" href="#jumpscale.sals.nginx.nginx.Location.path_location">path_location</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Location.path_url" href="#jumpscale.sals.nginx.nginx.Location.path_url">path_url</a></code></li>
@@ -1859,8 +3542,16 @@ and will get the default value if not</p>
 </ul>
 </li>
 <li>
+<h4><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot" href="#jumpscale.sals.nginx.nginx.NginxCertbot">NginxCertbot</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx">nginx</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root" href="#jumpscale.sals.nginx.nginx.NginxCertbot.nginx_server_root">nginx_server_root</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="jumpscale.sals.nginx.nginx.NginxConfig" href="#jumpscale.sals.nginx.nginx.NginxConfig">NginxConfig</a></code></h4>
 <ul class="two-column">
+<li><code><a title="jumpscale.sals.nginx.nginx.NginxConfig.cert" href="#jumpscale.sals.nginx.nginx.NginxConfig.cert">cert</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.NginxConfig.cfg_dir" href="#jumpscale.sals.nginx.nginx.NginxConfig.cfg_dir">cfg_dir</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.NginxConfig.cfg_file" href="#jumpscale.sals.nginx.nginx.NginxConfig.cfg_file">cfg_file</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.NginxConfig.clean" href="#jumpscale.sals.nginx.nginx.NginxConfig.clean">clean</a></code></li>
@@ -1889,11 +3580,16 @@ and will get the default value if not</p>
 <li>
 <h4><code><a title="jumpscale.sals.nginx.nginx.Website" href="#jumpscale.sals.nginx.nginx.Website">Website</a></code></h4>
 <ul class="">
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.acme_server_type" href="#jumpscale.sals.nginx.nginx.Website.acme_server_type">acme_server_type</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.acme_server_url" href="#jumpscale.sals.nginx.nginx.Website.acme_server_url">acme_server_url</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.cert_path" href="#jumpscale.sals.nginx.nginx.Website.cert_path">cert_path</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.certbot" href="#jumpscale.sals.nginx.nginx.Website.certbot">certbot</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.cfg_dir" href="#jumpscale.sals.nginx.nginx.Website.cfg_dir">cfg_dir</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.cfg_file" href="#jumpscale.sals.nginx.nginx.Website.cfg_file">cfg_file</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.clean" href="#jumpscale.sals.nginx.nginx.Website.clean">clean</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.configure" href="#jumpscale.sals.nginx.nginx.Website.configure">configure</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.domain" href="#jumpscale.sals.nginx.nginx.Website.domain">domain</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.fullchain_path" href="#jumpscale.sals.nginx.nginx.Website.fullchain_path">fullchain_path</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.generate_certificates" href="#jumpscale.sals.nginx.nginx.Website.generate_certificates">generate_certificates</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.generate_self_signed_certificates" href="#jumpscale.sals.nginx.nginx.Website.generate_self_signed_certificates">generate_self_signed_certificates</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.get_config" href="#jumpscale.sals.nginx.nginx.Website.get_config">get_config</a></code></li>
@@ -1903,11 +3599,24 @@ and will get the default value if not</p>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.get_static_location" href="#jumpscale.sals.nginx.nginx.Website.get_static_location">get_static_location</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.include_paths" href="#jumpscale.sals.nginx.nginx.Website.include_paths">include_paths</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.includes" href="#jumpscale.sals.nginx.nginx.Website.includes">includes</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.install_certifcate" href="#jumpscale.sals.nginx.nginx.Website.install_certifcate">install_certifcate</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.key_path" href="#jumpscale.sals.nginx.nginx.Website.key_path">key_path</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.letsencryptemail" href="#jumpscale.sals.nginx.nginx.Website.letsencryptemail">letsencryptemail</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.locations" href="#jumpscale.sals.nginx.nginx.Website.locations">locations</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.Website.obtain_and_install_certifcate" href="#jumpscale.sals.nginx.nginx.Website.obtain_and_install_certifcate">obtain_and_install_certifcate</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.port" href="#jumpscale.sals.nginx.nginx.Website.port">port</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.selfsigned" href="#jumpscale.sals.nginx.nginx.Website.selfsigned">selfsigned</a></code></li>
 <li><code><a title="jumpscale.sals.nginx.nginx.Website.ssl" href="#jumpscale.sals.nginx.nginx.Website.ssl">ssl</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot">ZerosslCertbot</a></code></h4>
+<ul class="">
+<li><code><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot.EMAIL_CREDENTIALS_URL" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot.EMAIL_CREDENTIALS_URL">EMAIL_CREDENTIALS_URL</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot.KEY_CREDENTIALS_URL" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot.KEY_CREDENTIALS_URL">KEY_CREDENTIALS_URL</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot.SERVER_URL" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot.SERVER_URL">SERVER_URL</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot.api_key_" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot.api_key_">api_key_</a></code></li>
+<li><code><a title="jumpscale.sals.nginx.nginx.ZerosslCertbot.run_cmd" href="#jumpscale.sals.nginx.nginx.ZerosslCertbot.run_cmd">run_cmd</a></code></li>
 </ul>
 </li>
 </ul>
@@ -1916,9 +3625,7 @@ and will get the default value if not</p>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

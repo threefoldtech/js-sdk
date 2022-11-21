@@ -3,15 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.6.4" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>jumpscale.tools.alerthandler.alerthandler API documentation</title>
 <meta name="description" content="" />
-<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
-<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
-<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase;cursor:pointer}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
 </head>
 <body>
 <main>
@@ -21,12 +23,15 @@
 </header>
 <section id="section-intro">
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">from jumpscale.loader import j
+import gevent
 
 
-def _get_identifier(appname, message, public_message, category, alert_type):
-    return j.data.hash.md5(&#34;:&#34;.join([appname, message, public_message, category, alert_type]))
+def _get_identifier(app_name, message, public_message, category, alert_type):
+    return j.data.hash.md5(&#34;:&#34;.join([app_name, message, public_message, category, alert_type]))
 
 
 class Alert:
@@ -34,7 +39,7 @@ class Alert:
         self.id = None
         self.type = None
         self.level = 0
-        self.appname = None
+        self.app_name = None
         self.category = None
         self.message = None
         self.public_message = None
@@ -55,7 +60,7 @@ class Alert:
 
     @property
     def identifier(self):
-        return _get_identifier(self.appname, self.message, self.public_message, self.category, self.type)
+        return _get_identifier(self.app_name, self.message, self.public_message, self.category, self.type)
 
     @property
     def json(self):
@@ -71,6 +76,7 @@ class AlertsHandler:
         self._rkey_id = &#34;alerts:id&#34;
         self._rkey_incr = &#34;alerts:id:incr&#34;
         self._db = None
+        self.handlers = []
 
     def __dir__(self):
         return (&#34;get&#34;, &#34;find&#34;, &#34;alert_raise&#34;, &#34;count&#34;, &#34;reset&#34;, &#34;delete&#34;, &#34;delete_all&#34;)
@@ -109,18 +115,18 @@ class AlertsHandler:
 
     def find(
         self,
-        appname: str = &#34;&#34;,
+        app_name: str = &#34;&#34;,
         category: str = &#34;&#34;,
         message: str = &#34;&#34;,
         pid: int = None,
         start_time: int = None,
         end_time: int = None,
-    ) -&gt; Alert:
+    ) -&gt; list:
 
         &#34;&#34;&#34;Find alerts
 
         Keyword Arguments:
-            appname {str} -- filter by allert app name (default: {&#34;&#34;})
+            app_name (str):  filter by allert app name (default: {&#34;&#34;})
             category {str} -- filter by alert category (default: {&#34;&#34;})
             message {str} -- filter by alert message (default: {&#34;&#34;})
             pid {int} -- filter by process id (default: {None})
@@ -128,9 +134,10 @@ class AlertsHandler:
             end_time {int} -- filter by end time (default: {None})
 
         Returns:
-            Alert -- alert object
+            list of Alert objects
         &#34;&#34;&#34;
-        appname = appname.strip().lower()
+
+        app_name = app_name.strip().lower()
         category = category.strip().lower()
         message = message.strip().lower()
 
@@ -140,13 +147,15 @@ class AlertsHandler:
         for item in items:
             alert = Alert.loads(item[1])
 
-            if appname and appname != alert.appname:
+            if app_name and app_name != alert.app_name.strip().lower():
                 continue
 
-            if category and category != alert.category:
+            if category and category != alert.category.strip().lower():
                 continue
 
-            if message and (message not in alert.message and message not in alert.public_message):
+            if message and (
+                message not in alert.message.strip().lower() and message not in alert.public_message.strip().lower()
+            ):
                 continue
 
             if start_time and start_time &lt; alert.first_occurrence:
@@ -167,7 +176,7 @@ class AlertsHandler:
 
     def alert_raise(
         self,
-        appname,
+        app_name,
         message,
         public_message: str = &#34;&#34;,
         category: str = &#34;&#34;,
@@ -196,7 +205,7 @@ class AlertsHandler:
         if not self.db.is_running():
             return
 
-        identifier = _get_identifier(appname, message, public_message, category, alert_type)
+        identifier = _get_identifier(app_name, message, public_message, category, alert_type)
         alert = self.get(identifier=identifier, die=False) or Alert()
 
         if alert.id:
@@ -208,7 +217,7 @@ class AlertsHandler:
             alert.status = &#34;new&#34;
             alert.first_occurrence = timestamp or j.data.time.now().timestamp
 
-        alert.appname = appname
+        alert.app_name = app_name
         alert.category = category
         alert.message = message
         alert.public_message = public_message
@@ -223,6 +232,9 @@ class AlertsHandler:
 
         alert.tracebacks.append(traceback)
         self._save(alert)
+        for handler_func, handler_level in self.handlers:
+            if level &gt;= handler_level:
+                gevent.spawn(handler_func, alert)
         return alert
 
     def count(self) -&gt; int:
@@ -263,15 +275,25 @@ class AlertsHandler:
             self.db.hdel(self._rkey, alert_id)
 
     def delete_all(self):
-        &#34;&#34;&#34;Deletes all alerts
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Deletes all alerts&#34;&#34;&#34;
         self.db.delete(self._rkey, self._rkey_id)
 
     def reset(self):
-        &#34;&#34;&#34;Delete all alerts and reset the db
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Delete all alerts and reset the db&#34;&#34;&#34;
         self.delete_all()
-        self.db.delete(self._rkey_incr)</code></pre>
+        self.db.delete(self._rkey_incr)
+
+    def register_handler(self, handler: callable, level: int = 40):
+        &#34;&#34;&#34;Register new alert handler
+
+        Arguments:
+            handler (callable): error handler callable
+
+        Keyword Arguments:
+            level (int): exception level (default: {40})
+        &#34;&#34;&#34;
+        if (handler, level) not in self.handlers:
+            self.handlers.append((handler, level))</code></pre>
 </details>
 </section>
 <section>
@@ -287,15 +309,17 @@ class AlertsHandler:
 <span>class <span class="ident">Alert</span></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class Alert:
     def __init__(self):
         self.id = None
         self.type = None
         self.level = 0
-        self.appname = None
+        self.app_name = None
         self.category = None
         self.message = None
         self.public_message = None
@@ -316,7 +340,7 @@ class AlertsHandler:
 
     @property
     def identifier(self):
-        return _get_identifier(self.appname, self.message, self.public_message, self.category, self.type)
+        return _get_identifier(self.app_name, self.message, self.public_message, self.category, self.type)
 
     @property
     def json(self):
@@ -331,9 +355,11 @@ class AlertsHandler:
 <span>def <span class="ident">loads</span></span>(<span>value)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@classmethod
 def loads(cls, value):
     json = j.data.serializers.json.loads(value)
@@ -347,19 +373,23 @@ def loads(cls, value):
 <dl>
 <dt id="jumpscale.tools.alerthandler.alerthandler.Alert.identifier"><code class="name">var <span class="ident">identifier</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def identifier(self):
-    return _get_identifier(self.appname, self.message, self.public_message, self.category, self.type)</code></pre>
+    return _get_identifier(self.app_name, self.message, self.public_message, self.category, self.type)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.tools.alerthandler.alerthandler.Alert.json"><code class="name">var <span class="ident">json</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def json(self):
     return self.__dict__</code></pre>
@@ -372,9 +402,11 @@ def json(self):
 <span>def <span class="ident">dumps</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def dumps(self):
     return j.data.serializers.json.dumps(self.__dict__)</code></pre>
 </details>
@@ -385,15 +417,18 @@ def json(self):
 <span>class <span class="ident">AlertsHandler</span></span>
 </code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">class AlertsHandler:
     def __init__(self):
         self._rkey = &#34;alerts&#34;
         self._rkey_id = &#34;alerts:id&#34;
         self._rkey_incr = &#34;alerts:id:incr&#34;
         self._db = None
+        self.handlers = []
 
     def __dir__(self):
         return (&#34;get&#34;, &#34;find&#34;, &#34;alert_raise&#34;, &#34;count&#34;, &#34;reset&#34;, &#34;delete&#34;, &#34;delete_all&#34;)
@@ -432,18 +467,18 @@ def json(self):
 
     def find(
         self,
-        appname: str = &#34;&#34;,
+        app_name: str = &#34;&#34;,
         category: str = &#34;&#34;,
         message: str = &#34;&#34;,
         pid: int = None,
         start_time: int = None,
         end_time: int = None,
-    ) -&gt; Alert:
+    ) -&gt; list:
 
         &#34;&#34;&#34;Find alerts
 
         Keyword Arguments:
-            appname {str} -- filter by allert app name (default: {&#34;&#34;})
+            app_name (str):  filter by allert app name (default: {&#34;&#34;})
             category {str} -- filter by alert category (default: {&#34;&#34;})
             message {str} -- filter by alert message (default: {&#34;&#34;})
             pid {int} -- filter by process id (default: {None})
@@ -451,9 +486,10 @@ def json(self):
             end_time {int} -- filter by end time (default: {None})
 
         Returns:
-            Alert -- alert object
+            list of Alert objects
         &#34;&#34;&#34;
-        appname = appname.strip().lower()
+
+        app_name = app_name.strip().lower()
         category = category.strip().lower()
         message = message.strip().lower()
 
@@ -463,13 +499,15 @@ def json(self):
         for item in items:
             alert = Alert.loads(item[1])
 
-            if appname and appname != alert.appname:
+            if app_name and app_name != alert.app_name.strip().lower():
                 continue
 
-            if category and category != alert.category:
+            if category and category != alert.category.strip().lower():
                 continue
 
-            if message and (message not in alert.message and message not in alert.public_message):
+            if message and (
+                message not in alert.message.strip().lower() and message not in alert.public_message.strip().lower()
+            ):
                 continue
 
             if start_time and start_time &lt; alert.first_occurrence:
@@ -490,7 +528,7 @@ def json(self):
 
     def alert_raise(
         self,
-        appname,
+        app_name,
         message,
         public_message: str = &#34;&#34;,
         category: str = &#34;&#34;,
@@ -519,7 +557,7 @@ def json(self):
         if not self.db.is_running():
             return
 
-        identifier = _get_identifier(appname, message, public_message, category, alert_type)
+        identifier = _get_identifier(app_name, message, public_message, category, alert_type)
         alert = self.get(identifier=identifier, die=False) or Alert()
 
         if alert.id:
@@ -531,7 +569,7 @@ def json(self):
             alert.status = &#34;new&#34;
             alert.first_occurrence = timestamp or j.data.time.now().timestamp
 
-        alert.appname = appname
+        alert.app_name = app_name
         alert.category = category
         alert.message = message
         alert.public_message = public_message
@@ -546,6 +584,9 @@ def json(self):
 
         alert.tracebacks.append(traceback)
         self._save(alert)
+        for handler_func, handler_level in self.handlers:
+            if level &gt;= handler_level:
+                gevent.spawn(handler_func, alert)
         return alert
 
     def count(self) -&gt; int:
@@ -586,23 +627,35 @@ def json(self):
             self.db.hdel(self._rkey, alert_id)
 
     def delete_all(self):
-        &#34;&#34;&#34;Deletes all alerts
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Deletes all alerts&#34;&#34;&#34;
         self.db.delete(self._rkey, self._rkey_id)
 
     def reset(self):
-        &#34;&#34;&#34;Delete all alerts and reset the db
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Delete all alerts and reset the db&#34;&#34;&#34;
         self.delete_all()
-        self.db.delete(self._rkey_incr)</code></pre>
+        self.db.delete(self._rkey_incr)
+
+    def register_handler(self, handler: callable, level: int = 40):
+        &#34;&#34;&#34;Register new alert handler
+
+        Arguments:
+            handler (callable): error handler callable
+
+        Keyword Arguments:
+            level (int): exception level (default: {40})
+        &#34;&#34;&#34;
+        if (handler, level) not in self.handlers:
+            self.handlers.append((handler, level))</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
 <dt id="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.db"><code class="name">var <span class="ident">db</span></code></dt>
 <dd>
-<section class="desc"></section>
+<div class="desc"></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">@property
 def db(self):
     if self._db is None:
@@ -614,28 +667,27 @@ def db(self):
 <h3>Methods</h3>
 <dl>
 <dt id="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.alert_raise"><code class="name flex">
-<span>def <span class="ident">alert_raise</span></span>(<span>self, appname, message, public_message=&#39;&#39;, category=&#39;&#39;, alert_type=&#39;event_system&#39;, level=40, data=None, timestamp=None, traceback=None)</span>
+<span>def <span class="ident">alert_raise</span></span>(<span>self, app_name, message, public_message: str = '', category: str = '', alert_type: str = 'event_system', level: int = 40, data: dict = None, timestamp: float = None, traceback: dict = None) ‑> <a title="jumpscale.tools.alerthandler.alerthandler.Alert" href="#jumpscale.tools.alerthandler.alerthandler.Alert">Alert</a></span>
 </code></dt>
 <dd>
-<section class="desc"><p>Raise a new alert</p>
+<div class="desc"><p>Raise a new alert</p>
 <h2 id="arguments">Arguments</h2>
-<p>message {str} &ndash; alert message
-Keyword Arguments:
+<p>message {str} &ndash; alert message</p>
+<p>Keyword Arguments:
 public_message {str} &ndash; alert public message (default: {""})
 category {str} &ndash; alert category (default: {""})
 alert_type {str} &ndash; alert type (default: {"event_system"})
 level {int} &ndash; alert level (default: {40})
 traceback {dict} &ndash; alert traceback (default: {None})</p>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="jumpscale.tools.alerthandler.alerthandler.Alert" href="#jumpscale.tools.alerthandler.alerthandler.Alert"><code>Alert</code></a> &ndash; <code>alert</code> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<p>Alert &ndash; alert object</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def alert_raise(
     self,
-    appname,
+    app_name,
     message,
     public_message: str = &#34;&#34;,
     category: str = &#34;&#34;,
@@ -664,7 +716,7 @@ traceback {dict} &ndash; alert traceback (default: {None})</p>
     if not self.db.is_running():
         return
 
-    identifier = _get_identifier(appname, message, public_message, category, alert_type)
+    identifier = _get_identifier(app_name, message, public_message, category, alert_type)
     alert = self.get(identifier=identifier, die=False) or Alert()
 
     if alert.id:
@@ -676,7 +728,7 @@ traceback {dict} &ndash; alert traceback (default: {None})</p>
         alert.status = &#34;new&#34;
         alert.first_occurrence = timestamp or j.data.time.now().timestamp
 
-    alert.appname = appname
+    alert.app_name = app_name
     alert.category = category
     alert.message = message
     alert.public_message = public_message
@@ -691,21 +743,23 @@ traceback {dict} &ndash; alert traceback (default: {None})</p>
 
     alert.tracebacks.append(traceback)
     self._save(alert)
+    for handler_func, handler_level in self.handlers:
+        if level &gt;= handler_level:
+            gevent.spawn(handler_func, alert)
     return alert</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.count"><code class="name flex">
-<span>def <span class="ident">count</span></span>(<span>self)</span>
+<span>def <span class="ident">count</span></span>(<span>self) ‑> int</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Gets alerts count</p>
+<div class="desc"><p>Gets alerts count</p>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><code>int</code> &ndash; <code>total</code> <code>number</code> of <code>alerts</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<p>int &ndash; total number of alerts</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def count(self) -&gt; int:
     &#34;&#34;&#34;Gets alerts count
 
@@ -716,20 +770,22 @@ traceback {dict} &ndash; alert traceback (default: {None})</p>
 </details>
 </dd>
 <dt id="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.delete"><code class="name flex">
-<span>def <span class="ident">delete</span></span>(<span>self, alert_id=None, identifier=None)</span>
+<span>def <span class="ident">delete</span></span>(<span>self, alert_id: int = None, identifier: str = None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Delete alert by its id or identifier</p>
+<div class="desc"><p>Delete alert by its id or identifier</p>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><code>j.core.exceptions.Value</code>: <code>invalid</code> <code>arguments</code></dt>
-<dd>&nbsp;</dd>
-<dt><code>Keyword</code> <code>Arguments</code>:</dt>
-<dd>alert_id {int} &ndash; alert id (default: {None})
-identifier {str} &ndash; alert identifier (default: {None})</dd>
-</dl></section>
+<dt><code>j.core.exceptions.Value</code></dt>
+<dd>invalid arguments</dd>
+</dl>
+<p>Keyword Arguments:
+alert_id {int} &ndash; alert id (default: {None})
+identifier {str} &ndash; alert identifier (default: {None})</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def delete(self, alert_id: int = None, identifier: str = None):
     &#34;&#34;&#34;Delete alert by its id or identifier
 
@@ -752,48 +808,49 @@ identifier {str} &ndash; alert identifier (default: {None})</dd>
 <span>def <span class="ident">delete_all</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Deletes all alerts</p></section>
+<div class="desc"><p>Deletes all alerts</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def delete_all(self):
-    &#34;&#34;&#34;Deletes all alerts
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Deletes all alerts&#34;&#34;&#34;
     self.db.delete(self._rkey, self._rkey_id)</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.find"><code class="name flex">
-<span>def <span class="ident">find</span></span>(<span>self, appname=&#39;&#39;, category=&#39;&#39;, message=&#39;&#39;, pid=None, start_time=None, end_time=None)</span>
+<span>def <span class="ident">find</span></span>(<span>self, app_name: str = '', category: str = '', message: str = '', pid: int = None, start_time: int = None, end_time: int = None) ‑> list</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Find alerts</p>
+<div class="desc"><p>Find alerts</p>
 <p>Keyword Arguments:
-appname {str} &ndash; filter by allert app name (default: {""})
+app_name (str):
+filter by allert app name (default: {""})
 category {str} &ndash; filter by alert category (default: {""})
 message {str} &ndash; filter by alert message (default: {""})
 pid {int} &ndash; filter by process id (default: {None})
 start_time {int} &ndash; filter by start time (default: {None})
 end_time {int} &ndash; filter by end time (default: {None})</p>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="jumpscale.tools.alerthandler.alerthandler.Alert" href="#jumpscale.tools.alerthandler.alerthandler.Alert"><code>Alert</code></a> &ndash; <code>alert</code> <code>object</code></dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<p>list of Alert objects</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def find(
     self,
-    appname: str = &#34;&#34;,
+    app_name: str = &#34;&#34;,
     category: str = &#34;&#34;,
     message: str = &#34;&#34;,
     pid: int = None,
     start_time: int = None,
     end_time: int = None,
-) -&gt; Alert:
+) -&gt; list:
 
     &#34;&#34;&#34;Find alerts
 
     Keyword Arguments:
-        appname {str} -- filter by allert app name (default: {&#34;&#34;})
+        app_name (str):  filter by allert app name (default: {&#34;&#34;})
         category {str} -- filter by alert category (default: {&#34;&#34;})
         message {str} -- filter by alert message (default: {&#34;&#34;})
         pid {int} -- filter by process id (default: {None})
@@ -801,9 +858,10 @@ end_time {int} &ndash; filter by end time (default: {None})</p>
         end_time {int} -- filter by end time (default: {None})
 
     Returns:
-        Alert -- alert object
+        list of Alert objects
     &#34;&#34;&#34;
-    appname = appname.strip().lower()
+
+    app_name = app_name.strip().lower()
     category = category.strip().lower()
     message = message.strip().lower()
 
@@ -813,13 +871,15 @@ end_time {int} &ndash; filter by end time (default: {None})</p>
     for item in items:
         alert = Alert.loads(item[1])
 
-        if appname and appname != alert.appname:
+        if app_name and app_name != alert.app_name.strip().lower():
             continue
 
-        if category and category != alert.category:
+        if category and category != alert.category.strip().lower():
             continue
 
-        if message and (message not in alert.message and message not in alert.public_message):
+        if message and (
+            message not in alert.message.strip().lower() and message not in alert.public_message.strip().lower()
+        ):
             continue
 
         if start_time and start_time &lt; alert.first_occurrence:
@@ -840,28 +900,27 @@ end_time {int} &ndash; filter by end time (default: {None})</p>
 </details>
 </dd>
 <dt id="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.get"><code class="name flex">
-<span>def <span class="ident">get</span></span>(<span>self, alert_id=None, identifier=None, die=True)</span>
+<span>def <span class="ident">get</span></span>(<span>self, alert_id: int = None, identifier: str = None, die: bool = True) ‑> <a title="jumpscale.tools.alerthandler.alerthandler.Alert" href="#jumpscale.tools.alerthandler.alerthandler.Alert">Alert</a></span>
 </code></dt>
 <dd>
-<section class="desc"><p>Get alert by its id or identifier</p>
+<div class="desc"><p>Get alert by its id or identifier</p>
 <p>Keyword Arguments:
 alert_id {int} &ndash; alert id (default: {None})
 identifier {str} &ndash; alert identifier (default: {None})
 die {bool} &ndash; flag to rasie exception if alert is not found (default: {True})</p>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><code>j.core.exceptions.NotFound</code>: <code>alert</code> <code>is</code> <code>not</code> <code>found</code></dt>
-<dd>&nbsp;</dd>
-<dt><code>j.core.exceptions.Value</code>: <code>invalid</code> <code>arguments</code></dt>
-<dd>&nbsp;</dd>
+<dt><code>j.core.exceptions.NotFound</code></dt>
+<dd>alert is not found</dd>
+<dt><code>j.core.exceptions.Value</code></dt>
+<dd>invalid arguments</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><a title="jumpscale.tools.alerthandler.alerthandler.Alert" href="#jumpscale.tools.alerthandler.alerthandler.Alert"><code>Alert</code></a> &ndash; [<code>description</code>]</dt>
-<dd>&nbsp;</dd>
-</dl></section>
+<p>Alert &ndash; [description]</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def get(self, alert_id: int = None, identifier: str = None, die: bool = True) -&gt; Alert:
     &#34;&#34;&#34;Get alert by its id or identifier
 
@@ -889,16 +948,43 @@ die {bool} &ndash; flag to rasie exception if alert is not found (default: {True
         raise j.core.exceptions.NotFound(&#34;Requested alert is not found&#34;)</code></pre>
 </details>
 </dd>
+<dt id="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.register_handler"><code class="name flex">
+<span>def <span class="ident">register_handler</span></span>(<span>self, handler: <built-in function callable>, level: int = 40)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Register new alert handler</p>
+<h2 id="arguments">Arguments</h2>
+<p>handler (callable): error handler callable</p>
+<p>Keyword Arguments:
+level (int): exception level (default: {40})</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def register_handler(self, handler: callable, level: int = 40):
+    &#34;&#34;&#34;Register new alert handler
+
+    Arguments:
+        handler (callable): error handler callable
+
+    Keyword Arguments:
+        level (int): exception level (default: {40})
+    &#34;&#34;&#34;
+    if (handler, level) not in self.handlers:
+        self.handlers.append((handler, level))</code></pre>
+</details>
+</dd>
 <dt id="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.reset"><code class="name flex">
 <span>def <span class="ident">reset</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>Delete all alerts and reset the db</p></section>
+<div class="desc"><p>Delete all alerts and reset the db</p></div>
 <details class="source">
-<summary>Source code</summary>
+<summary>
+<span>Expand source code</span>
+</summary>
 <pre><code class="python">def reset(self):
-    &#34;&#34;&#34;Delete all alerts and reset the db
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Delete all alerts and reset the db&#34;&#34;&#34;
     self.delete_all()
     self.db.delete(self._rkey_incr)</code></pre>
 </details>
@@ -940,6 +1026,7 @@ die {bool} &ndash; flag to rasie exception if alert is not found (default: {True
 <li><code><a title="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.delete_all" href="#jumpscale.tools.alerthandler.alerthandler.AlertsHandler.delete_all">delete_all</a></code></li>
 <li><code><a title="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.find" href="#jumpscale.tools.alerthandler.alerthandler.AlertsHandler.find">find</a></code></li>
 <li><code><a title="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.get" href="#jumpscale.tools.alerthandler.alerthandler.AlertsHandler.get">get</a></code></li>
+<li><code><a title="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.register_handler" href="#jumpscale.tools.alerthandler.alerthandler.AlertsHandler.register_handler">register_handler</a></code></li>
 <li><code><a title="jumpscale.tools.alerthandler.alerthandler.AlertsHandler.reset" href="#jumpscale.tools.alerthandler.alerthandler.AlertsHandler.reset">reset</a></code></li>
 </ul>
 </li>
@@ -949,9 +1036,7 @@ die {bool} &ndash; flag to rasie exception if alert is not found (default: {True
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.6.4</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-<script>hljs.initHighlightingOnLoad()</script>
 </body>
 </html>

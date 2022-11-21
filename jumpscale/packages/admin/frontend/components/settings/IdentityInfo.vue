@@ -22,10 +22,6 @@
                 <td>{{ identity.email }}</td>
               </tr>
               <tr>
-                <td>Explorer URL</td>
-                <td>{{ identity.explorer_url }}</td>
-              </tr>
-              <tr>
                 <td>Words</td>
                 <td>
                   <v-text-field
