@@ -39,8 +39,7 @@ class notebooks:
         return cmd
 
     def install(self):
-        """Called when package is added
-        """
+        """Called when package is added"""
         rc, _, _ = j.sals.process.execute("python -c 'import jupyterlab'")
         if rc:
             for package in PYTHON_PACKAGES:
@@ -68,8 +67,7 @@ class notebooks:
                 raise j.exceptions.Runtime(err)
 
     def uninstall(self):
-        """Called when package is deleted
-        """
+        """Called when package is deleted"""
         rc, _, _ = j.sals.process.execute("python -c 'import jupyterlab'")
         if not rc:
             for package in PYTHON_PACKAGES:
@@ -78,8 +76,7 @@ class notebooks:
                     raise j.exceptions.Runtime(err)
 
     def start(self):
-        """Called when threebot is started
-        """
+        """Called when threebot is started"""
         if not self.startupcmd.is_running():
             self.startupcmd.start()
 

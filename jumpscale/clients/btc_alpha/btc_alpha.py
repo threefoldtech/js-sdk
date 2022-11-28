@@ -65,12 +65,12 @@ class BTCAlpha(Client):
         return self._query("get", "v1/wallets/", params=kwargs, auth=True)
 
     def get_own_sell_orders(self, **kwargs):
-        """ Returns own sell orders """
+        """Returns own sell orders"""
         kwargs["type"] = "sell"
         return self._query("get", "v1/orders/own/", params=kwargs, auth=True)
 
     def get_own_buy_orders(self, **kwargs):
-        """ Returns own buy orders """
+        """Returns own buy orders"""
         kwargs["type"] = "buy"
         return self._query("get", "v1/orders/own/", params=kwargs, auth=True)
 
@@ -89,7 +89,7 @@ class BTCAlpha(Client):
         return self._query("post", "v1/order/", data=data, auth=True)
 
     def create_buy_order(self, pair, amount, price):
-        """ Create buy order """
+        """Create buy order"""
         data = {"pair": pair, "amount": amount, "price": price, "type": "buy"}
         return self._query("post", "v1/order/", data=data, auth=True)
 

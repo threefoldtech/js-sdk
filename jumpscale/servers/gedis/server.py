@@ -186,8 +186,7 @@ class GedisServer(Base):
         self._actors.pop(actor_name, None)
 
     def start(self):
-        """Starts the server
-        """
+        """Starts the server"""
         # register system actor if enabled
         if self.enable_system_actor:
             self._register_actor("system", self._system_actor)
@@ -207,8 +206,7 @@ class GedisServer(Base):
         j.logger.info(f"Gedis server is started at {self.host}:{self.port}...")
 
     def stop(self):
-        """Stops the server
-        """
+        """Stops the server"""
         j.logger.info("Shutting down...")
         self._server.stop()
 

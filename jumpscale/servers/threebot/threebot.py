@@ -83,7 +83,9 @@ class NginxPackageConfig:
                         "name": bottle_server.get("name"),
                         "host": bottle_server.get("host"),
                         "port": bottle_server.get("port"),
-                        "path_url": j.sals.fs.join_paths(self.package.base_url,),
+                        "path_url": j.sals.fs.join_paths(
+                            self.package.base_url,
+                        ),
                         "path_dest": bottle_server.get("path_dest"),
                         "websocket": bottle_server.get("websocket"),
                         "force_https": self.package.config.get("force_https", True),

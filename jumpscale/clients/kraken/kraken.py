@@ -40,7 +40,6 @@ class Price(Base):
 
 
 class KrakenClient(Client):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._session = requests.Session()

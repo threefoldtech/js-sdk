@@ -395,7 +395,7 @@ class Stellar(Client):
                 network_passphrase=_NETWORK_PASSPHRASES[self.network.value],
                 base_fee=base_fee,
             )
-            .append_change_trust_op(Asset(asset_code,issuer), limit=limit)
+            .append_change_trust_op(Asset(asset_code, issuer), limit=limit)
             .set_timeout(30)
             .build()
         )
@@ -540,7 +540,7 @@ class Stellar(Client):
         transaction_builder.append_payment_op(
             destination=destination_address,
             amount=str(amount),
-            asset=self._get_asset(asset_code,issuer),
+            asset=self._get_asset(asset_code, issuer),
             source=source_account.account.account_id,
         )
         transaction_builder.set_timeout(timeout)

@@ -5,18 +5,12 @@ VOTES = {
     1: {
         "title": "Reading June 2020 update document",
         "content": "### It's very important that you as a ThreeFold token holder (TFTA) have read our latest update document on https://wiki.threefold.io/#/threefold_update_june2020.md",
-        "options": [
-            "I have read the June 2020 update document",
-            "I have not read the June 2020 update document"
-        ]
+        "options": ["I have read the June 2020 update document", "I have not read the June 2020 update document"],
     },
     2: {
         "title": "Reading the manifesto",
         "content": "### It's very important that you as a ThreeFold token holder (TFTA) have read and agree with the decentralization manifesto of our TFGrid. This manifesto is the basis of our further evolution and needs to be accepted by all of us.",
-        "options": [
-            " I have read the manifesto and I do agree.",
-            "I have not read the manifesto or I do not agree."
-        ]
+        "options": [" I have read the manifesto and I do agree.", "I have not read the manifesto or I do not agree."],
     },
     3: {
         "title": "TFTA on Stellar rights",
@@ -32,10 +26,7 @@ VOTES = {
 
         No rights have been taken away from me by switching blockchains.
         """,
-        "options": [
-            "I do agree",
-            "I do not agree"
-        ]
+        "options": ["I do agree", "I do not agree"],
     },
     4: {
         "title": "test",
@@ -43,12 +34,10 @@ VOTES = {
         "options": [
             "I am fine with the option to sell my TFTA (TFTv1) on the Stellar exchange or any other decentralized market mechanism and get automatic conversion to TFTv2 end of the year.",
             "I want my TFTA to be available on supported exchanges as TFT and agree with minimal price protection (0.15 USD, +2% increase per month starting with May 1), sales will happen through a sales bot.",
-            "I want my TFTA to be available on the 3 supported exchanges as TFT and there should be no price protection. I do realize this choice has the potential to damage the ThreeFold movement."
-        ]
-    }
+            "I want my TFTA to be available on the 3 supported exchanges as TFT and there should be no price protection. I do realize this choice has the potential to damage the ThreeFold movement.",
+        ],
+    },
 }
-
-
 
 
 class Example2(Poll):
@@ -61,7 +50,7 @@ class Example2(Poll):
         self.custom_answers = {}
 
     def welcome(self):
-        
+
         statement_1 = """
         Dear ThreeFold Token Holder, 
 
@@ -79,7 +68,7 @@ class Example2(Poll):
 
         INSERT: GDPR disclaimer (see Pierre)
         """
-        
+
         self.md_show(statement_1, md=True)
 
         full_name = self.string_ask("What is your full name ?", required=True)
@@ -111,7 +100,6 @@ class Example2(Poll):
         question_2_answer = self.int_ask(question_2, md=True, required=True)
         self.extra_data.update({"question_2": question_2_answer})
 
-
     def custom_votes(self):
         super().custom_votes()
 
@@ -124,9 +112,13 @@ class Example2(Poll):
         self.custom_answers.update({VOTES[2]["title"]: vote_2_answer})
 
         if vote_1_answer == VOTES[1]["options"][1] or vote_2_answer == VOTES[2]["options"][1]:
-            self.stop("Thank you for your participation, The poll ends now because you did read the June 2020 update document and/or did not read the manifesto.")
-        else: 
-            self.md_show("Thank you for confirming our \"decentralization manifesto\", you have now digitally signed this document.")
+            self.stop(
+                "Thank you for your participation, The poll ends now because you did read the June 2020 update document and/or did not read the manifesto."
+            )
+        else:
+            self.md_show(
+                'Thank you for confirming our "decentralization manifesto", you have now digitally signed this document.'
+            )
 
         vote_3_answer = self.single_choice(VOTES[3]["content"], VOTES[3]["options"], md=True, required=True)
         self.QUESTIONS.update({VOTES[3]["title"]: VOTES[3]["options"]})
@@ -138,17 +130,6 @@ class Example2(Poll):
 
         self.vote()
 
-
-
-
-
-
-
-
-
-
-
-
         # vote_1_name = "Reading June 2020 update document"
         # vote_1_text = "### It's very important that you as a ThreeFold token holder (TFTA) have read our latest update document on https://wiki.threefold.io/#/threefold_update_june2020.md"
         # vote_1_options = [
@@ -159,21 +140,19 @@ class Example2(Poll):
         # vote_1_answer = self.single_choice(vote_1_text, vote_1_options, md=True, required=True)
         # self.custom_answers.update({vote_1_name: vote_1_answer})
 
-
         # vote_2_name = "Reading the manifesto"
         # vote_2_text = "### It's very important that you as a ThreeFold token holder (TFTA) have read and agree with the decentralization [manifesto](http://decentralization2.threefold.io) of our TFGrid. This manifesto is the basis of our further evolution and needs to be accepted by all of us."
         # vote_2_options = [
         #     " I have read the manifesto and I do agree.",
         #     "I have not read the manifesto or I do not agree."
         # ]
-        
+
         # self.QUESTIONS.update({vote_2_name: vote_2_options})
         # vote_2_answer = self.single_choice(vote_2_text, vote_2_options, md=True, required=True)
         # self.custom_answers.update({vote_2_name: vote_2_answer})
 
         # if vote_1_answer == vote_1_options[1] or vote_2_answer == vote_2_options[1]:
         #     self.stop("Thank you for your participation, The poll ends now because you did read the June 2020 update document and/or did not read the manifesto.")
-
 
         # vote_3_name = "TFTA on Stellar rights"
         # vote_3_text = """TFTA on Stellar has all the same rights and more compared to the TFT on Rivine. <br></br>I can<br></br>
@@ -188,7 +167,6 @@ class Example2(Poll):
         # vote_3_answer = self.single_choice(vote_3_text, vote_3_options, md=True, required=True)
         # self.custom_answers.update({vote_3_name: vote_3_answer})
 
-
         # vote_4_name = "test"
         # vote_4_text = """
         # The following vote is incredibly important, do realize that if we bring the TFTA on the public exchanges without price protection that there is a big probability that the price will drop way below USD 0.15. The TF Foundation believes that by growing our demand organically and executing the steps as outlined in our update document the token will get liquidity in a stable and organic way. Please keep in mind that the token is only 2 years and 2 months old. If there is no price protection we will have no choice than to stop with the TDE which means the TF Foundation will have no funding to continue and the planned promotion activities will stop. This will also mean that we will not go for the option of using onboarding tokens & partnerships like Dash & DigiByte which would allow us to go 100% decentralized for exchanging TFT to any of these onboarding tokens.
@@ -201,8 +179,6 @@ class Example2(Poll):
         # self.QUESTIONS.update({vote_4_name: vote_4_options})
         # vote_4_answer = self.single_choice(vote_4_text, vote_4_options, required=True)
         # self.custom_answers.update({vote_4_name: vote_4_answer})
-
-        
 
 
 chat = Example2

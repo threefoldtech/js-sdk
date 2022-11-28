@@ -1,4 +1,4 @@
-'''
+"""
 # Nginx tool
 
 This tool is help for (install, start, stop, reload, restart) Nginx server.
@@ -32,7 +32,8 @@ main.reload()
 main = j.tools.nginx.get(name="main")
 main.restart()
 ```
-'''
+"""
+
 
 def export_module_as():
     from jumpscale.core.base import StoredFactory

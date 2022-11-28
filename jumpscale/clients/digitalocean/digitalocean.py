@@ -522,7 +522,7 @@ class DigitalOcean(Client):
         raise j.exceptions.Base("did not find image:%s" % name)
 
     def get_image_names(self, name=""):
-        """ Return all the image  or images with a specified name
+        """Return all the image  or images with a specified name
          e.g
             dg.get_image_names()  -> ['centos 6.9 x32 20180130', 'centos 6.9 x64 20180602',...]
             dg.get_image_names("centos") -> ['centos 6.9 x32 20180130', 'centos 6.9 x64 20180602']

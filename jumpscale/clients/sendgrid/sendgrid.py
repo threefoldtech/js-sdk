@@ -22,7 +22,7 @@ class SendGridClient(Client):
         data = io.BytesIO()
         with open(filepath, "rb") as f:
             while True:
-                d = f.read(2 ** 20)
+                d = f.read(2**20)
                 if not d:
                     break
                 data.write(d)
@@ -50,4 +50,3 @@ class SendGridClient(Client):
             print(response.headers)
         except HTTPError as e:
             raise e
-

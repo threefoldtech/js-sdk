@@ -20,21 +20,18 @@ class codeserver:
         return cmd
 
     def install(self):
-        """Called when package is added
-        """
+        """Called when package is added"""
         if not j.sals.fs.exists(self.bin_path):
             rc, out, err = j.sals.process.execute(f"chmod +x {self.script_path}; {self.script_path}")
             if rc:
                 raise j.exceptions.Runtime(err)
 
     def uninstall(self):
-        """Called when package is deleted
-        """
+        """Called when package is deleted"""
         pass
 
     def start(self):
-        """Called when threebot is started
-        """
+        """Called when threebot is started"""
         if not self.started:
             self.startupcmd.start()
             self._started = True

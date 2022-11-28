@@ -5,8 +5,7 @@ from jumpscale.tools.servicemanager.servicemanager import BackgroundService
 
 class AlertsNotifier(BackgroundService):
     def __init__(self, interval=60 * 60, *args, **kwargs):
-        """Notify the support [escalation_emails] with the hurly alerts count.
-        """
+        """Notify the support [escalation_emails] with the hurly alerts count."""
         super().__init__(interval, *args, **kwargs)
 
     def job(self):
