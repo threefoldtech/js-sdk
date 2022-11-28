@@ -23,7 +23,7 @@ class RepoMilestone(base):
 
     def load(self):
         self._ddict = {}
-        #self._ddict["deadline"] = j.data.time.any2HRDateTime(self.api.due_on)
+        # self._ddict["deadline"] = j.data.time.any2HRDateTime(self.api.due_on)
         self._ddict["id"] = self.api.id
         self._ddict["url"] = self.api.url
         self._ddict["title"] = self.api.title
@@ -45,8 +45,6 @@ class RepoMilestone(base):
             # no dict yet, fetch from github
             self.load()
         return self._ddict
-
-
 
     # synonym to let the tags of super class work
     @property

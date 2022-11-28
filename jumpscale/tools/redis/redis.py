@@ -28,19 +28,16 @@ class RedisServer(Base):
         return shutil.which("redis-server")
 
     def start(self):
-        """start redis server in tmux
-        """
+        """start redis server in tmux"""
         # Port is not busy (Redis is not started)
         if not j.sals.nettools.tcp_connection_test(self.host, self.port, timeout=1):
             self.cmd.start()
 
     def stop(self):
-        """stop redis server
-        """
+        """stop redis server"""
         self.cmd.stop(force=True)
 
     def restart(self):
-        """restart redis server
-        """
+        """restart redis server"""
         self.stop()
         self.start()

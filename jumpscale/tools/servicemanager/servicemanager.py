@@ -168,16 +168,14 @@ class ServiceManager(Base):
         self._scheduled[service.name] = gevent.spawn_later(next_start, self._schedule_service, service=service)
 
     def start(self):
-        """Start the service manager and schedule default services
-        """
+        """Start the service manager and schedule default services"""
         # schedule default services
         for service in self.services.values():
             next_start = ceil(self.seconds_to_next_interval(service.interval))
             self._scheduled[service.name] = gevent.spawn_later(next_start, self._schedule_service, service=service)
 
     def stop(self):
-        """Stop all background services
-        """
+        """Stop all background services"""
         j.logger.info("Stopping background services")
         for service in list(self.services.keys()):
             self.stop_service(service)

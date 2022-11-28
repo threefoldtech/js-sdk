@@ -741,7 +741,10 @@ class TaigaClient(Client):
             duration = value.get("duration", 1)
             amount = value.get("amount", 0)
             currency = value.get("currency", "eur")
-            start_date = value.get("start_date", f"{dateutil.utils.today().month}:{dateutil.utils.today().year}",)
+            start_date = value.get(
+                "start_date",
+                f"{dateutil.utils.today().month}:{dateutil.utils.today().year}",
+            )
             confidence = value.get("confidence", 100)
             user = value.get("user")
             part = value.get("part", "0%")
@@ -899,7 +902,10 @@ class TaigaClient(Client):
         return p
 
     def create_new_project_circle(
-        self, name, description="", **attrs,
+        self,
+        name,
+        description="",
+        **attrs,
     ):
         """Creates a new project circle.
 
@@ -1269,21 +1275,27 @@ class TaigaClient(Client):
             # Funnel Circle
             if yaml_obj["basic_info"]["name"].lower() == "funnel":
                 circle = self.create_new_funnel_circle(
-                    yaml_obj["basic_info"]["name"], yaml_obj["basic_info"]["description"],
+                    yaml_obj["basic_info"]["name"],
+                    yaml_obj["basic_info"]["description"],
                 )
             # Team Circle
             elif yaml_obj["basic_info"]["name"].lower() == "team":
                 circle = self.create_new_team_circle(
-                    yaml_obj["basic_info"]["name"], yaml_obj["basic_info"]["description"],
+                    yaml_obj["basic_info"]["name"],
+                    yaml_obj["basic_info"]["description"],
                 )
             # Project Circle
             elif yaml_obj["basic_info"]["name"].lower() == "project":
                 circle = self.create_new_project_circle(
-                    yaml_obj["basic_info"]["name"], yaml_obj["basic_info"]["description"],
+                    yaml_obj["basic_info"]["name"],
+                    yaml_obj["basic_info"]["description"],
                 )
             # Any Other Circle
             else:
-                circle = self._create_new_circle(yaml_obj["basic_info"]["name"], yaml_obj["basic_info"]["description"],)
+                circle = self._create_new_circle(
+                    yaml_obj["basic_info"]["name"],
+                    yaml_obj["basic_info"]["description"],
+                )
                 circle.is_backlog_activated = yaml_obj["modules"]["is_backlog_activated"]
                 circle.is_issues_activated = yaml_obj["modules"]["is_issues_activated"]
                 circle.is_kanban_activated = yaml_obj["modules"]["is_kanban_activated"]

@@ -114,7 +114,6 @@ class NotificationsQueue:
         return self.db.llen(self._rkey)
 
     def clear(self):
-        """Delete all notifications
-        """
+        """Delete all notifications"""
         self.db.delete(self._rkey)
         self.db.delete(self._rkey_seen)

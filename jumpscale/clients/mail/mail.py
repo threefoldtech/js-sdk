@@ -28,7 +28,7 @@ class MailClient(Client):
         return self.smtp_port in [465, 587]
 
     def send(self, recipients, sender="", subject="", message="", files=None, mimetype=None):
-        """ Send an email to the recipients from the sender containing the message required and any attached files given by the paths in files
+        """Send an email to the recipients from the sender containing the message required and any attached files given by the paths in files
         :param recipients: Recipients of the message
         :type recipients: mixed, str or list
         :param sender: Sender of the email

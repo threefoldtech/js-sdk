@@ -125,8 +125,7 @@ class GedisClient(Client):
         return self.execute("core", "list_actors", die=True).result
 
     def reload(self):
-        """Reload actors
-        """
+        """Reload actors"""
         self._load_actors(force_reload=True)
 
     def execute(self, actor_name: str, actor_method: str, *args, die: bool = False, **kwargs) -> ActorResult:

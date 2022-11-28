@@ -7,7 +7,7 @@ from crontab import CronTab
 class StellarService(BackgroundService):
     def __init__(self, interval=CronTab("* * * * *"), *args, **kwargs):
         """
-            Check stellar service state every 1 min
+        Check stellar service state every 1 min
         """
         super().__init__(interval, *args, **kwargs)
         self.stellar_state = True

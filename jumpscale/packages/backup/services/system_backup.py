@@ -52,8 +52,7 @@ class SystemBackupService(BackgroundService):
             return False
 
     def job(self):
-        """Background backup job to be scheduled.
-        """
+        """Background backup job to be scheduled."""
         j.logger.info(f"[Backup Package - System Backup Service] Backup job {self.BACKUP_JOB_NAME} started.")
         if self.BACKUP_JOB_NAME not in j.sals.backupjob.list_all():
             j.logger.warning(

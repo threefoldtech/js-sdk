@@ -172,5 +172,5 @@ CURRENCIES = {
 }
 
 
-CURRNECIES_IDS = dict(zip(range(1, len(CURRENCIES)+1), CURRENCIES.keys()))
-IDS_CURRENCIES = dict(zip(CURRENCIES.keys(), range(1, len(CURRENCIES)+1)))
+CURRNECIES_IDS = dict(zip(range(1, len(CURRENCIES) + 1), CURRENCIES.keys()))
+IDS_CURRENCIES = dict(zip(CURRENCIES.keys(), range(1, len(CURRENCIES) + 1)))
