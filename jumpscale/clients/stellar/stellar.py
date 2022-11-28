@@ -540,7 +540,7 @@ class Stellar(Client):
         transaction_builder.append_payment_op(
             destination=destination_address,
             amount=str(amount),
-            asset=self._get_asset(asset_code),
+            asset=self._get_asset(asset_code,issuer),
             source=source_account.account.account_id,
         )
         transaction_builder.set_timeout(timeout)
