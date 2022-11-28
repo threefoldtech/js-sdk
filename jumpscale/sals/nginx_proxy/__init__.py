@@ -3,9 +3,9 @@ HEADER_PREFIX = "proxy_set_header "
 
 class NginxReverseProxyConfig:
     """
-        Provides ways to override options and headers for http and https server blocks.
-        It's intended for usage in a nginx reverse proxy that serves a single domain.
-        Maybe later we can add more customization to add new server blocks or modify global options.
+    Provides ways to override options and headers for http and https server blocks.
+    It's intended for usage in a nginx reverse proxy that serves a single domain.
+    Maybe later we can add more customization to add new server blocks or modify global options.
     """
 
     def __init__(self):

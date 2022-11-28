@@ -56,13 +56,11 @@ class Member:
         self.raw_data["config"]["authorized"] = authorize
 
     def authorize(self):
-        """Authorize member to the zerotier network
-        """
+        """Authorize member to the zerotier network"""
         self._update_authorization(True)
 
     def unauthorize(self):
-        """Unauthorize member to the zerotier network
-        """
+        """Unauthorize member to the zerotier network"""
         self._update_authorization(False)
 
     def __repr__(self):

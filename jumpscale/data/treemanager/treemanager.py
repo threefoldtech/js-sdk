@@ -175,7 +175,7 @@ class TreeNode:
 
 
 class Tree:
-    """"
+    """ "
     A class to represent a tree
     """
 

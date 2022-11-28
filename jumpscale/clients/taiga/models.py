@@ -746,7 +746,12 @@ class Circle(CircleResource):
             "email": self.owner["email"],
         }
         members = [
-            {"name": member.full_name, "id": member.id, "role": member.role_name,} for member in self.list_memberships()
+            {
+                "name": member.full_name,
+                "id": member.id,
+                "role": member.role_name,
+            }
+            for member in self.list_memberships()
         ]
         other_membership = {
             "i_am_owner": self.i_am_owner,

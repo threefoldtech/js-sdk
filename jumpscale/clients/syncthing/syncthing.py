@@ -101,7 +101,14 @@ class SyncthingClient(Client):
             return self.set_config(self.config)
 
     def add_folder(
-        self, name, path, ignore_perms=False, read_only=False, rescan_intervals=10, devices=None, overwrite=False,
+        self,
+        name,
+        path,
+        ignore_perms=False,
+        read_only=False,
+        rescan_intervals=10,
+        devices=None,
+        overwrite=False,
     ):
         folders = self.get_folders()
         idx = self._get_folder(name)

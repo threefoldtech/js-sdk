@@ -16,20 +16,23 @@ def addr_check(addr):
     else:
         return True
 
+
 """
 j.tools.tf_gateway.tcpservice_register("bing", "www.bing.com", "122.124.214.21")
 j.tools.tf_gateway.domain_register_a("ahmed", "bots.grid.tf.", "123.3.23.54")
 
 """
 
+
 def local_redis():
     local = None
     try:
-        local = j.clients.redis.get('local')
+        local = j.clients.redis.get("local")
     except:
-        local = j.clients.redis.new('local')
+        local = j.clients.redis.new("local")
 
     return local
+
 
 def tcpservice_register(service_name, domain, service_endpoint):
     """
@@ -49,6 +52,7 @@ def tcpservice_register(service_name, domain, service_endpoint):
     b64_record = j.data.serializers.base64.encode(json_dumped_record_bytes).decode()
     service["Value"] = b64_record
     local_redis().set(service["Key"], j.data.serializers.json.dumps(service))
+
 
 def domain_register(threebot_name, bots_domain="bots.grid.tf.", record_type="a", records=None):
     """registers domain in coredns (needs to be authoritative)
@@ -80,6 +84,7 @@ def domain_register(threebot_name, bots_domain="bots.grid.tf.", record_type="a",
     data[record_type] = records
     local_redis().hset(bots_domain, threebot_name, j.data.serializers.json.dumps(data))
 
+
 def domain_register_a(name, domain, record_ip):
     """registers A domain in coredns (needs to be authoritative)
 
@@ -100,6 +105,7 @@ def domain_register_a(name, domain, record_ip):
         return domain_register(name, domain, record_type="a", records=[{"ip": record_ip}])
     else:
         raise j.exceptions.Value("invalid ip {record_ip}".format(**locals()))
+
 
 def domain_register_aaaa(threebot_name, bots_domain, record_ip):
     """registers A domain in coredns (needs to be authoritative)

@@ -29,18 +29,15 @@ class weblibs:
                         raise e
 
     def install(self):
-        """Called when package is added
-        """
+        """Called when package is added"""
         pass
 
     def uninstall(self):
-        """Called when package is deleted
-        """
+        """Called when package is deleted"""
         pass
 
     def start(self):
-        """Called when threebot is started
-        """
+        """Called when threebot is started"""
         pass
 
     def stop(self):

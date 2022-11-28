@@ -40,7 +40,7 @@ class New(Poll):
         - result needs to be that user agreed that this is his email address, 3bot name and the TFT linked to the poll are ok
         - every time the user comes back to this poll we have to show this again and ask if correct, if not allow correction
         """
-        
+
         self.md_show(statement_1, md=True)
 
         statement_2 = """
@@ -49,9 +49,6 @@ class New(Poll):
         """
         x = self.multi_choice("aaaaaaaaaa", ["a", "b", "c"])
         self.md_show(str(x), md=True)
-
-
-
 
     # def custom_votes(self):
     #     """allow to have custom slides

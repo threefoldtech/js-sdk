@@ -7,6 +7,8 @@ from jumpscale.clients.base import Client as BaseClient
 from urllib.parse import quote_plus
 import requests_unixsocket
 from jumpscale.core.base import fields
+
+
 class Object(NamedTuple):
     id: int
     data: bytes
@@ -14,27 +16,27 @@ class Object(NamedTuple):
 
     @property
     def acl(self):
-        return int(self.tags[':acl']) if ':acl' in self.tags else None
+        return int(self.tags[":acl"]) if ":acl" in self.tags else None
 
     @property
     def size(self):
-        return int(self.tags[':size']) if ':size' in self.tags else 0
+        return int(self.tags[":size"]) if ":size" in self.tags else 0
 
     @property
     def created(self):
-        return int(self.tags[':created']) if ':created' in self.tags else 0
+        return int(self.tags[":created"]) if ":created" in self.tags else 0
 
     @property
     def updated(self):
-        return int(self.tags[':updated']) if ':updated' in self.tags else 0
-
+        return int(self.tags[":updated"]) if ":updated" in self.tags else 0
 
 
 class HTTPClient(BaseClient):
     sock = fields.String(default="/tmp/bcdb.sock")
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        url = 'http+unix://%s/' % quote_plus(self.sock)
+        url = "http+unix://%s/" % quote_plus(self.sock)
         self.__session = requests_unixsocket.Session()
         self.__url = url
 
@@ -47,7 +49,7 @@ class HTTPClient(BaseClient):
         for k, v in args.items():
             if v is None:
                 continue
-            k = k.replace('_', '-').lower()
+            k = k.replace("_", "-").lower()
             output[k] = str(v)
 
         return output
@@ -88,10 +90,7 @@ class HTTPAclClient:
         :returns: newly created key
         """
 
-        data = {
-            "perm": perm,
-            'users': users
-        }
+        data = {"perm": perm, "users": users}
 
         return self.session.post(self.url(), json=data, headers=self.headers()).json()
 
@@ -104,9 +103,7 @@ class HTTPAclClient:
         :returns: new object id
         """
 
-        data = {
-            'perm': perm
-        }
+        data = {"perm": perm}
 
         self.session.put(self.url(key), json=data, headers=self.headers())
 
@@ -129,9 +126,7 @@ class HTTPAclClient:
         :returns: updated id
         """
 
-        data = {
-            'users': users
-        }
+        data = {"users": users}
 
         return self.session.post(self.url(f"{key}/grant"), json=data, headers=self.headers()).json()
 
@@ -144,9 +139,7 @@ class HTTPAclClient:
         :returns: updated id
         """
 
-        data = {
-            'users': users
-        }
+        data = {"users": users}
 
         return self.session.post(self.url(f"{key}/revoke"), json=data, headers=self.headers()).json()
 
@@ -156,8 +149,7 @@ class HTTPAclClient:
 
         :returns: acl list
         """
-        response = self.session.get(
-            self.url(), headers=self.headers())
+        response = self.session.get(self.url(), headers=self.headers())
 
         # this should instead read response "stream" and parse each object individually
         content = response.text
@@ -219,9 +211,7 @@ class HTTPBcdbClient:
         return Object(
             id=key,
             data=response.content,
-            tags=json.loads(
-                response.headers.get('x-tags', 'null')
-            ),
+            tags=json.loads(response.headers.get("x-tags", "null")),
         )
 
     def delete(self, key):
@@ -251,19 +241,18 @@ class HTTPBcdbClient:
             # due to a bug in the warp router (server side)
             # this call does not match if no queries are supplied
             # hence we add a dummy query that is ignred by the server
-            kwargs = {'_': ''}
+            kwargs = {"_": ""}
 
         # this should instead read response "stream" and parse each object individually
-        response = self.session.get(
-            self.url(), params=kwargs, headers=self.headers())
+        response = self.session.get(self.url(), params=kwargs, headers=self.headers())
 
         content = response.text
         dec = json.JSONDecoder()
         while content:
             obj, idx = dec.raw_decode(content)
             yield Object(
-                id=obj['id'],
-                tags=obj['tags'],
+                id=obj["id"],
+                tags=obj["tags"],
                 data=None,
             )
 

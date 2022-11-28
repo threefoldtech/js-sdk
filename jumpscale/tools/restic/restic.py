@@ -145,8 +145,7 @@ class ResticRepo(Base):
         return proc
 
     def init_repo(self):
-        """Init restic repo with data specified in the instances
-        """
+        """Init restic repo with data specified in the instances"""
         proc = self._run_cmd(["restic", "cat", "config"], False)
         if proc.returncode > 0:
             self._run_cmd(["restic", "init"])
