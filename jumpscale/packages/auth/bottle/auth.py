@@ -213,6 +213,8 @@ def get_user_info():
     session = request.environ.get("beaker.session", {})
     tname = session.get("username", "")
     temail = session.get("email", "")
+    if not temail or not tname:
+        return abort(401)
     tid = session.get("tid", 0)
     wallet_address = session.get("walletAddress", "")
 
