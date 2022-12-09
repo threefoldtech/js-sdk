@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "js-sdk"
 packages = [{ include = "jumpscale" }]
-version = "11.5b19"
+version = "11.5b20"
 description = "SDK for threefold grid"
 authors = ["xmonader <xmonader@gmail.com>"]
 license = "Apache-2.0"
