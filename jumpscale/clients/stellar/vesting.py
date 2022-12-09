@@ -52,14 +52,12 @@ def _is_valid_cleanup_transaction(
         return False
     txe = stellar_sdk.TransactionEnvelope.from_xdr(unlock_tx["transaction_xdr"], network_passphrase)
     tx = txe.transaction
-    if not type(tx.source) is stellar_sdk.keypair.Keypair:
-        return False
-    if tx.source.public_key != vesting_account_id:
+    if tx.source is None or tx.source.account_id != vesting_account_id:
         return False
     if len(tx.operations) != 3:
         return False
     change_trust_op = tx.operations[0]
-    if not type(change_trust_op) is stellar_sdk.operation.change_trust.ChangeTrust:
+    if not type(change_trust_op) is stellar_sdk.ChangeTrust:
         return False
     if not change_trust_op.source is None:
         return False
@@ -68,7 +66,7 @@ def _is_valid_cleanup_transaction(
     if change_trust_op.asset.code != "TFT" or change_trust_op.asset.issuer != _TFT_ISSUERS[network]:
         return False
     manage_data_op = tx.operations[1]
-    if not type(manage_data_op) is stellar_sdk.operation.manage_data.ManageData:
+    if not type(manage_data_op) is stellar_sdk.ManageData:
         return False
     if not manage_data_op.source is None:
         return False
@@ -77,11 +75,11 @@ def _is_valid_cleanup_transaction(
     if not manage_data_op.data_value is None:
         return False
     account_merge_op = tx.operations[2]
-    if not type(account_merge_op) is stellar_sdk.operation.account_merge.AccountMerge:
+    if not type(account_merge_op) is stellar_sdk.AccountMerge:
         return False
     if not account_merge_op.source is None:
         return False
-    if account_merge_op.destination != _VESTING_ACTIVATORS[network]:
+    if account_merge_op.destination.account_id != _VESTING_ACTIVATORS[network]:
         return False
     return True
 
