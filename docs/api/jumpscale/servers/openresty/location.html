@@ -65,8 +65,7 @@ class Location(Base):
         j.sals.fs.write_file(self.path_cfg, content)
 
     def configure(self):
-        &#34;&#34;&#34;Config is a server config file of nginx (in text format)
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Config is a server config file of nginx (in text format)&#34;&#34;&#34;
         j.sals.fs.mkdir(self.path_cfg_dir)
 
         if self.location_type in [&#34;static&#34;, &#34;spa&#34;]:
@@ -151,8 +150,7 @@ print(p.name, p.age)
         j.sals.fs.write_file(self.path_cfg, content)
 
     def configure(self):
-        &#34;&#34;&#34;Config is a server config file of nginx (in text format)
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Config is a server config file of nginx (in text format)&#34;&#34;&#34;
         j.sals.fs.mkdir(self.path_cfg_dir)
 
         if self.location_type in [&#34;static&#34;, &#34;spa&#34;]:
@@ -598,8 +596,7 @@ and will get the default value if not</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def configure(self):
-    &#34;&#34;&#34;Config is a server config file of nginx (in text format)
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Config is a server config file of nginx (in text format)&#34;&#34;&#34;
     j.sals.fs.mkdir(self.path_cfg_dir)
 
     if self.location_type in [&#34;static&#34;, &#34;spa&#34;]:

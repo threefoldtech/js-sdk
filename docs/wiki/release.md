@@ -10,4 +10,4 @@
 - Merge the pull request into master
 - Tag the new version (can be done from the github UI) easier for release notes.
 - Build the package `poetry build`
-- Publish the package to `pypi.org` using `poetry publish`  
+- Publish the package to `pypi.org` using `poetry publish`

@@ -59,8 +59,7 @@ class Website(Base):
         return self.parent.path_web
 
     def configure(self):
-        &#34;&#34;&#34;Writes configuration of the website and its locations
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Writes configuration of the website and its locations&#34;&#34;&#34;
 
         j.sals.fs.mkdir(self.path_cfg_dir)
         config = render_config_template(&#34;website&#34;, base_dir=j.core.dirs.BASEDIR, website=self)
@@ -110,13 +109,13 @@ class OpenRestyServer(Base):
         return self._logs_dir
 
     def configure(self):
+        &#34;&#34;&#34;configures main nginx conf&#34;&#34;&#34;
         # clean old websites config
         self.cleanup()
-        &#34;&#34;&#34;configures main nginx conf
-        &#34;&#34;&#34;
+
         # self.install() This is commented for now until the repo and necessary deps are handled
         configtext = j.tools.jinja2.render_template(
-            template_path=j.sals.fs.join_paths(DIR_PATH, &#34;templates&#34;, &#34;nginx.conf&#34;), logs_dir=self.logs_dir,
+            template_path=j.sals.fs.join_paths(DIR_PATH, &#34;templates&#34;, &#34;nginx.conf&#34;), logs_dir=self.logs_dir
         )
         j.sals.fs.write_file(self.path_cfg, configtext)
 
@@ -161,9 +160,7 @@ class OpenRestyServer(Base):
             # copy the templates to the right location
             j.sals.fs.copy_tree(f&#34;{DIR_PATH}/web_resources/&#34;, self.path_cfg_dir)
 
-            j.sals.fs.symlink(
-                f&#34;{weblibs_path}/static&#34;, f&#34;{self.path_web}/static/weblibs&#34;, overwrite=True,
-            )
+            j.sals.fs.symlink(f&#34;{weblibs_path}/static&#34;, f&#34;{self.path_web}/static/weblibs&#34;, overwrite=True)
             self.status = Status.INSTALLED
 
             self.save()
@@ -266,13 +263,13 @@ print(p.name, p.age)
         return self._logs_dir
 
     def configure(self):
+        &#34;&#34;&#34;configures main nginx conf&#34;&#34;&#34;
         # clean old websites config
         self.cleanup()
-        &#34;&#34;&#34;configures main nginx conf
-        &#34;&#34;&#34;
+
         # self.install() This is commented for now until the repo and necessary deps are handled
         configtext = j.tools.jinja2.render_template(
-            template_path=j.sals.fs.join_paths(DIR_PATH, &#34;templates&#34;, &#34;nginx.conf&#34;), logs_dir=self.logs_dir,
+            template_path=j.sals.fs.join_paths(DIR_PATH, &#34;templates&#34;, &#34;nginx.conf&#34;), logs_dir=self.logs_dir
         )
         j.sals.fs.write_file(self.path_cfg, configtext)
 
@@ -317,9 +314,7 @@ print(p.name, p.age)
             # copy the templates to the right location
             j.sals.fs.copy_tree(f&#34;{DIR_PATH}/web_resources/&#34;, self.path_cfg_dir)
 
-            j.sals.fs.symlink(
-                f&#34;{weblibs_path}/static&#34;, f&#34;{self.path_web}/static/weblibs&#34;, overwrite=True,
-            )
+            j.sals.fs.symlink(f&#34;{weblibs_path}/static&#34;, f&#34;{self.path_web}/static/weblibs&#34;, overwrite=True)
             self.status = Status.INSTALLED
 
             self.save()
@@ -494,19 +489,19 @@ and will get the default value if not</p>
 <span>def <span class="ident">configure</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>configures main nginx conf</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def configure(self):
+    &#34;&#34;&#34;configures main nginx conf&#34;&#34;&#34;
     # clean old websites config
     self.cleanup()
-    &#34;&#34;&#34;configures main nginx conf
-    &#34;&#34;&#34;
+
     # self.install() This is commented for now until the repo and necessary deps are handled
     configtext = j.tools.jinja2.render_template(
-        template_path=j.sals.fs.join_paths(DIR_PATH, &#34;templates&#34;, &#34;nginx.conf&#34;), logs_dir=self.logs_dir,
+        template_path=j.sals.fs.join_paths(DIR_PATH, &#34;templates&#34;, &#34;nginx.conf&#34;), logs_dir=self.logs_dir
     )
     j.sals.fs.write_file(self.path_cfg, configtext)</code></pre>
 </details>
@@ -590,9 +585,7 @@ and will get the default value if not</p>
         # copy the templates to the right location
         j.sals.fs.copy_tree(f&#34;{DIR_PATH}/web_resources/&#34;, self.path_cfg_dir)
 
-        j.sals.fs.symlink(
-            f&#34;{weblibs_path}/static&#34;, f&#34;{self.path_web}/static/weblibs&#34;, overwrite=True,
-        )
+        j.sals.fs.symlink(f&#34;{weblibs_path}/static&#34;, f&#34;{self.path_web}/static/weblibs&#34;, overwrite=True)
         self.status = Status.INSTALLED
 
         self.save()</code></pre>
@@ -743,8 +736,7 @@ print(p.name, p.age)
         return self.parent.path_web
 
     def configure(self):
-        &#34;&#34;&#34;Writes configuration of the website and its locations
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Writes configuration of the website and its locations&#34;&#34;&#34;
 
         j.sals.fs.mkdir(self.path_cfg_dir)
         config = render_config_template(&#34;website&#34;, base_dir=j.core.dirs.BASEDIR, website=self)
@@ -945,8 +937,7 @@ and will get the default value if not</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def configure(self):
-    &#34;&#34;&#34;Writes configuration of the website and its locations
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Writes configuration of the website and its locations&#34;&#34;&#34;
 
     j.sals.fs.mkdir(self.path_cfg_dir)
     config = render_config_template(&#34;website&#34;, base_dir=j.core.dirs.BASEDIR, website=self)
