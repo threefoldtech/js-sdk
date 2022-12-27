@@ -239,21 +239,21 @@ class Stellar(Client):
                 transaction_builder.append_payment_op(
                     destination=self.address,
                     amount=balance.balance,
-                    asset_code=balance.asset_code,
-                    asset_issuer=balance.asset_issuer,
-                    source=account.account.account_id,
+                    asset=stellar_sdk.Asset(balance.asset_code, balance.asset_issuer),
+                    source=account.account,
                 )
             # Step 2: Delete trustlines
             transaction_builder.append_change_trust_op(
-                asset_issuer=balance.asset_issuer, asset_code=balance.asset_code, limit="0"
+                asset=stellar_sdk.Asset(balance.asset_code, balance.asset_issuer),
+                limit="0",
+                source=account.account,
             )
         # Step 3: Merge account
         transaction_builder.append_account_merge_op(self.address)
 
         transaction_builder.set_timeout(30)
         transaction = transaction_builder.build()
-        signer_kp = stellar_sdk.Keypair.from_secret(self.secret)
-        transaction.sign(signer_kp)
+        transaction.sign(self.secret)
         server.submit_transaction(transaction)
 
     def activate_through_friendbot(self):
