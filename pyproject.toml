@@ -4,7 +4,7 @@ description = "SDK for threefold grid"
 license = "Apache-2.0"
 name = "js-sdk"
 packages = [{include = "jumpscale"}]
-version = "12.0"
+version = "12.0.0"
 
 [tool.poetry.dependencies]
 PyGithub = "^1.43"
