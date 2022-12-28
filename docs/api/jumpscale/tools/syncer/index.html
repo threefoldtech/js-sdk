@@ -140,15 +140,11 @@ class Syncer(PatternMatchingEventHandler):
         return clients
 
     def sync(self):
-        &#34;&#34;&#34;Sync directory structure and files
-
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Sync directory structure and files&#34;&#34;&#34;
         j.logger.debug(f&#34;paths: {self.paths}&#34;)
 
         def ensure_dirs():
-            &#34;&#34;&#34;For every directory in watched paths we make sure it&#39;s full path exists on remote.
-
-            &#34;&#34;&#34;
+            &#34;&#34;&#34;For every directory in watched paths we make sure it&#39;s full path exists on remote.&#34;&#34;&#34;
             for path in self.paths:
                 for src_dir in j.sals.fs.walk_dirs(path):
                     dest_dir = str(self._rewrite_path_for_dest(src_dir))
@@ -380,15 +376,11 @@ case_sensitive {bool} &ndash; case sensitive watching
         return clients
 
     def sync(self):
-        &#34;&#34;&#34;Sync directory structure and files
-
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Sync directory structure and files&#34;&#34;&#34;
         j.logger.debug(f&#34;paths: {self.paths}&#34;)
 
         def ensure_dirs():
-            &#34;&#34;&#34;For every directory in watched paths we make sure it&#39;s full path exists on remote.
-
-            &#34;&#34;&#34;
+            &#34;&#34;&#34;For every directory in watched paths we make sure it&#39;s full path exists on remote.&#34;&#34;&#34;
             for path in self.paths:
                 for src_dir in j.sals.fs.walk_dirs(path):
                     dest_dir = str(self._rewrite_path_for_dest(src_dir))
@@ -692,15 +684,11 @@ sync {bool} &ndash; sync dirs/files first (default: {True})</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def sync(self):
-    &#34;&#34;&#34;Sync directory structure and files
-
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Sync directory structure and files&#34;&#34;&#34;
     j.logger.debug(f&#34;paths: {self.paths}&#34;)
 
     def ensure_dirs():
-        &#34;&#34;&#34;For every directory in watched paths we make sure it&#39;s full path exists on remote.
-
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;For every directory in watched paths we make sure it&#39;s full path exists on remote.&#34;&#34;&#34;
         for path in self.paths:
             for src_dir in j.sals.fs.walk_dirs(path):
                 dest_dir = str(self._rewrite_path_for_dest(src_dir))

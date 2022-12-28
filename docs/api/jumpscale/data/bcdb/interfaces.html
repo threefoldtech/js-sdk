@@ -39,6 +39,7 @@
     def incr_id(self, model):
         pass
 
+
 class IndexInterface:
     def __init__(self, bcdb_namespace):
         pass
@@ -48,6 +49,7 @@ class IndexInterface:
 
     def set(self, model, index_prop, index_value, obj_id, old_value=None):
         pass
+
 
 class IndexSetInterface:
     def __init__(self, bcdb_namespace):
@@ -59,15 +61,17 @@ class IndexSetInterface:
     def set(self, model, obj):
         pass
 
+
 class IndexTextInterface:
     def __init__(self, bcdb_namespace):
         pass
 
     def set(self, model, obj):
-       pass
+        pass
 
     def get(self, model, index_prop, pattern):
-        pass 
+        pass
+
 
 class SerializerInterface:
     def loads(self, model, s):
@@ -209,10 +213,10 @@ class SerializerInterface:
         pass
 
     def set(self, model, obj):
-       pass
+        pass
 
     def get(self, model, index_prop, pattern):
-        pass </code></pre>
+        pass</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -230,7 +234,7 @@ class SerializerInterface:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get(self, model, index_prop, pattern):
-    pass </code></pre>
+    pass</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.data.bcdb.interfaces.IndexTextInterface.set"><code class="name flex">
@@ -243,7 +247,7 @@ class SerializerInterface:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def set(self, model, obj):
-   pass</code></pre>
+    pass</code></pre>
 </details>
 </dd>
 </dl>

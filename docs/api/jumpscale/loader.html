@@ -55,7 +55,7 @@ def get_container_type(full_name: str) -&gt; type:
 
     &#34;&#34;&#34;
     cls_name = &#34;&#34;.join([name.capitalize() for name in full_name.split(&#34;.&#34;)])
-    return type(cls_name, (object,), {&#34;__fullname&#34;: full_name,})
+    return type(cls_name, (object,), {&#34;__fullname&#34;: full_name})
 
 
 def get_lazy_import_property(name, root_module, container_type):
@@ -206,7 +206,7 @@ sys.excepthook = j.tools.errorhandler.excepthook</code></pre>
 
     &#34;&#34;&#34;
     cls_name = &#34;&#34;.join([name.capitalize() for name in full_name.split(&#34;.&#34;)])
-    return type(cls_name, (object,), {&#34;__fullname&#34;: full_name,})</code></pre>
+    return type(cls_name, (object,), {&#34;__fullname&#34;: full_name})</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.loader.get_lazy_import_property"><code class="name flex">

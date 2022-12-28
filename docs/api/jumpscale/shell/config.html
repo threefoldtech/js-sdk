@@ -219,7 +219,7 @@ def ptconfig(repl):
 
     @repl.add_key_binding(Keys.ControlB)
     def _debug_event(event):
-        &#39; Pressing Control-B will insert &#34;pdb.set_trace()&#34; &#39;
+        &#39;Pressing Control-B will insert &#34;pdb.set_trace()&#34;&#39;
         event.cli.current_buffer.insert_text(&#34;\nimport pdb; pdb.set_trace()\n&#34;)
 
     @repl.add_key_binding(Keys.ControlJ)
@@ -246,7 +246,7 @@ def ptconfig(repl):
 
     @repl.add_key_binding(&#34; &#34;)
     def _(event):
-        &#34; When a space is pressed. Check &amp; correct word before cursor. &#34;
+        &#34;When a space is pressed. Check &amp; correct word before cursor.&#34;
         b = event.cli.current_buffer
         w = b.document.get_word_before_cursor()
         if w is not None:
@@ -496,7 +496,7 @@ it will call excepthook after ommitting all this framework's calls from tracebac
 
     @repl.add_key_binding(Keys.ControlB)
     def _debug_event(event):
-        &#39; Pressing Control-B will insert &#34;pdb.set_trace()&#34; &#39;
+        &#39;Pressing Control-B will insert &#34;pdb.set_trace()&#34;&#39;
         event.cli.current_buffer.insert_text(&#34;\nimport pdb; pdb.set_trace()\n&#34;)
 
     @repl.add_key_binding(Keys.ControlJ)
@@ -523,7 +523,7 @@ it will call excepthook after ommitting all this framework's calls from tracebac
 
     @repl.add_key_binding(&#34; &#34;)
     def _(event):
-        &#34; When a space is pressed. Check &amp; correct word before cursor. &#34;
+        &#34;When a space is pressed. Check &amp; correct word before cursor.&#34;
         b = event.cli.current_buffer
         w = b.document.get_word_before_cursor()
         if w is not None:
