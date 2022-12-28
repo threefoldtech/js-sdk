@@ -1,59 +1,61 @@
 [tool.poetry]
-name = "js-sdk"
-packages = [{ include = "jumpscale" }]
-version = "11.5b20"
-description = "SDK for threefold grid"
 authors = ["xmonader <xmonader@gmail.com>"]
+description = "SDK for threefold grid"
 license = "Apache-2.0"
+name = "js-sdk"
+packages = [{include = "jumpscale"}]
+version = "12.0.0"
 
 [tool.poetry.dependencies]
-cryptography = "3.3.2"
-js-ng = "11.0b17"
-python = ">=3.7,<4.0"
-cryptocompare = "^0.6.4"
-certifi = "^2019.6"
-base58 = "^2.0.0"
-netaddr = "^0.7.19"
-sendgrid = "^6.0"
-minio = "^4.0"
-pycountry = "^19.8"
-python-taiga = "^1.0.0"
-dnspython = "^1.16"
 PyGithub = "^1.43"
-python-digitalocean = "^1.15.0"
-stellar-sdk = "^8.1.0"
-pypng = "^0.0.20"
-pyqrcode = "^1.2.1"
+base58 = "^2.0.0"
 beaker = "^1.11.0"
 certbot-nginx = "^1.31.0"
-requests_unixsocket = "^0.2.0"
-protobuf = "^3.12.2"
-namecom = "^0.5.0"
+certifi = "^2019.6"
 crontab = "^0.22.9"
-importlib-metadata = "^4.0.1"
+cryptocompare = "^0.6.4"
+cryptography = "3.3.2"
+dnspython = "^1.16"
 gevent = "^21.12.0"
 greenlet = "^1.1.3"
+importlib-metadata = "^4.0.1"
+js-ng = "11.0b17"
+minio = "^4.0"
+namecom = "^0.5.0"
+netaddr = "^0.7.19"
+protobuf = "^3.12.2"
+pycountry = "^19.8"
+pypng = "^0.0.20"
+pyqrcode = "^1.2.1"
+python = ">=3.7,<4.0"
+python-digitalocean = "^1.15.0"
+python-taiga = "^1.0.0"
+requests_unixsocket = "^0.2.0"
+sendgrid = "^6.0"
+stellar-sdk = "^8.1.0"
 
 [tool.poetry.dev-dependencies]
-ipython = "^7.6"
-ipdb = "^0.12.1"
 black = "^22.10.0"
+codecov = "^2.0"
 flake8 = "^3.7"
+hypothesis = "^4.28"
+ipdb = "^0.12.1"
+ipython = "^7.6"
+objgraph = "^3.4.1"
 parameterized = "^0.7.0"
 pytest = "^7.1.3"
-codecov = "^2.0"
-hypothesis = "^4.28"
 pytest-cov = "^2.7"
-objgraph = "^3.4.1"
-
 
 [tool.poetry.scripts]
 threebot = "jumpscale.entry_points.threebot:cli"
 
 [build-system]
-requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+requires = ["poetry>=0.12"]
 
 [tool.pytest.ini_options]
-markers = ["integration: marks tests as integration (deselect with '-m \"not integration\"')",
-           "unittests", "extend"]
+markers = [
+  "integration: marks tests as integration (deselect with '-m \"not integration\"')",
+  "unittests",
+  "extend",
+]

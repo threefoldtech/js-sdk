@@ -188,8 +188,7 @@ class StartupCmd(Base):
         return result
 
     def _kill_processes_by_port_or_filter(self):
-        &#34;&#34;&#34;Kills processes that matches object properties
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Kills processes that matches object properties&#34;&#34;&#34;
         processes = self._get_processes_by_port_or_filter()
         self._kill_processes(processes)
 
@@ -225,8 +224,7 @@ class StartupCmd(Base):
         return False
 
     def _hard_kill(self):
-        &#34;&#34;&#34;Force Kills the process
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Force Kills the process&#34;&#34;&#34;
         if self.process:
             self._kill_processes([self.process])
             self.reset()
@@ -321,8 +319,7 @@ class StartupCmd(Base):
         self._wait(True, die, timeout)
 
     def start(self):
-        &#34;&#34;&#34;Starts the process
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Starts the process&#34;&#34;&#34;
         if self.is_running():
             return
 
@@ -529,8 +526,7 @@ print(p.name, p.age)
         return result
 
     def _kill_processes_by_port_or_filter(self):
-        &#34;&#34;&#34;Kills processes that matches object properties
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Kills processes that matches object properties&#34;&#34;&#34;
         processes = self._get_processes_by_port_or_filter()
         self._kill_processes(processes)
 
@@ -566,8 +562,7 @@ print(p.name, p.age)
         return False
 
     def _hard_kill(self):
-        &#34;&#34;&#34;Force Kills the process
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Force Kills the process&#34;&#34;&#34;
         if self.process:
             self._kill_processes([self.process])
             self.reset()
@@ -662,8 +657,7 @@ print(p.name, p.age)
         self._wait(True, die, timeout)
 
     def start(self):
-        &#34;&#34;&#34;Starts the process
-        &#34;&#34;&#34;
+        &#34;&#34;&#34;Starts the process&#34;&#34;&#34;
         if self.is_running():
             return
 
@@ -1089,8 +1083,7 @@ and will get the default value if not</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def start(self):
-    &#34;&#34;&#34;Starts the process
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;Starts the process&#34;&#34;&#34;
     if self.is_running():
         return
 

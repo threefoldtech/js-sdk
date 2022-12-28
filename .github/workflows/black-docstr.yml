@@ -2,18 +2,18 @@ name: black-docstr
 
 on: pull_request
 jobs:
-    black-docstr:
-        runs-on: ubuntu-latest
-        steps:
-        - uses: actions/checkout@v2
-        - name: Install dependencies
-          run: |
-            sudo apt-get update
-            sudo apt-get install -y git python3-pip
-            sudo pip3 install black==22.10.0 docstr-coverage
-            git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
-        - name: Running black and docstr-coverage check
-          run: |
-            FILES="$(git diff --name-only --diff-filter=A --diff-filter=M "origin/${{github.base_ref}}" '*.py')"
-            black --check -l 120 -t py37 --exclude 'templates' $FILES
-            for FILE in $FILES; do echo $FILE; docstr-coverage $FILE || true; done
+  black-docstr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git python3-pip
+          sudo pip3 install black==22.10.0 docstr-coverage
+          git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+      - name: Running black and docstr-coverage check
+        run: |
+          FILES="$(git diff --name-only --diff-filter=A --diff-filter=M "origin/${{github.base_ref}}" '*.py')"
+          [ ! -z "$FILES" ] && black --check -l 120 -t py37 --exclude 'templates' $FILES
+          for FILE in $FILES; do echo $FILE; docstr-coverage $FILE || true; done

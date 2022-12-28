@@ -96,13 +96,7 @@ e.g
 &#34;&#34;&#34;
 
 from jumpscale.loader import j
-from jinja2 import (
-    Environment,
-    FileSystemLoader,
-    select_autoescape,
-    StrictUndefined,
-    Template,
-)
+from jinja2 import Environment, FileSystemLoader, select_autoescape, StrictUndefined, Template
 
 
 def get_env(templates_path):
@@ -114,7 +108,7 @@ def get_env(templates_path):
     Returns:
         jinja2.Environment: Jinja2 env
     &#34;&#34;&#34;
-    return Environment(loader=FileSystemLoader(templates_path), autoescape=select_autoescape([&#34;html&#34;, &#34;xml&#34;]),)
+    return Environment(loader=FileSystemLoader(templates_path), autoescape=select_autoescape([&#34;html&#34;, &#34;xml&#34;]))
 
 
 def get_template(template_path=None, template_text=None):
@@ -171,7 +165,7 @@ def render_template(template_path=None, template_text=None, dest=None, **kwargs)
 
 
 def render_code_python(
-    obj_key=None, template_path=None, template_text=None, dest=None, objForHash=None, name=None, **kwargs,
+    obj_key=None, template_path=None, template_text=None, dest=None, objForHash=None, name=None, **kwargs
 ):
     # TODO
     pass</code></pre>
@@ -212,7 +206,7 @@ def render_code_python(
     Returns:
         jinja2.Environment: Jinja2 env
     &#34;&#34;&#34;
-    return Environment(loader=FileSystemLoader(templates_path), autoescape=select_autoescape([&#34;html&#34;, &#34;xml&#34;]),)</code></pre>
+    return Environment(loader=FileSystemLoader(templates_path), autoescape=select_autoescape([&#34;html&#34;, &#34;xml&#34;]))</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.tools.jinja2.get_template"><code class="name flex">
@@ -279,7 +273,7 @@ def render_code_python(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def render_code_python(
-    obj_key=None, template_path=None, template_text=None, dest=None, objForHash=None, name=None, **kwargs,
+    obj_key=None, template_path=None, template_text=None, dest=None, objForHash=None, name=None, **kwargs
 ):
     # TODO
     pass</code></pre>

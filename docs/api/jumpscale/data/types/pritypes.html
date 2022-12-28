@@ -52,7 +52,7 @@ class Integer:
 
     def check(self, value):
         &#34;&#34;&#34;Check whether provided string represent integer value
-        
+
         Arguments:
             value (str)
         &#34;&#34;&#34;
@@ -64,7 +64,7 @@ class Integer:
 
     def from_str(self, value):
         &#34;&#34;&#34;get integer value from tha string
-        
+
         Arguments:
             value (str)
         &#34;&#34;&#34;
@@ -111,7 +111,7 @@ class Float:
 
     def check(self, value):
         &#34;&#34;&#34;Check whether provided string represent integer value
-        
+
         Arguments:
             value (str)
         &#34;&#34;&#34;
@@ -123,7 +123,7 @@ class Float:
 
     def from_str(self, value):
         &#34;&#34;&#34;get integer value from tha string
-        
+
         Arguments:
             value (str)
         &#34;&#34;&#34;
@@ -140,7 +140,7 @@ class JSObject:
 
     def check(self, value):
         &#34;&#34;&#34;Check whether provided string represent JSObject value. (Any string will do).
-        
+
         Arguments:
             value (str)
         &#34;&#34;&#34;
@@ -148,7 +148,7 @@ class JSObject:
 
     def from_str(self, value):
         &#34;&#34;&#34;Return value as is.
-        
+
         Arguments:
             value (str)
         &#34;&#34;&#34;
@@ -163,10 +163,10 @@ class List:
 
     def _deep_check(self, value):
         &#34;&#34;&#34;Check that the value represents a list with proper elements of the specified subtype.
-        
+
         Args:
             value (list): The list to be checked.
-        
+
         Returns:
             Boolean: True if the list is valid.
         &#34;&#34;&#34;
@@ -181,10 +181,10 @@ class List:
 
     def check(self, value):
         &#34;&#34;&#34;Check that the value represents a list with proper elements of the specified subtype.
-        
+
         Args:
             value (list): The list to be checked.
-        
+
         Returns:
             Boolean: True if the list is valid.
         &#34;&#34;&#34;
@@ -199,10 +199,10 @@ class List:
 
     def _deep_parse(self, value):
         &#34;&#34;&#34;parses the subelements (if they are of different python type it&#39;s converted using the subtype parser)
-        
+
         Args:
             value (list): The list to be parsed.
-        
+
         Returns:
             list: The parsed list.
         &#34;&#34;&#34;
@@ -217,10 +217,10 @@ class List:
 
     def from_str(self, value):
         &#34;&#34;&#34;parses the string value into a list.
-        
+
         Args:
             value (str): The string to be parsed.
-        
+
         Returns:
             list: The parsed list.
         &#34;&#34;&#34;
@@ -240,11 +240,11 @@ def get_js_type(type_str, default_value=None):
     4. &#34;F&#34; -&gt; Float
     5. &#34;L.*&#34; -&gt; List with subtype .*
     6. &#34;&#34; -&gt; empty defaults to String
-    
+
     Args:
         type_str (str): type description.
         default_value (any, optional): The default value. Defaults to None.
-    
+
     Returns:
         Object: A js type object.
     &#34;&#34;&#34;
@@ -303,11 +303,11 @@ def get_js_type(type_str, default_value=None):
     4. &#34;F&#34; -&gt; Float
     5. &#34;L.*&#34; -&gt; List with subtype .*
     6. &#34;&#34; -&gt; empty defaults to String
-    
+
     Args:
         type_str (str): type description.
         default_value (any, optional): The default value. Defaults to None.
-    
+
     Returns:
         Object: A js type object.
     &#34;&#34;&#34;
@@ -430,7 +430,7 @@ def get_js_type(type_str, default_value=None):
 
     def check(self, value):
         &#34;&#34;&#34;Check whether provided string represent integer value
-        
+
         Arguments:
             value (str)
         &#34;&#34;&#34;
@@ -442,7 +442,7 @@ def get_js_type(type_str, default_value=None):
 
     def from_str(self, value):
         &#34;&#34;&#34;get integer value from tha string
-        
+
         Arguments:
             value (str)
         &#34;&#34;&#34;
@@ -466,7 +466,7 @@ def get_js_type(type_str, default_value=None):
 </summary>
 <pre><code class="python">def check(self, value):
     &#34;&#34;&#34;Check whether provided string represent integer value
-    
+
     Arguments:
         value (str)
     &#34;&#34;&#34;
@@ -490,7 +490,7 @@ def get_js_type(type_str, default_value=None):
 </summary>
 <pre><code class="python">def from_str(self, value):
     &#34;&#34;&#34;get integer value from tha string
-    
+
     Arguments:
         value (str)
     &#34;&#34;&#34;
@@ -520,7 +520,7 @@ def get_js_type(type_str, default_value=None):
 
     def check(self, value):
         &#34;&#34;&#34;Check whether provided string represent integer value
-        
+
         Arguments:
             value (str)
         &#34;&#34;&#34;
@@ -532,7 +532,7 @@ def get_js_type(type_str, default_value=None):
 
     def from_str(self, value):
         &#34;&#34;&#34;get integer value from tha string
-        
+
         Arguments:
             value (str)
         &#34;&#34;&#34;
@@ -556,7 +556,7 @@ def get_js_type(type_str, default_value=None):
 </summary>
 <pre><code class="python">def check(self, value):
     &#34;&#34;&#34;Check whether provided string represent integer value
-    
+
     Arguments:
         value (str)
     &#34;&#34;&#34;
@@ -580,7 +580,7 @@ def get_js_type(type_str, default_value=None):
 </summary>
 <pre><code class="python">def from_str(self, value):
     &#34;&#34;&#34;get integer value from tha string
-    
+
     Arguments:
         value (str)
     &#34;&#34;&#34;
@@ -609,7 +609,7 @@ def get_js_type(type_str, default_value=None):
 
     def check(self, value):
         &#34;&#34;&#34;Check whether provided string represent JSObject value. (Any string will do).
-        
+
         Arguments:
             value (str)
         &#34;&#34;&#34;
@@ -617,7 +617,7 @@ def get_js_type(type_str, default_value=None):
 
     def from_str(self, value):
         &#34;&#34;&#34;Return value as is.
-        
+
         Arguments:
             value (str)
         &#34;&#34;&#34;
@@ -638,7 +638,7 @@ def get_js_type(type_str, default_value=None):
 </summary>
 <pre><code class="python">def check(self, value):
     &#34;&#34;&#34;Check whether provided string represent JSObject value. (Any string will do).
-    
+
     Arguments:
         value (str)
     &#34;&#34;&#34;
@@ -658,7 +658,7 @@ def get_js_type(type_str, default_value=None):
 </summary>
 <pre><code class="python">def from_str(self, value):
     &#34;&#34;&#34;Return value as is.
-    
+
     Arguments:
         value (str)
     &#34;&#34;&#34;
@@ -685,10 +685,10 @@ def get_js_type(type_str, default_value=None):
 
     def _deep_check(self, value):
         &#34;&#34;&#34;Check that the value represents a list with proper elements of the specified subtype.
-        
+
         Args:
             value (list): The list to be checked.
-        
+
         Returns:
             Boolean: True if the list is valid.
         &#34;&#34;&#34;
@@ -703,10 +703,10 @@ def get_js_type(type_str, default_value=None):
 
     def check(self, value):
         &#34;&#34;&#34;Check that the value represents a list with proper elements of the specified subtype.
-        
+
         Args:
             value (list): The list to be checked.
-        
+
         Returns:
             Boolean: True if the list is valid.
         &#34;&#34;&#34;
@@ -721,10 +721,10 @@ def get_js_type(type_str, default_value=None):
 
     def _deep_parse(self, value):
         &#34;&#34;&#34;parses the subelements (if they are of different python type it&#39;s converted using the subtype parser)
-        
+
         Args:
             value (list): The list to be parsed.
-        
+
         Returns:
             list: The parsed list.
         &#34;&#34;&#34;
@@ -739,10 +739,10 @@ def get_js_type(type_str, default_value=None):
 
     def from_str(self, value):
         &#34;&#34;&#34;parses the string value into a list.
-        
+
         Args:
             value (str): The string to be parsed.
-        
+
         Returns:
             list: The parsed list.
         &#34;&#34;&#34;
@@ -774,10 +774,10 @@ def get_js_type(type_str, default_value=None):
 </summary>
 <pre><code class="python">def check(self, value):
     &#34;&#34;&#34;Check that the value represents a list with proper elements of the specified subtype.
-    
+
     Args:
         value (list): The list to be checked.
-    
+
     Returns:
         Boolean: True if the list is valid.
     &#34;&#34;&#34;
@@ -812,10 +812,10 @@ def get_js_type(type_str, default_value=None):
 </summary>
 <pre><code class="python">def from_str(self, value):
     &#34;&#34;&#34;parses the string value into a list.
-    
+
     Args:
         value (str): The string to be parsed.
-    
+
     Returns:
         list: The parsed list.
     &#34;&#34;&#34;

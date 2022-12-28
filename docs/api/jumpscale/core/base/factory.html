@@ -603,7 +603,7 @@ class StoredFactory(events.Handler, Factory):
             raise ValueError(&#34;at least one query parameter is required, e.g. age=10&#34;)
 
         new_cursor, count, result = self.store.find(cursor_=cursor_, limit_=limit_, **query)
-        return new_cursor, count, (self._get_object_from_config(data[KEY_FIELD_NAME], data) for data in result)
+        return (new_cursor, count, (self._get_object_from_config(data[KEY_FIELD_NAME], data) for data in result))
 
     def list_all(self):
         &#34;&#34;&#34;
@@ -1478,7 +1478,7 @@ to store all instance configurations.</p>
             raise ValueError(&#34;at least one query parameter is required, e.g. age=10&#34;)
 
         new_cursor, count, result = self.store.find(cursor_=cursor_, limit_=limit_, **query)
-        return new_cursor, count, (self._get_object_from_config(data[KEY_FIELD_NAME], data) for data in result)
+        return (new_cursor, count, (self._get_object_from_config(data[KEY_FIELD_NAME], data) for data in result))
 
     def list_all(self):
         &#34;&#34;&#34;
@@ -1657,7 +1657,7 @@ query: a mapping for field/query, e.g. first_name="aa"</p>
         raise ValueError(&#34;at least one query parameter is required, e.g. age=10&#34;)
 
     new_cursor, count, result = self.store.find(cursor_=cursor_, limit_=limit_, **query)
-    return new_cursor, count, (self._get_object_from_config(data[KEY_FIELD_NAME], data) for data in result)</code></pre>
+    return (new_cursor, count, (self._get_object_from_config(data[KEY_FIELD_NAME], data) for data in result))</code></pre>
 </details>
 </dd>
 <dt id="jumpscale.core.base.factory.StoredFactory.get_instance_property"><code class="name flex">
