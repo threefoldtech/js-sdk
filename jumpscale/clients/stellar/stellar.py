@@ -55,6 +55,8 @@ _THREEFOLDFOUNDATION_TFTSTELLAR_ENDPOINT = {
     "ACTIVATE_ACCOUNT": "/threefoldfoundation/activation_service/activate_account",
 }
 
+_DEFAULTTRANSACTIONTIMEOUT = 30
+
 
 class Network(Enum):
     STD = "STD"
@@ -251,7 +253,7 @@ class Stellar(Client):
         # Step 3: Merge account
         transaction_builder.append_account_merge_op(self.address)
 
-        transaction_builder.set_timeout(30)
+        transaction_builder.set_timeout(_DEFAULTTRANSACTIONTIMEOUT)
         transaction = transaction_builder.build()
         transaction.sign(self.secret)
         server.submit_transaction(transaction)
@@ -323,6 +325,7 @@ class Stellar(Client):
                 base_fee=base_fee,
             )
             .append_create_account_op(destination=destination_address, starting_balance=starting_balance)
+            .set_timeout(_DEFAULTTRANSACTIONTIMEOUT)
             .build()
         )
         transaction.sign(source_keypair)
@@ -396,7 +399,7 @@ class Stellar(Client):
                 base_fee=base_fee,
             )
             .append_change_trust_op(Asset(asset_code, issuer), limit=limit)
-            .set_timeout(30)
+            .set_timeout(_DEFAULTTRANSACTIONTIMEOUT)
             .build()
         )
 
@@ -428,7 +431,7 @@ class Stellar(Client):
         memo_hash=None,
         fund_transaction=True,
         from_address=None,
-        timeout=30,
+        timeout=_DEFAULTTRANSACTIONTIMEOUT,
         sequence_number: int = None,
         sign: bool = True,
         retries: int = 5,
@@ -493,7 +496,7 @@ class Stellar(Client):
         memo_hash=None,
         fund_transaction=True,
         from_address=None,
-        timeout=30,
+        timeout=_DEFAULTTRANSACTIONTIMEOUT,
         sequence_number: int = None,
         sign: bool = True,
     ):
@@ -818,7 +821,7 @@ class Stellar(Client):
         for public_key_signer in public_keys_signers:
             transaction_builder.append_ed25519_public_key_signer(public_key_signer, 1)
 
-        transaction_builder.set_timeout(30)
+        transaction_builder.set_timeout(_DEFAULTTRANSACTIONTIMEOUT)
         tx = transaction_builder.build()
         tx.sign(source_keypair)
 
@@ -975,7 +978,7 @@ class Stellar(Client):
         buying_asset: str,
         amount: Union[str, decimal.Decimal],
         price: Union[str, decimal.Decimal],
-        timeout=30,
+        timeout=_DEFAULTTRANSACTIONTIMEOUT,
         offer_id=0,
     ):
         """Places/Deletes a selling order for amount `amount` of `selling_asset` for `buying_asset` with the price of `price`
@@ -1068,7 +1071,7 @@ class Stellar(Client):
                 source_account=account, network_passphrase=_NETWORK_PASSPHRASES[self.network.value], base_fee=base_fee
             )
             .append_manage_data_op(name, value)
-            .set_timeout(30)
+            .set_timeout(_DEFAULTTRANSACTIONTIMEOUT)
             .build()
         )
 
